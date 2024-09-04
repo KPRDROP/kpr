@@ -1,41 +1,72 @@
 #EXTM3U
-#EXTINF:-1 tvg-logo="https://i.postimg.cc/hvLn7533/image.png",[COLOR yellow][B]--SPECIAL EVENTS--[/COLOR][/B]
+#EXTINF:-1 tvg-logo="https://i.postimg.cc/hvLn7533/image.png",[COLOR yellow][B]--SPECIAL EVENTS--{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/pwAAAB%2bLCAAAAAAABAANzkkOgjAUANADGQKl%2faUsWFABpwQpk%2bKOMiRMCkKIMRxe3wmem4XqOQ89dyBCPq64LPFY2Ja1IYDEfjuCexFrMxRsjGEEWlUrhqkThQDUitSkqVDK9KpCtAYJm%2bB%2bznfBpWy0NZrlnQRea1I6O8NT9GtKTnX3hQnCV140ohibqTByvL%2fFQcJxyhd29A9kWT99E2M6uTrK1C7W%2fp0fGLy11KcAAAA%3d$http-refferer=http://linkprotect.xmtvplayer.com
 
-#EXTINF:-1 tvg-id="" tvg-name="Event 01-" tvg-logo="https://i.postimg.cc/qRQTfq5j/image.png", Special Events 1 (only live)
+#EXTINF:-1 tvg-id="" tvg-name="Event 01-" tvg-logo="https://i.postimg.cc/qRQTfq5j/image.png", Special Events 1-{only-live}
 xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMjYxIHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
-#EXTINF:-1 tvg-id="" tvg-name="Event 02-" tvg-logo="https://i.postimg.cc/qRQTfq5j/image.png", Special Events 2 (only live)
+#EXTINF:-1 tvg-id="" tvg-name="Event 02-" tvg-logo="https://i.postimg.cc/qRQTfq5j/image.png", Special Events 2-{only-live}
 xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzM1IHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
-#EXTINF:-1 tvg-id="" tvg-name="Event 03-" tvg-logo="https://i.postimg.cc/qRQTfq5j/image.png", Special Events 3 (only live)
+#EXTINF:-1 tvg-id="" tvg-name="Event 03-" tvg-logo="https://i.postimg.cc/qRQTfq5j/image.png", Special Events 3-{only-live}
 xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzkyIHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
-#EXTINF:-1 tvg-id="" tvg-name="Event 04-" tvg-logo="https://i.postimg.cc/qRQTfq5j/image.png", Special Events 4 (only live)
+#EXTINF:-1 tvg-id="" tvg-name="Event 04-" tvg-logo="https://i.postimg.cc/qRQTfq5j/image.png", Special Events 4-{only-live}
 xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzk0IHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
-#EXTINF:-1 tvg-id="" tvg-name="Event 05-" tvg-logo="https://i.postimg.cc/qRQTfq5j/image.png", Special Events 5 (only live)
+#EXTINF:-1 tvg-id="" tvg-name="Event 05-" tvg-logo="https://i.postimg.cc/qRQTfq5j/image.png", Special Events 5-{only-live}
 xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMTYzNiB1c2VyLWFnZW50PUlQVFZTbWFydGVyc1Bybw==
 
-#EXTINF:-1 tvg-logo="https://i.postimg.cc/0Nbx7MsJ/sports-events-plus-logo.png",[COLOR yellow][B]--TODAY TRENDING EVENTS--[/COLOR][/B]
+#EXTINF:-1 tvg-logo="https://i.postimg.cc/0Nbx7MsJ/sports-events-plus-logo.png",[COLOR yellow][B]--TODAY TRENDING EVENTS--{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/pwAAAB%2bLCAAAAAAABAANzkkOgjAUANADGQKl%2faUsWFABpwQpk%2bKOMiRMCkKIMRxe3wmem4XqOQ89dyBCPq64LPFY2Ja1IYDEfjuCexFrMxRsjGEEWlUrhqkThQDUitSkqVDK9KpCtAYJm%2bB%2bznfBpWy0NZrlnQRea1I6O8NT9GtKTnX3hQnCV140ohibqTByvL%2fFQcJxyhd29A9kWT99E2M6uTrK1C7W%2fp0fGLy11KcAAAA%3d$http-refferer=http://linkprotect.xmtvplayer.com
 
-#EXTINF:-1 tvg-logo="https://bit.ly/wweaewlogo",[COLOR yellow][B]--WWE EVENTS(Only Live)--[/COLOR][/B]
+#EXTINF:-1 tvg-logo="https://bit.ly/wweaewlogo",[COLOR yellow][B]--WWE EVENTS--{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/owAAAB%2bLCAAAAAAABAANxs0SQkAAAOAHaoy1dlmHDmL91URphJvdHTGJMCTj4es7fXfaWY6zrA%2fmducpYcPkJCmEKmkir6Etu0bYo3P0oTbab%2fbFV5S2F%2foxrGbLyzaDlwXRCJKgDpiEAAFSoRb%2fcQ44U5hKBNpSkVdiGF90h0tOAS6halr2%2bF4b%2bXmLy%2fzkIvlr50FfGweNLlAJwp6aRZ1hDyRz7P8A55lNY6MAAAA%3d$http-refferer=http://linkprotect.xmtvplayer.com
 
-#EXTINF:-1 tvg-logo="https://i.postimg.cc/441vhmN5/boxing-logo-free-vector.jpg",[COLOR yellow][B]--BOXING(Only Live)--[/COLOR][/B]
+#EXTINF:-1 tvg-logo="https://i.postimg.cc/441vhmN5/boxing-logo-free-vector.jpg",[COLOR yellow][B]--BOXING--{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/pwAAAB%2bLCAAAAAAABAANztsOgiAAANAvYqGQwoMPtpRiUqlN56OQ1zSv6Wp%2bfJ0vOIdV0E8foUyE9YshbZcM93K1rA0b5mECtm4ERIBz3206zh9GKiXIkYIAKwoBgUoCiZXEkmDN3NMtro7MXYZnZCLoUVLMQ1WPhpMtVVr6tyLWglOEQ0fY9ZtNY836tZ0axF2%2fu146NkstiUrK26x158bjgn9VzPm%2f8wMUMpW3pwAAAA%3d%3d$http-refferer=http://linkprotect.xmtvplayer.com
 
-#EXTINF:-1 tvg-logo="https://i.postimg.cc/cC5rBqzs/fighter-ready-fight-illustration-mma-260nw-780240853.jpg",[COLOR yellow][B]--UFC/MMA(Only Live)--[/COLOR][/B]
+#EXTINF:-1 tvg-logo="https://i.postimg.cc/cC5rBqzs/fighter-ready-fight-illustration-mma-260nw-780240853.jpg",[COLOR yellow][B]--UFC/MMA--{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/pwAAAB%2bLCAAAAAAABAANzrsOgjAAQNEvIoHS1nZgAB8BW6NQB2ExNOVhQB6tppLw8bLcnPHuKXnd5kevh4jGKU8AXn7KBsGa8WenH841d9slIu20Qh8pChByYAmUA9EmSSTegn1fKkUp9tYuRSZn9hJXiFSyIbxrvqL%2fZAJNxuURTed6HsPF9sPxji0LjcvmUpxHwpI3gF4BzK7JPA6gaIXWhyKqT8ZuO39CzsBkpwAAAA%3d%3d$http-refferer=http://linkprotect.xmtvplayer.com
 
-#EXTINF:-1 tvg-logo="https://bit.ly/basketlogo",[COLOR yellow][B]--NBA(Only Live)--[/COLOR][/B]
+#EXTINF:-1 tvg-logo="https://bit.ly/basketlogo",[COLOR yellow][B]--NBA--{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/pwAAAB%2bLCAAAAAAABAAFwW0TQjAAAOAf5HZe2sw%2b%2bFKKoXTFUd82LJRYXNmdH9%2fzjLSUTnwZUGJkr8pUyGNn%2fHDdVXGbTPeIW1k0qICy1STQ4hViwObcALASFnDqDQMEWaWDeG3jyljLYhEfLzzpWYJVGuykipdCO16LaclHrWmyK0q%2fYxrtYStkK%2fwn9XvYBVtBGO%2fnG86XkL5hKOWhy%2fVe%2bUUzmPPPdf%2f%2bH7zYpwAAAA%3d%3d$http-refferer=http://linkprotect.xmtvplayer.com
 
-#EXTINF:-1 tvg-logo="https://bit.ly/logomlb",[COLOR yellow][B]--MLB --[/COLOR][/B]
+#EXTINF:-1 tvg-logo="https://bit.ly/logomlb",[COLOR yellow][B]--MLB ----{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/jwAAAB%2bLCAAAAAAABAAFwd0OgiAYANAHckyCD38uvMEcUraVzKhLVOSiTF3qXPPhOyf1nS0jmbkpVUIPb6mvee6SZMftWtE6XuaZQrP%2bij3CATBiAbEDGASMAjKmJQhTTFhsqME23Ds1nXxOL1zdn9F36nuPZBQ2z7Zc3foxK73QflTzOI564fVWB%2fJVDcLJsygg77j4AxlNmcqPAAAA$http-refferer=http://linkprotect.xmtvplayer.com
 
-#EXTINF:-1 tvg-logo="https://i.postimg.cc/d3qchTdh/image.png",[COLOR yellow][B]--CFB/NCAA(Only Live)--[/COLOR][/B]
+#EXTINF:-1 tvg-id="" tvg-name="MLB 01" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 01-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzM2IHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 02" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 02-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzM3IHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 03" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 03-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzM4IHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 04" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 04-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzM5IHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 05" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 05-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzQwIHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 06" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 06-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzQxIHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 07" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 07-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzQyIHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 08" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 08-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzQzIHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 09" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 09-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzQ0IHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 10" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 10-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzQ1IHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 11" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 11-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzQ2IHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 12" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 12-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzQ3IHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 13" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 13-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzQ4IHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 14" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 14-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzQ5IHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+#EXTINF:-1 tvg-id="" tvg-name="MLB 15" tvg-logo="https://i.ibb.co/fk1Hf63/imageedit-0-4434815088.png",MLB 15-{only-live}
+xmtv://aHR0cDovL3N0cmVhbXN5Lm9ubGluZToyOTk5L2p1YW52LzA0Ym9kd2FnYTAvMzUwIHVzZXItYWdlbnQ9SVBUVlNtYXJ0ZXJzUHJv
+
+#EXTINF:-1 tvg-logo="https://i.postimg.cc/d3qchTdh/image.png",[COLOR yellow][B]--CFB/NCAA--{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/owAAAB%2bLCAAAAAAABAANxs0SQkAAAOAHaoy1dlmHDmL91URphJvdHTGJMCTj4es7fXfaWY6zrA%2fmducpYcPkJCmEKmkir6Etu0bYo3P0oTbab%2fbFV5S2F%2foxrGbLyzaDlwXRCJKgDpiEAAFSoRb%2fcQ44U5hKBNpSkVdiGF90h0tOAS6halr2%2bF4b%2bXmLy%2fzkIvlr50FfGweNLlAJwp6aRZ1hDyRz7P8A55lNY6MAAAA%3d$http-refferer=http://linkprotect.xmtvplayer.com
 
-#EXTINF:-1 tvg-logo="https://bit.ly/nefellogo",[COLOR yellow][B]--NFL /XFL /UFL /CFL Streams(Only Live)--[/COLOR][/B]
+#EXTINF:-1 tvg-logo="https://bit.ly/nefellogo",[COLOR yellow][B]--NFL /XFL /UFL /CFL Streams--{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/pwAAAB%2bLCAAAAAAABAAFwdsOQzAAANAPWhpKafvggS0mKmvMZeOtajVFhG2RiI%2ffOedLx1kos%2bdaVyiTGC17wFPPO8x%2bYYlGHd1J%2fIXDfLQOtGFLEVDKxQC5LxMIAgXAJlYEmo0DHXm4W2IUIyuiML4FpIjrdELc0qfTPtgC33lwTYa3wX2hHnO%2f1tsPS1ppJLEz2%2bVHlHkzEsqUzq1pTlI97VFX%2bZvn%2fQFjAQYkpwAAAA%3d%3d$http-refferer=http://linkprotect.xmtvplayer.com
 
-#EXTINF:-1 tvg-logo="https://i.postimg.cc/7ZjtQfzz/nhl-shield-logo-on-silver-sportslogosnet-200x200.jpg",[COLOR yellow][B]--NHL/FIELD HOCKEY(Only Live)--[/COLOR][/B]
+#EXTINF:-1 tvg-logo="https://i.postimg.cc/7ZjtQfzz/nhl-shield-logo-on-silver-sportslogosnet-200x200.jpg",[COLOR yellow][B]--NHL/FIELD HOCKEY--{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/jwAAAB%2bLCAAAAAAABAAFwd0OgiAYANAHckyCD38uvMEcUraVzKhLVOSiTF3qXPPhOyf1nS0jmbkpVUIPb6mvee6SZMftWtE6XuaZQrP%2bij3CATBiAbEDGASMAjKmJQhTTFhsqME23Ds1nXxOL1zdn9F36nuPZBQ2z7Zc3foxK73QflTzOI564fVWB%2fJVDcLJsygg77j4AxlNmcqPAAAA$http-refferer=http://linkprotect.xmtvplayer.com
