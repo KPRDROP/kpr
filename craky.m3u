@@ -1,8 +1,8 @@
 #EXTM3U
 
-░█─▄▀ ░█▀▀█ ░█▀▀█ ── ░█▀▄▀█ █▀▀█ ░█─░█ ── ░█▀▀▀█ ░█▀▀█ ░█▀▀▀█ ░█▀▀█ ▀▀█▀▀ ░█▀▀▀█ 
-░█▀▄─ ░█▄▄█ ░█▄▄▀ ▀▀ ░█░█░█ ──▀▄ ░█─░█ ▀▀ ─▀▀▀▄▄ ░█▄▄█ ░█──░█ ░█▄▄▀ ─░█── ─▀▀▀▄▄ 
-░█─░█ ░█─── ░█─░█ ── ░█──░█ █▄▄█ ─▀▄▄▀ ── ░█▄▄▄█ ░█─── ░█▄▄▄█ ░█─░█ ─░█── ░█▄▄▄█
+#░█─▄▀ ░█▀▀█ ░█▀▀█ ── ░█▀▄▀█ █▀▀█ ░█─░█ ── ░█▀▀▀█ ░█▀▀█ ░█▀▀▀█ ░█▀▀█ ▀▀█▀▀ ░█▀▀▀█ 
+#░█▀▄─ ░█▄▄█ ░█▄▄▀ ▀▀ ░█░█░█ ──▀▄ ░█─░█ ▀▀ ─▀▀▀▄▄ ░█▄▄█ ░█──░█ ░█▄▄▀ ─░█── ─▀▀▀▄▄ 
+#░█─░█ ░█─── ░█─░█ ── ░█──░█ █▄▄█ ─▀▄▄▀ ── ░█▄▄▄█ ░█─── ░█▄▄▄█ ░█─░█ ─░█── ░█▄▄▄█
 # ――――――――――――――――――――――――――――――――――――――――――――――
 # (●) Lᴀsᴛ Uᴘᴅᴀᴛᴇ: 🇩​​​​​🇦​​​​​🇮​​​​​🇱​​​​​🇾​​​​​ 🇺​​​​​🇵​​​​​🇩​​​​​🇦​​​​​🇹​​​​​🇪​​​​​🇸​​​​​
 # (●) Sᴇʀᴠɪᴄᴇ: 🇫​​​​​🇷​​​​​🇪​​​​​🇪​​​​​-🇲​​​​​3🇺​​​​​
@@ -30,6 +30,17 @@ httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/pwAAAB%2bLCA
 #EXTINF:-1 tvg-logo="https://i.postimg.cc/6pxpbmpV/nba-logo-png-seeklogo-247736.png",[COLOR yellow][B]--NBA--Streams{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/pwAAAB%2bLCAAAAAAABAAFwW0TQjAAAOAf5HZe2sw%2b%2bFKKoXTFUd82LJRYXNmdH9%2fzjLSUTnwZUGJkr8pUyGNn%2fHDdVXGbTPeIW1k0qICy1STQ4hViwObcALASFnDqDQMEWaWDeG3jyljLYhEfLzzpWYJVGuykipdCO16LaclHrWmyK0q%2fYxrtYStkK%2fwn9XvYBVtBGO%2fnG86XkL5hKOWhy%2fVe%2bUUzmPPPdf%2f%2bH7zYpwAAAA%3d%3d$http-refferer=http://linkprotect.xmtvplayer.com
 
+#EXTINF:-1 tvg-logo="https://bit.ly/basketlogo",WNBA: Indiana Fever vs Las Vegas Aces
+xmtv://aHR0cHM6Ly94My5zY2hpbmVncmVuLnNwYWNlL3BsYXlsaXN0LzM0OTYyL2EuYWV0aGVyYWV0aGVyLnNwYWNlL2NheGl8b3JpZ2luPWh0dHBzOi8vZ29vZ2xhcGlzYXBpLmNvbXxyZWZlcmVyPWh0dHBzOi8vZ29vZ2xhcGlzYXBpLmNvbS8
+#EXTINF:-1 tvg-logo="https://bit.ly/basketlogo",WNBA: New York Liberty vs Los Angeles Sparks
+xmtv://aHR0cHM6Ly9wbDIuZmFsa29uc2t5eWUuc3BhY2UvcGxheWxpc3QvMzQ5NjMvYS5sdW5hcmdhbGF4YS5zcGFjZS9jYXhpfG9yaWdpbj1odHRwczovL2dvb2dsYXBpc2FwaS5jb218cmVmZXJlcj1odHRwczovL2dvb2dsYXBpc2FwaS5jb20v
+#EXTINF:-1 tvg-logo="https://bit.ly/basketlogo",WNBA: Atlanta Dream vs Seattle Storm
+xmtv://aHR0cHM6Ly9wbDIuZmFsa29uc2t5eWUuc3BhY2UvcGxheWxpc3QvMzQ5NjQvYS50ZXJyYWx1bWVuLnNwYWNlL2NheGl8b3JpZ2luPWh0dHBzOi8vZ29vZ2xhcGlzYXBpLmNvbXxyZWZlcmVyPWh0dHBzOi8vZ29vZ2xhcGlzYXBpLmNvbS8
+#EXTINF:-1 tvg-logo="https://bit.ly/basketlogo",WNBA: Dallas Wings vs Phoenix Mercury
+xmtv://aHR0cHM6Ly9wbC5nbnRsZWNsdWQuc3BhY2UvcGxheWxpc3QvMzQ5NjUvYS50ZXJyYWx1bWVuLnNwYWNlL2NheGl8b3JpZ2luPWh0dHBzOi8vZ29vZ2xhcGlzYXBpLmNvbXxyZWZlcmVyPWh0dHBzOi8vZ29vZ2xhcGlzYXBpLmNvbS8
+#EXTINF:-1 tvg-logo="https://bit.ly/basketlogo",WNBA: Minnesota Lynx vs Washington Mystics
+xmtv://aHR0cHM6Ly9wbC5ncm9vd3NvYXJyLnNwYWNlL3BsYXlsaXN0LzM0OTY2L2EuYWV0aGVyYWV0aGVyLnNwYWNlL2NheGl8b3JpZ2luPWh0dHBzOi8vZ29vZ2xhcGlzYXBpLmNvbXxyZWZlcmVyPWh0dHBzOi8vZ29vZ2xhcGlzYXBpLmNvbS8
+
 #EXTINF:-1 tvg-logo="https://i.postimg.cc/3w81mhzd/mlb-logo-png-seeklogo-250501.png",[COLOR yellow][B]--MLB--Streams{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/jwAAAB%2bLCAAAAAAABAAFwd0OgiAYANAHckyCD38uvMEcUraVzKhLVOSiTF3qXPPhOyf1nS0jmbkpVUIPb6mvee6SZMftWtE6XuaZQrP%2bij3CATBiAbEDGASMAjKmJQhTTFhsqME23Ds1nXxOL1zdn9F36nuPZBQ2z7Zc3foxK73QflTzOI564fVWB%2fJVDcLJsygg77j4AxlNmcqPAAAA$http-refferer=http://linkprotect.xmtvplayer.com
 
@@ -38,6 +49,9 @@ httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/owAAAB%2bLCA
 
 #EXTINF:-1 tvg-logo="https://i.postimg.cc/5tpVSx0G/image.png",[COLOR yellow][B]--NFL /XFL /UFL /CFL Streams--{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/pwAAAB%2bLCAAAAAAABAAFwdsOQzAAANAPWhpKafvggS0mKmvMZeOtajVFhG2RiI%2ffOedLx1kos%2bdaVyiTGC17wFPPO8x%2bYYlGHd1J%2fIXDfLQOtGFLEVDKxQC5LxMIAgXAJlYEmo0DHXm4W2IUIyuiML4FpIjrdELc0qfTPtgC33lwTYa3wX2hHnO%2f1tsPS1ppJLEz2%2bVHlHkzEsqUzq1pTlI97VFX%2bZvn%2fQFjAQYkpwAAAA%3d%3d$http-refferer=http://linkprotect.xmtvplayer.com
+
+#EXTINF:-1 tvg-logo="https://bit.ly/nefellogo",NFL: Calgary Stampeders vs Winnipeg Blue Bombers
+xmtv://aHR0cHM6Ly94My54cGxvcmVicmF2LnNwYWNlL3BsYXlsaXN0LzM0OTY3L2EubHVuYXJnYWxheGEuc3BhY2UvY2F4aXxvcmlnaW49aHR0cHM6Ly9nb29nbGFwaXNhcGkuY29tfHJlZmVyZXI9aHR0cHM6Ly9nb29nbGFwaXNhcGkuY29tLw
 
 #EXTINF:-1 tvg-logo="https://i.postimg.cc/QxM0FjGC/nhl-logo-png-seeklogo-534236.png",[COLOR yellow][B]--NHL/FIELD HOCKEY Streams--{only-live}--[/COLOR][/B]
 httphost://$http-raw=http://linkprotect.xmtvplayer.com:8080/protect/jwAAAB%2bLCAAAAAAABAAFwd0OgiAYANAHckyCD38uvMEcUraVzKhLVOSiTF3qXPPhOyf1nS0jmbkpVUIPb6mvee6SZMftWtE6XuaZQrP%2bij3CATBiAbEDGASMAjKmJQhTTFhsqME23Ds1nXxOL1zdn9F36nuPZBQ2z7Zc3foxK73QflTzOI564fVWB%2fJVDcLJsygg77j4AxlNmcqPAAAA$http-refferer=http://linkprotect.xmtvplayer.com
