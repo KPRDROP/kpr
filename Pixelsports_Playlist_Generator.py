@@ -132,9 +132,9 @@ def build_m3u(events, tivimate=False):
                 f'#EXTINF:-1 tvg-id="{tvid}" tvg-logo="{logo}" group-title="Pixelsports - {group_display} - {label}",{title}'
             )
             if tivimate:
-                # TiviMate format (pipe style)
+                # TiviMate format (pipe style) with icy-metadata=1
                 full_link = (
-                    f"{link}|referer={VLC_REFERER}|origin={VLC_REFERER}|user-agent={TIVIMATE_USER_AGENT}"
+                    f"{link}|referer={VLC_REFERER}|origin={VLC_REFERER}|user-agent={TIVIMATE_USER_AGENT}|icy-metadata=1"
                 )
                 lines.append(full_link)
             else:
