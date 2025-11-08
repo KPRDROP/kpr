@@ -1,41 +1,63 @@
-name: Update PPVLand Playlists
+name: Update PPVLand Playlist
 
 on:
   schedule:
-    - cron: "0 */6 * * *"   # Every 6 hours
-  workflow_dispatch:        # Allow manual trigger
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
-  update-ppvland:
+  update-playlist:
     name: Generate and Commit PPVLand Playlists
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
+      - name: 🧩 Checkout repository
         uses: actions/checkout@v4
 
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
-      - name: 📦 Install dependencies
+      - name: 📦 Install dependencies (if any)
         run: |
           python -m pip install --upgrade pip
-          pip install playwright aiohttp
-          playwright install firefox
 
-      - name: 🚀 Run PPVLand Playlist Generator
+      - name: ⚙️ Run PPVLand playlist generator
         run: python generate_ppvland.py
 
-      - name: 💾 Commit and Push Updated Playlists
+      - name: 💾 Commit & Safely Push if Playlist Changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          git add PPVLand_VLC.m3u8 PPVLand_TiviMate.m3u8 || true
-          if ! git diff --cached --quiet; then
-            git commit -m "Auto-update PPVLand playlists ($(date -u +"%Y-%m-%d %H:%M UTC"))"
-            git push
-          else
-            echo "✅ No changes to commit."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Stage all changes (new or updated files)
+          git add -A
+
+          # Check if any changes exist
+          if git diff --cached --quiet; then
+            echo "✅ No changes to commit"
+            exit 0
+          fi
+
+          # Commit with UTC timestamp
+          git commit -m "🔁 Auto-update PPVLand playlists $(date -u +'%Y-%m-%d %H:%M UTC')"
+
+          # Add small random delay (5–15 seconds) to avoid concurrent push issues
+          sleep $((RANDOM % 10 + 5))
+
+          # Push safely, retry with rebase if rejected
+          if ! git push origin main; then
+            echo "⚠️ Push rejected. Trying safe fetch + rebase..."
+            git pull origin main --rebase || {
+              echo "❌ Rebase failed. Exiting to avoid corruption."
+              exit 1
+            }
+            git push origin main || {
+              echo "❌ Second push failed. Remote changed again."
+              exit 1
+            }
           fi
