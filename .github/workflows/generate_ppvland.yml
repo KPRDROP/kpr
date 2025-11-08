@@ -1,76 +1,67 @@
-name: 🎬 Generate PPVLand Playlists
+name: PPV Stream Fetcher
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"  # Runs every 6 hours
-  push:
-    branches:
-      - main
+    # Run every hour on the hour
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    # Allow manual trigger
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  fetch-streams:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
-      - name: 📥 Checkout Repository
-        uses: actions/checkout@v4
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
 
-      - name: 🐍 Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'  # newer runtime, faster & more stable
 
-      - name: 📦 Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install aiohttp playwright beautifulsoup4
-          playwright install --with-deps firefox
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install aiohttp playwright
+        playwright install --with-deps firefox
 
-      - name: ⚙️ Run Playlist Generator
-        run: |
-          echo "🚀 Running generate_ppvland.py..."
-          python generate_ppvland.py
+    - name: 🚀 Run PPV Script (with timeout + debug)
+      run: |
+        echo "Starting PPV Stream Fetcher at $(date -u)"
+        timeout 180s python generate_ppvland.py || echo "⚠️ Script timed out or exited with error"
+        echo "Finished running generate_ppvland.py at $(date -u)"
 
-      - name: 💾 Commit & Safely Push if Playlists Changed
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          git add PPVLand.m3u8 PPVLand_TiviMate.m3u8 || true
+    - name: 🧾 Debug output
+      if: always()
+      run: |
+        echo "=== Current directory contents ==="
+        ls -la
+        echo "=== M3U8 files generated ==="
+        ls -l *.m3u8 || echo "❌ No playlist file generated"
 
-          # Check if files actually changed
-          if git diff --cached --quiet; then
-            echo "✅ No changes to commit"
-            exit 0
-          fi
+    - name: 💾 Commit changes
+      if: success()
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add PPVLand.m3u8 || true
+        git diff --cached --quiet && echo "✅ No changes to commit" || (
+          git commit -m "🔁 Update PPV streams [skip ci]" &&
+          git push || echo "⚠️ Push failed."
+        )
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          git commit -m "🔁 Auto-update PPVLand playlists ($(date -u +'%Y-%m-%d %H:%M UTC'))"
-
-          # Add small random delay to reduce collision risk
-          sleep $((RANDOM % 10 + 5))
-
-          # Safe push with rebase fallback
-          if ! git push origin main; then
-            echo "⚠️ Push rejected, attempting safe rebase..."
-            git pull --rebase origin main || {
-              echo "❌ Rebase failed, aborting to prevent corruption."
-              exit 1
-            }
-            git push origin main || {
-              echo "❌ Push failed after rebase."
-              exit 1
-            }
-          fi
-
-      - name: 📤 Upload Playlists as Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: PPVLand_Playlists
-          path: |
-            PPVLand.m3u8
-            PPVLand_TiviMate.m3u8
+    - name: 📤 Upload Playlist Artifacts
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: PPVLand_Playlists
+    path: |
+      PPVLand.m3u8
+      PPVLand_TiviMate.m3u8
