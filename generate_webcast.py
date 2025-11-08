@@ -160,11 +160,11 @@ def write_playlists(streams: List[Dict]):
 async def main():
     print("🚀 Starting Sports Webcast Scraper...")
     leagues = [
-        scrape_league(NFL_BASE_URL, NFL_CHANNEL_URLS, "NFLWebcast", "https://i.imgur.com/Lwtw1Hc.png"),
+        scrape_league(NFL_BASE_URL, [], "NFLWebcast", "https://i.imgur.com/Lwtw1Hc.png"),
         scrape_league(NHL_BASE_URL, [], "NHLWebcast", "https://i.imgur.com/ZxRZpcP.png"),
         scrape_league(MLB_BASE_URL, [], "MLBWebcast", "https://i.imgur.com/ENqOehA.png"),
         scrape_league(MLS_BASE_URL, [], "MLSWebcast", "https://i.imgur.com/4Wb9P1O.png"),
-        scrape_league(NBA_BASE_URL, NBA_CHANNEL_URLS, "NBAWebcast", "https://i.imgur.com/xu9U1rS.png"),
+        scrape_league(NBA_BASE_URL, [], "NBAWebcast", "https://i.imgur.com/xu9U1rS.png"),
     ]
     results = await asyncio.gather(*leagues)
     all_streams = [s for group in results for s in group]
