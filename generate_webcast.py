@@ -197,4 +197,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(asyncio.wait_for(main(), timeout=600))
+    except asyncio.TimeoutError:
+        print("⏰ Script timed out after 10 minutes, exiting cleanly.")
