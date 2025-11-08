@@ -1,73 +1,53 @@
-name: 🎬 PPVLand Playlist Generator
+name: 🏈 Generate PPVLand Playlists
 
 on:
   schedule:
-    # Run every 6 hours
-    - cron: "0 */6 * * *"
+    - cron: '0 * * * *'  # run every hour
   workflow_dispatch:
-    # Allow manual trigger
 
 permissions:
   contents: write
 
 jobs:
-  generate-playlist:
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
-      - name: 🧩 Checkout Repository
+      - name: 🧾 Checkout repo
         uses: actions/checkout@v4
 
-      - name: 🐍 Set Up Python
-        uses: actions/setup-python@v5
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.10"
 
-      - name: 📦 Install Dependencies
+      - name: ⚙️ Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install aiohttp playwright
-          playwright install
+          pip install aiohttp playwright beautifulsoup4
+          playwright install firefox
           playwright install-deps
 
       - name: 🚀 Run generate_ppvland.py
-        run: |
-          echo "🚀 Running generate_ppvland.py..."
-          python generate_ppvland.py
-
-      - name: 💾 Commit & Push Playlist (if changed)
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYTHONUNBUFFERED: 1
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          echo "▶️ Starting playlist generation..."
+          xvfb-run -a python generate_ppvland.py
+          echo "✅ Script finished."
 
+      - name: 💾 Commit & Push if changed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git add PPVLand.m3u8 PPVLand_TiviMate.m3u8 || true
+          git diff --quiet && git diff --staged --quiet || \
+            (git commit -m "🔄 Auto-update PPVLand playlists [skip ci]" && git push)
 
-          if git diff --cached --quiet; then
-            echo "✅ No changes to commit"
-            exit 0
-          fi
-
-          git commit -m "🔁 Auto-update PPVLand playlists ($(date -u +'%Y-%m-%d %H:%M UTC'))"
-
-          # Small random delay to reduce collisions
-          sleep $((RANDOM % 10 + 5))
-
-          # Safe push with rebase fallback
-          if ! git push origin main; then
-            echo "⚠️ Push rejected. Trying safe rebase..."
-            git pull origin main --rebase || {
-              echo "❌ Rebase failed, exiting."
-              exit 1
-            }
-            git push origin main || {
-              echo "❌ Push failed again."
-              exit 1
-            }
-          fi
-
-      - name: 📤 Upload Playlist Artifacts
+      - name: 📤 Upload Playlists (Artifacts)
         if: always()
         uses: actions/upload-artifact@v4
         with:
