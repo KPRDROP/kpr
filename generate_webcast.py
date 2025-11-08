@@ -6,27 +6,20 @@ import aiohttp
 from bs4 import BeautifulSoup
 from playwright.async_api import BrowserContext, async_playwright
 
-# === CONFIG ===
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:115.0) Gecko/20100101 Firefox/115.0"
 ENCODED_USER_AGENT = quote(USER_AGENT, safe="")
-DYNAMIC_WAIT_TIMEOUT = 15000
-GAME_TABLE_WAIT_TIMEOUT = 30000
-STREAM_PATTERN = re.compile(r"\.m3u8($|\?)", re.IGNORECASE)
 
-# Output files
 OUTPUT_FILE_VLC = "SportsWebcast_VLC.m3u8"
 OUTPUT_FILE_TIVIMATE = "SportsWebcast_TiviMate.m3u8"
 
-# Base URLs
 NFL_BASE_URL = "https://nflwebcast.com/"
 NHL_BASE_URL = "https://slapstreams.com/"
 MLB_BASE_URL = "https://mlbwebcast.com/"
 MLS_BASE_URL = "https://mlswebcast.com/"
 NBA_BASE_URL = "https://nbawebcast.top/"
 
-# Channels
 NFL_CHANNEL_URLS = [
-    "http://nflwebcast.com/nflnetwork/",
+    "https://nflwebcast.com/nflnetwork/",
     "https://nflwebcast.com/nflredzone/",
     "https://nflwebcast.com/espnusa/",
 ]
@@ -39,11 +32,12 @@ NBA_CHANNEL_URLS = [
 CHANNEL_METADATA = {
     "nflnetwork": {"name": "NFL Network", "id": "NFL.Network.HD.us", "logo": "https://i.imgur.com/Lwtw1Hc.png"},
     "nflredzone": {"name": "NFL RedZone", "id": "NFL.RedZone.HD.us", "logo": "https://i.imgur.com/4M3tUyE.png"},
-    "espnusa": {"name": "ESPN", "id": "ESPN.HD.us", "logo": "https://i.imgur.com/yzQZLhW.png"},
+    "espnusa": {"name": "ESPN USA", "id": "ESPN.HD.us", "logo": "https://i.imgur.com/yzQZLhW.png"},
     "espn": {"name": "ESPN", "id": "ESPN.HD.us", "logo": "https://i.imgur.com/yzQZLhW.png"},
     "tnt": {"name": "TNT", "id": "TNT.HD.us", "logo": "https://i.imgur.com/2ZQFIBL.png"},
     "nba-tv": {"name": "NBA TV", "id": "NBATV.HD.us", "logo": "https://i.imgur.com/xu9U1rS.png"},
 }
+
 
 def normalize_game_name(name: str) -> str:
     name = re.sub(r"\s+", " ", name.strip())
@@ -53,49 +47,66 @@ def normalize_game_name(name: str) -> str:
             return f"{parts[0].strip().title()} @ {parts[1].strip().title()}"
     return name.title()
 
+
 async def verify_stream_url(session: aiohttp.ClientSession, url: str, headers: Dict[str, str]) -> bool:
+    """Checks if stream is alive."""
     try:
         async with session.get(url, timeout=10, headers=headers) as r:
             return r.status == 200
     except Exception:
         return False
 
+
 async def find_stream_from_servers_on_page(context: BrowserContext, page_url: str, base_url: str, session: aiohttp.ClientSession) -> Optional[str]:
+    """Opens match page and extracts .m3u8 links."""
     page = await context.new_page()
     candidate_urls: List[str] = []
 
     def handle_request(request):
-        if STREAM_PATTERN.search(request.url):
+        if ".m3u8" in request.url:
             candidate_urls.append(request.url)
 
     page.on("request", handle_request)
     try:
         await page.goto(page_url, wait_until="domcontentloaded", timeout=60000)
-        await page.wait_for_load_state("networkidle", timeout=DYNAMIC_WAIT_TIMEOUT)
+        await page.wait_for_load_state("networkidle", timeout=20000)
+
+        # Some pages lazy-load streams
+        await asyncio.sleep(5)
+
         for stream_url in reversed(candidate_urls):
             if await verify_stream_url(session, stream_url, {"Referer": base_url, "User-Agent": USER_AGENT}):
                 return stream_url
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"⚠️ Could not extract from {page_url}: {e}")
     finally:
         page.remove_listener("request", handle_request)
         await page.close()
     return None
 
+
 async def scrape_league(base_url: str, channel_urls: List[str], group_prefix: str, default_logo: str) -> List[Dict]:
+    """Main scraper per league."""
     results = []
     async with async_playwright() as p, aiohttp.ClientSession(headers={"User-Agent": USER_AGENT}) as session:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(headless=True, args=["--no-sandbox"])
         context = await browser.new_context(user_agent=USER_AGENT)
+
         try:
             page = await context.new_page()
+            print(f"🌐 Visiting {base_url}")
             await page.goto(base_url, wait_until="domcontentloaded", timeout=60000)
-            await page.wait_for_selector("table, .match-row", timeout=GAME_TABLE_WAIT_TIMEOUT)
+            await page.wait_for_load_state("networkidle", timeout=25000)
+            await asyncio.sleep(5)
 
-            content = await page.content()
-            soup = BeautifulSoup(content, "html.parser")
+            html = await page.content()
+            soup = BeautifulSoup(html, "html.parser")
 
-            for a_tag in soup.select("a[href*='match'], a[href*='game']"):
+            match_links = soup.select("a[href*='match'], a[href*='game']")
+            if not match_links:
+                print(f"⚠️ No match links found on {base_url}")
+
+            for a_tag in match_links[:10]:
                 href = a_tag.get("href")
                 if not href:
                     continue
@@ -111,6 +122,7 @@ async def scrape_league(base_url: str, channel_urls: List[str], group_prefix: st
                         "ref": base_url,
                     })
 
+            # Add 24/7 channels
             for url in channel_urls:
                 slug = url.strip("/").split("/")[-1]
                 stream_url = await find_stream_from_servers_on_page(context, url, base_url, session)
@@ -131,9 +143,11 @@ async def scrape_league(base_url: str, channel_urls: List[str], group_prefix: st
             await browser.close()
     return results
 
+
 def write_playlists(streams: List[Dict]):
+    """Writes M3U playlists."""
     if not streams:
-        print("No streams found.")
+        print("⚠️ No streams found, skipping write.")
         return
 
     # VLC
@@ -154,8 +168,8 @@ def write_playlists(streams: List[Dict]):
             f.write(f'#EXTINF:-1 tvg-id="{s["tvg_id"]}" tvg-logo="{s["tvg_logo"]}" group-title="{s["group"]}",{s["name"]}\n')
             f.write(f"{s['url']}|{headers}\n")
 
-    print(f"✅ VLC playlist saved: {OUTPUT_FILE_VLC}")
-    print(f"✅ TiviMate playlist saved: {OUTPUT_FILE_TIVIMATE}")
+    print(f"✅ Wrote {len(streams)} streams to {OUTPUT_FILE_VLC} and {OUTPUT_FILE_TIVIMATE}")
+
 
 async def main():
     print("🚀 Starting Sports Webcast Scraper...")
@@ -169,6 +183,7 @@ async def main():
     results = await asyncio.gather(*leagues)
     all_streams = [s for group in results for s in group]
     write_playlists(all_streams)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
