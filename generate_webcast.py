@@ -38,7 +38,6 @@ CHANNEL_METADATA = {
     "nba-tv": {"name": "NBA TV", "id": "NBATV.HD.us", "logo": "https://i.imgur.com/xu9U1rS.png"},
 }
 
-
 def normalize_game_name(name: str) -> str:
     name = re.sub(r"\s+", " ", name.strip())
     if "@" in name:
@@ -68,11 +67,9 @@ async def find_stream_from_servers_on_page(context: BrowserContext, page_url: st
 
     page.on("request", handle_request)
     try:
-        await page.goto(page_url, wait_until="domcontentloaded", timeout=60000)
-        await page.wait_for_load_state("networkidle", timeout=20000)
-
-        # Some pages lazy-load streams
-        await asyncio.sleep(5)
+        await page.goto(page_url, wait_until="domcontentloaded", timeout=90000)
+        await page.wait_for_load_state("networkidle", timeout=40000)
+        await asyncio.sleep(7)
 
         for stream_url in reversed(candidate_urls):
             if await verify_stream_url(session, stream_url, {"Referer": base_url, "User-Agent": USER_AGENT}):
@@ -85,6 +82,18 @@ async def find_stream_from_servers_on_page(context: BrowserContext, page_url: st
     return None
 
 
+async def safe_fetch_html(url: str) -> str:
+    """Fallback direct HTML fetch (no JS)."""
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers={"User-Agent": USER_AGENT}, timeout=20) as r:
+                if r.status == 200:
+                    return await r.text()
+    except Exception:
+        return ""
+    return ""
+
+
 async def scrape_league(base_url: str, channel_urls: List[str], group_prefix: str, default_logo: str) -> List[Dict]:
     """Main scraper per league."""
     results = []
@@ -95,16 +104,20 @@ async def scrape_league(base_url: str, channel_urls: List[str], group_prefix: st
         try:
             page = await context.new_page()
             print(f"🌐 Visiting {base_url}")
-            await page.goto(base_url, wait_until="domcontentloaded", timeout=60000)
-            await page.wait_for_load_state("networkidle", timeout=25000)
-            await asyncio.sleep(5)
+            await page.goto(base_url, wait_until="domcontentloaded", timeout=90000)
+            await page.wait_for_load_state("networkidle", timeout=45000)
+            await asyncio.sleep(6)
 
             html = await page.content()
             soup = BeautifulSoup(html, "html.parser")
 
-            match_links = soup.select("a[href*='match'], a[href*='game']")
+            match_links = soup.select("a[href*='match'], a[href*='game'], a[href*='stream'], a[href*='live']")
             if not match_links:
-                print(f"⚠️ No match links found on {base_url}")
+                print(f"⚠️ No match links found on {base_url}, trying fallback fetch...")
+                fallback_html = await safe_fetch_html(base_url)
+                if fallback_html:
+                    soup = BeautifulSoup(fallback_html, "html.parser")
+                    match_links = soup.select("a[href*='match'], a[href*='game'], a[href*='stream'], a[href*='live']")
 
             for a_tag in match_links[:10]:
                 href = a_tag.get("href")
@@ -150,7 +163,6 @@ def write_playlists(streams: List[Dict]):
         print("⚠️ No streams found, skipping write.")
         return
 
-    # VLC
     with open(OUTPUT_FILE_VLC, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for s in streams:
@@ -160,7 +172,6 @@ def write_playlists(streams: List[Dict]):
             f.write(f'#EXTVLCOPT:http-user-agent={USER_AGENT}\n')
             f.write(s["url"] + "\n")
 
-    # TiviMate
     with open(OUTPUT_FILE_TIVIMATE, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for s in streams:
