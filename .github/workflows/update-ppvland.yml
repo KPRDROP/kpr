@@ -1,4 +1,4 @@
-name: Update PPVLand Playlist
+name: 🛰️ Auto Generate PPVLand Playlists
 
 on:
   schedule:
@@ -8,25 +8,36 @@ on:
 
 jobs:
   update-playlist:
-    name: Generate and Commit PPVLand Playlists
+    name: 🎬 Generate and Commit PPVLand Playlists
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🧩 Checkout repository
+      # Checkout repository
+      - name: 📦 Checkout repository
         uses: actions/checkout@v4
 
+      # Set up Python
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: 📦 Install dependencies (if any)
+      # Install dependencies (Playwright + aiohttp)
+      - name: 🧰 Install Python dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install aiohttp playwright
 
-      - name: ⚙️ Run PPVLand playlist generator
+      # Install Playwright browsers (Firefox)
+      - name: 🎭 Install Playwright browsers
+        run: |
+          python -m playwright install --with-deps firefox
+
+      # Run your playlist generator
+      - name: 🚀 Run Playlist Generator
         run: python generate_ppvland.py
 
+      # Commit & push if files changed
       - name: 💾 Commit & Safely Push if Playlist Changed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -34,26 +45,24 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage all changes (new or updated files)
           git add -A
 
-          # Check if any changes exist
+          # Check if file actually changed
           if git diff --cached --quiet; then
             echo "✅ No changes to commit"
             exit 0
           fi
 
-          # Commit with UTC timestamp
-          git commit -m "🔁 Auto-update PPVLand playlists $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git commit -m "🔁 Auto-update PPVLand playlist $(date -u +'%Y-%m-%d %H:%M UTC')"
 
-          # Add small random delay (5–15 seconds) to avoid concurrent push issues
+          # Small random delay to reduce collisions
           sleep $((RANDOM % 10 + 5))
 
-          # Push safely, retry with rebase if rejected
+          # Safe push with fallback in case of conflict
           if ! git push origin main; then
             echo "⚠️ Push rejected. Trying safe fetch + rebase..."
             git pull origin main --rebase || {
-              echo "❌ Rebase failed. Exiting to avoid corruption."
+              echo "❌ Rebase failed. Exiting safely."
               exit 1
             }
             git push origin main || {
