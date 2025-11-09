@@ -6,9 +6,6 @@ from datetime import datetime
 from urllib.parse import quote
 from playwright.async_api import async_playwright
 
-# -------------------------------
-# Logging
-# -------------------------------
 logging.basicConfig(
     filename="scrape.log",
     level=logging.INFO,
@@ -21,16 +18,22 @@ console.setFormatter(logging.Formatter("%(asctime)s | %(levelname)-8s | %(messag
 logging.getLogger("").addHandler(console)
 log = logging.getLogger("scraper")
 
-# -------------------------------
-# Constants
-# -------------------------------
-STREAM_PATTERN = re.compile(r"\.m3u8($|\?)", re.IGNORECASE)
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
-ENCODED_USER_AGENT = quote(USER_AGENT, safe="")
 CUSTOM_HEADERS = {
     "Origin": "https://embedsports.top",
     "Referer": "https://embedsports.top/",
-    "User-Agent": USER_AGENT
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+}
+ENCODED_USER_AGENT = quote(CUSTOM_HEADERS["User-Agent"], safe="")
+
+FALLBACK_LOGOS = {
+    "american-football": "http://drewlive24.duckdns.org:9000/Logos/Am-Football2.png",
+    "football": "https://external-content.duckduckgo.com/iu/?u=https://i.imgur.com/RvN0XSF.png",
+    "fight": "http://drewlive24.duckdns.org:9000/Logos/Combat-Sports.png",
+    "basketball": "http://drewlive24.duckdns.org:9000/Logos/Basketball5.png",
+    "motor sports": "http://drewlive24.duckdns.org:9000/Logos/Motorsports3.png",
+    "darts": "http://drewlive24.duckdns.org:9000/Logos/Darts.png",
+    "tennis": "http://drewlive24.duckdns.org:9000/Logos/Tennis-2.png",
+    "rugby": "http://drewlive24.duckdns.org:9000/Logos/Rugby.png"
 }
 
 TV_IDS = {
@@ -47,27 +50,13 @@ TV_IDS = {
     "Rugby": "Rugby.Dummy.us"
 }
 
-FALLBACK_LOGOS = {
-    "american-football": "http://drewlive24.duckdns.org:9000/Logos/Am-Football2.png",
-    "football": "https://i.imgur.com/RvN0XSF.png",
-    "fight": "http://drewlive24.duckdns.org:9000/Logos/Combat-Sports.png",
-    "basketball": "http://drewlive24.duckdns.org:9000/Logos/Basketball5.png",
-    "motor sports": "http://drewlive24.duckdns.org:9000/Logos/Motorsports3.png",
-    "darts": "http://drewlive24.duckdns.org:9000/Logos/Darts.png",
-    "tennis": "http://drewlive24.duckdns.org:9000/Logos/Tennis-2.png",
-    "rugby": "http://drewlive24.duckdns.org:9000/Logos/Rugby.png"
-}
-
-# -------------------------------
-# Globals
-# -------------------------------
 total_matches = 0
 total_embeds = 0
 total_streams = 0
 total_failures = 0
 
 # -------------------------------
-# Helper Functions
+# Match / Embed Utilities
 # -------------------------------
 def get_all_matches():
     endpoints = ["live"]
@@ -123,56 +112,66 @@ def build_logo_url(match):
     return validate_logo(None, cat), cat
 
 # -------------------------------
-# Embed Resolver
+# Extract M3U8
 # -------------------------------
-async def resolve_m3u8_from_embed(page, embed_url):
-    """
-    Visit the embed URL and capture any .m3u8 request made by the player.
-    Returns the actual m3u8 URL if found, else None.
-    """
-    m3u8_url = None
+async def extract_m3u8(page, embed_url):
+    global total_failures
+    found = None
     try:
-        async def capture_request(req):
-            nonlocal m3u8_url
-            if STREAM_PATTERN.search(req.url) and not m3u8_url:
-                m3u8_url = req.url
-                log.info(f"  ⚡ Found m3u8: {m3u8_url}")
+        async def on_request(request):
+            nonlocal found
+            if ".m3u8" in request.url and not found:
+                if "prd.jwpltx.com" in request.url:
+                    return
+                found = request.url
+                log.info(f"  ⚡ Stream: {found}")
 
-        page.on("request", capture_request)
-        await page.goto(embed_url, wait_until="domcontentloaded", timeout=10000)
+        page.on("request", on_request)
+        await page.goto(embed_url, wait_until="domcontentloaded", timeout=5000)
+        await page.bring_to_front()
 
-        # Try to click common play buttons
-        selectors = ["button", "div[role='button']", ".jw-icon-display", ".vjs-big-play-button", ".plyr__control"]
+        selectors = [
+            "div.jw-icon-display[role='button']",
+            ".jw-icon-playback",
+            ".vjs-big-play-button",
+            ".plyr__control",
+            "div[class*='play']",
+            "div[role='button']",
+            "button",
+            "canvas"
+        ]
+
         for sel in selectors:
-            elements = await page.query_selector_all(sel)
-            for el in elements:
-                try:
-                    await el.click(timeout=200)
-                    await asyncio.sleep(0.25)
-                except:
-                    continue
+            try:
+                el = await page.query_selector(sel)
+                if el:
+                    await el.click(timeout=300)
+                    break
+            except:
+                continue
 
-        # Wait for m3u8 to be captured
-        for _ in range(5):
-            if m3u8_url:
+        # Wait a moment for m3u8 request to fire
+        for _ in range(6):
+            if found:
                 break
             await asyncio.sleep(0.25)
 
-        # Fallback: regex search in HTML
-        if not m3u8_url:
+        # Fallback regex
+        if not found:
             html = await page.content()
             matches = re.findall(r'https?://[^\s\"\'<>]+\.m3u8(?:\?[^\"\'<>]*)?', html)
             if matches:
-                m3u8_url = matches[0]
-                log.info(f"  🕵️ Fallback regex found: {m3u8_url}")
+                found = matches[0]
+                log.info(f"  🕵️ Fallback: {found}")
 
-        return m3u8_url
+        return found
     except Exception as e:
-        log.warning(f"⚠️ Failed resolving m3u8 from embed: {embed_url} | {e}")
+        total_failures += 1
+        log.warning(f"⚠️ {embed_url} failed: {e}")
         return None
 
 # -------------------------------
-# Match Processor
+# Process Matches
 # -------------------------------
 async def process_match(index, match, total, ctx):
     global total_embeds, total_streams
@@ -194,7 +193,7 @@ async def process_match(index, match, total, ctx):
 
         for i, embed in enumerate(embed_urls, start=1):
             log.info(f"     • ({i}/{len(embed_urls)}) {embed}")
-            m3u8 = await resolve_m3u8_from_embed(page, embed)
+            m3u8 = await extract_m3u8(page, embed)
             if m3u8:
                 total_streams += 1
                 log.info(f"     ✅ Stream OK for {title}")
@@ -206,7 +205,7 @@ async def process_match(index, match, total, ctx):
     return match, None
 
 # -------------------------------
-# Playlist Generator
+# Generate VLC + TiviMate playlists
 # -------------------------------
 async def generate_playlist():
     global total_matches
@@ -238,20 +237,22 @@ async def generate_playlist():
             display_cat = cat.replace("-", " ").title() if cat else "General"
             tv_id = TV_IDS.get(display_cat, "General.Dummy.us")
 
-            # VLC
+            # VLC playlist
             vlc_content.append(
                 f'#EXTINF:-1 tvg-id="{tv_id}" tvg-name="{title}" tvg-logo="{logo}" group-title="StreamedSU - {display_cat}",{title}'
             )
             vlc_content.append(f'#EXTVLCOPT:http-origin={CUSTOM_HEADERS["Origin"]}')
             vlc_content.append(f'#EXTVLCOPT:http-referrer={CUSTOM_HEADERS["Referer"]}')
-            vlc_content.append(f'#EXTVLCOPT:http-user-agent={CUSTOM_HEADERS["User-Agent"]}')
+            vlc_content.append(f'#EXTVLCOPT:user-agent={CUSTOM_HEADERS["User-Agent"]}')
             vlc_content.append(url)
 
-            # TiviMate
+            # TiviMate playlist (pipe headers + encoded UA)
             tivimate_content.append(
                 f'#EXTINF:-1 tvg-id="{tv_id}" tvg-name="{title}" tvg-logo="{logo}" group-title="StreamedSU - {display_cat}",{title}'
             )
-            tivimate_content.append(f'{url}|referer={CUSTOM_HEADERS["Referer"]}|origin={CUSTOM_HEADERS["Origin"]}|user-agent={ENCODED_USER_AGENT}|icy-metadata=1')
+            tivimate_content.append(
+                f'{url}|referer={CUSTOM_HEADERS["Referer"]}|origin={CUSTOM_HEADERS["Origin"]}|user-agent={ENCODED_USER_AGENT}|icy-metadata=1'
+            )
 
             success += 1
 
