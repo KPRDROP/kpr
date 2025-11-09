@@ -25,23 +25,22 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 3️⃣ Install dependencies (aiohttp, BeautifulSoup4, Playwright)
+      # 3️⃣ Install Python dependencies
       - name: 📦 Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install aiohttp beautifulsoup4 playwright
 
-      # 4️⃣ Install Playwright browsers using official GitHub Action
-      - name: 🌐 Install Playwright Browsers
-        uses: microsoft/playwright-github-action@v1
-        with:
-          browsers: all
+      # 4️⃣ Install Playwright browsers and system dependencies
+      - name: 🌐 Install Playwright browsers and deps
+        run: |
+          npx playwright install --with-deps
 
       # 5️⃣ Run your SportsWebcast scraper
       - name: 🎯 Run SportsWebcast scraper
         run: python webcast.py
 
-      # 6️⃣ Commit & Push if playlist changed
+      # 6️⃣ Commit & Push updated playlist
       - name: 💾 Commit & Push updated playlist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
