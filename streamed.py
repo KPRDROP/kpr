@@ -267,7 +267,7 @@ async def generate_playlist():
             # === REPLACED VLC HEADERS WITH TIVIMATE PIPE-STYLE HEADER LINE ===
             # Build pipe-separated TiviMate headers; encode the user-agent
             encoded_ua = quote(CUSTOM_HEADERS["User-Agent"], safe="")
-            tivimate_headers = f"referer={CUSTOM_HEADERS['Referer']}|origin={CUSTOM_HEADERS['Origin']}|user-agent={encoded_ua}|icy-metadata=1"
+            tivimate_headers = f"referer={CUSTOM_HEADERS['Referer']}|origin={CUSTOM_HEADERS['Origin']}|user-agent={encoded_ua}"
             content.append(f"{url}|{tivimate_headers}")
 
             success += 1
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     start = datetime.now()
     log.info("🚀 Starting StreamedSU scrape run (LIVE only)...")
     playlist = asyncio.run(generate_playlist())
-    with open("StreamedSU.m3u8", "w", encoding="utf-8") as f:
+    with open("StreamedSU_TiviMate.m3u8", "w", encoding="utf-8") as f:  # <-- renamed file
         f.write(playlist)
     end = datetime.now()
     duration = (end - start).total_seconds()
