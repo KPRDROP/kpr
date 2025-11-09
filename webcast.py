@@ -162,7 +162,8 @@ async def scrape_league(base_url: str, channel_urls: List[str], group_prefix: st
     results: List[Dict] = []
 
     async with async_playwright() as p, aiohttp.ClientSession(headers={"User-Agent": USER_AGENT}) as session:
-        browser = await p.chromium.launch(headless=True)
+        # 🧩 FIXED: Added --no-sandbox flags for GitHub Actions
+        browser = await p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
         context = await browser.new_context(user_agent=USER_AGENT)
         try:
             page = await context.new_page()
@@ -300,7 +301,6 @@ async def scrape_nba_league(default_logo: str) -> List[Dict]:
     return results
 
 def write_playlist(streams: List[Dict], filename: str):
-    """Write TiviMate playlist only."""
     if not streams:
         print("⏹️ No streams found.")
         return
