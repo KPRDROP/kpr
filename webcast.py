@@ -163,7 +163,7 @@ async def scrape_league(base_url: str, channel_urls: List[str], group_prefix: st
 
     async with async_playwright() as p, aiohttp.ClientSession(headers={"User-Agent": USER_AGENT}) as session:
         # 🧩 FIXED: Added --no-sandbox flags for GitHub Actions
-        browser = await p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
+        browser = await playwright.chromium.launch(headless=True)
         context = await browser.new_context(user_agent=USER_AGENT)
         try:
             page = await context.new_page()
