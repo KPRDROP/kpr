@@ -273,34 +273,57 @@ async def extract_m3u8(page, embed_url):
         return None
 
 # -------------------------------
-# Process a single match
+# Process match
 # -------------------------------
 async def process_match(index, match, total, ctx):
-    global total_embeds, total_streams
+    global total_embeds, total_streams, total_failures
     title = match.get("title", "Unknown Match")
     log.info(f"\n🎯 [{index}/{total}] {title}")
     sources = match.get("sources", [])
     match_embeds = 0
+
     page = await ctx.new_page()
 
-    for s in sources:
-        embed_urls = get_embed_urls_from_api(s)
-        total_embeds += len(embed_urls)
-        match_embeds += len(embed_urls)
-        if not embed_urls:
-            continue
-        log.info(f"  ↳ {len(embed_urls)} embed URLs")
-        for i, embed in enumerate(embed_urls, start=1):
-            log.info(f"     • ({i}/{len(embed_urls)}) {embed}")
-            m3u8 = await extract_m3u8(page, embed)
-            if m3u8:
-                total_streams += 1
-                log.info(f"     ✅ Stream OK for {title}")
-                await page.close()
-                return match, m3u8
+    try:
+        for s in sources:
+            embed_urls = get_embed_urls_from_api(s)
+            total_embeds += len(embed_urls)
+            match_embeds += len(embed_urls)
+            if not embed_urls:
+                continue
 
-    await page.close()
-    log.info(f"     ❌ No working streams ({match_embeds} embeds)")
+            log.info(f"  ↳ {len(embed_urls)} embed URLs")
+            for i, embed in enumerate(embed_urls, start=1):
+                log.info(f"     • ({i}/{len(embed_urls)}) {embed}")
+
+                try:
+                    # ⚡ Timeout protection for extract_m3u8
+                    m3u8 = await asyncio.wait_for(extract_m3u8(page, embed), timeout=25)
+                except asyncio.TimeoutError:
+                    log.warning(f"  ⏱️ Timeout on embed {embed}")
+                    continue
+                except Exception as e:
+                    log.warning(f"  ⚠️ Error on embed {embed}: {e}")
+                    continue
+
+                if m3u8:
+                    total_streams += 1
+                    log.info(f"     ✅ Stream OK for {title}")
+                    await page.close()
+                    return match, m3u8
+
+        log.info(f"     ❌ No working streams ({match_embeds} embeds)")
+
+    except Exception as e:
+        total_failures += 1
+        log.warning(f"⚠️ Match '{title}' failed: {e}")
+    finally:
+        try:
+            if not page.is_closed():
+                await page.close()
+        except Exception:
+            pass
+
     return match, None
 
 # -------------------------------
