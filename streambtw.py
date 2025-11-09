@@ -119,13 +119,13 @@ if __name__ == "__main__":
         print("\nGenerating M3U playlists...")
         vlc_playlist, tivimate_playlist = generate_m3u_playlists(events)
 
-        with open("streambtw.m3u8", "w", encoding="utf-8") as f:
+        with open("Streambtw_VLC.m3u8", "w", encoding="utf-8") as f:
             f.write(vlc_playlist)
-        print("VLC playlist generated: streambtw.m3u8")
+        print("VLC playlist generated: Streambtw_VLC.m3u8")
 
-        with open("streambtw_TiviMate.m3u8", "w", encoding="utf-8") as f:
+        with open("Streambtw_TiviMate.m3u8", "w", encoding="utf-8") as f:
             f.write(tivimate_playlist)
-        print("TiviMate playlist generated: streambtw_TiviMate.m3u8")
+        print("TiviMate playlist generated: Streambtw_TiviMate.m3u8")
 
     except Exception as e:
         print(f"Error: {e}")
