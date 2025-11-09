@@ -27,7 +27,7 @@ ENCODED_USER_AGENT = quote(CUSTOM_HEADERS["User-Agent"], safe="")
 
 FALLBACK_LOGOS = {
     "american-football": "http://drewlive24.duckdns.org:9000/Logos/Am-Football2.png",
-    "football": "https://external-content.duckduckgo.com/iu/?u=https://i.imgur.com/RvN0XSF.png",
+    "football": "https://i.imgur.com/RvN0XSF.png",
     "fight": "http://drewlive24.duckdns.org:9000/Logos/Combat-Sports.png",
     "basketball": "http://drewlive24.duckdns.org:9000/Logos/Basketball5.png",
     "motor sports": "http://drewlive24.duckdns.org:9000/Logos/Motorsports3.png",
@@ -112,7 +112,7 @@ def build_logo_url(match):
     return validate_logo(None, cat), cat
 
 # -------------------------------
-# Extract M3U8
+# M3U8 Extraction
 # -------------------------------
 async def extract_m3u8(page, embed_url):
     global total_failures
@@ -149,7 +149,8 @@ async def extract_m3u8(page, embed_url):
                     break
             except:
                 continue
-				
+
+        # --------- MOMENTUM CLICK / AD HANDLER ----------
         try:
             await page.mouse.click(200, 200)
             log.info("  👆 First click triggered ad")
@@ -183,6 +184,7 @@ async def extract_m3u8(page, embed_url):
             if found:
                 break
             await asyncio.sleep(0.25)
+        # ----------------------------------------------
 
         # Fallback regex
         if not found:
@@ -193,6 +195,7 @@ async def extract_m3u8(page, embed_url):
                 log.info(f"  🕵️ Fallback: {found}")
 
         return found
+
     except Exception as e:
         total_failures += 1
         log.warning(f"⚠️ {embed_url} failed: {e}")
