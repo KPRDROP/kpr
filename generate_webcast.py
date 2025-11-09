@@ -13,18 +13,15 @@ DYNAMIC_WAIT_TIMEOUT = 15000
 GAME_TABLE_WAIT_TIMEOUT = 30000
 STREAM_PATTERN = re.compile(r"\.m3u8($|\?)", re.IGNORECASE)
 
-# Output files
 OUTPUT_FILE_VLC = "SportsWebcast_VLC.m3u8"
 OUTPUT_FILE_TIVIMATE = "SportsWebcast_TiviMate.m3u8"
 
-# Base URLs
 NFL_BASE_URL = "https://nflwebcast.com/"
 NHL_BASE_URL = "https://slapstreams.com/"
 MLB_BASE_URL = "https://mlbwebcast.com/"
 MLS_BASE_URL = "https://mlswebcast.com/"
 NBA_BASE_URL = "https://nbawebcast.top/"
 
-# Channels
 NFL_CHANNEL_URLS = [
     "http://nflwebcast.com/nflnetwork/",
     "https://nflwebcast.com/nflredzone/",
@@ -89,13 +86,20 @@ async def scrape_league(base_url: str, channel_urls: List[str], group_prefix: st
         context = await browser.new_context(user_agent=USER_AGENT)
         try:
             page = await context.new_page()
+            print(f"🌐 Visiting {base_url}")
             await page.goto(base_url, wait_until="domcontentloaded", timeout=60000)
-            await page.wait_for_selector("table, .match-row", timeout=GAME_TABLE_WAIT_TIMEOUT)
+            try:
+                await page.wait_for_selector("table, .match-row", timeout=GAME_TABLE_WAIT_TIMEOUT)
+            except Exception:
+                print(f"⚠️ No match tables detected, waiting 10s fallback...")
+                await asyncio.sleep(10)
 
             content = await page.content()
             soup = BeautifulSoup(content, "html.parser")
+            found_links = soup.select("a[href*='match'], a[href*='game']")
+            print(f"🔍 Found {len(found_links)} possible links at {base_url}")
 
-            for a_tag in soup.select("a[href*='match'], a[href*='game']"):
+            for a_tag in found_links:
                 href = a_tag.get("href")
                 if not href:
                     continue
@@ -132,27 +136,26 @@ async def scrape_league(base_url: str, channel_urls: List[str], group_prefix: st
     return results
 
 def write_playlists(streams: List[Dict]):
-    if not streams:
-        print("No streams found.")
-        return
-
-    # VLC/Kodi playlist
-    with open(OUTPUT_FILE_VLC, "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
+    # Always create both files, even if empty, to prevent GitHub errors
+    print(f"💾 Writing playlists ({len(streams)} streams)...")
+    with open(OUTPUT_FILE_VLC, "w", encoding="utf-8") as f_vlc, open(OUTPUT_FILE_TIVIMATE, "w", encoding="utf-8") as f_tivi:
+        f_vlc.write("#EXTM3U\n")
+        f_tivi.write("#EXTM3U\n")
+        if not streams:
+            print("⚠️ No streams found, writing empty playlists.")
+            return
         for s in streams:
-            f.write(f'#EXTINF:-1 tvg-id="{s["tvg_id"]}" tvg-logo="{s["tvg_logo"]}" group-title="{s["group"]}",{s["name"]}\n')
-            f.write(f'#EXTVLCOPT:http-referrer={s["ref"]}\n')
-            f.write(f'#EXTVLCOPT:http-origin={s["ref"]}\n')
-            f.write(f'#EXTVLCOPT:http-user-agent={USER_AGENT}\n')
-            f.write(s["url"] + "\n")
+            # VLC
+            f_vlc.write(f'#EXTINF:-1 tvg-id="{s["tvg_id"]}" tvg-logo="{s["tvg_logo"]}" group-title="{s["group"]}",{s["name"]}\n')
+            f_vlc.write(f'#EXTVLCOPT:http-referrer={s["ref"]}\n')
+            f_vlc.write(f'#EXTVLCOPT:http-origin={s["ref"]}\n')
+            f_vlc.write(f'#EXTVLCOPT:http-user-agent={USER_AGENT}\n')
+            f_vlc.write(s["url"] + "\n")
 
-    # TiviMate / Encoded headers playlist
-    with open(OUTPUT_FILE_TIVIMATE, "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-        for s in streams:
+            # TiviMate
             headers = f"referer={s['ref']}|origin={s['ref']}|user-agent={ENCODED_USER_AGENT}|icy-metadata=1"
-            f.write(f'#EXTINF:-1 tvg-id="{s["tvg_id"]}" tvg-logo="{s["tvg_logo"]}" group-title="{s["group"]}",{s["name"]}\n')
-            f.write(f"{s['url']}|{headers}\n")
+            f_tivi.write(f'#EXTINF:-1 tvg-id="{s["tvg_id"]}" tvg-logo="{s["tvg_logo"]}" group-title="{s["group"]}",{s["name"]}\n')
+            f_tivi.write(f"{s['url']}|{headers}\n")
 
     print(f"✅ VLC playlist saved: {OUTPUT_FILE_VLC}")
     print(f"✅ TiviMate playlist saved: {OUTPUT_FILE_TIVIMATE}")
@@ -160,15 +163,16 @@ def write_playlists(streams: List[Dict]):
 async def main():
     print("🚀 Starting Sports Webcast Scraper...")
     leagues = [
-        scrape_league(NFL_BASE_URL, [], "NFLWebcast", "https://i.imgur.com/Lwtw1Hc.png"),
+        scrape_league(NFL_BASE_URL, NFL_CHANNEL_URLS, "NFLWebcast", "https://i.imgur.com/Lwtw1Hc.png"),
         scrape_league(NHL_BASE_URL, [], "NHLWebcast", "https://i.imgur.com/ZxRZpcP.png"),
         scrape_league(MLB_BASE_URL, [], "MLBWebcast", "https://i.imgur.com/ENqOehA.png"),
         scrape_league(MLS_BASE_URL, [], "MLSWebcast", "https://i.imgur.com/4Wb9P1O.png"),
-        scrape_league(NBA_BASE_URL, [], "NBAWebcast", "https://i.imgur.com/xu9U1rS.png"),
+        scrape_league(NBA_BASE_URL, NBA_CHANNEL_URLS, "NBAWebcast", "https://i.imgur.com/xu9U1rS.png"),
     ]
     results = await asyncio.gather(*leagues)
     all_streams = [s for group in results for s in group]
     write_playlists(all_streams)
+    print("✅ Finished generating playlists.")
 
 if __name__ == "__main__":
     asyncio.run(main())
