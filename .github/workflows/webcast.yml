@@ -27,6 +27,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install aiohttp beautifulsoup4 playwright
+          playwright install-deps
 
       - name: 🎯 Run SportsWebcast scraper
         run: |
