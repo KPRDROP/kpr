@@ -1,8 +1,9 @@
+
 name: 🔄 Generate StreamedSU Playlist ⚡
 
 on:
   schedule:
-    - cron: '0 * * * *'  # every hour
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -37,12 +38,7 @@ jobs:
           sudo apt-get install -y google-chrome-beta
 
       - name: 🎯 Run scraping script
-        env:
-          PYTHONUNBUFFERED: 1
-        run: |
-          echo "▶️ Starting StreamedSU Scraper..."
-          xvfb-run -a python streamed.py
-          echo "✅ Finished generating playlists."
+        run: python streamed.py
 
       - name: 💾 Commit & Safely Push if Playlist Changed
         env:
@@ -50,19 +46,15 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Only add files if they exist
-          if [ -f "StreamedSU_VLC.m3u8" ]; then git add StreamedSU_VLC.m3u8; fi
-          if [ -f "StreamedSU_TiviMate.m3u8" ]; then git add StreamedSU_TiviMate.m3u8; fi
+          git add StreamedSU.m3u8
 
           if git diff --cached --quiet; then
             echo "✅ No changes to commit"
             exit 0
           fi
 
-          git commit -m "🧩 Update StreamedSU Playlist ⚡ $(date -u +'%a %b %d %T UTC %Y')"
+          git commit -m "✅ Update StreamedSU Playlist ⚡ $(date -u +'%a %b %d %T UTC %Y')"
 
-          # Random small delay to reduce push collisions
           sleep $((RANDOM % 10 + 5))
 
           if ! git push origin main; then
@@ -76,28 +68,3 @@ jobs:
               exit 1
             }
           fi
-
-      - name: 💾 Commit & Push Generated Playlists
-        run: |
-          echo "📝 Checking for generated playlists..."
-          ls -l *.m3u8 || echo "⚠️ No playlists found!"
-          
-          if ls *.m3u8 1> /dev/null 2>&1; then
-            echo "✅ Playlists found, committing..."
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add *.m3u8
-            git commit -m "🎶 Auto-update playlists ($(date +'%Y-%m-%d %H:%M:%S'))" || echo "⚠️ Nothing new to commit"
-            git push
-          else
-            echo "⚠️ No playlist files to commit."
-          fi
-
-      - name: 📤 Upload Playlist Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: StreamedSU_Playlists
-          path: |
-            ./StreamedSU_VLC.m3u8
-            ./StreamedSU_TiviMate.m3u8
-          if-no-files-found: warn
