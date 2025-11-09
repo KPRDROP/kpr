@@ -1,69 +1,61 @@
-name: 🔄 Generate StreamedSU Playlist ⚡
+name: Generate Webcast Playlists
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 * * * *'  # Every hour
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  scrape:
+  generate-playlists:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: 🐍 Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
 
-      - name: 📦 Install Python dependencies & Playwright (Chrome Beta)
-        run: |
-          python -m pip install --upgrade pip
-          pip install playwright requests
-          python -m playwright install chromium
-          python -m playwright install-deps
-          sudo apt-get update
-          sudo apt-get install -y wget gnupg
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-linux-signing-keyring.gpg
-          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-signing-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-beta
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install aiohttp playwright bs4 requests
+        python -m playwright install chromium
+        playwright install
+        playwright install-deps
+        sudo apt-get update
+        sudo apt-get install -y wget gnupg
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-linux-signing-keyring.gpg
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-signing-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-beta
 
-      - name: 🎯 Run scraping script
-        run: python streamed.py
+    - name: 🚀 Run generate_webcast.py
+      env:
+        PYTHONUNBUFFERED: 1
+      run: |
+        echo "▶️ Starting Sports Webcast Scraper..."
+        xvfb-run -a python streamed.py
+        echo "✅ Finished generating playlists."
 
-      - name: 💾 Commit & Safely Push if Playlist Changed
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add StreamedSU.m3u8
+    - name: Commit & push if changed
+      if: success()
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add StreamedSU_VLC.m3u8 StreamedSU_TiviMate.m3u8
+        git diff --quiet && git diff --staged --quiet || \
+        (git commit -m "Update Webcast playlists [skip ci]" && git push) || echo "No changes to commit"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          if git diff --cached --quiet; then
-            echo "✅ No changes to commit"
-            exit 0
-          fi
-
-          git commit -m "✅ Update StreamedSU Playlist ⚡ $(date -u +'%a %b %d %T UTC %Y')"
-
-          sleep $((RANDOM % 10 + 5))
-
-          if ! git push origin main; then
-            echo "⚠️ Push rejected. Trying safe fetch + rebase..."
-            git pull origin main --rebase || {
-              echo "❌ Rebase failed. Exiting safely."
-              exit 1
-            }
-            git push origin main || {
-              echo "❌ Second push failed. Remote changed again."
-              exit 1
-            }
-          fi
+    - name: 📤 Upload Playlists Artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: StreamedSU_Playlists
+        path: |
+          StreamedSU_VLC.m3u8
+          StreamedSU_TiviMate.m3u8
