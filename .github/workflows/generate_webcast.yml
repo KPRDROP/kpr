@@ -1,57 +1,66 @@
-name: 🌐 Sports Webcast Playlist Generator
+name: 🔁 Update SportsWebcast Playlist 🎥
 
 on:
   schedule:
-    # Run every hour
-    - cron: "0 * * * *"
+    - cron: '0 * * * *' 
   workflow_dispatch:
-    # Allow manual trigger
 
 permissions:
-  contents: write  # required to push changes
+  contents: write
 
 jobs:
-  generate-playlists:
+  scrape:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 🧩 Checkout repository
-      uses: actions/checkout@v4
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: 🐍 Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
+      - name: 🐍 Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: 📦 Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install aiohttp beautifulsoup4 playwright
-        playwright install chromium
-        playwright install-deps
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install aiohttp beautifulsoup4 playwright
 
-    - name: 🚀 Run generate_webcast.py
-      env:
-        PYTHONUNBUFFERED: 1
-      run: |
-        echo "▶️ Starting Sports Webcast Scraper..."
-        xvfb-run -a python generate_webcast.py
-        echo "✅ Finished generating playlists."
+      - name: 🎯 Run SportsWebcast scraper
+        run: |
+          playwright install
+          python generate_webcast.py
 
-    - name: 💾 Commit & Push if Changed
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "github-actions[bot]"
-        git add SportsWebcast_VLC.m3u8 SportsWebcast_TiviMate.m3u8
-        git diff --quiet && git diff --staged --quiet || \
-          (git commit -m "🔄 Update Sports Webcast playlists [skip ci]" && \
-           git push) || echo "No playlist changes to commit"
+      - name: 💾 Commit & Push if Playlist Changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: 📤 Upload Playlists (Artifacts)
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: SportsWebcast_Playlists
-        path: |
-          SportsWebcast_VLC.m3u8
-          SportsWebcast_TiviMate.m3u8
+          # Add the output playlist
+          git add SportsWebcast.m3u8
+
+          if git diff --cached --quiet; then
+            echo "✅ No changes detected — skipping commit."
+            exit 0
+          fi
+
+          git commit -m "🔁 Auto-update SportsWebcast playlist ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+
+          # Random delay to reduce push collisions
+          sleep $((RANDOM % 10 + 5))
+
+          if ! git push origin main; then
+            echo "⚠️ Push failed, attempting safe rebase..."
+            git pull origin main --rebase || {
+              echo "❌ Rebase failed. Stopping to avoid corruption."
+              exit 1
+            }
+            git push origin main || {
+              echo "❌ Push failed again after rebase."
+              exit 1
+            }
+          fi
