@@ -32,11 +32,11 @@ jobs:
           pip install aiohttp beautifulsoup4 playwright
 
       # 4️⃣ Install Playwright browsers and system dependencies
-      - name: 🌐 Install Playwright browsers and deps
+      - name: 🌐 Install Playwright browsers and dependencies
         run: |
           npx playwright install --with-deps
 
-      # 5️⃣ Run your SportsWebcast scraper
+      # 5️⃣ Run scraper (headless Chromium)
       - name: 🎯 Run SportsWebcast scraper
         run: python webcast.py
 
