@@ -4,7 +4,7 @@ import requests
 import logging
 from datetime import datetime
 from urllib.parse import quote
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 logging.basicConfig(
     filename="scrape.log",
@@ -58,7 +58,6 @@ total_failures = 0
 
 # --- Helper functions ---
 def get_all_matches():
-    """Fetch matches from API"""
     endpoints = ["live"]
     all_matches = []
     for ep in endpoints:
@@ -75,7 +74,6 @@ def get_all_matches():
     return all_matches
 
 def get_embed_urls_from_api(source):
-    """Return embed URLs for a match source"""
     try:
         s_name, s_id = source.get("source"), source.get("id")
         if not s_name or not s_id:
@@ -113,32 +111,53 @@ def build_logo_url(match):
     return validate_logo(None, cat), cat
 
 # --- Async scraping ---
-async def extract_m3u8(page, embed_url):
-    found = None
-    try:
-        async def on_request(request):
-            nonlocal found
-            if ".m3u8" in request.url and not found:
-                found = request.url
-                log.info(f"  ⚡ Stream found: {found}")
+async def extract_m3u8(page, embed_url, retries=3):
+    for attempt in range(1, retries + 1):
+        found = None
+        try:
+            async def on_request(request):
+                nonlocal found
+                if ".m3u8" in request.url and not found:
+                    found = request.url
+                    log.info(f"  ⚡ Stream captured: {found}")
 
-        page.on("request", on_request)
-        await page.goto(embed_url, wait_until="domcontentloaded", timeout=5000)
-        await page.bring_to_front()
+            page.on("request", on_request)
+            await page.goto(embed_url, wait_until="domcontentloaded", timeout=5000)
+            await page.bring_to_front()
+
+            # Simulate clicks
+            for _ in range(2):
+                try:
+                    await page.mouse.click(200, 200)
+                    await asyncio.sleep(0.5)
+                except:
+                    pass
+
+            # Wait for network requests
+            for _ in range(8):
+                if found:
+                    break
+                await asyncio.sleep(0.5)
+
+            # Fallback regex
+            if not found:
+                html = await page.content()
+                matches = re.findall(r'https?://[^\s\"\'<>]+\.m3u8(?:\?[^\"\'<>]*)?', html)
+                if matches:
+                    found = matches[0]
+                    log.info(f"  🕵️ Fallback m3u8: {found}")
+
+            if found:
+                return found
+        except PlaywrightTimeoutError:
+            log.warning(f"⚠️ Timeout loading {embed_url} (attempt {attempt})")
+        except Exception as e:
+            log.warning(f"⚠️ Error {e} (attempt {attempt})")
         await asyncio.sleep(1)
-        if not found:
-            html = await page.content()
-            matches = re.findall(r'https?://[^\s\"\'<>]+\.m3u8(?:\?[^\"\'<>]*)?', html)
-            if matches:
-                found = matches[0]
-                log.info(f"  🕵️ Fallback stream: {found}")
-        return found
-    except Exception as e:
-        log.warning(f"⚠️ Failed extracting stream from {embed_url}: {e}")
-        return None
+    return None
 
 async def process_match(index, match, total, ctx):
-    global total_embeds, total_streams
+    global total_embeds, total_streams, total_failures
     title = match.get("title", "Unknown Match")
     log.info(f"\n🎯 [{index}/{total}] {title}")
     sources = match.get("sources", [])
@@ -152,6 +171,7 @@ async def process_match(index, match, total, ctx):
                 total_streams += 1
                 await page.close()
                 return match, m3u8
+    total_failures += 1
     await page.close()
     return match, None
 
@@ -170,14 +190,16 @@ async def generate_playlist():
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         ctx = await browser.new_context(extra_http_headers=CUSTOM_HEADERS)
-        sem = asyncio.Semaphore(2)
+        sem = asyncio.Semaphore(3)
 
         async def worker(idx, m):
             async with sem:
                 return await process_match(idx, m, total_matches, ctx)
 
-        for i, m in enumerate(matches, 1):
-            match, url = await worker(i, m)
+        tasks = [worker(i + 1, m) for i, m in enumerate(matches)]
+        results = await asyncio.gather(*tasks)
+
+        for match, url in results:
             if not url:
                 continue
             logo, cat = build_logo_url(match)
