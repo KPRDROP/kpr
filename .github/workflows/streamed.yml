@@ -77,11 +77,27 @@ jobs:
             }
           fi
 
+      - name: 💾 Commit & Push Generated Playlists
+        run: |
+          echo "📝 Checking for generated playlists..."
+          ls -l *.m3u8 || echo "⚠️ No playlists found!"
+          
+          if ls *.m3u8 1> /dev/null 2>&1; then
+            echo "✅ Playlists found, committing..."
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add *.m3u8
+            git commit -m "🎶 Auto-update playlists ($(date +'%Y-%m-%d %H:%M:%S'))" || echo "⚠️ Nothing new to commit"
+            git push
+          else
+            echo "⚠️ No playlist files to commit."
+          fi
+
       - name: 📤 Upload Playlist Artifacts
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: StreamedSU_Playlists
           path: |
-            StreamedSU_VLC.m3u8
-            StreamedSU_TiviMate.m3u8
+            ./StreamedSU_VLC.m3u8
+            ./StreamedSU_TiviMate.m3u8
+          if-no-files-found: warn
