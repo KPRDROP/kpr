@@ -42,7 +42,7 @@ jobs:
       - name: 🎯 Run scraping script
         run: python streamed.py
 
-            - name: 💾 Commit & Safely Push if Playlist Changed
+      - name: 💾 Commit & Safely Push if Playlist Changed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
