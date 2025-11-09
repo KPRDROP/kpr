@@ -24,19 +24,7 @@ CUSTOM_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 }
 
-# Encode the User-Agent for TiviMate format
-ENCODED_USER_AGENT = quote(CUSTOM_HEADERS["User-Agent"], safe="")
-
-FALLBACK_LOGOS = {
-    "american-football": "http://drewlive24.duckdns.org:9000/Logos/Am-Football2.png",
-    "football": "https://external-content.duckduckgo.com/iu/?u=https://i.imgur.com/RvN0XSF.png",
-    "fight": "http://drewlive24.duckdns.org:9000/Logos/Combat-Sports.png",
-    "basketball": "http://drewlive24.duckdns.org:9000/Logos/Basketball5.png",
-    "motor sports": "http://drewlive24.duckdns.org:9000/Logos/Motorsports3.png",
-    "darts": "http://drewlive24.duckdns.org:9000/Logos/Darts.png",
-    "tennis": "http://drewlive24.duckdns.org:9000/Logos/Tennis-2.png",
-    "rugby": "http://drewlive24.duckdns.org:9000/Logos/Rugby.png"
-}
+ENCODED_UA = quote(CUSTOM_HEADERS["User-Agent"], safe="")
 
 TV_IDS = {
     "Baseball": "MLB.Baseball.Dummy.us",
@@ -52,28 +40,135 @@ TV_IDS = {
     "Rugby": "Rugby.Dummy.us"
 }
 
+FALLBACK_LOGOS = {
+    "american-football": "http://drewlive24.duckdns.org:9000/Logos/Am-Football2.png",
+    "football": "https://i.imgur.com/RvN0XSF.png",
+    "fight": "http://drewlive24.duckdns.org:9000/Logos/Combat-Sports.png",
+    "basketball": "http://drewlive24.duckdns.org:9000/Logos/Basketball5.png",
+    "motor sports": "http://drewlive24.duckdns.org:9000/Logos/Motorsports3.png",
+    "darts": "http://drewlive24.duckdns.org:9000/Logos/Darts.png",
+    "tennis": "http://drewlive24.duckdns.org:9000/Logos/Tennis-2.png",
+    "rugby": "http://drewlive24.duckdns.org:9000/Logos/Rugby.png"
+}
+
 total_matches = 0
 total_embeds = 0
 total_streams = 0
 total_failures = 0
 
-# --- Your existing functions get_all_matches, get_embed_urls_from_api, extract_m3u8, validate_logo, build_logo_url, process_match remain unchanged --- #
+# --- Helper functions ---
+def get_all_matches():
+    """Fetch matches from API"""
+    endpoints = ["live"]
+    all_matches = []
+    for ep in endpoints:
+        try:
+            log.info(f"📡 Fetching {ep} matches...")
+            res = requests.get(f"https://streami.su/api/matches/{ep}", timeout=10)
+            res.raise_for_status()
+            data = res.json()
+            log.info(f"✅ {ep}: {len(data)} matches")
+            all_matches.extend(data)
+        except Exception as e:
+            log.warning(f"⚠️ Failed fetching {ep}: {e}")
+    log.info(f"🎯 Total matches collected: {len(all_matches)}")
+    return all_matches
 
-# Main generate_playlist function with VLC + TiviMate
+def get_embed_urls_from_api(source):
+    """Return embed URLs for a match source"""
+    try:
+        s_name, s_id = source.get("source"), source.get("id")
+        if not s_name or not s_id:
+            return []
+        res = requests.get(f"https://streamed.pk/api/stream/{s_name}/{s_id}", timeout=6)
+        res.raise_for_status()
+        data = res.json()
+        return [d.get("embedUrl") for d in data if d.get("embedUrl")]
+    except Exception:
+        return []
+
+def validate_logo(url, category):
+    cat = (category or "").lower().replace("-", " ").strip()
+    fallback = FALLBACK_LOGOS.get(cat)
+    if url:
+        try:
+            res = requests.head(url, timeout=2)
+            if res.status_code in (200, 302):
+                return url
+        except Exception:
+            pass
+    return fallback
+
+def build_logo_url(match):
+    cat = (match.get("category") or "").strip()
+    teams = match.get("teams") or {}
+    for side in ["away", "home"]:
+        badge = teams.get(side, {}).get("badge")
+        if badge:
+            url = f"https://streamed.pk/api/images/badge/{badge}.webp"
+            return validate_logo(url, cat), cat
+    if match.get("poster"):
+        url = f"https://streamed.pk/api/images/proxy/{match['poster']}.webp"
+        return validate_logo(url, cat), cat
+    return validate_logo(None, cat), cat
+
+# --- Async scraping ---
+async def extract_m3u8(page, embed_url):
+    found = None
+    try:
+        async def on_request(request):
+            nonlocal found
+            if ".m3u8" in request.url and not found:
+                found = request.url
+                log.info(f"  ⚡ Stream found: {found}")
+
+        page.on("request", on_request)
+        await page.goto(embed_url, wait_until="domcontentloaded", timeout=5000)
+        await page.bring_to_front()
+        await asyncio.sleep(1)
+        if not found:
+            html = await page.content()
+            matches = re.findall(r'https?://[^\s\"\'<>]+\.m3u8(?:\?[^\"\'<>]*)?', html)
+            if matches:
+                found = matches[0]
+                log.info(f"  🕵️ Fallback stream: {found}")
+        return found
+    except Exception as e:
+        log.warning(f"⚠️ Failed extracting stream from {embed_url}: {e}")
+        return None
+
+async def process_match(index, match, total, ctx):
+    global total_embeds, total_streams
+    title = match.get("title", "Unknown Match")
+    log.info(f"\n🎯 [{index}/{total}] {title}")
+    sources = match.get("sources", [])
+    page = await ctx.new_page()
+    for s in sources:
+        embed_urls = get_embed_urls_from_api(s)
+        total_embeds += len(embed_urls)
+        for embed in embed_urls:
+            m3u8 = await extract_m3u8(page, embed)
+            if m3u8:
+                total_streams += 1
+                await page.close()
+                return match, m3u8
+    await page.close()
+    return match, None
+
 async def generate_playlist():
     global total_matches
     matches = get_all_matches()
     total_matches = len(matches)
     if not matches:
         log.warning("❌ No matches found.")
-        return "#EXTM3U\n", "#EXTM3U\n"
+        return "", ""
 
     vlc_content = ["#EXTM3U"]
     tivimate_content = ["#EXTM3U"]
     success = 0
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True, channel="chrome-beta")
+        browser = await p.chromium.launch(headless=True)
         ctx = await browser.new_context(extra_http_headers=CUSTOM_HEADERS)
         sem = asyncio.Semaphore(2)
 
@@ -90,7 +185,7 @@ async def generate_playlist():
             display_cat = cat.replace("-", " ").title() if cat else "General"
             tv_id = TV_IDS.get(display_cat, "General.Dummy.us")
 
-            # VLC entry
+            # VLC playlist
             vlc_content.append(
                 f'#EXTINF:-1 tvg-id="{tv_id}" tvg-name="{title}" '
                 f'tvg-logo="{logo}" group-title="StreamedSU - {display_cat}",{title}'
@@ -100,13 +195,12 @@ async def generate_playlist():
             vlc_content.append(f'#EXTVLCOPT:user-agent={CUSTOM_HEADERS["User-Agent"]}')
             vlc_content.append(url)
 
-            # TiviMate entry (pipe-delimited headers, encoded user-agent)
-            tivimate_headers = f"referer={CUSTOM_HEADERS['Referer']}|origin={CUSTOM_HEADERS['Origin']}|user-agent={ENCODED_USER_AGENT}|icy-metadata=1"
+            # TiviMate playlist
             tivimate_content.append(
                 f'#EXTINF:-1 tvg-id="{tv_id}" tvg-name="{title}" '
                 f'tvg-logo="{logo}" group-title="StreamedSU - {display_cat}",{title}'
             )
-            tivimate_content.append(f'{url}|{tivimate_headers}')
+            tivimate_content.append(f'{url}|referer={CUSTOM_HEADERS["Referer"]}|origin={CUSTOM_HEADERS["Origin"]}|user-agent={ENCODED_UA}')
 
             success += 1
 
@@ -115,24 +209,22 @@ async def generate_playlist():
     log.info(f"\n🎉 {success} working streams written to playlists.")
     return "\n".join(vlc_content), "\n".join(tivimate_content)
 
-
+# --- Main ---
 if __name__ == "__main__":
     start = datetime.now()
     log.info("🚀 Starting StreamedSU scrape run (LIVE only)...")
     vlc_playlist, tivimate_playlist = asyncio.run(generate_playlist())
-    
+
     with open("StreamedSU_VLC.m3u8", "w", encoding="utf-8") as f:
         f.write(vlc_playlist)
-
     with open("StreamedSU_TiviMate.m3u8", "w", encoding="utf-8") as f:
         f.write(tivimate_playlist)
 
     end = datetime.now()
     duration = (end - start).total_seconds()
     log.info("\n📊 FINAL SUMMARY ------------------------------")
-    log.info(f"🕓 Duration: {duration:.2f} sec")
-    log.info(f"📺 Matches:  {total_matches}")
-    log.info(f"🔗 Embeds:   {total_embeds}")
-    log.info(f"✅ Streams:  {total_streams}")
-    log.info(f"❌ Failures: {total_failures}")
+    log.info(f"🕓 Duration:  {duration:.2f} sec")
+    log.info(f"📺 Matches:   {total_matches}")
+    log.info(f"🔗 Streams:   {total_streams}")
+    log.info(f"❌ Failures:  {total_failures}")
     log.info("------------------------------------------------")
