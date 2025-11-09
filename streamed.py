@@ -2,6 +2,7 @@ import asyncio
 import re
 import requests
 import logging
+import time
 from datetime import datetime
 from urllib.parse import quote
 from playwright.async_api import async_playwright
