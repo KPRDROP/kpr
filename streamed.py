@@ -18,6 +18,9 @@ console.setFormatter(logging.Formatter("%(asctime)s | %(levelname)-8s | %(messag
 logging.getLogger("").addHandler(console)
 log = logging.getLogger("scraper")
 
+# -------------------------------
+# Headers
+# -------------------------------
 CUSTOM_HEADERS = {
     "Origin": "https://embedsports.top",
     "Referer": "https://embedsports.top/",
@@ -25,9 +28,12 @@ CUSTOM_HEADERS = {
 }
 ENCODED_USER_AGENT = quote(CUSTOM_HEADERS["User-Agent"], safe="")
 
+# -------------------------------
+# Logos / Categories
+# -------------------------------
 FALLBACK_LOGOS = {
     "american-football": "http://drewlive24.duckdns.org:9000/Logos/Am-Football2.png",
-    "football": "https://i.imgur.com/RvN0XSF.png",
+    "football": "https://external-content.duckduckgo.com/iu/?u=https://i.imgur.com/RvN0XSF.png",
     "fight": "http://drewlive24.duckdns.org:9000/Logos/Combat-Sports.png",
     "basketball": "http://drewlive24.duckdns.org:9000/Logos/Basketball5.png",
     "motor sports": "http://drewlive24.duckdns.org:9000/Logos/Motorsports3.png",
@@ -56,7 +62,7 @@ total_streams = 0
 total_failures = 0
 
 # -------------------------------
-# Match / Embed Utilities
+# Utilities
 # -------------------------------
 def get_all_matches():
     endpoints = ["live"]
@@ -112,7 +118,7 @@ def build_logo_url(match):
     return validate_logo(None, cat), cat
 
 # -------------------------------
-# M3U8 Extraction
+# Extract M3U8
 # -------------------------------
 async def extract_m3u8(page, embed_url):
     global total_failures
@@ -127,9 +133,10 @@ async def extract_m3u8(page, embed_url):
                 log.info(f"  ⚡ Stream: {found}")
 
         page.on("request", on_request)
-        await page.goto(embed_url, wait_until="domcontentloaded", timeout=5000)
+        await page.goto(embed_url, wait_until="domcontentloaded", timeout=7000)
         await page.bring_to_front()
 
+        # Try clicking common play buttons
         selectors = [
             "div.jw-icon-display[role='button']",
             ".jw-icon-playback",
@@ -141,50 +148,52 @@ async def extract_m3u8(page, embed_url):
             "canvas"
         ]
 
+        clicked = False
         for sel in selectors:
             try:
                 el = await page.query_selector(sel)
                 if el:
                     await el.click(timeout=300)
+                    clicked = True
                     break
             except:
                 continue
 
-        # --------- MOMENTUM CLICK / AD HANDLER ----------
-        try:
-            await page.mouse.click(200, 200)
-            log.info("  👆 First click triggered ad")
+        # Momentum click / ad handling
+        if not found:
+            try:
+                await page.mouse.click(200, 200)
+                log.info("  👆 First click triggered ad")
 
-            pages_before = page.context.pages
-            new_tab = None
-            for _ in range(12):  # ~3 seconds
-                pages_now = page.context.pages
-                if len(pages_now) > len(pages_before):
-                    new_tab = [p for p in pages_now if p not in pages_before][0]
-                    break
-                await asyncio.sleep(0.25)
+                pages_before = set(page.context.pages)
+                new_tab = None
+                for _ in range(10):  # ~2s wait
+                    pages_now = set(page.context.pages)
+                    diff = pages_now - pages_before
+                    if diff:
+                        new_tab = diff.pop()
+                        break
+                    await asyncio.sleep(0.2)
 
-            if new_tab:
-                try:
-                    await asyncio.sleep(0.5)
-                    url = (new_tab.url or "").lower()
-                    log.info(f"  🚫 Forcing close on ad tab: {url if url else '(blank/new)'}")
-                    await new_tab.close()
-                except Exception:
-                    log.info("  ⚠️ Ad tab close failed")
+                if new_tab:
+                    try:
+                        url = (new_tab.url or "").lower()
+                        log.info(f"  🚫 Forcing close on ad tab: {url if url else '(blank/new)'}")
+                        await new_tab.close()
+                    except Exception:
+                        log.info("  ⚠️ Ad tab close failed")
 
-            await asyncio.sleep(1)
-            await page.mouse.click(200, 200)
-            log.info("  ▶️ Second click started player")
+                if not found and clicked:
+                    await page.mouse.click(200, 200)
+                    log.info("  ▶️ Second click started player")
+            except Exception as e:
+                log.warning(f"⚠️ Momentum click sequence failed: {e}")
 
-        except Exception as e:
-            log.warning(f"⚠️ Momentum click sequence failed: {e}")
-
-        for _ in range(4):
+        # Quick polling for network m3u8 detection
+        for _ in range(8):
             if found:
                 break
-            await asyncio.sleep(0.25)
-        # ----------------------------------------------
+            await asyncio.sleep(0.2)
 
         # Fallback regex
         if not found:
@@ -195,7 +204,6 @@ async def extract_m3u8(page, embed_url):
                 log.info(f"  🕵️ Fallback: {found}")
 
         return found
-
     except Exception as e:
         total_failures += 1
         log.warning(f"⚠️ {embed_url} failed: {e}")
@@ -277,7 +285,7 @@ async def generate_playlist():
             vlc_content.append(f'#EXTVLCOPT:user-agent={CUSTOM_HEADERS["User-Agent"]}')
             vlc_content.append(url)
 
-            # TiviMate playlist (pipe headers + encoded UA)
+            # TiviMate playlist
             tivimate_content.append(
                 f'#EXTINF:-1 tvg-id="{tv_id}" tvg-name="{title}" tvg-logo="{logo}" group-title="StreamedSU - {display_cat}",{title}'
             )
