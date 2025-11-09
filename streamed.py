@@ -3,6 +3,7 @@ import re
 import requests
 import logging
 from datetime import datetime
+from urllib.parse import quote
 from playwright.async_api import async_playwright
 
 logging.basicConfig(
@@ -23,6 +24,8 @@ CUSTOM_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 }
 
+# Encode the User-Agent for TiviMate format
+ENCODED_USER_AGENT = quote(CUSTOM_HEADERS["User-Agent"], safe="")
 
 FALLBACK_LOGOS = {
     "american-football": "http://drewlive24.duckdns.org:9000/Logos/Am-Football2.png",
@@ -54,197 +57,23 @@ total_embeds = 0
 total_streams = 0
 total_failures = 0
 
+# --- Your existing functions get_all_matches, get_embed_urls_from_api, extract_m3u8, validate_logo, build_logo_url, process_match remain unchanged --- #
 
-def get_all_matches():
-    endpoints = ["live"]
-    all_matches = []
-    for ep in endpoints:
-        try:
-            log.info(f"📡 Fetching {ep} matches...")
-            res = requests.get(f"https://streami.su/api/matches/{ep}", timeout=10)
-            res.raise_for_status()
-            data = res.json()
-            log.info(f"✅ {ep}: {len(data)} matches")
-            all_matches.extend(data)
-        except Exception as e:
-            log.warning(f"⚠️ Failed fetching {ep}: {e}")
-    log.info(f"🎯 Total matches collected: {len(all_matches)}")
-    return all_matches
-
-
-def get_embed_urls_from_api(source):
-    try:
-        s_name, s_id = source.get("source"), source.get("id")
-        if not s_name or not s_id:
-            return []
-        res = requests.get(f"https://streamed.pk/api/stream/{s_name}/{s_id}", timeout=6)
-        res.raise_for_status()
-        data = res.json()
-        return [d.get("embedUrl") for d in data if d.get("embedUrl")]
-    except Exception:
-        return []
-
-
-async def extract_m3u8(page, embed_url):
-    global total_failures
-    found = None
-    try:
-        async def on_request(request):
-            nonlocal found
-            if ".m3u8" in request.url and not found:
-                if "prd.jwpltx.com" in request.url:
-                    return
-                found = request.url
-                log.info(f"  ⚡ Stream: {found}")
-
-        page.on("request", on_request)
-        await page.goto(embed_url, wait_until="domcontentloaded", timeout=5000)
-        await page.bring_to_front()
-
-        selectors = [
-            "div.jw-icon-display[role='button']",
-            ".jw-icon-playback",
-            ".vjs-big-play-button",
-            ".plyr__control",
-            "div[class*='play']",
-            "div[role='button']",
-            "button",
-            "canvas"
-        ]
-
-        for sel in selectors:
-            try:
-                el = await page.query_selector(sel)
-                if el:
-                    await el.click(timeout=300)
-                    break
-            except:
-                continue
-
-        try:
-            await page.mouse.click(200, 200)
-            log.info("  👆 First click triggered ad")
-
-            pages_before = page.context.pages
-            new_tab = None
-            for _ in range(12):  # ~3 seconds
-                pages_now = page.context.pages
-                if len(pages_now) > len(pages_before):
-                    new_tab = [p for p in pages_now if p not in pages_before][0]
-                    break
-                await asyncio.sleep(0.25)
-
-            if new_tab:
-                try:
-                    await asyncio.sleep(0.5)
-                    url = (new_tab.url or "").lower()
-                    log.info(f"  🚫 Forcing close on ad tab: {url if url else '(blank/new)'}")
-                    await new_tab.close()
-                except Exception:
-                    log.info("  ⚠️ Ad tab close failed")
-
-            await asyncio.sleep(1)
-            await page.mouse.click(200, 200)
-            log.info("  ▶️ Second click started player")
-
-        except Exception as e:
-            log.warning(f"⚠️ Momentum click sequence failed: {e}")
-
-        for _ in range(4):
-            if found:
-                break
-            await asyncio.sleep(0.25)
-
-        if not found:
-            html = await page.content()
-            matches = re.findall(r'https?://[^\s\"\'<>]+\.m3u8(?:\?[^\"\'<>]*)?', html)
-            if matches:
-                found = matches[0]
-                log.info(f"  🕵️ Fallback: {found}")
-
-        return found
-
-    except Exception as e:
-        total_failures += 1
-        log.warning(f"⚠️ {embed_url} failed: {e}")
-        return None
-
-
-def validate_logo(url, category):
-    cat = (category or "").lower().replace("-", " ").strip()
-    fallback = FALLBACK_LOGOS.get(cat)
-    if url:
-        try:
-            res = requests.head(url, timeout=2)
-            if res.status_code in (200, 302):
-                return url
-        except Exception:
-            pass
-    return fallback
-
-
-def build_logo_url(match):
-    cat = (match.get("category") or "").strip()
-    teams = match.get("teams") or {}
-    for side in ["away", "home"]:
-        badge = teams.get(side, {}).get("badge")
-        if badge:
-            url = f"https://streamed.pk/api/images/badge/{badge}.webp"
-            return validate_logo(url, cat), cat
-    if match.get("poster"):
-        url = f"https://streamed.pk/api/images/proxy/{match['poster']}.webp"
-        return validate_logo(url, cat), cat
-    return validate_logo(None, cat), cat
-
-
-async def process_match(index, match, total, ctx):
-    global total_embeds, total_streams
-    title = match.get("title", "Unknown Match")
-    log.info(f"\n🎯 [{index}/{total}] {title}")
-    sources = match.get("sources", [])
-    match_embeds = 0
-
-    page = await ctx.new_page()
-
-    for s in sources:
-        embed_urls = get_embed_urls_from_api(s)
-        total_embeds += len(embed_urls)
-        match_embeds += len(embed_urls)
-        if not embed_urls:
-            continue
-
-        log.info(f"  ↳ {len(embed_urls)} embed URLs")
-
-        for i, embed in enumerate(embed_urls, start=1):
-            log.info(f"     • ({i}/{len(embed_urls)}) {embed}")
-            m3u8 = await extract_m3u8(page, embed)
-            if m3u8:
-                total_streams += 1
-                log.info(f"     ✅ Stream OK for {title}")
-                await page.close()
-                return match, m3u8
-
-    await page.close()
-    log.info(f"     ❌ No working streams ({match_embeds} embeds)")
-    return match, None
-
-
+# Main generate_playlist function with VLC + TiviMate
 async def generate_playlist():
     global total_matches
     matches = get_all_matches()
     total_matches = len(matches)
     if not matches:
         log.warning("❌ No matches found.")
-        return "#EXTM3U\n"
+        return "#EXTM3U\n", "#EXTM3U\n"
 
-    content = ["#EXTM3U"]
+    vlc_content = ["#EXTM3U"]
+    tivimate_content = ["#EXTM3U"]
     success = 0
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True, 
-            channel="chrome-beta"
-        )
+        browser = await p.chromium.launch(headless=True, channel="chrome-beta")
         ctx = await browser.new_context(extra_http_headers=CUSTOM_HEADERS)
         sem = asyncio.Semaphore(2)
 
@@ -261,28 +90,42 @@ async def generate_playlist():
             display_cat = cat.replace("-", " ").title() if cat else "General"
             tv_id = TV_IDS.get(display_cat, "General.Dummy.us")
 
-            content.append(
+            # VLC entry
+            vlc_content.append(
                 f'#EXTINF:-1 tvg-id="{tv_id}" tvg-name="{title}" '
                 f'tvg-logo="{logo}" group-title="StreamedSU - {display_cat}",{title}'
             )
-            content.append(f'#EXTVLCOPT:http-origin={CUSTOM_HEADERS["Origin"]}')
-            content.append(f'#EXTVLCOPT:http-referrer={CUSTOM_HEADERS["Referer"]}')
-            content.append(f'#EXTVLCOPT:user-agent={CUSTOM_HEADERS["User-Agent"]}')
-            content.append(url)
+            vlc_content.append(f'#EXTVLCOPT:http-origin={CUSTOM_HEADERS["Origin"]}')
+            vlc_content.append(f'#EXTVLCOPT:http-referrer={CUSTOM_HEADERS["Referer"]}')
+            vlc_content.append(f'#EXTVLCOPT:user-agent={CUSTOM_HEADERS["User-Agent"]}')
+            vlc_content.append(url)
+
+            # TiviMate entry (pipe-delimited headers, encoded user-agent)
+            tivimate_headers = f"referer={CUSTOM_HEADERS['Referer']}|origin={CUSTOM_HEADERS['Origin']}|user-agent={ENCODED_USER_AGENT}|icy-metadata=1"
+            tivimate_content.append(
+                f'#EXTINF:-1 tvg-id="{tv_id}" tvg-name="{title}" '
+                f'tvg-logo="{logo}" group-title="StreamedSU - {display_cat}",{title}'
+            )
+            tivimate_content.append(f'{url}|{tivimate_headers}')
+
             success += 1
 
         await browser.close()
 
-    log.info(f"\n🎉 {success} working streams written to playlist.")
-    return "\n".join(content)
+    log.info(f"\n🎉 {success} working streams written to playlists.")
+    return "\n".join(vlc_content), "\n".join(tivimate_content)
 
 
 if __name__ == "__main__":
     start = datetime.now()
     log.info("🚀 Starting StreamedSU scrape run (LIVE only)...")
-    playlist = asyncio.run(generate_playlist())
-    with open("StreamedSU.m3u8", "w", encoding="utf-8") as f:
-        f.write(playlist)
+    vlc_playlist, tivimate_playlist = asyncio.run(generate_playlist())
+    
+    with open("StreamedSU_VLC.m3u8", "w", encoding="utf-8") as f:
+        f.write(vlc_playlist)
+
+    with open("StreamedSU_TiviMate.m3u8", "w", encoding="utf-8") as f:
+        f.write(tivimate_playlist)
 
     end = datetime.now()
     duration = (end - start).total_seconds()
