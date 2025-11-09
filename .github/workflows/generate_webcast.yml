@@ -1,73 +1,57 @@
-name: 🏈 Generate Sports Webcast Playlists
+name: 🌐 Sports Webcast Playlist Generator
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"  # Every 6 hours
+    # Run every hour
+    - cron: "0 * * * *"
+  workflow_dispatch:
+    # Allow manual trigger
+
+permissions:
+  contents: write  # required to push changes
 
 jobs:
-  generate:
+  generate-playlists:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🧩 Checkout repository
-        uses: actions/checkout@v4
+    - name: 🧩 Checkout repository
+      uses: actions/checkout@v4
 
-      - name: 🐍 Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
 
-      - name: 📦 Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install aiohttp beautifulsoup4 playwright
-          playwright install --with-deps firefox
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install aiohttp beautifulsoup4 playwright
+        playwright install chromium
+        playwright install-deps
 
-      - name: ▶️ Run Webcast Generator
-        run: |
-          echo "▶️ Starting Sports Webcast Scraper..."
-          python generate_webcast.py || echo "⚠️ Script completed with warnings."
+    - name: 🚀 Run generate_webcast.py
+      env:
+        PYTHONUNBUFFERED: 1
+      run: |
+        echo "▶️ Starting Sports Webcast Scraper..."
+        xvfb-run -a python generate_webcast.py
+        echo "✅ Finished generating playlists."
 
-      - name: 🧾 Check generated files
-        run: |
-          echo "🔎 Checking playlists..."
-          if [ -f "SportsWebcast_VLC.m3u8" ]; then
-            echo "✅ SportsWebcast_VLC.m3u8 found."
-          else
-            echo "⚠️ Creating empty SportsWebcast_VLC.m3u8."
-            echo "#EXTM3U" > SportsWebcast_VLC.m3u8
-          fi
+    - name: 💾 Commit & Push if Changed
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "github-actions[bot]"
+        git add SportsWebcast_VLC.m3u8 SportsWebcast_TiviMate.m3u8
+        git diff --quiet && git diff --staged --quiet || \
+          (git commit -m "🔄 Update Sports Webcast playlists [skip ci]" && \
+           git push) || echo "No playlist changes to commit"
 
-          if [ -f "SportsWebcast_TiviMate.m3u8" ]; then
-            echo "✅ SportsWebcast_TiviMate.m3u8 found."
-          else
-            echo "⚠️ Creating empty SportsWebcast_TiviMate.m3u8."
-            echo "#EXTM3U" > SportsWebcast_TiviMate.m3u8
-          fi
-
-      - name: 💾 Commit & Push (if changed)
-        run: |
-          echo "🧩 Checking for playlist changes..."
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git add SportsWebcast_VLC.m3u8 SportsWebcast_TiviMate.m3u8 || true
-
-          # Only commit if there are actual changes
-          if git diff --cached --quiet; then
-            echo "✅ No playlist changes to commit."
-          else
-            git commit -m "🔄 Auto-update Sports Webcast playlists [skip ci]"
-            git push
-            echo "✅ Playlists updated and pushed."
-          fi
-
-      - name: 📤 Upload Playlist (Artifacts)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: SportsWebcast_Playlists
-          path: |
-            SportsWebcast_VLC.m3u8
-            SportsWebcast_TiviMate.m3u8
-          if-no-files-found: ignore
+    - name: 📤 Upload Playlists (Artifacts)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: SportsWebcast_Playlists
+        path: |
+          SportsWebcast_VLC.m3u8
+          SportsWebcast_TiviMate.m3u8
