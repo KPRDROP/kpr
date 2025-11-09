@@ -38,7 +38,10 @@ jobs:
 
       # 5️⃣ Run scraper (headless Chromium)
       - name: 🎯 Run SportsWebcast scraper
-        run: python webcast.py
+        run: |
+          playwright install
+          python webcast.py
+
 
       # 6️⃣ Commit & Push updated playlist
       - name: 💾 Commit & Push updated playlist
