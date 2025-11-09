@@ -111,7 +111,6 @@ async def extract_m3u8(page, embed_url):
         await page.bring_to_front()
         log.info(f"  🌐 Loaded embed: {embed_url}")
 
-        # Click on player selectors
         selectors = [
             "div.jw-icon-display[role='button']",
             ".jw-icon-playback",
@@ -134,14 +133,14 @@ async def extract_m3u8(page, embed_url):
             except Exception:
                 continue
 
-        # Handle ad click + popup logic
+        # handle ad tab logic
         try:
             await page.mouse.click(200, 200)
             log.info("  👆 First click triggered ad")
             pages_before = page.context.pages
             new_tab = None
 
-            for _ in range(12):  # wait for popup tab
+            for _ in range(12):
                 pages_now = page.context.pages
                 if len(pages_now) > len(pages_before):
                     new_tab = [p for p in pages_now if p not in pages_before][0]
@@ -164,7 +163,6 @@ async def extract_m3u8(page, embed_url):
         except Exception as e:
             log.warning(f"⚠️ Momentum click sequence failed: {e}")
 
-        # Wait for stream capture
         for _ in range(5):
             if found:
                 break
@@ -248,10 +246,12 @@ async def generate_playlist():
     total_matches = len(matches)
     if not matches:
         log.warning("❌ No matches found.")
-        return "#EXTM3U\n"
+        return "#EXTM3U\n", "#EXTM3U\n"
 
-    content = ["#EXTM3U"]
+    content_std = ["#EXTM3U"]
+    content_tvm = ["#EXTM3U"]
     success = 0
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True, channel="chrome-beta")
         ctx = await browser.new_context(extra_http_headers=CUSTOM_HEADERS)
@@ -271,28 +271,46 @@ async def generate_playlist():
             tv_id = TV_IDS.get(base_cat, TV_IDS["other"])
             title = match.get("title", "Untitled")
 
-            content.append(
+            # VLC / Standard
+            content_std.append(
                 f'#EXTINF:-1 tvg-id="{tv_id}" tvg-name="{title}" '
                 f'tvg-logo="{logo}" group-title="StreamedSU - {display_cat}",{title}'
             )
-            content.append(f'#EXTVLCOPT:http-origin={CUSTOM_HEADERS["Origin"]}')
-            content.append(f'#EXTVLCOPT:http-referrer={CUSTOM_HEADERS["Referer"]}')
-            content.append(f'#EXTVLCOPT:user-agent={CUSTOM_HEADERS["User-Agent"]}')
-            content.append(url)
+            content_std.append(f'#EXTVLCOPT:http-origin={CUSTOM_HEADERS["Origin"]}')
+            content_std.append(f'#EXTVLCOPT:http-referrer={CUSTOM_HEADERS["Referer"]}')
+            content_std.append(f'#EXTVLCOPT:user-agent={CUSTOM_HEADERS["User-Agent"]}')
+            content_std.append(url)
+
+            # TiviMate format
+            tivimate_url = (
+                f"{url}|User-Agent={CUSTOM_HEADERS['User-Agent']}"
+                f"|Referer={CUSTOM_HEADERS['Referer']}"
+                f"|Origin={CUSTOM_HEADERS['Origin']}"
+            )
+            content_tvm.append(
+                f'#EXTINF:-1 tvg-id="{tv_id}" tvg-name="{title}" '
+                f'tvg-logo="{logo}" group-title="StreamedSU - {display_cat}",{title}'
+            )
+            content_tvm.append(tivimate_url)
             success += 1
 
         await browser.close()
 
     log.info(f"\n🎉 {success} working streams written to playlist.")
-    return "\n".join(content)
+    return "\n".join(content_std), "\n".join(content_tvm)
 
 
 if __name__ == "__main__":
     start = datetime.now()
     log.info("🚀 Starting StreamedSU scrape run (LIVE only)...")
-    playlist = asyncio.run(generate_playlist())
+    playlist_std, playlist_tvm = asyncio.run(generate_playlist())
+
     with open("StreamedSU.m3u8", "w", encoding="utf-8") as f:
-        f.write(playlist)
+        f.write(playlist_std)
+
+    with open("StreamedSU_tivimate.m3u8", "w", encoding="utf-8") as f:
+        f.write(playlist_tvm)
+
     end = datetime.now()
     duration = (end - start).total_seconds()
     log.info("\n📊 FINAL SUMMARY ------------------------------")
