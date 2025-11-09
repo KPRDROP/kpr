@@ -339,20 +339,24 @@ async def generate_playlist():
     log.info(f"\n🎉 {success} working streams written to playlists.")
     return "\n".join(vlc_content), "\n".join(tivimate_content)
 
-# -------------------------------
-# Main
-# -------------------------------
+# ---------------------------
+# 🚀 Main execution
+# ---------------------------
 if __name__ == "__main__":
-    start = datetime.now()
-    log.info("🚀 Starting StreamedSU scrape run (LIVE only)...")
-    vlc_playlist, tivimate_playlist = asyncio.run(generate_playlist())
+    import sys
+    import asyncio
 
-    with open("StreamedSU_VLC.m3u8", "w", encoding="utf-8") as f:
-        f.write(vlc_playlist)
-
-    with open("StreamedSU_TiviMate.m3u8", "w", encoding="utf-8") as f:
-        f.write(tivimate_playlist)
-
+    try:
+        log.info("🚀 Starting StreamedSU scrape run (LIVE only)...")
+        asyncio.run(main())
+        log.info("✅ StreamedSU scrape completed successfully.")
+    except KeyboardInterrupt:
+        log.warning("🧹 Script interrupted manually. Exiting cleanly...")
+        sys.exit(0)
+    except Exception as e:
+        log.error(f"❌ Unexpected fatal error: {e}", exc_info=True)
+        sys.exit(1)
+		
     end = datetime.now()
     duration = (end - start).total_seconds()
     log.info("\n📊 FINAL SUMMARY ------------------------------")
