@@ -140,6 +140,7 @@ def build_logo_url(match):
 async def extract_m3u8(page, embed_url):
     global total_failures
     found = None
+    timeout_limit = 15  # seconds max to wait per embed
 
     async def check_response(response):
         nonlocal found
@@ -165,6 +166,12 @@ async def extract_m3u8(page, embed_url):
         except Exception as e:
             log.debug(f"  ⚙️ Iframe scan error: {e}")
 
+    async def cleanup():
+        try:
+            page.remove_listener("response", check_response)
+        except Exception:
+            pass
+
     try:
         page.on("response", check_response)
 
@@ -178,11 +185,11 @@ async def extract_m3u8(page, embed_url):
 
         page.on("request", on_request)
 
-        await page.goto(embed_url, wait_until="domcontentloaded", timeout=10000)
+        await page.goto(embed_url, wait_until="domcontentloaded", timeout=15000)
         await page.bring_to_front()
         log.info(f"  🌐 Loaded embed: {embed_url}")
 
-        # --- Initial click strategy ---
+        # --- Try visible play buttons ---
         selectors = [
             "div.jw-icon-display[role='button']",
             ".jw-icon-playback",
@@ -194,21 +201,22 @@ async def extract_m3u8(page, embed_url):
             "canvas"
         ]
 
-        # Try visible play button first
         for sel in selectors:
+            if found:
+                break
             try:
                 el = await page.query_selector(sel)
                 if el:
-                    await asyncio.sleep(1.2)
+                    await asyncio.sleep(1.0)
                     await el.click(timeout=300)
                     log.info(f"  🎯 Clicked selector: {sel}")
                     break
-            except:
+            except Exception:
                 continue
 
-        # --- Momentum ad-click handling ---
+        # --- Ad-tab handling sequence ---
         try:
-            await asyncio.sleep(1.5)
+            await asyncio.sleep(1.0)
             await page.mouse.click(200, 200)
             log.info("  👆 First click triggered ad")
 
@@ -230,21 +238,19 @@ async def extract_m3u8(page, embed_url):
                 except Exception:
                     log.info("  ⚠️ Ad tab close failed")
 
-            await asyncio.sleep(1.8)
+            await asyncio.sleep(1.2)
             await page.mouse.click(200, 200)
             log.info("  ▶️ Second click started player")
 
         except Exception as e:
             log.warning(f"⚠️ Momentum click sequence failed: {e}")
 
-        # --- Wait and retry detection ---
-        for _ in range(10):  # wait up to ~2.5s
-            if found:
-                break
-            await asyncio.sleep(0.25)
+        # --- Detection loop ---
+        start_time = time.time()
+        while not found and (time.time() - start_time < timeout_limit):
+            await asyncio.sleep(0.5)
             await check_iframes()
 
-        # --- Fallback HTML regex ---
         if not found:
             html = await page.content()
             matches = re.findall(r'https?://[^\s\"\'<>]+\.m3u8(?:\?[^\"\'<>]*)?', html)
@@ -252,14 +258,18 @@ async def extract_m3u8(page, embed_url):
                 found = matches[0]
                 log.info(f"  🕵️ Fallback: {found}")
 
-        if not found:
-            log.info("  ❌ No stream found after all checks.")
+        if found:
+            log.info("  ✅ Stream detected, moving to next match.")
+        else:
+            log.info("  ❌ No stream found after timeout.")
 
+        await cleanup()
         return found
 
     except Exception as e:
         total_failures += 1
         log.warning(f"⚠️ {embed_url} failed: {e}")
+        await cleanup()
         return None
 
 # -------------------------------
