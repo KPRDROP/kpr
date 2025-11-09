@@ -182,7 +182,7 @@ async def extract_m3u8(page, embed_url):
         for _ in range(4):
             if found:
                 break
-            await asyncio.sleep(0.25))
+            await asyncio.sleep(0.25)
 
         # Fallback regex
         if not found:
