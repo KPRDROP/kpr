@@ -1,8 +1,8 @@
-name: 🔄 Generate StreamedSU Playlists ⚡
+name: 🔄 Generate StreamedSU Playlist ⚡
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 * * * *' # runs every hour
   workflow_dispatch:
 
 permissions:
@@ -37,15 +37,19 @@ jobs:
           sudo apt-get install -y google-chrome-beta
 
       - name: 🎯 Run scraping script
-        run: python streamed.py
+        env:
+          PYTHONUNBUFFERED: 1
+        run: |
+          echo "▶️ Starting StreamedSU Scraper..."
+          xvfb-run -a python streamed.py
+          echo "✅ Finished generating playlists."
 
-      - name: 💾 Commit & Safely Push if Playlists Changed
+      - name: 💾 Commit & Safely Push if Playlist Changed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
           git add StreamedSU_VLC.m3u8 StreamedSU_TiviMate.m3u8
 
           if git diff --cached --quiet; then
@@ -69,7 +73,7 @@ jobs:
             }
           fi
 
-      - name: 📤 Upload Playlists as Artifacts
+      - name: 📤 Upload Playlist Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
