@@ -149,12 +149,40 @@ async def extract_m3u8(page, embed_url):
                     break
             except:
                 continue
+				
+        try:
+            await page.mouse.click(200, 200)
+            log.info("  👆 First click triggered ad")
 
-        # Wait a moment for m3u8 request to fire
-        for _ in range(6):
+            pages_before = page.context.pages
+            new_tab = None
+            for _ in range(12):  # ~3 seconds
+                pages_now = page.context.pages
+                if len(pages_now) > len(pages_before):
+                    new_tab = [p for p in pages_now if p not in pages_before][0]
+                    break
+                await asyncio.sleep(0.25)
+
+            if new_tab:
+                try:
+                    await asyncio.sleep(0.5)
+                    url = (new_tab.url or "").lower()
+                    log.info(f"  🚫 Forcing close on ad tab: {url if url else '(blank/new)'}")
+                    await new_tab.close()
+                except Exception:
+                    log.info("  ⚠️ Ad tab close failed")
+
+            await asyncio.sleep(1)
+            await page.mouse.click(200, 200)
+            log.info("  ▶️ Second click started player")
+
+        except Exception as e:
+            log.warning(f"⚠️ Momentum click sequence failed: {e}")
+
+        for _ in range(4):
             if found:
                 break
-            await asyncio.sleep(0.25)
+            await asyncio.sleep(0.25))
 
         # Fallback regex
         if not found:
