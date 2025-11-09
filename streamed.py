@@ -294,7 +294,7 @@ async def generate_playlist():
 
             # TiviMate playlist (headers + encoded UA)
             tivimate_content.append(f'#EXTINF:-1 tvg-id="{tv_id}" tvg-name="{title}" tvg-logo="{logo}" group-title="StreamedSU - {display_cat}",{title}')
-            tivimate_content.append(f'{url}|referer={CUSTOM_HEADERS["Referer"]}|origin={CUSTOM_HEADERS["Origin"]}|user-agent={ENCODED_USER_AGENT}|icy-metadata=1')
+            tivimate_content.append(f'{url}|referer={CUSTOM_HEADERS["Referer"]}|origin={CUSTOM_HEADERS["Origin"]}|user-agent={ENCODED_USER_AGENT}')
 
             success += 1
 
