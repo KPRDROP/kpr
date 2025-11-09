@@ -135,25 +135,54 @@ def build_logo_url(match):
     return validate_logo(None, cat), cat
 
 # -------------------------------
-# Extract m3u8 from embed
+# Extract M3U8 (Optimized Version)
 # -------------------------------
 async def extract_m3u8(page, embed_url):
     global total_failures
     found = None
+
+    async def check_response(response):
+        nonlocal found
+        try:
+            url = response.url
+            if ".m3u8" in url and not found and "prd.jwpltx.com" not in url:
+                found = url
+                log.info(f"  ⚡ (response) Stream: {found}")
+        except Exception:
+            pass
+
+    async def check_iframes():
+        nonlocal found
+        try:
+            frames = page.frames
+            for frame in frames:
+                html = await frame.content()
+                matches = re.findall(r'https?://[^\s"\'<>]+\.m3u8(?:\?[^"\'<>]*)?', html)
+                if matches:
+                    found = matches[0]
+                    log.info(f"  🕵️ Found in iframe: {found}")
+                    return
+        except Exception as e:
+            log.debug(f"  ⚙️ Iframe scan error: {e}")
+
     try:
+        page.on("response", check_response)
+
         async def on_request(request):
             nonlocal found
             if ".m3u8" in request.url and not found:
                 if "prd.jwpltx.com" in request.url:
                     return
                 found = request.url
-                log.info(f"  ⚡ Stream: {found}")
+                log.info(f"  ⚡ (request) Stream: {found}")
 
         page.on("request", on_request)
-        await page.goto(embed_url, wait_until="domcontentloaded", timeout=5000)
-        await page.bring_to_front()
 
-        # Click selectors
+        await page.goto(embed_url, wait_until="domcontentloaded", timeout=10000)
+        await page.bring_to_front()
+        log.info(f"  🌐 Loaded embed: {embed_url}")
+
+        # --- Initial click strategy ---
         selectors = [
             "div.jw-icon-display[role='button']",
             ".jw-icon-playback",
@@ -164,54 +193,67 @@ async def extract_m3u8(page, embed_url):
             "button",
             "canvas"
         ]
+
+        # Try visible play button first
         for sel in selectors:
             try:
                 el = await page.query_selector(sel)
                 if el:
+                    await asyncio.sleep(1.2)
                     await el.click(timeout=300)
+                    log.info(f"  🎯 Clicked selector: {sel}")
                     break
             except:
                 continue
 
-        # Ad & player click sequence
+        # --- Momentum ad-click handling ---
         try:
+            await asyncio.sleep(1.5)
             await page.mouse.click(200, 200)
             log.info("  👆 First click triggered ad")
+
             pages_before = page.context.pages
             new_tab = None
-            for _ in range(12):
+            for _ in range(12):  # ~3 seconds
                 pages_now = page.context.pages
                 if len(pages_now) > len(pages_before):
                     new_tab = [p for p in pages_now if p not in pages_before][0]
                     break
                 await asyncio.sleep(0.25)
+
             if new_tab:
                 try:
                     await asyncio.sleep(0.5)
                     url = (new_tab.url or "").lower()
-                    log.info(f"  🚫 Forcing close on ad tab: {url if url else '(blank/new)'}")
+                    log.info(f"  🚫 Closing ad tab: {url if url else '(blank/new)'}")
                     await new_tab.close()
                 except Exception:
                     log.info("  ⚠️ Ad tab close failed")
-            await asyncio.sleep(1)
+
+            await asyncio.sleep(1.8)
             await page.mouse.click(200, 200)
             log.info("  ▶️ Second click started player")
+
         except Exception as e:
             log.warning(f"⚠️ Momentum click sequence failed: {e}")
 
-        # Poll for m3u8 requests
-        for _ in range(4):
+        # --- Wait and retry detection ---
+        for _ in range(10):  # wait up to ~2.5s
             if found:
                 break
             await asyncio.sleep(0.25)
+            await check_iframes()
 
-        # Fallback regex
+        # --- Fallback HTML regex ---
         if not found:
             html = await page.content()
             matches = re.findall(r'https?://[^\s\"\'<>]+\.m3u8(?:\?[^\"\'<>]*)?', html)
             if matches:
                 found = matches[0]
                 log.info(f"  🕵️ Fallback: {found}")
+
+        if not found:
+            log.info("  ❌ No stream found after all checks.")
 
         return found
 
