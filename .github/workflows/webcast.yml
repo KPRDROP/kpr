@@ -29,7 +29,7 @@ jobs:
           pip install aiohttp beautifulsoup4 playwright
           # Install browsers and required libraries
           python -m playwright install chromium
-          # Optionally install system deps (uncomment if needed)
+          # Optionally install system deps
           # npx playwright install --with-deps
 
       - name: 🚀 Run SportsWebcast scraper
@@ -44,15 +44,24 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Add the output playlist
-          git add SportsWebcast_TiviMate.m3u8 SportsWebcast_VLC.m3u8
+          FILE="SportsWebcast_TiviMate.m3u8"
 
+          if [ -f "$FILE" ]; then
+            echo "✅ Found $FILE, preparing to commit..."
+            ls -lh "$FILE"
+            git add "$FILE"
+          else
+            echo "⚠️ Skipping commit — $FILE not found."
+            exit 0
+          fi
+
+          # Only commit if there are changes
           if git diff --cached --quiet; then
             echo "✅ No changes detected — skipping commit."
             exit 0
           fi
 
-          git commit -m "🔁 Auto-update SportsWebcast playlist ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+          git commit -m "🔁 Auto-update $FILE ($(date -u +'%Y-%m-%d %H:%M UTC'))"
 
           # Random delay to reduce push collisions
           sleep $((RANDOM % 10 + 5))
