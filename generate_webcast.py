@@ -16,7 +16,7 @@ STREAM_PATTERN = re.compile(r"\.m3u8($|\?)", re.IGNORECASE)
 OUTPUT_FILE_VLC = "SportsWebcast_VLC.m3u8"
 OUTPUT_FILE_TIVIMATE = "SportsWebcast_TiviMate.m3u8"
 
-NFL_BASE_URL = "https://nflwebcast.com/"
+NFL_BASE_URL = "https://nflwebcast.com/sbl/"
 NHL_BASE_URL = "https://slapstreams.com/"
 MLB_BASE_URL = "https://mlbwebcast.com/"
 MLS_BASE_URL = "https://mlswebcast.com/"
