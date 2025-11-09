@@ -56,7 +56,9 @@ total_embeds = 0
 total_streams = 0
 total_failures = 0
 
-# --- Helper functions ---
+# ----------------------
+# Helper functions
+# ----------------------
 def get_all_matches():
     endpoints = ["live"]
     all_matches = []
@@ -110,8 +112,11 @@ def build_logo_url(match):
         return validate_logo(url, cat), cat
     return validate_logo(None, cat), cat
 
-# --- Async scraping ---
+# ----------------------
+# Async scraping
+# ----------------------
 async def extract_m3u8(page, embed_url, retries=3):
+    """Extract m3u8 URL, including iframes and JS dynamic content."""
     for attempt in range(1, retries + 1):
         found = None
         try:
@@ -122,10 +127,10 @@ async def extract_m3u8(page, embed_url, retries=3):
                     log.info(f"  ⚡ Stream captured: {found}")
 
             page.on("request", on_request)
-            await page.goto(embed_url, wait_until="domcontentloaded", timeout=5000)
+            await page.goto(embed_url, wait_until="domcontentloaded", timeout=10000)
             await page.bring_to_front()
 
-            # Simulate clicks
+            # Click to trigger players
             for _ in range(2):
                 try:
                     await page.mouse.click(200, 200)
@@ -133,7 +138,26 @@ async def extract_m3u8(page, embed_url, retries=3):
                 except:
                     pass
 
-            # Wait for network requests
+            # Look for iframe embeds dynamically
+            iframe_urls = []
+            frames = page.frames
+            for frame in frames:
+                try:
+                    src = frame.url
+                    if "http" in src and src != embed_url:
+                        iframe_urls.append(frame)
+                except:
+                    continue
+
+            for frame in iframe_urls:
+                html = await frame.content()
+                matches = re.findall(r'https?://[^\s\"\'<>]+\.m3u8(?:\?[^\"\'<>]*)?', html)
+                if matches:
+                    found = matches[0]
+                    log.info(f"  🕵️ Found stream in iframe: {found}")
+                    break
+
+            # Wait for network requests to catch streams
             for _ in range(8):
                 if found:
                     break
@@ -231,7 +255,9 @@ async def generate_playlist():
     log.info(f"\n🎉 {success} working streams written to playlists.")
     return "\n".join(vlc_content), "\n".join(tivimate_content)
 
-# --- Main ---
+# ----------------------
+# Main
+# ----------------------
 if __name__ == "__main__":
     start = datetime.now()
     log.info("🚀 Starting StreamedSU scrape run (LIVE only)...")
