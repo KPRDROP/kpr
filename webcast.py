@@ -17,6 +17,7 @@ OUTPUT_FILE = "SportsWebcast_TiviMate.m3u8"
 
 # Base URLs
 NFL_BASE_URL = "https://nflwebcast.com/"
+NFL_BASE_URL = "https://nflwebcast.com/sbl/"
 NHL_BASE_URL = "https://slapstreams.com/"
 MLB_BASE_URL = "https://mlbwebcast.com/"
 MLS_BASE_URL = "https://mlswebcast.com/"
