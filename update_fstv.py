@@ -45,7 +45,7 @@ def update_playlist():
                      + content
         
         # Write standard playlist
-        output_filename = "FSTV.m3u"
+        output_filename = "FSTV.m3u8"
         output_path = os.path.join(os.getcwd(), output_filename)
         print(f"Writing standard playlist to: {output_path}")
         with open(output_path, 'w', encoding='utf-8') as f:
@@ -64,7 +64,7 @@ def update_playlist():
                 ua_encoded = quote("M3U-Playlist-Updater/1.0", safe="")
                 tivimate_lines.append(f"{line.strip()}|User-Agent={ua_encoded}")
 
-        tivimate_filename = "FSTV_Tivimate.m3u"
+        tivimate_filename = "FSTV_Tivimate.m3u8"
         tivimate_path = os.path.join(os.getcwd(), tivimate_filename)
         print(f"Writing TiviMate playlist to: {tivimate_path}")
         with open(tivimate_path, 'w', encoding='utf-8') as f:
