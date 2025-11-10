@@ -45,7 +45,7 @@ def update_playlist():
                      + content
         
         # Write standard playlist
-        output_filename = "FSTV.m3u8"
+        output_filename = "FSTV_VLC.m3u8"
         output_path = os.path.join(os.getcwd(), output_filename)
         print(f"Writing standard playlist to: {output_path}")
         with open(output_path, 'w', encoding='utf-8') as f:
