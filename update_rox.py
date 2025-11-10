@@ -1,110 +1,117 @@
 import requests
-from bs4 import BeautifulSoup
-from urllib.parse import quote
-from datetime import datetime
+import re
 import os
+from bs4 import BeautifulSoup
+from datetime import datetime
+from urllib.parse import urljoin, quote
 
 BASE_URL = "https://roxiestreams.live/"
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
+    "Referer": BASE_URL,
 }
-REFERER = BASE_URL
 
+CATEGORY_PATHS = [
+    "",  # main page
+    "soccer-streams-1",
+    "fighting",
+    "f1-streams",
+    "motogp",
+    "mlb",
+    "nfl",
+    "motorsports",
+    "soccer-streams-14",
+    "nba",
+    "soccer"
+]
 
-def get_category_paths():
-    """Auto-discover category paths from the RoxieStreams homepage."""
+def get_page_html(url):
     try:
-        response = requests.get(BASE_URL, headers=HEADERS, timeout=15)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, "html.parser")
-
-        categories = set([""])  # include main page
-        for a in soup.select("a[href]"):
-            href = a["href"]
-            # Match simple category links like /soccer, /nba, etc.
-            if href.startswith("/") and len(href.split("/")) == 2:
-                categories.add(href.strip("/"))
-            elif href.startswith(BASE_URL):
-                subpath = href.replace(BASE_URL, "").strip("/")
-                if subpath and "/" not in subpath:
-                    categories.add(subpath)
-
-        print(f"✅ Found categories: {categories}")
-        return list(categories)
+        resp = requests.get(url, headers=HEADERS, timeout=15)
+        resp.raise_for_status()
+        return resp.text
     except Exception as e:
-        print(f"⚠️ Failed to auto-fetch categories: {e}")
-        return ["", "soccer", "nba", "mlb", "nfl", "fighting", "motorsports"]
+        print(f"⚠️ Failed to load {url}: {e}")
+        return ""
 
+def extract_m3u8_from_html(html, base_url):
+    """Extract .m3u8 URLs from <a>, <iframe>, and embedded JS"""
+    links = set()
+    soup = BeautifulSoup(html, "html.parser")
 
-def extract_streams_from_page(url):
-    """Scrape all .m3u8 links from a single page."""
-    try:
-        response = requests.get(url, headers=HEADERS, timeout=20)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, "html.parser")
+    # <a href> direct links
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if ".m3u8" in href:
+            links.add(urljoin(base_url, href))
+        # follow links to subpages
+        elif href.startswith("/") or href.startswith(base_url):
+            full_url = urljoin(base_url, href)
+            sub_html = get_page_html(full_url)
+            links.update(extract_m3u8_from_html(sub_html, full_url))
 
-        m3u8_links = []
-        for a in soup.find_all("a", href=True):
-            href = a["href"]
-            if ".m3u8" in href:
-                title = a.get_text(strip=True) or "Untitled"
-                full_url = href if href.startswith("http") else BASE_URL + href.lstrip("/")
-                m3u8_links.append((title, full_url))
+    # <iframe src> links
+    for iframe in soup.find_all("iframe", src=True):
+        src = iframe["src"]
+        iframe_url = urljoin(base_url, src)
+        iframe_html = get_page_html(iframe_url)
+        for match in re.findall(r'(https?://[^\s"\']+\.m3u8[^\s"\']*)', iframe_html):
+            links.add(match)
 
-        print(f"🎯 Found {len(m3u8_links)} links on {url}")
-        return m3u8_links
-    except Exception as e:
-        print(f"❌ Error scraping {url}: {e}")
-        return []
+    # raw .m3u8 inside JS
+    for match in re.findall(r'(https?://[^\s"\']+\.m3u8[^\s"\']*)', html):
+        links.add(match)
 
+    return links
 
-def build_playlists():
-    """Scrape site and create two playlist formats."""
-    categories = get_category_paths()
-    all_streams = []
-
-    for category in categories:
-        page_url = f"{BASE_URL.rstrip('/')}/{category}" if category else BASE_URL
-        all_streams.extend(extract_streams_from_page(page_url))
-
-    if not all_streams:
-        print("⚠️ No streams found.")
-        return False
+def build_m3u_files(all_links):
+    """Build VLC and TiviMate playlists"""
+    if not all_links:
+        print("⚠️ No streams found, skipping file creation.")
+        return
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # === VLC Playlist ===
-    vlc_lines = [
-        '#EXTM3U x-tvg-url="https://epgshare01.online/epgshare01/epg_ripper_ALL_SOURCES1.xml.gz"',
-        f"# Last Updated: {timestamp}",
-    ]
+    header = (
+        '#EXTM3U x-tvg-url="https://epgshare01.online/epgshare01/epg_ripper_ALL_SOURCES1.xml.gz"\n'
+        f"# Last Updated: {timestamp}\n"
+    )
 
-    # === TiviMate Playlist ===
-    tivimate_lines = list(vlc_lines)
+    vlc_lines = [header]
+    tivi_lines = [header]
 
-    for title, url in all_streams:
-        vlc_lines.append(f"#EXTINF:-1,{title}")
-        vlc_lines.append(f"{url}")
+    for i, link in enumerate(all_links, 1):
+        title = f"Roxie Channel {i}"
+        vlc_lines.append(f'#EXTINF:-1 group-title="RoxieStreams",{title}')
+        vlc_lines.append(link)
 
         encoded_ua = quote(HEADERS["User-Agent"])
-        tivimate_url = f"{url}|referer={REFERER}|user-agent={encoded_ua}"
-        tivimate_lines.append(f"#EXTINF:-1,{title}")
-        tivimate_lines.append(tivimate_url)
+        tivi_lines.append(f'#EXTINF:-1 group-title="RoxieStreams",{title}')
+        tivi_lines.append(f'{link}|referer={BASE_URL}|user-agent={encoded_ua}')
 
-    # Write both playlists
-    vlc_filename = "Roxiestreams_VLC.m3u8"
-    tivimate_filename = "Roxiestreams_TiviMate.m3u8"
+    with open("Roxiestreams_VLC.m3u8", "w", encoding="utf-8") as f:
+        f.write("\n".join(vlc_lines))
+    with open("Roxiestreams_TiviMate.m3u8", "w", encoding="utf-8") as f:
+        f.write("\n".join(tivi_lines))
 
-    for filename, lines in [
-        (vlc_filename, vlc_lines),
-        (tivimate_filename, tivimate_lines),
-    ]:
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write("\n".join(lines))
-        print(f"✅ Created {filename} ({len(lines)//2} channels)")
+    print(f"✅ Generated {len(all_links)} streams.")
+    print("✅ Created Roxiestreams_VLC.m3u8 and Roxiestreams_TiviMate.m3u8")
 
-    return True
+def main():
+    all_links = set()
+    print("✅ Starting RoxieStreams scraping...")
 
+    found_categories = set(CATEGORY_PATHS)
+    print(f"✅ Found categories: {found_categories}")
+
+    for path in CATEGORY_PATHS:
+        url = urljoin(BASE_URL, path)
+        html = get_page_html(url)
+        links = extract_m3u8_from_html(html, url)
+        print(f"🎯 Found {len(links)} links on {url}")
+        all_links.update(links)
+
+    build_m3u_files(list(all_links))
 
 if __name__ == "__main__":
-    build_playlists()
+    main()
