@@ -1,0 +1,68 @@
+name: 🔁 Update FSTV Playlists 🎥
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # Every hour
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-playlist:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests urllib3 beautifulsoup4 playwright
+          # Optional: if using Playwright scraping
+          python -m playwright install chromium
+
+      - name: 🌐 Update FSTV Playlists
+        env:
+          FSTV_SOURCE_URL: ${{ secrets.FSTV_SOURCE_URL }}
+        run: |
+          python update_playlist.py
+
+      - name: 💾 Commit & Push if Playlists Changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add FSTV.m3u FSTV_Tivimate.m3u
+
+          if git diff --cached --quiet; then
+            echo "✅ No changes detected — skipping commit."
+            exit 0
+          fi
+
+          git commit -m "🔁 Auto-update FSTV playlists ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+
+          # Random small delay to reduce push collisions
+          sleep $((RANDOM % 10 + 5))
+
+          if ! git push origin main; then
+            echo "⚠️ Push failed, attempting safe rebase..."
+            git pull origin main --rebase || {
+              echo "❌ Rebase failed. Stopping to avoid corruption."
+              exit 1
+            }
+            git push origin main || {
+              echo "❌ Push failed again after rebase."
+              exit 1
+            }
+          fi
