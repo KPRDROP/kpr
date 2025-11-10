@@ -13,6 +13,7 @@ STREAM_PATTERN = re.compile(r"\.m3u8($|\?)", re.IGNORECASE)
 OUTPUT_FILE = "SportsWebcast_TiviMate.m3u8"
 
 NFL_BASE_URL = "https://nflwebcast.com/"
+NFL_BASE_URL = "https://nflwebcast.com/sbl/"
 NHL_BASE_URL = "https://slapstreams.com/"
 MLB_BASE_URL = "https://mlbwebcast.com/"
 MLS_BASE_URL = "https://mlswebcast.com/"
@@ -172,7 +173,10 @@ async def scrape_league(base_url: str, channel_urls: List[str], group_prefix: st
                 "#mtable tr.singele_match_date:not(.mdatetitle)",
                 ".match-row.clearfix",
                 "h1.gametitle a",
-            ]
+                ".game_row a",             # <-- added fallback
+                "div.gameblock a",         # <-- added fallback
+                ".match-list a[href*='/game/']",  # <-- added fallback
+]
 
             selected_selector = None
             for selector in possible_selectors:
