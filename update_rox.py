@@ -7,13 +7,8 @@ stream URLs. Produce two playlists:
  - Roxiestreams_VLC.m3u8
  - Roxiestreams_TiviMate.m3u8
 
-Strategy:
- - For each category page, find anchor links that look like event pages or direct .m3u8.
- - For each candidate event page, fetch it and:
-    * look for .m3u8 URLs in <a>, <iframe src>, <source src>, <video src>, or in inline JS
-    * if iframe found, fetch iframe page and search there too
- - Use anchor text as event name; fallback to page <h1> or <title>
- - Deduplicate streams
+This version includes robust cleaning of discovered m3u8 candidates so the
+playlist won't contain JS wrapper calls like showPlayer(...) — only clean URLs.
 """
 
 import requests
@@ -35,7 +30,9 @@ VLC_OUTPUT = "Roxiestreams_VLC.m3u8"
 TIVIMATE_OUTPUT = "Roxiestreams_TiviMate.m3u8"
 
 HEADERS = {"User-Agent": USER_AGENT, "Referer": REFERER}
-M3U8_RE = re.compile(r'https?://[^\s"\'<>]+\.m3u8(?:\?[^"\'>\s]*)?', re.IGNORECASE)
+
+# Regex to find clean m3u8 URL substrings (avoid trailing quotes/paren)
+M3U8_CLEAN_RE = re.compile(r"(https?://[^\s\"\'\)\]]+?\.m3u8(?:\?[^\"\'\)\]\s]*)?)", re.IGNORECASE)
 
 # helper to fetch a URL and return BeautifulSoup + text
 def fetch_page(url, headers=None, timeout=12):
@@ -54,12 +51,22 @@ def abs_url(base, href):
         return None
     return urljoin(base, href)
 
-# Search text/html for m3u8 occurrences (returns list)
-def find_m3u8_in_text(text, base):
-    found = []
-    for m in M3U8_RE.findall(text or ""):
-        found.append(m if m.startswith("http") else urljoin(base, m))
-    return found
+# Extract first valid m3u8 URL substring from arbitrary text
+def extract_first_m3u8(text, base=None):
+    if not text:
+        return None
+    # Try to find a clean m3u8 URL inside the text
+    m = M3U8_CLEAN_RE.search(text)
+    if m:
+        url = m.group(1)
+        # Fix protocol-relative
+        if url.startswith("//"):
+            url = "https:" + url
+        # If still relative (unlikely), join with base
+        if base and not url.startswith("http"):
+            url = abs_url(base, url)
+        return url
+    return None
 
 # Inspect an event page to find .m3u8 links
 def get_event_m3u8(event_url):
@@ -74,17 +81,17 @@ def get_event_m3u8(event_url):
     # 1) <a href="...m3u8"> direct links
     for a in soup.find_all("a", href=True):
         href = a["href"].strip()
-        if ".m3u8" in href:
-            full = abs_url(event_url, href)
+        candidate = extract_first_m3u8(href, base=event_url) or (href if ".m3u8" in href else None)
+        if candidate:
+            full = abs_url(event_url, candidate)
             results.append((a.get_text(strip=True) or full, full))
 
     # 2) <source src="..."> or <video src="...">
     for s in soup.find_all(["source", "video"], src=True):
         href = s["src"].strip()
-        if ".m3u8" in href:
-            full = abs_url(event_url, href)
-            text = s.get("title") or s.get("alt") or ""
-            results.append((text or full, full))
+        candidate = extract_first_m3u8(href, base=event_url)
+        if candidate:
+            results.append((s.get("title") or s.get("alt") or candidate, abs_url(event_url, candidate)))
 
     # 3) <iframe src="..."> -> follow and search iframe page
     for iframe in soup.find_all("iframe", src=True):
@@ -93,27 +100,33 @@ def get_event_m3u8(event_url):
         # Some iframes embed an m3u8 directly or contain players
         soup_if, html_if = fetch_page(iframe_url)
         if html_if:
-            # find m3u8 in iframe HTML
-            for m in find_m3u8_in_text(html_if, iframe_url):
-                results.append((iframe.get("title") or iframe.get("name") or m, m))
+            # find m3u8 in iframe HTML (cleaned)
+            cand = extract_first_m3u8(html_if, base=iframe_url)
+            if cand:
+                results.append((iframe.get("title") or iframe.get("name") or cand, cand))
             # also check iframe anchors & sources
             if soup_if:
                 for a in soup_if.find_all("a", href=True):
-                    if ".m3u8" in a["href"]:
-                        results.append((a.get_text(strip=True) or a["href"], abs_url(iframe_url, a["href"])))
+                    href = a["href"].strip()
+                    candidate = extract_first_m3u8(href, base=iframe_url)
+                    if candidate:
+                        results.append((a.get_text(strip=True) or candidate, abs_url(iframe_url, candidate)))
                 for s in soup_if.find_all(["source", "video"], src=True):
-                    if ".m3u8" in s["src"]:
-                        results.append((s.get("title") or s.get("alt") or s["src"], abs_url(iframe_url, s["src"])))
+                    candidate = extract_first_m3u8(s["src"], base=iframe_url)
+                    if candidate:
+                        results.append((s.get("title") or s.get("alt") or candidate, abs_url(iframe_url, candidate)))
 
-    # 4) Search inline JS / page HTML for m3u8 URLs
-    for m in find_m3u8_in_text(html, event_url):
-        results.append((m, m))
+    # 4) Search inline JS / page HTML for m3u8 URLs (clean)
+    cand = extract_first_m3u8(html, base=event_url)
+    if cand:
+        results.append((cand, cand))
 
     # 5) Look for data attributes commonly used e.g. data-src, data-href, data-m3u8
     for tag in soup.find_all(attrs=True):
         for attr, val in tag.attrs.items():
             if isinstance(val, str) and ".m3u8" in val:
-                results.append((tag.get_text(strip=True) or val, abs_url(event_url, val)))
+                candidate = extract_first_m3u8(val, base=event_url) or val
+                results.append((tag.get_text(strip=True) or candidate, abs_url(event_url, candidate)))
 
     # normalize & dedupe
     normalized = []
@@ -122,6 +135,10 @@ def get_event_m3u8(event_url):
         if not url:
             continue
         url = url.strip()
+        # If the url still contains a JS wrapper, try to extract clean again
+        clean = extract_first_m3u8(url, base=event_url)
+        if clean:
+            url = clean
         if url.startswith("//"):
             url = "https:" + url
         if not url.startswith("http"):
@@ -130,16 +147,16 @@ def get_event_m3u8(event_url):
             continue
         seen.add(url)
         # sanitize name fallback
-        name = (name or "").strip()
-        if not name or name.lower() == url.lower():
+        nm = (name or "").strip()
+        if not nm or nm.lower() == url.lower():
             # try H1 or title
             h1 = soup.find("h1")
             if h1 and h1.get_text(strip=True):
-                name = h1.get_text(strip=True)
+                nm = h1.get_text(strip=True)
             else:
                 title = soup.find("title")
-                name = title.get_text(strip=True) if title else url
-        normalized.append((name, url))
+                nm = title.get_text(strip=True) if title else url
+        normalized.append((nm, url))
 
     return normalized
 
@@ -161,17 +178,14 @@ def get_category_links(category_path):
         # skip mailto, javascript
         if href.startswith("mailto:") or href.startswith("javascript:"):
             continue
-        # absolute or relative - normalize later
-        # If anchor is direct .m3u8, take it
+        # If anchor is direct .m3u8, take it (cleaned)
         if ".m3u8" in href:
-            found.append((text or href, abs_url(cat_url, href)))
+            candidate = extract_first_m3u8(href, base=cat_url) or href
+            found.append((text or candidate, abs_url(cat_url, candidate)))
             continue
         # else if it looks like an event page (contains 'stream' or 'streams' or ends with a dash-number)
         if any(k in href.lower() for k in ("stream", "streams", "match", "event", "game")) or re.search(r"-\d+$", href):
             found.append((text or href, abs_url(cat_url, href)))
-
-    # Also try card-like containers where event is inside div.card a.btn or similar
-    # (many sites put event links in buttons) — this is covered by the anchor loop above.
 
     # Deduplicate
     dedup = []
@@ -210,7 +224,7 @@ def main():
     seen_urls = set()
 
     for cat in CATEGORIES:
-        cat_display = cat if cat else "RoxieStreams"
+        cat_display = cat if cat else "Roxiestreams"
         try:
             candidates = get_category_links(cat)
         except Exception as e:
@@ -218,12 +232,15 @@ def main():
             continue
 
         for anchor_text, href in candidates:
-            # If href already an m3u8, add directly
+            # If href already an m3u8, add directly (clean)
             if ".m3u8" in href:
-                name = anchor_text or href
-                if href not in seen_urls:
-                    seen_urls.add(href)
-                    all_streams.append((cat_display.title(), name, href))
+                clean = extract_first_m3u8(href, base=href) or href
+                if clean and clean not in seen_urls:
+                    seen_urls.add(clean)
+                    name = anchor_text or clean
+                    # Build display name: Category - Name (avoid repetition)
+                    display_name = f"{cat_display.title()} - {name}" if name and cat_display else name
+                    all_streams.append((cat_display.title(), display_name, clean))
                 continue
 
             # Otherwise inspect event page (this follows iframes etc)
@@ -234,25 +251,26 @@ def main():
                 found = []
 
             if not found:
-                # fallback: try to search the category page HTML block around the anchor for inline m3u8
-                # (fetch the category page once more and search nearby)
-                # Keep simple — skip for now
                 continue
 
             for name, url in found:
-                # Build a friendly event name: prefer anchor_text (category listing) + " - " + found name
+                # Build a friendly event name
+                anchor_text_clean = (anchor_text or "").strip()
                 ev_name = name
-                if anchor_text and anchor_text.strip():
-                    # avoid repeating same text
-                    if anchor_text.strip() not in name:
-                        ev_name = f"{cat_display.title()} - {anchor_text.strip()}"
-                    else:
+                if anchor_text_clean:
+                    # Avoid duplicates: if anchor_text already in name, don't repeat
+                    if anchor_text_clean.lower() in (name or "").lower():
                         ev_name = f"{cat_display.title()} - {name}"
+                    else:
+                        ev_name = f"{cat_display.title()} - {anchor_text_clean} - {name}"
                 else:
                     ev_name = f"{cat_display.title()} - {name}"
-                if url not in seen_urls:
-                    seen_urls.add(url)
-                    all_streams.append((cat_display.title(), ev_name, url))
+
+                # clean url again and dedupe
+                clean = extract_first_m3u8(url, base=href) or url
+                if clean and clean not in seen_urls:
+                    seen_urls.add(clean)
+                    all_streams.append((cat_display.title(), ev_name, clean))
 
     if not all_streams:
         print("⚠️ No streams found.")
