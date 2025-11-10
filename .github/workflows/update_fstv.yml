@@ -34,7 +34,7 @@ jobs:
         env:
           FSTV_SOURCE_URL: ${{ secrets.FSTV_SOURCE_URL }}
         run: |
-          python update_playlist.py
+          python update_fstv.py
 
       - name: 💾 Commit & Push if Playlists Changed
         env:
