@@ -30,15 +30,13 @@ jobs:
           # Optional: if using Playwright scraping
           python -m playwright install chromium
 
-      - name: 🌐 Update FSTV Playlists
-        env:
-          FSTV_SOURCE_URL: ${{ secrets.FSTV_SOURCE_URL }}
+      - name: 🧩 Update playlist
         run: |
           python update_fstv.py
-
-      - name: 💾 Commit & Push if Playlists Changed
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FSTV_SOURCE_URL: ${{ secrets.FSTV_SOURCE_URL }}
+
+      - name: 💾 Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
