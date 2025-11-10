@@ -1,0 +1,67 @@
+name: 🎥 Generate RoxieStreams Playlists
+
+on:
+  schedule:
+    # Run every 2 hours
+    - cron: "0 */2 * * *"
+  workflow_dispatch:
+    # Allow manual run from GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 🧾 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: ⚙️ Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
+
+      - name: 🚀 Run RoxieStreams scraper
+        run: |
+          echo "▶️ Starting RoxieStreams playlist generation..."
+          python update_rox.py
+          echo "✅ Finished generating playlists."
+
+      - name: 💾 Commit & Push Updated Playlists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Stage only the RoxieStreams playlist files
+          git add Roxiestreams_VLC.m3u8 Roxiestreams_TiviMate.m3u8
+
+          # Exit if no changes
+          if git diff --cached --quiet; then
+            echo "✅ No changes detected — skipping commit."
+            exit 0
+          fi
+
+          # Commit with timestamp
+          git commit -m "🔄 Auto-update RoxieStreams playlists [skip ci] ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+
+          # Pull remote changes and rebase to avoid push rejection
+          git pull --rebase origin main || {
+            echo "❌ Rebase failed, aborting push."
+            exit 1
+          }
+
+          # Push updated files
+          git push origin main || {
+            echo "❌ Push failed even after rebase."
+            exit 1
+          }
