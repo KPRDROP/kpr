@@ -21,7 +21,7 @@ import sys
 BASE_URL = "https://roxiestreams.live/"
 # categories to scan (empty string = root)
 CATEGORIES = ["", "soccer", "nascar", "wwe", "nba", "mlb", "nfl",
-              "fighting", "motorsports", "motogp", "f1-streams", "f1", "misc", "ppv"]
+              "fighting", "motorsports", "motogp", "f1-streams"]
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"
 REFERER = BASE_URL
