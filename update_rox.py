@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 
 BASE_URL = "https://roxiestreams.live/"
-CATEGORY_PATHS = ["", "soccer", "nba", "mlb", "nfl", "fighting", "motorsports", "f1", "motogp"]
+CATEGORY_PATHS = ["", "soccer", "nba", "mlb", "nfl", "fighting", "motorsports", "motogp"]
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"
 HEADERS = {"User-Agent": USER_AGENT, "Referer": BASE_URL}
