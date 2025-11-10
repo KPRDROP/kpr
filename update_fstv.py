@@ -7,12 +7,10 @@ from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
 def update_playlist():
-    # Get M3U URL from environment variable
     m3u_url = os.getenv('FSTV_SOURCE_URL')
     if not m3u_url:
         raise ValueError("FSTV_SOURCE_URL environment variable not set")
     
-    # Configure retry strategy
     retry_strategy = Retry(
         total=3,
         backoff_factor=1,
@@ -24,59 +22,67 @@ def update_playlist():
     http.mount("https://", adapter)
     http.mount("http://", adapter)
 
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                      'AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/129.0 Safari/537.36'
+    }
+
+    output_filename = "FSTV_VLC.m3u8"
+    tivimate_filename = "FSTV_Tivimate.m3u8"
+
     try:
-        # Fetch the M3U content with timeout
-        response = http.get(
-            m3u_url,
-            timeout=30,  # 30 seconds timeout
-            headers={'User-Agent': 'M3U-Playlist-Updater/1.0'}
-        )
-        response.raise_for_status()  # Raise an exception for bad status codes
-        
-        # Get the content and remove the original #EXTM3U header if it exists
+        print(f"Fetching M3U playlist from {m3u_url}")
+        response = http.get(m3u_url, timeout=30, headers=headers)
+        if response.status_code == 403:
+            print("❌ Access forbidden (403). The source may block GitHub Actions or need auth headers.")
+            print(f"Response headers: {response.headers}")
+            print(f"Response text sample: {response.text[:200]}")
+            raise requests.HTTPError("403 Forbidden")
+
+        response.raise_for_status()
+
         content = response.text
         if content.startswith("#EXTM3U"):
             content = content[content.find('\n') + 1:]
-            
-        # Add M3U header with EPG URL, timestamp, and original content
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        m3u_content = "#EXTM3U x-tvg-url=\"https://epgshare01.online/epgshare01/epg_ripper_ALL_SOURCES1.xml.gz\"\n" \
-                     f"# Last Updated: {timestamp}\n" \
-                     + content
         
-        # Write standard playlist
-        output_filename = "FSTV_VLC.m3u8"
-        output_path = os.path.join(os.getcwd(), output_filename)
-        print(f"Writing standard playlist to: {output_path}")
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(m3u_content)
-        print(f"✅ Successfully updated {output_filename} ({os.path.getsize(output_path)} bytes)")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        m3u_content = (
+            '#EXTM3U x-tvg-url="https://epgshare01.online/epgshare01/epg_ripper_ALL_SOURCES1.xml.gz"\n'
+            f"# Last Updated: {timestamp}\n{content}"
+        )
 
-        # --- TIVIMATE FORMAT ---
-        tivimate_lines = ["#EXTM3U x-tvg-url=\"https://epgshare01.online/epgshare01/epg_ripper_ALL_SOURCES1.xml.gz\"",
-                          f"# Last Updated: {timestamp}"]
+        with open(output_filename, 'w', encoding='utf-8') as f:
+            f.write(m3u_content)
+        print(f"✅ {output_filename} written ({os.path.getsize(output_filename)} bytes)")
+
+        tivimate_lines = [
+            '#EXTM3U x-tvg-url="https://epgshare01.online/epgshare01/epg_ripper_ALL_SOURCES1.xml.gz"',
+            f"# Last Updated: {timestamp}"
+        ]
 
         for line in content.splitlines():
             if line.startswith("#EXTINF:"):
                 tivimate_lines.append(line)
             elif line.strip() and not line.startswith("#"):
-                # Encode User-Agent
-                ua_encoded = quote("M3U-Playlist-Updater/1.0", safe="")
+                ua_encoded = quote("Mozilla/5.0", safe="")
                 tivimate_lines.append(f"{line.strip()}|User-Agent={ua_encoded}")
 
-        tivimate_filename = "FSTV_Tivimate.m3u8"
-        tivimate_path = os.path.join(os.getcwd(), tivimate_filename)
-        print(f"Writing TiviMate playlist to: {tivimate_path}")
-        with open(tivimate_path, 'w', encoding='utf-8') as f:
+        with open(tivimate_filename, 'w', encoding='utf-8') as f:
             f.write("\n".join(tivimate_lines))
-        print(f"✅ Successfully updated {tivimate_filename} ({os.path.getsize(tivimate_path)} bytes)")
+        print(f"✅ {tivimate_filename} written ({os.path.getsize(tivimate_filename)} bytes)")
 
-        return True  # Success
-        
+        return True
+
     except Exception as e:
-        print(f"Error updating M3U playlist: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ Error updating playlist: {e}")
+        import traceback; traceback.print_exc()
+        # Create placeholder files so git steps don’t fail
+        for fn in [output_filename, tivimate_filename]:
+            if not os.path.exists(fn):
+                with open(fn, "w", encoding="utf-8") as f:
+                    f.write("#EXTM3U\n# Failed to fetch playlist\n")
+                print(f"⚠️ Created placeholder file {fn}")
         return False
 
 if __name__ == "__main__":
