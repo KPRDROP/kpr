@@ -37,15 +37,19 @@ def get_page_html(session, url):
         return ""
 
 def extract_m3u8_from_html(session, html, base_url, visited_urls=None, depth=0):
+    """
+    Recursively extract .m3u8 links with their event names
+    Returns a list of tuples: (event_name, stream_url)
+    """
     if visited_urls is None:
         visited_urls = set()
     if depth > MAX_RECURSION:
-        return set()
+        return []
 
-    links = set()
+    results = []
     soup = BeautifulSoup(html, "html.parser")
 
-    # <a href> direct links
+    # Look for links that point to streams
     for a in soup.find_all("a", href=True):
         href = a["href"]
         full_url = urljoin(base_url, href)
@@ -53,11 +57,25 @@ def extract_m3u8_from_html(session, html, base_url, visited_urls=None, depth=0):
             continue
         visited_urls.add(full_url)
 
+        # Event name from link text
+        event_name = a.get_text(strip=True)
+        if not event_name:
+            event_name = None  # try to find later from subpage
+
+        # If direct .m3u8 link
         if ".m3u8" in href:
-            links.add(full_url)
+            if not event_name:
+                event_name = "Roxie Event"
+            results.append((event_name, full_url))
+        # If internal page, recurse
         elif href.startswith("/") or href.startswith(base_url):
             sub_html = get_page_html(session, full_url)
-            links.update(extract_m3u8_from_html(session, sub_html, full_url, visited_urls, depth + 1))
+            sub_links = extract_m3u8_from_html(session, sub_html, full_url, visited_urls, depth + 1)
+
+            # Try to assign event name if available from link text
+            for sub_name, sub_url in sub_links:
+                name_to_use = event_name or sub_name
+                results.append((name_to_use, sub_url))
 
     # <iframe src> links
     for iframe in soup.find_all("iframe", src=True):
@@ -68,13 +86,15 @@ def extract_m3u8_from_html(session, html, base_url, visited_urls=None, depth=0):
         visited_urls.add(iframe_url)
         iframe_html = get_page_html(session, iframe_url)
         for match in re.findall(r'(https?://[^\s"\']+\.m3u8[^\s"\']*)', iframe_html):
-            links.add(match)
+            # Try to get event name from iframe title or surrounding text
+            iframe_title = iframe.get("title") or iframe.get("alt") or "Roxie Event"
+            results.append((iframe_title.strip(), match))
 
     # raw .m3u8 inside JS
     for match in re.findall(r'(https?://[^\s"\']+\.m3u8[^\s"\']*)', html):
-        links.add(match)
+        results.append(("Roxie Event", match))
 
-    return links
+    return results
 
 def build_m3u_files(all_links):
     if not all_links:
@@ -89,13 +109,15 @@ def build_m3u_files(all_links):
 
     vlc_lines = [header]
     tivi_lines = [header]
-    for i, link in enumerate(all_links, 1):
-        title = f"Roxie Channel {i}"
-        vlc_lines.append(f'#EXTINF:-1 group-title="RoxieStreams",{title}')
+
+    for event_name, link in all_links:
+        # VLC format
+        vlc_lines.append(f'#EXTINF:-1 group-title="RoxieStreams",{event_name}')
         vlc_lines.append(link)
 
+        # TiviMate format
         encoded_ua = quote(HEADERS["User-Agent"])
-        tivi_lines.append(f'#EXTINF:-1 group-title="RoxieStreams",{title}')
+        tivi_lines.append(f'#EXTINF:-1 group-title="RoxieStreams",{event_name}')
         tivi_lines.append(f'{link}|referer={BASE_URL}|user-agent={encoded_ua}')
 
     with open("Roxiestreams_VLC.m3u8", "w", encoding="utf-8") as f:
@@ -107,7 +129,7 @@ def build_m3u_files(all_links):
     print("✅ Created Roxiestreams_VLC.m3u8 and Roxiestreams_TiviMate.m3u8")
 
 def main():
-    all_links = set()
+    all_links = []
     print("✅ Starting RoxieStreams scraping...")
 
     found_categories = set(CATEGORY_PATHS)
@@ -119,9 +141,17 @@ def main():
             html = get_page_html(session, url)
             links = extract_m3u8_from_html(session, html, url)
             print(f"🎯 Found {len(links)} links on {url}")
-            all_links.update(links)
+            all_links.extend(links)
 
-    build_m3u_files(list(all_links))
+    # Remove duplicates (same URL)
+    seen_urls = set()
+    unique_links = []
+    for name, url in all_links:
+        if url not in seen_urls:
+            seen_urls.add(url)
+            unique_links.append((name, url))
+
+    build_m3u_files(unique_links)
 
 if __name__ == "__main__":
     main()
