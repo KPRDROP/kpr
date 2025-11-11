@@ -47,7 +47,7 @@ TV_INFO = {
 	"nbastreams2": ("NBA.Basketball.Dummy.us", "https://i.postimg.cc/jdqKB3LW/Basketball-2.png", "NBA"),
     "cfbstreams2": ("NCAA.Football.Dummy.us", "https://i.postimg.cc/HsF0Vp6g/cfb.png", "CFB"),	
     "ncaastreams": ("NCAA.Football.Dummy.us", "https://i.postimg.cc/ryPxPVXD/ncaa.webp", "NCAA"),
-    "wwestreams": (""PPV.EVENTS.Dummy.us", "https://i.postimg.cc/43ycJyc3/WWE2.png", "WWE"),    
+    "wwestreams": ("PPV.EVENTS.Dummy.us", "https://i.postimg.cc/43ycJyc3/WWE2.png", "WWE"),    
     "wnbastreams": ("WNBA.dummy.us", "https://i.postimg.cc/yY6B2pkv/F1.png", "Motorsports"),        
 }
 
