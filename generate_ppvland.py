@@ -25,18 +25,18 @@ ALLOWED_CATEGORIES = {
 }
 
 CATEGORY_LOGOS = {
-    "24/7 Streams": "https://github.com/BuddyChewChew/ppv/blob/main/assets/24-7.png?raw=true",
-    "Wrestling": "https://github.com/BuddyChewChew/ppv/blob/main/assets/wwe.png?raw=true",
-    "Football": "https://github.com/BuddyChewChew/ppv/blob/main/assets/football.png?raw=true",
-    "Basketball": "https://github.com/BuddyChewChew/ppv/blob/main/assets/nba.png?raw=true",
-    "Baseball": "https://github.com/BuddyChewChew/ppv/blob/main/assets/baseball.png?raw=true",
-    "Combat Sports": "https://github.com/BuddyChewChew/ppv/blob/main/assets/mma.png?raw=true",
-    "Motorsports": "https://github.com/BuddyChewChew/ppv/blob/main/assets/f1.png?raw=true",
-    "Miscellaneous": "https://github.com/BuddyChewChew/ppv/blob/main/assets/24-7.png?raw=true",
-    "Boxing": "https://github.com/BuddyChewChew/ppv/blob/main/assets/boxing.png?raw=true",
-    "Darts": "https://github.com/BuddyChewChew/ppv/blob/main/assets/darts.png?raw=true",
-    "Ice Hockey": "https://github.com/BuddyChewChew/ppv/blob/main/assets/hockey.png?raw=true",
-    "American Football": "https://github.com/BuddyChewChew/ppv/blob/main/assets/nfl.png?raw=true"
+    "24/7 Streams": "https://i.postimg.cc/Nf04VJzs/24-7.png",
+    "Wrestling": "https://i.postimg.cc/3JwB6ScC/wwe.png",
+    "Football": "https://i.postimg.cc/mgkTPs69/football.png",
+    "Basketball": "hhttps://i.postimg.cc/DyzgDjMP/nba.png",
+    "Baseball": ""https://i.postimg.cc/28JKxNSR/Baseball3.png",
+    "Combat Sports": "https://i.postimg.cc/B6crhYwg/Combat-Sports.png",
+    "Motorsports": "https://i.postimg.cc/m2cdkpNp/f1.png",
+    "Miscellaneous": "https://i.postimg.cc/Nf04VJzs/24-7.png",
+    "Boxing": "https://i.postimg.cc/9FNpjP3h/boxing.png",
+    "Darts": "https://i.postimg.cc/7YQVy1vq/darts.png",
+    "Ice Hockey": "https://i.postimg.cc/9fx8z6Kj/hockey.png",
+    "American Football": "https://i.postimg.cc/Kzw0Dnm6/nfl.png"
 }
 
 CATEGORY_TVG_IDS = {
