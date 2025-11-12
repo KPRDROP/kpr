@@ -1,18 +1,11 @@
 #!/usr/bin/env python3
 """
-update_buff.py (improved)
+update_buff.py — enhanced playlist resolver
 
-Scrape https://buffstreams.plus/ categories and event pages to extract .m3u8
-stream URLs. Produce two playlists:
- - BuffStreams_VLC.m3u8
- - BuffStreams_TiviMate.m3u8
-
-Improvements:
- - Recursively follows nested iframes (controlled depth)
- - Scans <script> blocks for m3u8 inside JS objects/strings, base64 (atob), hex/unicode escapes
- - Looks in data-* attributes, onclick/href JS snippets, and <source>/<video> tags
- - Robust cleaning and dedupe
- - Keeps TV_INFO metadata and TiviMate UA encoding
+- Finds .m3u8 and "playlist" endpoints (e.g. /playlist/.../load-playlist)
+- Resolves redirects / in-page JS wrappers
+- Optional Playwright rendering fallback (tries to extract from dynamic pages)
+- Produces BuffStreams_VLC.m3u8 and BuffStreams_TiviMate.m3u8
 """
 
 from datetime import datetime
@@ -22,7 +15,7 @@ import requests
 from bs4 import BeautifulSoup
 import html
 import base64
-import codecs
+import sys
 
 # ---------- Config ----------
 BASE_URL = "https://buffstreams.plus/"
@@ -30,7 +23,7 @@ CATEGORIES = ["", "soccer-live-streams", "f1streams2", "nflstreams2", "nhlstream
               "mlb-live-streams", "mmastreams2", "boxingstreams2",
               "nbastreams2", "cfbstreams2", "ncaastreams", "wwestreams", "wnbastreams"]
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 REFERER = BASE_URL
 
 VLC_OUTPUT = "BuffStreams_VLC.m3u8"
@@ -43,7 +36,7 @@ HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
 }
 
-# Logo / Metadata Dictionary
+# tv metadata
 TV_INFO = {
     "soccer-live-streams": ("Soccer.Dummy.us", "https://i.postimg.cc/HsWHFvV0/Soccer.png", "Soccer"),
     "f1streams2": ("Racing.Dummy.us", "https://i.postimg.cc/yY6B2pkv/F1.png", "Formula 1"),
@@ -60,34 +53,36 @@ TV_INFO = {
     "misc": ("Sports.Dummy.us", "https://i.postimg.cc/qMm0rc3L/247.png", "Random Events")
 }
 
-# ---------- Regex / Session ----------
-# captures https://... .m3u8 (with optional query)
+# ---------- Regex ----------
 M3U8_RE = re.compile(r"(https?://[^\s\"'<>`]+?\.m3u8(?:\?[^\"'<>`\s]*)?)", re.IGNORECASE)
-
-# also search for quoted .m3u8 inside JS objects: file: "..." , "file":"...", "src":"...", "url":"..."
 QUOTED_M3U8_RE = re.compile(r"""["'](https?://[^"']+?\.m3u8[^"']*)["']""", re.IGNORECASE)
+# playlist-like endpoints (sometimes not ending with .m3u8)
+PLAYLIST_ENDPOINT_RE = re.compile(r"(https?://[^\s\"'<>`]+?/playlist/[^\s\"'<>`]*)", re.IGNORECASE)
 
-# patterns to find potential encoded strings e.g. atob('...'), base64 blobs, escaped strings
-ATOB_RE = re.compile(r"atob\(['\"]([A-Za-z0-9+/=]+)['\"]\)")
-HEX_ESCAPE_RE = re.compile(r'\\x([0-9A-Fa-f]{2})')
-UNICODE_ESCAPE_RE = re.compile(r'\\u([0-9A-Fa-f]{4})')
+# detect wrapper showPlayer(... 'https:...') patterns
+WRAPPER_RE = re.compile(r"showPlayer\([^,]*,[^\)]*['\"]([^'\"]+?)['\"]\)", re.IGNORECASE)
 
 SESSION = requests.Session()
 SESSION.headers.update(HEADERS)
-SESSION.max_redirects = 5
-# ---------- Helpers ----------
+SESSION.max_redirects = 6
 
+# optional playwright import (sync)
+try:
+    from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
+    PLAYWRIGHT_AVAILABLE = True
+except Exception:
+    PLAYWRIGHT_AVAILABLE = False
+
+# ---------- Helpers ----------
 def fetch(url, timeout=12):
-    """Fetch a URL and return (soup, text). On failure returns (None, '')"""
     try:
-        r = SESSION.get(url, timeout=timeout)
+        r = SESSION.get(url, timeout=timeout, allow_redirects=True)
         r.raise_for_status()
-        text = r.text or ""
-        soup = BeautifulSoup(text, "html.parser")
-        return soup, text
+        return BeautifulSoup(r.text, "html.parser"), r.text, r
     except Exception as e:
+        # print minimal debug, not to flood logs
         print(f"  ❌ fetch failed: {url} -> {e}")
-        return None, ""
+        return None, "", None
 
 def abs_url(base, href):
     if not href:
@@ -95,33 +90,25 @@ def abs_url(base, href):
     return urljoin(base, href)
 
 def decode_escapes(s: str) -> str:
-    """Unescape common JS/HTML escape sequences and URL-escapes."""
     if not s:
         return s
-    # replace \/ -> /
     s = s.replace("\\/", "/")
-    # decode hex escapes \xNN
-    def hx(m):
-        return chr(int(m.group(1), 16))
-    s = HEX_ESCAPE_RE.sub(hx, s)
-    # decode unicode escapes \uNNNN
-    def un(m):
-        return chr(int(m.group(1), 16))
-    s = UNICODE_ESCAPE_RE.sub(un, s)
-    # unescape HTML entities
-    s = html.unescape(s)
-    # URL unquote
+    s = s.replace("\\\"", "\"").replace("\\'", "'")
+    # hex \xNN
+    s = re.sub(r'\\x([0-9A-Fa-f]{2})', lambda m: chr(int(m.group(1), 16)), s)
+    # unicode \uNNNN
+    s = re.sub(r'\\u([0-9A-Fa-f]{4})', lambda m: chr(int(m.group(1), 16)), s)
     try:
         s = unquote(s)
     except Exception:
         pass
+    s = html.unescape(s)
     return s
 
 def extract_first_m3u8(text, base=None):
-    """Try multiple extraction strategies and return first clean m3u8 or None."""
     if not text:
         return None
-    # quick direct regex
+    # direct
     m = M3U8_RE.search(text)
     if m:
         url = m.group(1)
@@ -130,18 +117,119 @@ def extract_first_m3u8(text, base=None):
         if base and not urlparse(url).scheme:
             url = urljoin(base, url)
         return url
-    # quoted forms
-    mq = QUOTED_M3U8_RE.search(text)
-    if mq:
-        url = mq.group(1)
-        return url
-    # try decode escapes and search again
+    # quoted
+    q = QUOTED_M3U8_RE.search(text)
+    if q:
+        return q.group(1)
+    # decode escapes
     dec = decode_escapes(text)
     if dec != text:
         m2 = M3U8_RE.search(dec)
         if m2:
-            url = m2.group(1)
-            return url
+            return m2.group(1)
+    return None
+
+def extract_playlist_endpoint(text, base=None):
+    """Find playlist-like endpoints even if they don't end with .m3u8"""
+    if not text:
+        return None
+    m = PLAYLIST_ENDPOINT_RE.search(text)
+    if m:
+        url = m.group(1)
+        if base and not urlparse(url).scheme:
+            url = urljoin(base, url)
+        return url
+    # sometimes wrapped: showPlayer(... 'https:/.../playlist/...')
+    w = WRAPPER_RE.search(text)
+    if w:
+        return w.group(1)
+    # decode & re-search
+    dec = decode_escapes(text)
+    if dec != text:
+        m2 = PLAYLIST_ENDPOINT_RE.search(dec)
+        if m2:
+            return m2.group(1)
+    return None
+
+def tidy_url_from_wrapper(u):
+    """Remove JS wrappers like )' etc. Keep clean http(s) prefix."""
+    if not u:
+        return u
+    # remove surrounding punctuation and trailing quotes/parens
+    u = u.strip().strip('"\',); ')
+    if u.startswith("//"):
+        u = "https:" + u
+    return u
+
+def resolve_playlist_endpoint(endpoint_url, referer=None):
+    """
+    Try to resolve a playlist endpoint (which may return JSON, redirect, or text with final URL).
+    Returns final URL (maybe an m3u8 or direct playable path) or None.
+    """
+    if not endpoint_url:
+        return None
+    try:
+        # do a GET; allow redirects
+        headers = HEADERS.copy()
+        if referer:
+            headers["Referer"] = referer
+        r = SESSION.get(endpoint_url, headers=headers, timeout=12, allow_redirects=True)
+        # if final location header changed, prefer it
+        final = r.url or endpoint_url
+        # check response body for m3u8 or playlist-like urls
+        body = r.text or ""
+        # search m3u8 first
+        m = extract_first_m3u8(body, base=final)
+        if m:
+            return tidy_url_from_wrapper(m)
+        # search playlist endpoints inside body
+        p = extract_playlist_endpoint(body, base=final)
+        if p:
+            return tidy_url_from_wrapper(p)
+        # sometimes the endpoint itself is the final playable url
+        # e.g., /playlist/..../caxi might be playable directly (no .m3u8) — return the final URL
+        # prefer r.url (post-redirect)
+        if final:
+            return tidy_url_from_wrapper(final)
+    except Exception as e:
+        print(f"  ⚠️ resolve_playlist_endpoint failed for {endpoint_url}: {e}")
+    return None
+
+def try_playwright_extract(url, timeout_ms=8000):
+    """Optional: use Playwright (sync) to render and extract possible stream URLs."""
+    if not PLAYWRIGHT_AVAILABLE:
+        return None
+    try:
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
+            page = browser.new_page(user_agent=USER_AGENT)
+            page.goto(url, wait_until="networkidle", timeout=timeout_ms)
+            content = page.content()
+            # look for m3u8 or playlist endpoints in page HTML or network requests if possible
+            m = extract_first_m3u8(content, base=url)
+            if m:
+                page.close()
+                browser.close()
+                return tidy_url_from_wrapper(m)
+            p = extract_playlist_endpoint(content, base=url)
+            if p:
+                page.close()
+                browser.close()
+                return tidy_url_from_wrapper(p)
+            # fallback: inspect <iframe> srcs
+            for iframe in page.query_selector_all("iframe[src]"):
+                src = iframe.get_attribute("src") or ""
+                if src:
+                    cand = extract_first_m3u8(src, base=url) or extract_playlist_endpoint(src, base=url)
+                    if cand:
+                        page.close()
+                        browser.close()
+                        return tidy_url_from_wrapper(cand)
+            page.close()
+            browser.close()
+    except Exception as e:
+        # don't crash if playwright fails
+        print(f"  ⚠️ Playwright fallback failed for {url}: {e}")
     return None
 
 def clean_event_title(raw_title):
@@ -149,11 +237,9 @@ def clean_event_title(raw_title):
         return ""
     t = html.unescape(raw_title).strip()
     t = " ".join(t.split())
-    # remove common site suffix noise
     t = re.sub(r"\s*-\s*BuffStreams.*$", "", t, flags=re.IGNORECASE)
     t = re.sub(r"\s*-\s*Watch Live.*$", "", t, flags=re.IGNORECASE)
     t = re.sub(r"\s*-\s*Watch.*$", "", t, flags=re.IGNORECASE)
-    t = re.sub(r"\s*-\s*Live Stream.*$", "", t, flags=re.IGNORECASE)
     t = re.sub(r"\s*\|.*$", "", t)
     t = t.strip(" -,:")
     return t
@@ -177,126 +263,164 @@ def derive_title_from_page(soup, fallback_url=None):
             return clean_event_title(slug)
     return ""
 
-# ---------- Core extraction (deep) ----------
-def get_event_m3u8(event_href, anchor_text=None, depth=0, max_depth=3):
+# ---------- Extraction ----------
+def get_event_m3u8(event_href, anchor_text=None):
     """
-    Inspect event page (or direct m3u8 link) and return list of (event_title, clean_m3u8_url).
-    Recursively follows iframes up to max_depth.
+    Inspect event page (or endpoint) and return list of (event_title, resolved_stream_url).
+    Handles .m3u8, playlist endpoints, wrapper calls and uses Playwright fallback if enabled.
     """
     results = []
     if not event_href:
         return results
-    if depth > max_depth:
-        return results
 
     event_url = event_href if event_href.startswith("http") else urljoin(BASE_URL, event_href)
 
-    # If event_href already contains direct m3u8
+    # quick: if event_href already contains .m3u8
     direct = extract_first_m3u8(event_href, base=event_url)
     if direct:
-        title = clean_event_title(anchor_text or derive_title_from_page(None, fallback_url=event_url) or direct)
-        return [(title, direct)]
+        results.append((clean_event_title(anchor_text or direct), tidy_url_from_wrapper(direct)))
+        return results
 
-    soup, html_text = fetch(event_url)
-    if not soup and not html_text:
-        return []
+    # quick: playlist endpoint present in href string
+    pl = extract_playlist_endpoint(event_href, base=event_url)
+    if pl:
+        resolved = resolve_playlist_endpoint(pl, referer=event_url) or pl
+        if resolved:
+            results.append((clean_event_title(anchor_text or resolved), tidy_url_from_wrapper(resolved)))
+            return results
 
-    base_title = clean_event_title(anchor_text) if anchor_text else derive_title_from_page(soup, fallback_url=event_url)
+    # fetch the page
+    soup, html_text, resp = fetch(event_url)
+    if soup is None and not html_text:
+        # try Playwright fallback directly on the event URL
+        pw = try_playwright_extract(event_url)
+        if pw:
+            results.append((clean_event_title(anchor_text or pw), tidy_url_from_wrapper(pw)))
+        return results
+
+    base_title = clean_event_title(anchor_text) or derive_title_from_page(soup, fallback_url=event_url)
+
     seen = set()
 
-    # 1) anchors / data-* / onclick attributes
-    for a in soup.find_all(True, attrs=True):
-        attrs = a.attrs
-        # check typical attributes that may contain links
-        for key in ("href", "data-src", "data-href", "data-url", "data-m3u8", "onclick", "value", "src"):
-            val = attrs.get(key)
+    # 1) anchors & common attributes
+    for tag in soup.find_all(True, attrs=True):
+        for attr in ("href", "data-href", "data-src", "data-url", "data-m3u8", "onclick", "src", "value"):
+            val = tag.attrs.get(attr)
             if not val:
                 continue
-            # if it's a list (BeautifulSoup sometimes returns lists), pick first string
             if isinstance(val, (list, tuple)):
                 val = val[0]
             text_to_check = str(val)
-            cand = extract_first_m3u8(text_to_check, base=event_url)
-            if cand and cand not in seen:
-                seen.add(cand)
-                # get friendly name
-                name = (a.get_text(" ", strip=True) or base_title or cand)
-                results.append((clean_event_title(name), cand))
+            # try m3u8
+            cand_m3u8 = extract_first_m3u8(text_to_check, base=event_url)
+            if cand_m3u8 and cand_m3u8 not in seen:
+                seen.add(cand_m3u8)
+                results.append((clean_event_title(tag.get_text(" ", strip=True) or base_title or cand_m3u8), tidy_url_from_wrapper(cand_m3u8)))
+            # try playlist endpoint
+            cand_pl = extract_playlist_endpoint(text_to_check, base=event_url)
+            if cand_pl and cand_pl not in seen:
+                seen.add(cand_pl)
+                resolved = resolve_playlist_endpoint(cand_pl, referer=event_url) or cand_pl
+                if resolved and resolved not in seen:
+                    seen.add(resolved)
+                    results.append((clean_event_title(tag.get_text(" ", strip=True) or base_title or resolved), tidy_url_from_wrapper(resolved)))
 
-    # 2) <source> / <video> tags
+    # 2) <source> / <video>
     for tag in soup.find_all(["source", "video"], src=True):
         src = tag.get("src") or tag.get("data-src") or ""
-        cand = extract_first_m3u8(src, base=event_url)
-        if cand and cand not in seen:
-            seen.add(cand)
-            title = tag.get("title") or tag.get("alt") or base_title or cand
-            results.append((clean_event_title(title), cand))
+        m = extract_first_m3u8(src, base=event_url)
+        if m and m not in seen:
+            seen.add(m)
+            results.append((clean_event_title(tag.get("title") or tag.get("alt") or base_title or m), tidy_url_from_wrapper(m)))
 
-    # 3) inline scripts: direct urls, JSON objects, atob base64, escaped strings
+    # 3) script blocks (JS): quoted m3u8, playlist endpoints, atob(base64)
     for script in soup.find_all("script"):
-        code = ""
-        try:
-            code = script.string or script.get_text()
-        except Exception:
-            continue
+        code = script.string or script.get_text()
         if not code:
             continue
-        # 3a) direct quoted m3u8 in JS
-        for m in QUOTED_M3U8_RE.findall(code):
-            if m and m not in seen:
-                seen.add(m)
-                results.append((base_title or m, m))
-        # 3b) generic regex
-        for m in M3U8_RE.findall(code):
-            if m and m not in seen:
-                seen.add(m)
-                results.append((base_title or m, m))
-        # 3c) atob base64 decode
-        for enc in ATOB_RE.findall(code):
+        # direct m3u8
+        for mm in M3U8_RE.findall(code):
+            mm = mm.strip()
+            if mm and mm not in seen:
+                seen.add(mm)
+                results.append((base_title or mm, tidy_url_from_wrapper(mm)))
+        # playlist-like
+        for pp in PLAYLIST_ENDPOINT_RE.findall(code):
+            pp = pp.strip()
+            if pp and pp not in seen:
+                seen.add(pp)
+                resolved = resolve_playlist_endpoint(pp, referer=event_url) or pp
+                if resolved and resolved not in seen:
+                    seen.add(resolved)
+                    results.append((base_title or resolved, tidy_url_from_wrapper(resolved)))
+        # atob(base64)
+        for b64 in re.findall(r"atob\(['\"]([A-Za-z0-9+/=]+)['\"]\)", code):
             try:
-                decoded = base64.b64decode(enc + "===")  # pad just in case
-                decoded_text = decoded.decode("utf-8", errors="ignore")
-                # unescape and search again
-                dec_unesc = decode_escapes(decoded_text)
-                for m in M3U8_RE.findall(dec_unesc):
-                    if m and m not in seen:
-                        seen.add(m)
-                        results.append((base_title or m, m))
+                dec = base64.b64decode(b64 + "===")
+                dec_text = dec.decode("utf-8", errors="ignore")
+                m = extract_first_m3u8(dec_text, base=event_url)
+                if m and m not in seen:
+                    seen.add(m)
+                    results.append((base_title or m, tidy_url_from_wrapper(m)))
             except Exception:
                 pass
-        # 3d) look for hex / unicode escapes in long JS strings
-        dec_code = decode_escapes(code)
-        for m in M3U8_RE.findall(dec_code):
-            if m and m not in seen:
-                seen.add(m)
-                results.append((base_title or m, m))
 
-    # 4) iframes (recursive)
+    # 4) iframes: follow and inspect (one level)
     for iframe in soup.find_all("iframe", src=True):
         src = iframe.get("src").strip()
         if not src:
             continue
         iframe_url = urljoin(event_url, src)
-        # avoid loops by marking iframe_url as seen text; but still allow different m3u8
-        if iframe_url in seen:
+        # first try static resolve on iframe URL (resolve endpoint)
+        cand = extract_first_m3u8(src, base=iframe_url) or extract_playlist_endpoint(src, base=iframe_url)
+        if cand:
+            res = resolve_playlist_endpoint(cand, referer=event_url) or cand
+            if res and res not in seen:
+                seen.add(res)
+                results.append((clean_event_title(iframe.get("title") or base_title or res), tidy_url_from_wrapper(res)))
             continue
-        # recursively inspect iframe (increase depth)
-        sub = get_event_m3u8(iframe_url, anchor_text=base_title, depth=depth + 1, max_depth=max_depth)
-        for t, u in sub:
-            if u and u not in seen:
-                seen.add(u)
-                results.append((t or base_title, u))
+        # fetch iframe content
+        s2, text2, r2 = fetch(iframe_url)
+        if text2:
+            m = extract_first_m3u8(text2, base=iframe_url)
+            if m and m not in seen:
+                seen.add(m)
+                results.append((clean_event_title(base_title or m), tidy_url_from_wrapper(m)))
+            p = extract_playlist_endpoint(text2, base=iframe_url)
+            if p and p not in seen:
+                res = resolve_playlist_endpoint(p, referer=iframe_url) or p
+                if res and res not in seen:
+                    seen.add(res)
+                    results.append((clean_event_title(base_title or res), tidy_url_from_wrapper(res)))
+        # optional: playwright on the iframe page (if available)
+        if PLAYWRIGHT_AVAILABLE:
+            pw = try_playwright_extract(iframe_url)
+            if pw and pw not in seen:
+                seen.add(pw)
+                results.append((clean_event_title(base_title or pw), tidy_url_from_wrapper(pw)))
 
-    # 5) final fallback: search whole page HTML
-    fallback = extract_first_m3u8(html_text, base=event_url)
-    if fallback and fallback not in seen:
-        seen.add(fallback)
-        results.append((base_title or fallback, fallback))
+    # 5) final fallback — look at page body as raw text
+    final_m = extract_first_m3u8(html_text, base=event_url)
+    if final_m and final_m not in seen:
+        seen.add(final_m)
+        results.append((clean_event_title(base_title or final_m), tidy_url_from_wrapper(final_m)))
+    final_pl = extract_playlist_endpoint(html_text, base=event_url)
+    if final_pl and final_pl not in seen:
+        resolved = resolve_playlist_endpoint(final_pl, referer=event_url) or final_pl
+        if resolved and resolved not in seen:
+            seen.add(resolved)
+            results.append((clean_event_title(base_title or resolved), tidy_url_from_wrapper(resolved)))
 
-    # Normalize: absolute urls and dedupe final results
-    final = []
-    final_seen = set()
-    for t, u in results:
+    # if still empty and Playwright available, try render once
+    if not results and PLAYWRIGHT_AVAILABLE:
+        pw = try_playwright_extract(event_url)
+        if pw:
+            results.append((clean_event_title(base_title or pw), tidy_url_from_wrapper(pw)))
+
+    # normalize results (absolute urls)
+    normalized = []
+    norm_seen = set()
+    for title, u in results:
         if not u:
             continue
         u = u.strip()
@@ -304,25 +428,21 @@ def get_event_m3u8(event_href, anchor_text=None, depth=0, max_depth=3):
             u = "https:" + u
         if not urlparse(u).scheme:
             u = urljoin(event_url, u)
-        if u in final_seen:
+        if u in norm_seen:
             continue
-        final_seen.add(u)
-        title_clean = clean_event_title(t) or derive_title_from_page(soup, fallback_url=event_url) or u
-        final.append((title_clean, u))
-    return final
+        norm_seen.add(u)
+        normalized.append((clean_event_title(title) or derive_title_from_page(soup, fallback_url=event_url) or u, u))
+    return normalized
 
-# ---------- Category discovery ----------
+# ---------- Category parse ----------
 def get_category_event_candidates(category_path):
-    """Return list of (anchor_text, href) candidates from category page."""
     cat_url = BASE_URL if not category_path else urljoin(BASE_URL, category_path)
     print(f"Processing category: {category_path or 'root'} -> {cat_url}")
-    soup, html_text = fetch(cat_url)
+    soup, html_text, r = fetch(cat_url)
     if not soup and not html_text:
         return []
-
     candidates = []
     seen = set()
-    # heuristic anchors: any anchor with 'stream', 'streams', 'match', 'game', 'event' or ends with -digits
     for a in soup.find_all("a", href=True):
         href = a["href"].strip()
         text = a.get_text(" ", strip=True) or ""
@@ -330,16 +450,21 @@ def get_category_event_candidates(category_path):
             continue
         full = href if href.startswith("http") else urljoin(cat_url, href)
         low = href.lower()
-        if ".m3u8" in href or any(k in low for k in ("stream", "streams", "match", "game", "event")) or re.search(r"-\d+$", low):
+        # include .m3u8, /playlist/, or anchors that look like event pages
+        if ".m3u8" in href or "/playlist/" in href or any(k in low for k in ("stream", "streams", "match", "game", "event")) or re.search(r"-\d+$", low):
             if full not in seen:
                 seen.add(full)
                 candidates.append((text.strip(), full))
-    # If nothing found, scan inline JS for raw .m3u8 strings
-    if not candidates:
+    # fallback: find raw playlist-like or m3u8 strings in inline JS
+    if not candidates and html_text:
         for m in M3U8_RE.findall(html_text):
             if m and m not in seen:
                 seen.add(m)
                 candidates.append(("", m))
+        for p in PLAYLIST_ENDPOINT_RE.findall(html_text):
+            if p and p not in seen:
+                seen.add(p)
+                candidates.append(("", p))
     print(f"  → Found {len(candidates)} candidate links on category page")
     return candidates
 
@@ -353,12 +478,12 @@ def get_tv_data_for_category(cat_path):
             return TV_INFO[k]
     return TV_INFO["misc"]
 
-# ---------- Write outputs ----------
+# ---------- Output ----------
 def write_playlists(streams):
     ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
     header = f'#EXTM3U x-tvg-url="https://epgshare01.online/epgshare01/epg_ripper_ALL_SOURCES1.xml.gz"\n# Last Updated: {ts}\n\n'
 
-    # VLC output
+    # VLC
     with open(VLC_OUTPUT, "w", encoding="utf-8") as f:
         f.write(header)
         for cat_name, ev_name, url in streams:
@@ -366,15 +491,16 @@ def write_playlists(streams):
             f.write(f'#EXTINF:-1 tvg-logo="{logo}" tvg-id="{tvg_id}" group-title="BuffStreams - {group_name}",{ev_name}\n')
             f.write(f'{url}\n\n')
 
-    # TiviMate output (pipe headers with encoded UA)
+    # Tivimate - append pipe headers
     ua_enc = quote(USER_AGENT, safe="")
     with open(TIVIMATE_OUTPUT, "w", encoding="utf-8") as f:
         f.write(header)
         for cat_name, ev_name, url in streams:
             tvg_id, logo, group_name = get_tv_data_for_category(cat_name)
             f.write(f'#EXTINF:-1 tvg-logo="{logo}" tvg-id="{tvg_id}" group-title="BuffStreams - {group_name}",{ev_name}\n')
-            # append Tivimate pipe headers: referer and encoded user-agent
-            f.write(f'{url}|referer={REFERER}|user-agent={ua_enc}\n\n')
+            # build origin from referer host (if available)
+            origin = REFERER.rstrip('/')
+            f.write(f'{url}|referer={REFERER}|origin={origin}|user-agent={ua_enc}\n\n')
 
 # ---------- Main ----------
 def main():
@@ -390,25 +516,38 @@ def main():
             continue
 
         for anchor_text, href in candidates:
-            # If candidate is direct .m3u8
-            if ".m3u8" in href:
-                clean = extract_first_m3u8(href, base=href) or href
-                if clean and clean not in seen_urls:
-                    seen_urls.add(clean)
-                    title = clean_event_title(anchor_text) or derive_title_from_page(None, fallback_url=href) or clean
-                    display_name = f"{(cat or 'BuffStreams').title()} - {title}"
-                    all_streams.append(((cat or "misc"), display_name, clean))
+            # if direct m3u8-like or playlist endpoint in href
+            if ".m3u8" in href or "/playlist/" in href:
+                # try to resolve playlist endpoints
+                if "/playlist/" in href and not href.lower().endswith(".m3u8"):
+                    resolved = resolve_playlist_endpoint(href, referer=BASE_URL) or href
+                else:
+                    resolved = extract_first_m3u8(href, base=href) or href
+                if resolved:
+                    clean = resolved.strip()
+                    if clean not in seen_urls:
+                        seen_urls.add(clean)
+                        title = clean_event_title(anchor_text) or derive_title_from_page(None, fallback_url=href) or clean
+                        display_name = f"{(cat or 'BuffStreams').title()} - {title}"
+                        all_streams.append(((cat or "misc"), display_name, clean))
                 continue
 
-            # Inspect event page deeply
+            # otherwise inspect event page deeply
             found = get_event_m3u8(href, anchor_text)
             for ev_title, ev_url in found:
-                if not ev_url or ".m3u8" not in ev_url:
+                if not ev_url:
                     continue
-                clean = extract_first_m3u8(ev_url, base=href) or ev_url
-                if not clean:
+                # treat both m3u8 and playlist endpoints as playable
+                if (".m3u8" not in ev_url) and ("/playlist/" not in ev_url):
+                    # skip improbable urls
                     continue
-                if clean in seen_urls:
+                # if it's a playlist endpoint, try resolve
+                candidate = ev_url
+                if "/playlist/" in ev_url and not ev_url.lower().endswith(".m3u8"):
+                    resolved = resolve_playlist_endpoint(ev_url, referer=href) or ev_url
+                    candidate = resolved
+                clean = candidate.strip()
+                if not clean or clean in seen_urls:
                     continue
                 seen_urls.add(clean)
                 final_title = ev_title or anchor_text or derive_title_from_page(None, fallback_url=href) or clean
