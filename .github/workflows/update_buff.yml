@@ -33,7 +33,7 @@ jobs:
         python update_buff.py
 
     - name: Upload playlists
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: BuffStreams_Playlists
         path: |
