@@ -2,357 +2,136 @@
 """
 update_buff.py
 
-Deep Playwright-based BuffStreams scraper (root-only).
-
-- Visits https://buffstreams.plus/
-- Captures network requests (including iframe requests)
-- Tries clicking play controls inside frames and iframe pages
-- Extracts .m3u8 and playlist/... URLs
-- Writes two playlists:
-    - BuffStreams_VLC.m3u8
-    - BuffStreams_TiviMate.m3u8
+Async Playwright scraper for https://buffstreams.plus/
+Extracts streams from the root page, handles JS/iframe players, click-to-play, and
+produces VLC + TiviMate playlists with encoded user-agent.
 """
 
 import asyncio
-import re
-import urllib.parse
 from datetime import datetime
-from typing import Set, List, Tuple
-from playwright.async_api import async_playwright, Page, Frame, BrowserContext
-
-BASE_URL = "https://buffstreams.plus/"
-REFERER = BASE_URL
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/142.0.0.0 Safari/537.36"
-)
-ENCODED_UA = urllib.parse.quote(USER_AGENT, safe="")
-
-# Regexes to capture the different stream patterns we've seen
-STREAM_REGEX = re.compile(
-    r"(https?://[^\s\"'<>`]+\.(?:m3u8)(?:\?[^\"'\s<>]*)?|https?://[^\s\"'<>`]+/(?:playlist|load-playlist)[^\s\"'<>`]*)",
-    re.IGNORECASE,
-)
-
-# Some pages embed stream wrappers like showPlayer('clappr', 'https:/...m3u8')
-EMBEDDED_JS_RE = re.compile(r"(['\"])(https?:\/\/[^'\"]+?\.m3u8[^'\"]*)\1", re.IGNORECASE)
-
-# Selectors that commonly start playback controls (try many)
-PLAY_SELECTORS = [
-    "button.jw-play", ".jw-icon-playback", ".jw-icon-display", ".jw-play", ".jw-button",
-    ".vjs-big-play-button", "button.play", "div.play-button", ".play-btn", ".playBtn",
-    ".plyr__control--play", ".plyr__play", "button[aria-label*='Play']", "button[title*='Play']",
-    "video"
-]
+from urllib.parse import quote
+from pathlib import Path
+from playwright.async_api import async_playwright
 
 # Output files
 VLC_OUTPUT = "BuffStreams_VLC.m3u8"
 TIVIMATE_OUTPUT = "BuffStreams_TiviMate.m3u8"
 
-# Default TV metadata (kept simple)
-TVG_ID = "Sports.Dummy.us"
-TVG_LOGO = "https://i.postimg.cc/qMm0rc3L/247.png"
-GROUP_NAME = "BuffStreams"
+BASE_URL = "https://buffstreams.plus/"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"
+REFERER = BASE_URL
 
-# Timeouts and retries
-NAV_TIMEOUT = 60000
-EXTRA_WAIT = 6  # seconds after networkidle
-CLICK_RETRIES = 3
-FRAME_CLICK_DELAY = 0.6
+# TV info: fallback data for playlist groups
+TV_INFO = ("BuffStreams.Dummy.us", "https://i.postimg.cc/HsWHFvV0/Soccer.png", "BuffStreams")
 
+# Helper for playlist header
+def m3u_header():
+    ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+    return f'#EXTM3U x-tvg-url="https://epgshare01.online/epgshare01/epg_ripper_ALL_SOURCES1.xml.gz"\n# Last Updated: {ts}\n\n'
 
-async def try_click_in_frame(frame: Frame) -> bool:
-    """Attempt to click common play selectors inside a frame. Return True if any click executed."""
-    for sel in PLAY_SELECTORS:
-        try:
-            # try using frame.locator().first.click() if exists
-            locator = frame.locator(sel)
-            count = await locator.count()
-            if count > 0:
-                # click first visible control
-                for i in range(count):
-                    try:
-                        el = locator.nth(i)
-                        await el.click(timeout=3000)
-                        await asyncio.sleep(FRAME_CLICK_DELAY)
-                        return True
-                    except Exception:
-                        continue
-            # try evaluate to click via DOM if selector matched but not clickable via API
-            has = await frame.eval_on_selector_all(sel, "els => els.length").catch(lambda e: 0) if hasattr(frame, "eval_on_selector_all") else 0
-        except Exception:
-            # ignore selector errors
-            pass
-    # fallback: try clicking center of frame's viewport (works for canvas players)
-    try:
-        box = await frame.evaluate(
-            """() => {
-                const r = document.body.getBoundingClientRect();
-                return {w: r.width||window.innerWidth, h: r.height||window.innerHeight};
-            }"""
-        )
-        if box and isinstance(box, dict):
-            w = box.get("w", 800)
-            h = box.get("h", 600)
-            try:
-                await frame.mouse.click(int(w/2), int(h/2))
-                await asyncio.sleep(FRAME_CLICK_DELAY)
-                return True
-            except Exception:
-                pass
-    except Exception:
-        pass
-    return False
+# Async function to extract all playable streams from main page
+async def extract_streams():
+    streams = []
 
-
-async def open_iframe_src_and_click(context: BrowserContext, iframe_src: str, found: Set[str]) -> None:
-    """Open iframe src in a new page and attempt clicks / sniffing there."""
-    try:
+    async with async_playwright() as pw:
+        browser = await pw.chromium.launch(headless=True)
+        context = await browser.new_context(user_agent=USER_AGENT)
         page = await context.new_page()
-        await page.goto(iframe_src, wait_until="domcontentloaded", timeout=NAV_TIMEOUT)
-        await page.wait_for_load_state("networkidle", timeout=NAV_TIMEOUT)
-        # small wait for dynamic injection
-        await asyncio.sleep(EXTRA_WAIT)
-        # try clicking on page
-        for _ in range(CLICK_RETRIES):
-            clicked = False
-            for sel in PLAY_SELECTORS:
-                try:
-                    loc = page.locator(sel)
-                    if await loc.count() > 0:
-                        try:
-                            await loc.first.click(timeout=3000)
-                            clicked = True
-                            await asyncio.sleep(FRAME_CLICK_DELAY)
-                        except Exception:
-                            continue
-                except Exception:
+        print(f"🌐 Visiting main page: {BASE_URL}")
+        await page.goto(BASE_URL, wait_until="domcontentloaded")
+        await page.wait_for_timeout(2000)
+
+        # Query all event links; usually clickable divs or anchors
+        event_links = await page.query_selector_all("a, div.event-link")
+        print(f"✅ Found {len(event_links)} potential event links.")
+
+        for idx, el in enumerate(event_links, start=1):
+            try:
+                href = await el.get_attribute("href")
+                title = (await el.inner_text()).strip() or f"Event {idx}"
+                if not href or "javascript" in href:
                     continue
-            if clicked:
-                await asyncio.sleep(1.0)
-            else:
-                # click center of viewport
-                try:
-                    width = await page.evaluate("() => window.innerWidth")
-                    height = await page.evaluate("() => window.innerHeight")
-                    await page.mouse.click(int(width/2), int(height/2))
-                    await asyncio.sleep(FRAME_CLICK_DELAY)
-                except Exception:
-                    pass
-        # check page content for matches
-        html = await page.content()
-        for m in STREAM_REGEX.findall(html):
-            found.add(m if isinstance(m, str) else m[0])
-        # also inspect requests already captured by context (requests are captured at context level)
-    except Exception:
-        pass
-    finally:
-        try:
-            await page.close()
-        except Exception:
-            pass
 
+                # Open in new page to isolate JS/iframe
+                event_page = await context.new_page()
+                await event_page.goto(href, wait_until="domcontentloaded")
+                await event_page.wait_for_timeout(1500)
 
-async def collect_streams() -> List[Tuple[str, str]]:
-    """Main routine: open main page, sniff network, click players in frames & iframe pages."""
-    found: Set[str] = set()
+                # Check for iframe / player
+                iframe_el = await event_page.query_selector("iframe")
+                playlist_url = None
 
-    async with async_playwright() as p:
-        # Use chromium; add no-sandbox args for CI
-        browser = await p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
-        ctx = await browser.new_context(user_agent=USER_AGENT, extra_http_headers={"Referer": REFERER})
-        page = await ctx.new_page()
+                if iframe_el:
+                    frame = await iframe_el.content_frame()
+                    if frame:
+                        # Try to click "play" button if exists
+                        try:
+                            play_btn = await frame.query_selector("button, .play-button")
+                            if play_btn:
+                                await play_btn.click()
+                                await frame.wait_for_timeout(1000)
+                        except:
+                            pass
 
-        # capture requests globally
-        def on_request(req):
-            try:
-                url = req.url
-                # check regex
-                for m in STREAM_REGEX.findall(url):
-                    if isinstance(m, tuple):
-                        url_candidate = m[0]
-                    else:
-                        url_candidate = m
-                    found.add(url_candidate)
-            except Exception:
-                pass
+                        # Attempt to get playlist from <video> or <source>
+                        video_el = await frame.query_selector("video, source")
+                        if video_el:
+                            playlist_url = await video_el.get_attribute("src")
 
-        ctx.on("request", on_request)
+                        # Fallback: check JS variables / window for playlist
+                        if not playlist_url:
+                            playlist_url = await frame.evaluate("""() => {
+                                if (window && window.playlist) return window.playlist;
+                                return null;
+                            }""")
 
-        # navigate main page
-        try:
-            await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=NAV_TIMEOUT)
-            await page.wait_for_load_state("networkidle", timeout=NAV_TIMEOUT)
-        except Exception:
-            # try a reload if initial load failed
-            try:
-                await page.reload(wait_until="domcontentloaded", timeout=NAV_TIMEOUT)
-                await page.wait_for_load_state("networkidle", timeout=NAV_TIMEOUT)
-            except Exception:
-                pass
+                # Direct href fallback (sometimes iframe not used)
+                if not playlist_url and href.endswith(".space") or "playlist" in href:
+                    playlist_url = href
 
-        # allow JS to inject players
-        await asyncio.sleep(EXTRA_WAIT)
+                if playlist_url:
+                    streams.append((title, playlist_url))
+                    print(f"🎯 Found stream: {title}")
+                await event_page.close()
 
-        # quick scan page HTML for stream links
-        html = await page.content()
-        for m in STREAM_REGEX.findall(html):
-            found.add(m if isinstance(m, str) else m[0])
-        for m in EMBEDDED_JS_RE.findall(html):
-            # EMBEDDED_JS_RE returns tuples because of capture groups; second item is url
-            if isinstance(m, tuple):
-                url = m[1] if len(m) > 1 else m[0]
-            else:
-                url = m
-            found.add(url)
-
-        # iterate frames and try clicking play inside them
-        frames = page.frames
-        iframe_srcs = set()
-        for frame in frames:
-            try:
-                # frame.content() may fail for cross-origin; we still try clicks via frame
-                try:
-                    frame_html = await frame.content()
-                    # scan frame html for streams
-                    for m in STREAM_REGEX.findall(frame_html):
-                        found.add(m if isinstance(m, str) else m[0])
-                    for m in EMBEDDED_JS_RE.findall(frame_html):
-                        if isinstance(m, tuple):
-                            url = m[1] if len(m) > 1 else m[0]
-                        else:
-                            url = m
-                        found.add(url)
-                except Exception:
-                    frame_html = ""
-                # if frame has src, collect it for fallback open
-                try:
-                    src = frame.url
-                    if src and src != "about:blank":
-                        iframe_srcs.add(src)
-                except Exception:
-                    pass
-
-                # attempt click sequence in the frame
-                clicked = False
-                for _ in range(CLICK_RETRIES):
-                    result = await try_click_in_frame(frame)
-                    if result:
-                        clicked = True
-                        # give it time to spawn requests
-                        await asyncio.sleep(1.0)
-                    else:
-                        break
-
-                # after clicking, give time and re-scan requests / frame content
-                await asyncio.sleep(1.0)
-                try:
-                    frame_html2 = await frame.content()
-                    for m in STREAM_REGEX.findall(frame_html2):
-                        found.add(m if isinstance(m, str) else m[0])
-                except Exception:
-                    pass
-
-            except Exception:
-                continue
-
-        # Fallback: open iframe src pages directly and try clicking & scanning
-        for src in list(iframe_srcs):
-            # skip same-origin main page
-            if not src or src.startswith("data:"):
-                continue
-            # attempt to open and sniff
-            await open_iframe_src_and_click(ctx, src, found)
-
-        # final attempt: open a new page to the main page and click center, then wait
-        try:
-            pg2 = await ctx.new_page()
-            await pg2.goto(BASE_URL, wait_until="domcontentloaded", timeout=NAV_TIMEOUT)
-            await pg2.wait_for_load_state("networkidle", timeout=NAV_TIMEOUT)
-            for _ in range(2):
-                try:
-                    w = await pg2.evaluate("() => window.innerWidth")
-                    h = await pg2.evaluate("() => window.innerHeight")
-                    await pg2.mouse.click(int(w/2), int(h/2))
-                    await asyncio.sleep(1.0)
-                except Exception:
-                    break
-            html2 = await pg2.content()
-            for m in STREAM_REGEX.findall(html2):
-                found.add(m if isinstance(m, str) else m[0])
-            await pg2.close()
-        except Exception:
-            pass
+            except Exception as e:
+                print(f"  ⚠️ Error processing event {title}: {e}")
 
         await browser.close()
+    return streams
 
-    # normalize found set: keep only full http(s) urls and dedupe
-    candidates = []
-    for u in found:
-        if not u:
-            continue
-        u = u.strip()
-        # sometimes regex capture returns tuples — handle that
-        if isinstance(u, tuple):
-            u = u[0]
-        if u.startswith("//"):
-            u = "https:" + u
-        if u.startswith("http"):
-            # ensure no trailing JS junk like "');" or quotes
-            u = re.sub(r"['\"\)\(;\s]+$", "", u)
-            candidates.append(u)
-    # dedupe preserving order
-    seen = set()
-    final = []
-    for c in candidates:
-        if c in seen:
-            continue
-        seen.add(c)
-        final.append(c)
+# Write VLC + TiviMate playlists
+def write_playlists(streams):
+    if not streams:
+        print("⚠️ No streams found.")
+        Path(VLC_OUTPUT).write_text(m3u_header(), encoding="utf-8")
+        Path(TIVIMATE_OUTPUT).write_text(m3u_header(), encoding="utf-8")
+        return
 
-    # Return as list of tuples (title, url) - title is filename piece
-    results = []
-    for url in final:
-        title = url.split("/")[-1]
-        title = re.sub(r"\?.*$", "", title)
-        title = title.replace("-", " ").replace("_", " ").title()
-        results.append((title, url))
-    return results
+    ua_enc = quote(USER_AGENT, safe="")
 
-
-def write_playlists(items: List[Tuple[str, str]]):
-    ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-    header = f'#EXTM3U x-tvg-url="https://epgshare01.online/epgshare01/epg_ripper_ALL_SOURCES1.xml.gz"\n# Last Updated: {ts}\n\n'
-
-    # VLC (no pipe headers)
+    # VLC
     with open(VLC_OUTPUT, "w", encoding="utf-8") as f:
-        f.write(header)
-        for title, url in items:
-            f.write(f'#EXTINF:-1 tvg-logo="{TVG_LOGO}" tvg-id="{TVG_ID}" group-title="{GROUP_NAME}",{title}\n')
-            f.write(f'{url}\n\n')
+        f.write(m3u_header())
+        for title, url in streams:
+            f.write(f'#EXTINF:-1 tvg-logo="{TV_INFO[1]}" tvg-id="{TV_INFO[0]}" group-title="{TV_INFO[2]}",{title}\n')
+            f.write(f"{url}\n\n")
 
-    # TiviMate (pipe headers appended to the URL)
+    # TiviMate (pipe headers)
     with open(TIVIMATE_OUTPUT, "w", encoding="utf-8") as f:
-        f.write(header)
-        for title, url in items:
-            f.write(f'#EXTINF:-1 tvg-logo="{TVG_LOGO}" tvg-id="{TVG_ID}" group-title="{GROUP_NAME}",{title}\n')
-            f.write(f'{url}|referer={REFERER}|user-agent={ENCODED_UA}\n\n')
+        f.write(m3u_header())
+        for title, url in streams:
+            f.write(f'#EXTINF:-1 tvg-logo="{TV_INFO[1]}" tvg-id="{TV_INFO[0]}" group-title="{TV_INFO[2]}",{title}\n')
+            f.write(f"{url}|referer={REFERER}|user-agent={ua_enc}\n\n")
 
+    print(f"✅ Playlists written:\n - {VLC_OUTPUT}\n - {TIVIMATE_OUTPUT}")
 
+# Main
 async def main():
     print("▶️ Starting BuffStreams playlist generation...")
-    items = await collect_streams()
-    if not items:
-        print("⚠️ Found 0 potential streams.")
-    else:
-        print(f"✅ Found {len(items)} potential streams:")
-        for t, u in items:
-            print(f"  • {t} -> {u}")
-
-    write_playlists(items)
-    print(f"\n✅ Finished. Playlists written:\n - {VLC_OUTPUT}\n - {TIVIMATE_OUTPUT}")
-
+    streams = await extract_streams()
+    write_playlists(streams)
+    print("✅ Finished.")
 
 if __name__ == "__main__":
     asyncio.run(main())
