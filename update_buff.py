@@ -2,10 +2,10 @@
 """
 update_buff.py
 --------------
-BuffStreams Root Scraper (Playwright-based)
+BuffStreams Root Scraper (Deep Playwright version)
 
-✅ Scans main page only (https://buffstreams.plus/)
-✅ Captures direct playlist/stream URLs (m3u8-like)
+✅ Scans only main page (https://buffstreams.plus/)
+✅ Captures stream URLs injected by JS or inside iframes
 ✅ Encodes referer + user-agent for TiviMate
 ✅ Writes clean #EXTM3U playlist
 """
@@ -29,23 +29,41 @@ TV_INFO = {
     "default": ("Sports.Dummy.us", "https://i.postimg.cc/qMm0rc3L/247.png", "Live Sports"),
 }
 
-# match patterns like: https://.../playlist/.../load-playlist or stream
 STREAM_REGEX = re.compile(
-    r"https?://[a-zA-Z0-9\.\-_/]+/(playlist|stream|load-playlist)[^\s\"'<>`]+",
+    r"https?://[a-zA-Z0-9\.\-_/]+/(playlist|load-playlist)[^\s\"'<>`]+",
     re.IGNORECASE,
 )
 
-async def collect_network_streams(page):
-    """Capture all network requests matching stream patterns."""
-    captured = set()
+async def collect_all_streams(context, page):
+    """Capture all network requests and iframe HTMLs containing playlist URLs."""
+    found_streams = set()
 
-    def handle_request(request):
+    # Network event listener
+    def on_request(request):
         url = request.url
         if re.search(STREAM_REGEX, url):
-            captured.add(url)
+            found_streams.add(url)
 
-    page.on("request", handle_request)
-    return captured
+    context.on("request", on_request)
+
+    # Load main page
+    print(f"🌐 Visiting main page: {BASE_URL}")
+    await page.goto(BASE_URL, timeout=90000)
+    await page.wait_for_load_state("networkidle")
+    await asyncio.sleep(10)  # Allow extra JS time
+
+    # Check all frames (main + iframes)
+    for frame in page.frames:
+        try:
+            html = await frame.content()
+            matches = re.findall(STREAM_REGEX, html)
+            for match in matches:
+                found_streams.add(match)
+        except Exception:
+            continue
+
+    return found_streams
+
 
 async def main():
     print("▶️ Starting BuffStreams playlist generation...\n")
@@ -61,20 +79,11 @@ async def main():
         context = await browser.new_context(user_agent=USER_AGENT)
         page = await context.new_page()
 
-        # Attach network capture
-        network_streams = await collect_network_streams(page)
+        streams = await collect_all_streams(context, page)
 
-        print(f"🌐 Visiting main page: {BASE_URL}")
-        await page.goto(BASE_URL, timeout=60000)
-        await page.wait_for_load_state("domcontentloaded")
+        print(f"✅ Found {len(streams)} potential streams.\n")
 
-        html = await page.content()
-        html_streams = re.findall(STREAM_REGEX, html)
-        all_streams = set(html_streams).union(network_streams)
-
-        print(f"✅ Found {len(all_streams)} potential streams.\n")
-
-        for s in all_streams:
+        for s in streams:
             tv_id, logo, group = TV_INFO["default"]
             title = s.split("/")[-1].replace("-", " ").title()
 
