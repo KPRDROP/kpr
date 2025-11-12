@@ -1,15 +1,14 @@
-name: BuffStreams Playlist Update
+name: BuffStreams Playlist
 
 on:
   push:
-    branches: ["main"]
-  schedule:
-    - cron: "0 * * * *"
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-  update-playlist:
+  generate-playlist:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,27 +22,27 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libgtk-4-1 libgraphene-1.0-0 libwoff2-1 libvpx9 libevent-2.1-7 libopus0 \
-            gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
-            gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-gl \
+            libgtk-4-1 libgraphene-1.0-0 libvpx9 libevent-2.1-7 libopus0 \
+            gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+            gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
+            gstreamer1.0-libav gstreamer1.0-gl \
             libflite1 libavif16 libharfbuzz-icu0 libsecret-1-0 libhyphen0 \
-            libgles2-mesa libx264-163
+            libgles2-mesa-dev libx264-dev
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install playwright requests beautifulsoup4
+          pip install -r requirements.txt
+          pip install playwright
+          playwright install
 
-      - name: Install Playwright browsers
-        run: python -m playwright install
-
-      - name: Run BuffStreams scraper
+      - name: Run BuffStreams playlist script
         run: python update_buff.py
 
-      - name: Upload playlists
+      - name: Upload playlists as artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: BuffStreams-Playlists
+          name: buffstreams-playlists
           path: |
             BuffStreams_VLC.m3u8
             BuffStreams_TiviMate.m3u8
