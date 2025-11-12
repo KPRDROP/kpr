@@ -25,17 +25,17 @@ CUSTOM_HEADERS = {
 }
 
 FALLBACK_LOGOS = {
-    "american football": "http://drewlive24.duckdns.org:9000/Logos/Am-Football2.png",
-    "football": "https://external-content.duckduckgo.com/iu/?u=https://i.imgur.com/RvN0XSF.png",
-    "fight": "http://drewlive24.duckdns.org:9000/Logos/Combat-Sports.png",
-    "basketball": "http://drewlive24.duckdns.org:9000/Logos/Basketball5.png",
-    "motor sports": "http://drewlive24.duckdns.org:9000/Logos/Motorsports3.png",
-    "darts": "http://drewlive24.duckdns.org:9000/Logos/Darts.png",
-    "tennis": "http://drewlive24.duckdns.org:9000/Logos/Tennis-2.png",
-    "rugby": "http://drewlive24.duckdns.org:9000/Logos/Rugby.png",
-    "cricket": "http://drewlive24.duckdns.org:9000/Logos/Cricket.png",
-    "golf": "http://drewlive24.duckdns.org:9000/Logos/Golf.png",
-    "other": "http://drewlive24.duckdns.org:9000/Logos/DrewLiveSports.png"
+    "american football": "https://i.postimg.cc/8P8zyHmf/Am-Football2.png",
+    "football": "https://i.postimg.cc/FKq4YrPT/Rv-N0XSF.png",
+    "fight": "https://i.postimg.cc/1Xr2rsKc/Combat-Sports.png",
+    "basketball": "https://i.postimg.cc/FHBqZPjF/Basketball5.png",
+    "motor sports": "https://i.postimg.cc/1XsYtbZd/Motorsports3.png",
+    "darts": "https://i.postimg.cc/HsPBDrjP/Darts.png",
+    "tennis": "https://i.postimg.cc/d14G2fyG/Tennis-2.png",
+    "rugby": "https://i.postimg.cc/SQ1Wjwqc/Rugby.png",
+    "cricket": "https://i.postimg.cc/zfNh9NwS/Cricket.png",
+    "golf": "https://i.postimg.cc/C1PfBf3H/Golf.png",
+    "other": "https://i.postimg.cc/1Xr2rsKc/Combat-Sports.png"
 }
 
 TV_IDS = {
