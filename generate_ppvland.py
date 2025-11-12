@@ -29,7 +29,7 @@ CATEGORY_LOGOS = {
     "Wrestling": "https://i.postimg.cc/3JwB6ScC/wwe.png",
     "Football": "https://i.postimg.cc/mgkTPs69/football.png",
     "Basketball": "hhttps://i.postimg.cc/DyzgDjMP/nba.png",
-    "Baseball": ""https://i.postimg.cc/28JKxNSR/Baseball3.png",
+    "Baseball": "https://i.postimg.cc/28JKxNSR/Baseball3.png",
     "Combat Sports": "https://i.postimg.cc/B6crhYwg/Combat-Sports.png",
     "Motorsports": "https://i.postimg.cc/m2cdkpNp/f1.png",
     "Miscellaneous": "https://i.postimg.cc/Nf04VJzs/24-7.png",
