@@ -2,7 +2,7 @@ name: Update BuffStreams Playlist
 
 on:
   schedule:
-    - cron: "0 */3 * * *"  # every 3 hours
+    - cron: "0 */3 * * *"
   workflow_dispatch:
 
 jobs:
@@ -34,5 +34,5 @@ jobs:
           git config --global user.name "BuffStreamsBot"
           git config --global user.email "bot@buffstreams.local"
           git add BuffStreams_Playlist.m3u8
-          git commit -m "🔄 Auto-update BuffStreams playlist"
+          git commit -m "🔄 Auto-update BuffStreams playlist" || echo "No changes to commit"
           git push
