@@ -103,23 +103,24 @@ async def get_streams():
         return None
 
 
-async def grab_m3u8_from_iframe(page, iframe_url):
+async def grab_m3u8_from_iframe(context, page, iframe_url):
     found_streams = set()
 
     def handle_response(response):
-        if ".m3u8" in response.url:
-            found_streams.add(response.url)
+        url = response.url
+        if ".m3u8" in url:
+            print("📡 FOUND STREAM:", url)
+            found_streams.add(url)
 
-    page.on("response", handle_response)
-    print(f"🌐 Navigating to iframe: {iframe_url}")
+    context.on("response", handle_response)
 
     try:
-        await page.goto(iframe_url, timeout=15000)
-        await asyncio.sleep(5)
+        await page.goto(iframe_url, timeout=30000)  # 30s
+        await asyncio.sleep(10)  # wait for nested iframes to load
     except Exception as e:
-        print(f"❌ Failed to load iframe: {e}")
+        print(f"❌ Failed to load iframe page: {e}")
 
-    page.remove_listener("response", handle_response)
+    context.remove_listener("response", handle_response)
 
     valid_urls = set()
     for url in found_streams:
@@ -224,7 +225,7 @@ async def main():
         url_map = {}
         for s in streams:
             key = f"{s['name']}::{s['category']}::{s['iframe']}"
-            urls = await grab_m3u8_from_iframe(page, s["iframe"])
+            urls = await grab_m3u8_from_iframe(context, page, s["iframe"])
             url_map[key] = urls
 
         await browser.close()
