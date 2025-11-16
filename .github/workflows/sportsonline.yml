@@ -1,69 +1,89 @@
-name: ⚽ Update Sportsonline Playlists (Momentum Click)
+name: Sportsonline Scraper
 
 on:
-  schedule:
-    - cron: "*/30 * * * *"  # every 30 minutes
   workflow_dispatch:
-
-permissions:
-  contents: write
+  schedule:
+    - cron: "*/30 * * * *"   # Runs every 30 minutes
 
 jobs:
-  build:
+  scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+
+    permissions:
+      contents: write
+      actions: read
 
     steps:
+      # ---------------------------------------------------------
+      # CHECKOUT REPO
+      # ---------------------------------------------------------
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: true
 
-      - name: 🐍 Set up Python
+      # ---------------------------------------------------------
+      # INSTALL PYTHON
+      # ---------------------------------------------------------
+      - name: 🐍 Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
+      # ---------------------------------------------------------
+      # INSTALL DEPENDENCIES
+      # ---------------------------------------------------------
       - name: 📦 Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests aiohttp playwright
-          python -m playwright install chromium
+          pip install playwright aiohttp requests
+          playwright install chromium
+          playwright install-deps
 
-      - name: ⚙️ Run Sportsonline scraper with Momentum Click
-        env:
-          PYTHONUNBUFFERED: 1
+      # ---------------------------------------------------------
+      # RUN SCRAPER
+      # ---------------------------------------------------------
+      - name: ▶️ Running Sportsonline scraper...
         run: |
           echo "▶️ Running Sportsonline scraper..."
-          python sportsonline.py | tee scraper.log
-          echo "✅ Script finished."
+          python sportsonline.py
+        env:
+          PYTHONUNBUFFERED: "1"
 
-      - name: 📂 Upload scraper log artifact
+      # ---------------------------------------------------------
+      # ZIP THE OUTPUT PLAYLISTS
+      # ---------------------------------------------------------
+      - name: 📦 Zip playlists
+        run: |
+          mkdir output
+          cp *.m3u output/
+          cd output
+          zip -r playlists.zip ./*
+        shell: bash
+
+      # ---------------------------------------------------------
+      # UPLOAD ARTIFACTS (v4)
+      # ---------------------------------------------------------
+      - name: ⬆️ Upload playlists artifact
         uses: actions/upload-artifact@v4
         with:
-          name: scraper-log
-          path: scraper.log
+          name: sportsonline-playlists
+          path: output/playlists.zip
+          retention-days: 7
 
-      - name: 💾 Commit & push updated playlists
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # ---------------------------------------------------------
+      # AUTO-COMMIT UPDATED PLAYLISTS TO REPO
+      # ---------------------------------------------------------
+      - name: 🔄 Commit updated playlists
+        if: success()
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add sportsonline_*.m3u
+          git add *.m3u
 
           if git diff --cached --quiet; then
-            echo "✓ No playlist changes detected — skipping commit."
-            exit 0
+            echo "🟦 No playlist changes detected. Skipping commit."
+          else
+            git commit -m "Auto-update playlists 🚀"
+            git push origin "${GITHUB_REF##*/}"
+            echo "✅ Playlists updated and pushed."
           fi
-
-          git switch main || git checkout -b main
-
-          git commit -m "🔄 Auto-update Sportsonline playlists ($(date -u +'%Y-%m-%d %H:%M UTC')) [skip ci]"
-
-          git fetch origin main
-          git rebase origin/main || echo "⚠️ Rebase failed, continuing"
-
-          git push origin main
