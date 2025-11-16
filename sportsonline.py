@@ -138,7 +138,7 @@ async def main():
             f.write("#EXTM3U\n")
             for item in items:
                 url = item["urls"][0]
-                headers = f"referer=https://dukehorror.net/|origin=https://dukehorror.net|user-agent={ENCODED_USER_AGENT}"
+                headers = f"referer=https://dukehorror.net/|user-agent={ENCODED_USER_AGENT}"
                 f.write(f'#EXTINF:-1 tvg-logo="{item["logo"]}" group-title="{category}",{item["title"]}\n')
                 f.write(f"{url}|{headers}\n\n")
 
