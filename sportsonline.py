@@ -14,7 +14,7 @@ ENCODED_USER_AGENT = quote(USER_AGENT, safe="")
 
 VLC_HEADERS = [
     f'#EXTVLCOPT:http-user-agent={USER_AGENT}',
-    '#EXTVLCOPT:http-referrer=https://dukehorror.net/'
+    '#EXTVLCOPT:http-referrer=https://sportsonline.sn/'
 ]
 
 CHANNEL_LOGOS = {
@@ -35,6 +35,9 @@ CATEGORY_KEYWORDS = {
 NAV_TIMEOUT = 60000  # 60 seconds
 CONCURRENT_FETCHES = 5  # number of concurrent PHP fetches
 RETRIES = 2  # retry failed PHP pages
+
+# Replace dynamic subdomain with this working domain
+FIXED_DOMAIN = "https://yzarygw.7380990745.xyz:8443"
 
 # ------------------------
 # Fetch and parse schedule
@@ -93,6 +96,8 @@ async def fetch_valid_m3u8(page, php_url):
             try:
                 async with session.get(url, headers={"User-Agent": USER_AGENT}, timeout=10) as resp:
                     if resp.status == 200:
+                        # ⚡ Replace domain
+                        url = url.replace(url.split("/")[2], FIXED_DOMAIN.split("/")[2])
                         valid_urls.append(url)
             except:
                 continue
@@ -163,7 +168,7 @@ async def main():
         with open(tivimate_file, "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
             for item in items:
-                headers = f"referer=https://dukehorror.net/|origin=https://dukehorror.net|user-agent={ENCODED_USER_AGENT}"
+                headers = f"referer=https://sportsonline.sn/|origin=https://sportsonline.sn|user-agent={ENCODED_USER_AGENT}"
                 f.write(f'#EXTINF:-1 tvg-logo="{item["logo"]}" group-title="{category}",{item["title"]}\n')
                 f.write(f"{item['url']}|{headers}\n\n")
 
