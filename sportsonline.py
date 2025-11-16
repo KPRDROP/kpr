@@ -84,11 +84,12 @@ async def fetch_m3u8_from_php(page, php_url):
     try:
         print(f"⏳ Loading PHP page: {php_url}")
         await page.goto(php_url, timeout=NAV_TIMEOUT, wait_until="networkidle")
-        # Click play button if exists
+        # Momentum click: click any play button to trigger stream
         try:
             await page.click("button[class*=play], .vjs-big-play-button", timeout=5000)
+            print(f"▶️ Clicked play button on {php_url}")
         except PlaywrightTimeout:
-            pass  # no play button, continue
+            print(f"⚠️ No play button found on {php_url}, continuing")
         await asyncio.sleep(4)  # wait for m3u8 request
     except Exception as e:
         print(f"⚠️ Failed to load {php_url}: {e}")
@@ -105,7 +106,7 @@ async def fetch_m3u8_from_php(page, php_url):
                     if resp.status == 200:
                         print(f"✅ Valid m3u8: {url}")
                         return url  # pick first valid
-            except Exception as e:
+            except Exception:
                 continue
     print(f"❌ No valid m3u8 found for {php_url}")
     return None
