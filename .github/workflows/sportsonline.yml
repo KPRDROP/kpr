@@ -2,7 +2,7 @@ name: ⚽ Update Sportsonline Playlists (Momentum Click)
 
 on:
   schedule:
-    - cron: "*/30 * * * *"  # run every 30 minutes
+    - cron: "*/30 * * * *"  # every 30 minutes
   workflow_dispatch:
 
 permissions:
