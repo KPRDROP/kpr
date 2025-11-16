@@ -2,33 +2,40 @@ import asyncio
 from urllib.parse import quote
 from playwright.async_api import async_playwright
 import requests
+from collections import defaultdict
 
 # Input schedule URL
 SCHEDULE_URL = "https://sportsonline.sn/prog.txt"
 
-# User-Agent for requests
+# User-Agent
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 ENCODED_USER_AGENT = quote(USER_AGENT, safe="")
 
-# VLC/Kodi custom headers
+# VLC/Kodi headers
 VLC_HEADERS = [
     f'#EXTVLCOPT:http-user-agent={USER_AGENT}',
     '#EXTVLCOPT:http-referrer=https://sportsonline.sn/'
 ]
 
-# Channel logos (add more as needed)
+# Logos (example, add more)
 CHANNEL_LOGOS = {
     "Colombia x New Zealand": "https://example.com/logos/col_new.png",
     "Santos x Palmeiras": "https://example.com/logos/santos.png",
     "NBA: Denver Nuggets @ Minnesota Timberwolves": "https://example.com/logos/nba.png",
-    # Add other logos here
+    "UFC 322: Prelims": "https://example.com/logos/ufc.png",
+    # Add more logos
 }
 
-# Default group-title
-DEFAULT_GROUP = "Sports"
+# Category keywords
+CATEGORY_KEYWORDS = {
+    "NBA": "Basketball",
+    "UFC": "Combat Sports",
+    "Football": "Football",
+    "Soccer": "Football",
+    "x": "Football",
+}
 
-# Timeout for Playwright
-NAV_TIMEOUT = 15000  # 15 seconds
+NAV_TIMEOUT = 15000  # 15s
 
 
 def fetch_schedule():
@@ -39,10 +46,6 @@ def fetch_schedule():
 
 
 def parse_schedule(raw):
-    """
-    Parse schedule lines into dicts:
-    [{'time': '00:00', 'title': 'Colombia x New Zealand', 'link': '...'}, ...]
-    """
     events = []
     for line in raw.splitlines():
         line = line.strip()
@@ -51,7 +54,15 @@ def parse_schedule(raw):
         try:
             time_part, rest = line.split("   ", 1)
             title, link = rest.rsplit(" | ", 1)
-            events.append({"time": time_part, "title": title.strip(), "link": link.strip()})
+            title = title.strip()
+            link = link.strip()
+            # Determine category
+            category = "Miscellaneous"
+            for keyword, cat in CATEGORY_KEYWORDS.items():
+                if keyword.lower() in title.lower():
+                    category = cat
+                    break
+            events.append({"time": time_part, "title": title, "link": link, "category": category})
         except ValueError:
             continue
     print(f"📺 Parsed {len(events)} events")
@@ -73,7 +84,7 @@ async def fetch_m3u8(playwright, url):
 
     try:
         await page.goto(url, timeout=NAV_TIMEOUT, wait_until="domcontentloaded")
-        await asyncio.sleep(2)  # allow JS to load
+        await asyncio.sleep(2)
     except Exception as e:
         print(f"⚠️ Failed to open {url}: {e}")
     finally:
@@ -88,43 +99,50 @@ async def main():
     events = parse_schedule(raw)
 
     async with async_playwright() as p:
-        playlist_items = []
+        categorized = defaultdict(list)
 
         for event in events:
             title = event["title"]
             php_link = event["link"]
+            category = event["category"]
+            logo = CHANNEL_LOGOS.get(title, "")
 
             m3u8_urls = await fetch_m3u8(p, php_link)
             if not m3u8_urls:
                 continue
 
-            playlist_items.append({
+            categorized[category].append({
                 "title": title,
                 "urls": m3u8_urls,
-                "logo": CHANNEL_LOGOS.get(title, ""),
-                "group": DEFAULT_GROUP
+                "logo": logo
             })
 
-    # Write VLC/Kodi playlist
-    with open("sportsonline.m3u", "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-        for item in playlist_items:
-            url = item["urls"][0]
-            f.write(f'#EXTINF:-1 tvg-logo="{item["logo"]}" group-title="{item["group"]}",{item["title"]}\n')
-            for h in VLC_HEADERS:
-                f.write(f"{h}\n")
-            f.write(url + "\n\n")
+    # Generate playlists per category
+    for category, items in categorized.items():
+        safe_name = category.replace(" ", "_").lower()
+        vlc_file = f"sportsonline_{safe_name}.m3u"
+        tivimate_file = f"sportsonline_{safe_name}_tivimate.m3u"
 
-    # Write TiviMate playlist
-    with open("sportsonline_tivimate.m3u", "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-        for item in playlist_items:
-            url = item["urls"][0]
-            headers = f"referer=https://sportsonline.sn/|origin=https://sportsonline.sn|user-agent={ENCODED_USER_AGENT}"
-            f.write(f'#EXTINF:-1 tvg-logo="{item["logo"]}" group-title="{item["group"]}",{item["title"]}\n')
-            f.write(f"{url}|{headers}\n\n")
+        # VLC/Kodi playlist
+        with open(vlc_file, "w", encoding="utf-8") as f:
+            f.write("#EXTM3U\n")
+            for item in items:
+                url = item["urls"][0]
+                f.write(f'#EXTINF:-1 tvg-logo="{item["logo"]}" group-title="{category}",{item["title"]}\n')
+                for h in VLC_HEADERS:
+                    f.write(f"{h}\n")
+                f.write(url + "\n\n")
 
-    print(f"✅ Playlists generated: {len(playlist_items)} channels")
+        # TiviMate playlist
+        with open(tivimate_file, "w", encoding="utf-8") as f:
+            f.write("#EXTM3U\n")
+            for item in items:
+                url = item["urls"][0]
+                headers = f"referer=https://sportsonline.sn/|origin=https://sportsonline.sn|user-agent={ENCODED_USER_AGENT}"
+                f.write(f'#EXTINF:-1 tvg-logo="{item["logo"]}" group-title="{category}",{item["title"]}\n')
+                f.write(f"{url}|{headers}\n\n")
+
+        print(f"✅ Generated playlists for category '{category}': {vlc_file}, {tivimate_file}")
 
 
 if __name__ == "__main__":
