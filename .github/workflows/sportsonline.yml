@@ -46,7 +46,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Add all generated playlists
+          # Stage all generated category playlists
           git add sportsonline_*.m3u
 
           # Exit if no changes
@@ -58,6 +58,7 @@ jobs:
           # Ensure on main branch
           git switch main || git checkout -b main
 
+          # Commit changes with timestamp
           git commit -m "🔄 Auto-update Sportsonline playlists ($(date -u +'%Y-%m-%d %H:%M UTC')) [skip ci]"
 
           # Pull latest remote changes and rebase safely
