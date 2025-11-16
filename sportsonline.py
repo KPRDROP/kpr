@@ -14,7 +14,7 @@ ENCODED_USER_AGENT = quote(USER_AGENT, safe="")
 
 VLC_HEADERS = [
     f'#EXTVLCOPT:http-user-agent={USER_AGENT}',
-    '#EXTVLCOPT:http-referrer=https://sportsonline.sn/'
+    '#EXTVLCOPT:http-referrer=https://dukehorror.net/'
 ]
 
 CHANNEL_LOGOS = {
@@ -70,7 +70,7 @@ def parse_schedule(raw):
     return events
 
 # ------------------------
-# Fetch real m3u8 from PHP page
+# Fetch real m3u8 from PHP page with Momentum click + ad tab handling
 # ------------------------
 async def fetch_m3u8_from_php(page, php_url):
     found_urls = set()
@@ -84,19 +84,47 @@ async def fetch_m3u8_from_php(page, php_url):
     try:
         print(f"⏳ Loading PHP page: {php_url}")
         await page.goto(php_url, timeout=NAV_TIMEOUT, wait_until="networkidle")
-        # Momentum click: click any play button to trigger stream
+
+        # -----------------------------
+        # Momentum click + ad tab handling
+        # -----------------------------
         try:
-            await page.click("button[class*=play], .vjs-big-play-button", timeout=5000)
-            print(f"▶️ Clicked play button on {php_url}")
-        except PlaywrightTimeout:
-            print(f"⚠️ No play button found on {php_url}, continuing")
-        await asyncio.sleep(4)  # wait for m3u8 request
+            await page.mouse.click(200, 200)
+            print("  👆 First click triggered ad (if any)")
+
+            pages_before = page.context.pages
+            new_tab = None
+            for _ in range(12):
+                pages_now = page.context.pages
+                if len(pages_now) > len(pages_before):
+                    new_tab = [p for p in pages_now if p not in pages_before][0]
+                    break
+                await asyncio.sleep(0.25)
+
+            if new_tab:
+                try:
+                    await asyncio.sleep(0.5)
+                    url = (new_tab.url or "").lower()
+                    print(f"  🚫 Closing ad tab: {url if url else '(blank/new)'}")
+                    await new_tab.close()
+                except Exception:
+                    print("  ⚠️ Ad tab close failed")
+
+            await asyncio.sleep(1)
+            await page.mouse.click(200, 200)
+            print("  ▶️ Second click started player")
+        except Exception as e:
+            print(f"⚠️ Momentum click sequence failed: {e}")
+
+        # wait for m3u8 requests
+        await asyncio.sleep(4)
+
     except Exception as e:
         print(f"⚠️ Failed to load {php_url}: {e}")
     finally:
         page.remove_listener("response", response_handler)
 
-    # Validate m3u8 URLs
+    # Validate and replace domain if needed
     async with aiohttp.ClientSession() as session:
         for url in found_urls:
             try:
@@ -105,7 +133,7 @@ async def fetch_m3u8_from_php(page, php_url):
                 async with session.get(url, headers={"User-Agent": USER_AGENT}, timeout=10) as resp:
                     if resp.status == 200:
                         print(f"✅ Valid m3u8: {url}")
-                        return url  # pick first valid
+                        return url  # return first valid
             except Exception:
                 continue
     print(f"❌ No valid m3u8 found for {php_url}")
@@ -167,7 +195,7 @@ async def main():
         with open(tivimate_file, "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
             for item in items:
-                headers = f"referer=https://sportsonline.sn/|origin=https://sportsonline.sn|user-agent={ENCODED_USER_AGENT}"
+                headers = f"referer=https://dukehorror.net/|origin=https://dukehorror.net|user-agent={ENCODED_USER_AGENT}"
                 f.write(f'#EXTINF:-1 tvg-logo="{item["logo"]}" group-title="{category}",{item["title"]}\n')
                 f.write(f"{item['url']}|{headers}\n\n")
 
