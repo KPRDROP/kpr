@@ -1,8 +1,8 @@
-name: ⚽ Update Sportsonline Playlists (Category Split)
+name: ⚽ Update Sportsonline Playlists (Click-Play)
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/30 * * * *"   # run every 30 minutes
   workflow_dispatch:
 
 permissions:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 60
 
     steps:
       - name: 📥 Checkout repository
@@ -27,11 +27,11 @@ jobs:
 
       - name: 📦 Install dependencies
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install requests aiohttp playwright
           python -m playwright install chromium
 
-      - name: ⚙️ Run Sportsonline scraper with logging
+      - name: ⚙️ Run Sportsonline scraper (Click-Play) with logging
         env:
           PYTHONUNBUFFERED: 1
         run: |
