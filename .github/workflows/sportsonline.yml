@@ -11,7 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 90  # longer timeout for multiple PHP pages
+    timeout-minutes: 90
 
     steps:
       - name: 📥 Checkout repository
@@ -31,7 +31,7 @@ jobs:
           pip install requests aiohttp playwright
           python -m playwright install chromium
 
-      - name: ⚙️ Run Sportsonline scraper (Momentum Click) with logging
+      - name: ⚙️ Run Sportsonline scraper with Momentum Click
         env:
           PYTHONUNBUFFERED: 1
         run: |
@@ -39,7 +39,7 @@ jobs:
           python sportsonline.py | tee scraper.log
           echo "✅ Script finished."
 
-      - name: 📂 Upload scraper log as artifact
+      - name: 📂 Upload scraper log artifact
         uses: actions/upload-artifact@v4
         with:
           name: scraper-log
