@@ -14,7 +14,7 @@ ENCODED_USER_AGENT = quote(USER_AGENT, safe="")
 
 VLC_HEADERS = [
     f'#EXTVLCOPT:http-user-agent={USER_AGENT}',
-    '#EXTVLCOPT:http-referrer=https://dukehorror.net/'
+    '#EXTVLCOPT:http-referrer=https://sportsonline.sn/'
 ]
 
 CHANNEL_LOGOS = {
@@ -32,9 +32,9 @@ CATEGORY_KEYWORDS = {
     "x": "Football",
 }
 
-NAV_TIMEOUT = 60000  # 60 seconds
-CONCURRENT_FETCHES = 5  # concurrent PHP fetches
-RETRIES = 2  # retry failed PHP pages
+NAV_TIMEOUT = 45000  # per page timeout in ms
+CONCURRENT_FETCHES = 10  # concurrent PHP page fetches
+RETRIES = 3  # retries per page
 
 FIXED_DOMAIN = "https://yzarygw.7380990745.xyz:8443"
 
@@ -73,60 +73,42 @@ def parse_schedule(raw):
 # Fetch real m3u8 from PHP page
 # ------------------------
 async def fetch_m3u8_from_php(page, php_url):
-    found_urls = []
+    found_urls = set()
 
     def response_handler(response):
         if ".m3u8" in response.url:
-            found_urls.append(response.url)
+            found_urls.add(response.url)
 
     page.on("response", response_handler)
 
     try:
+        print(f"⏳ Loading PHP page: {php_url}")
         await page.goto(php_url, timeout=NAV_TIMEOUT, wait_until="networkidle")
         # Click play button if exists
         try:
             await page.click("button[class*=play], .vjs-big-play-button", timeout=5000)
         except PlaywrightTimeout:
-            # No play button found, continue
-            pass
-        await asyncio.sleep(6)  # wait for player to fetch m3u8
+            pass  # no play button, continue
+        await asyncio.sleep(4)  # wait for m3u8 request
     except Exception as e:
         print(f"⚠️ Failed to load {php_url}: {e}")
     finally:
         page.remove_listener("response", response_handler)
 
-    valid_urls = []
+    # Validate m3u8 URLs
     async with aiohttp.ClientSession() as session:
         for url in found_urls:
             try:
-                async with session.get(url, headers={"User-Agent": USER_AGENT}, timeout=15) as resp:
+                if "twhjon.7380990745.xyz" in url:
+                    url = url.replace("twhjon.7380990745.xyz", "yzarygw.7380990745.xyz")
+                async with session.get(url, headers={"User-Agent": USER_AGENT}, timeout=10) as resp:
                     if resp.status == 200:
-                        print(f"🔹 Original m3u8 URL: {url}")
-                        # Replace domain if necessary
-                        if "twhjon.7380990745.xyz" in url:
-                            replaced_url = url.replace("twhjon.7380990745.xyz", "yzarygw.7380990745.xyz")
-                            print(f"🔹 Replaced domain URL: {replaced_url}")
-                            valid_urls.append(replaced_url)
-                        else:
-                            valid_urls.append(url)
+                        print(f"✅ Valid m3u8: {url}")
+                        return url  # pick first valid
             except Exception as e:
-                print(f"⚠️ Failed to validate {url}: {e}")
                 continue
-
-    if not valid_urls:
-        return None
-    return valid_urls[-1]
-
-# ------------------------
-# Validate m3u8 URL before writing
-# ------------------------
-async def validate_m3u8(url):
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers={"User-Agent": USER_AGENT}, timeout=10) as resp:
-                return resp.status == 200
-    except:
-        return False
+    print(f"❌ No valid m3u8 found for {php_url}")
+    return None
 
 # ------------------------
 # Main routine
@@ -146,16 +128,12 @@ async def main():
                 page = await context.new_page()
                 url = None
                 for attempt in range(RETRIES):
-                    try:
-                        url = await fetch_m3u8_from_php(page, event["link"])
-                        if url and await validate_m3u8(url):
-                            print(f"✅ Fetched & validated m3u8 for: {event['title']}")
-                            break
-                        else:
-                            print(f"⚠️ Attempt {attempt+1} failed for {event['title']}")
-                            url = None
-                    except Exception as e:
-                        print(f"⚠️ Attempt {attempt+1} error for {event['title']}: {e}")
+                    url = await fetch_m3u8_from_php(page, event["link"])
+                    if url:
+                        break
+                    else:
+                        print(f"⚠️ Retry {attempt+1} for {event['title']}")
+                        await asyncio.sleep(2)
                 await page.close()
                 if url:
                     categorized[event["category"]].append({
@@ -163,8 +141,6 @@ async def main():
                         "url": url,
                         "logo": CHANNEL_LOGOS.get(event["title"], "")
                     })
-                else:
-                    print(f"❌ Could not get valid m3u8 for {event['title']}")
 
         await asyncio.gather(*(fetch_event(e) for e in events))
         await browser.close()
@@ -190,7 +166,7 @@ async def main():
         with open(tivimate_file, "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
             for item in items:
-                headers = f"referer=https://dukehorror.net/|origin=https://dukehorror.net|user-agent={ENCODED_USER_AGENT}"
+                headers = f"referer=https://sportsonline.sn/|origin=https://sportsonline.sn|user-agent={ENCODED_USER_AGENT}"
                 f.write(f'#EXTINF:-1 tvg-logo="{item["logo"]}" group-title="{category}",{item["title"]}\n')
                 f.write(f"{item['url']}|{headers}\n\n")
 
