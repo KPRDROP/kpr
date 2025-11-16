@@ -84,7 +84,7 @@ async def fetch_valid_m3u8(page, php_url):
 
     try:
         await page.goto(php_url, timeout=NAV_TIMEOUT, wait_until="networkidle")
-        await asyncio.sleep(5)  # allow JS to generate dynamic URLs
+        await asyncio.sleep(6)  # allow JS to generate dynamic URLs
     except Exception as e:
         print(f"⚠️ Failed to load {php_url}: {e}")
     finally:
@@ -94,17 +94,24 @@ async def fetch_valid_m3u8(page, php_url):
     async with aiohttp.ClientSession() as session:
         for url in found_urls:
             try:
-                async with session.get(url, headers={"User-Agent": USER_AGENT}, timeout=10) as resp:
+                async with session.get(url, headers={"User-Agent": USER_AGENT}, timeout=15) as resp:
                     if resp.status == 200:
-                        # ⚡ Replace domain
-                        url = url.replace(url.split("/")[2], FIXED_DOMAIN.split("/")[2])
-                        valid_urls.append(url)
-            except:
+                        # Log original URL
+                        print(f"🔹 Original m3u8 URL: {url}")
+                        # Replace domain if needed
+                        if "twhjon.7380990745.xyz" in url:
+                            replaced_url = url.replace("twhjon.7380990745.xyz", "yzarygw.7380990745.xyz")
+                            print(f"🔹 Replaced domain URL: {replaced_url}")
+                            valid_urls.append(replaced_url)
+                        else:
+                            valid_urls.append(url)
+            except Exception as e:
+                print(f"⚠️ Failed to validate {url}: {e}")
                 continue
 
     if not valid_urls:
         return None
-    return valid_urls[-1]  # return the last valid (fresh) URL
+    return valid_urls[-1]  # last one usually the freshest token
 
 # ------------------------
 # Main routine
@@ -143,7 +150,6 @@ async def main():
                 else:
                     print(f"❌ Could not get valid m3u8 for {event['title']}")
 
-        # Launch all fetches concurrently
         await asyncio.gather(*(fetch_event(e) for e in events))
         await browser.close()
 
