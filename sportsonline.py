@@ -17,7 +17,6 @@ VLC_HEADERS = [
     '#EXTVLCOPT:http-referrer=https://dukehorror.net/'
 ]
 
-# Example logos, add more as needed
 CHANNEL_LOGOS = {
     "Colombia x New Zealand": "https://example.com/logos/col_new.png",
     "Santos x Palmeiras": "https://example.com/logos/santos.png",
@@ -25,7 +24,6 @@ CHANNEL_LOGOS = {
     "UFC 322: Prelims": "https://example.com/logos/ufc.png",
 }
 
-# Category mapping based on keywords
 CATEGORY_KEYWORDS = {
     "NBA": "Basketball",
     "UFC": "Combat Sports",
@@ -34,15 +32,16 @@ CATEGORY_KEYWORDS = {
     "x": "Football",
 }
 
-NAV_TIMEOUT = 30000  # 30 seconds
-CONCURRENT_FETCHES = 5  # number of parallel PHP fetches
+NAV_TIMEOUT = 60000  # 60 seconds
+CONCURRENT_FETCHES = 5  # number of concurrent PHP fetches
+RETRIES = 2  # retry failed PHP pages
 
 # ------------------------
 # Fetch and parse schedule
 # ------------------------
 def fetch_schedule():
     print(f"🌐 Fetching schedule from {SCHEDULE_URL}")
-    r = requests.get(SCHEDULE_URL, headers={"User-Agent": USER_AGENT}, timeout=10)
+    r = requests.get(SCHEDULE_URL, headers={"User-Agent": USER_AGENT}, timeout=15)
     r.raise_for_status()
     return r.text
 
@@ -69,12 +68,9 @@ def parse_schedule(raw):
     return events
 
 # ------------------------
-# Fetch real m3u8 URLs
+# Fetch valid m3u8 from PHP
 # ------------------------
 async def fetch_valid_m3u8(page, php_url):
-    """
-    Open PHP link in headless Chromium and return only valid m3u8 URL.
-    """
     found_urls = []
 
     def response_handler(response):
@@ -91,7 +87,6 @@ async def fetch_valid_m3u8(page, php_url):
     finally:
         page.remove_listener("response", response_handler)
 
-    # Check which URL actually works
     valid_urls = []
     async with aiohttp.ClientSession() as session:
         for url in found_urls:
@@ -103,11 +98,8 @@ async def fetch_valid_m3u8(page, php_url):
                 continue
 
     if not valid_urls:
-        print(f"⚠️ No valid m3u8 found for {php_url}")
         return None
-
-    # Return the **last valid URL** (usually newest token)
-    return valid_urls[-1]
+    return valid_urls[-1]  # return the last valid (fresh) URL
 
 # ------------------------
 # Main routine
@@ -115,7 +107,6 @@ async def fetch_valid_m3u8(page, php_url):
 async def main():
     raw = fetch_schedule()
     events = parse_schedule(raw)
-
     categorized = defaultdict(list)
 
     async with async_playwright() as p:
@@ -126,7 +117,17 @@ async def main():
         async def fetch_event(event):
             async with semaphore:
                 page = await context.new_page()
-                url = await fetch_valid_m3u8(page, event["link"])
+                url = None
+                for attempt in range(RETRIES):
+                    try:
+                        url = await fetch_valid_m3u8(page, event["link"])
+                        if url:
+                            print(f"✅ Fetched m3u8 for: {event['title']}")
+                            break
+                        else:
+                            print(f"⚠️ Attempt {attempt+1} failed for {event['title']}")
+                    except Exception as e:
+                        print(f"⚠️ Attempt {attempt+1} error for {event['title']}: {e}")
                 await page.close()
                 if url:
                     categorized[event["category"]].append({
@@ -134,6 +135,8 @@ async def main():
                         "url": url,
                         "logo": CHANNEL_LOGOS.get(event["title"], "")
                     })
+                else:
+                    print(f"❌ Could not get valid m3u8 for {event['title']}")
 
         # Launch all fetches concurrently
         await asyncio.gather(*(fetch_event(e) for e in events))
