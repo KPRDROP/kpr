@@ -1,8 +1,8 @@
-name: ⚽ Update Sportsonline Playlist (with logos & headers)
+name: ⚽ Update Sportsonline Playlist (Full Feature)
 
 on:
   schedule:
-    - cron: "*/30 * * * *"  # Every 30 minutes
+    - cron: "*/30 * * * *"  # every 30 minutes
   workflow_dispatch:
 
 permissions:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: 📥 Checkout repo
@@ -24,9 +24,10 @@ jobs:
 
       - name: 📦 Install dependencies
         run: |
-          pip install requests
+          pip install requests playwright
+          python -m playwright install chromium
 
-      - name: ⚙️ Run sportsonline scraper
+      - name: ⚙️ Run Sportsonline scraper
         env:
           PYTHONUNBUFFERED: 1
         run: |
@@ -41,17 +42,19 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Add the M3U playlist
-          git add sportsonline.m3u
+          # Stage both playlists
+          git add sportsonline.m3u sportsonline_tivimate.m3u
 
-          # Exit if no changes
+          # Exit if nothing changed
           if git diff --cached --quiet; then
-            echo "✓ No changes, skipping commit."
+            echo "✓ No changes detected — skipping commit."
             exit 0
           fi
 
-          git commit -m "🔄 Auto-update sportsonline.m3u ($(date -u +'%Y-%m-%d %H:%M UTC')) [skip ci]"
+          git commit -m "🔄 Auto-update Sportsonline playlists ($(date -u +'%Y-%m-%d %H:%M UTC')) [skip ci]"
 
-          # Pull remote changes and rebase (to avoid push rejection)
+          # Pull remote changes and rebase to avoid push conflicts
           git pull --rebase origin main || true
+
+          # Push updated files
           git push origin main
