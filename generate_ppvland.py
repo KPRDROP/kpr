@@ -1,24 +1,28 @@
 import json
 import asyncio
+import requests
 from playwright.async_api import async_playwright
 
 API_URL = "https://ppv.to/api/streams"
 
+
 async def fetch_streams():
-    import requests
     print("🌐 Fetching streams from", API_URL)
     r = requests.get(API_URL, timeout=10)
     r.raise_for_status()
-    return r.json()
+    data = r.json()
+
+    # If the API returns ["8757","9981",...]
+    if data and isinstance(data[0], str):
+        print("🔄 Detected string-only stream list format.")
+        return [{"stream_id": x, "name": x, "category": "PPV"} for x in data]
+
+    # Standard format: [{"stream_id":123, "name":...}]
+    print("🔄 Detected full JSON object format.")
+    return data
+
 
 async def safe_goto(page, url):
-    """
-    Navigation helper that:
-      ✓ avoids networkidle (which never fires)
-      ✓ retries twice
-      ✓ uses short timeouts
-      ✓ skips bad links
-    """
     for attempt in range(1, 3):
         try:
             print(f"🌐 Opening: {url} (attempt {attempt})")
@@ -34,7 +38,6 @@ async def safe_goto(page, url):
 
 async def run():
     print("🚀 PPVLand Chromium Scraper Starting...")
-
     streams = await fetch_streams()
     print(f"📺 {len(streams)} streams found in API")
 
@@ -57,12 +60,9 @@ async def run():
         page = await context.new_page()
 
         for item in streams:
-            stream_id = item.get("stream_id")
-            category = item.get("category", "")
-            name = item.get("name", "")
-
-            if not stream_id:
-                continue
+            stream_id = item["stream_id"]
+            name = item.get("name", stream_id)
+            category = item.get("category", "PPV")
 
             url = f"https://embednow.top/embed/cfb/{stream_id}-{stream_id}"
 
