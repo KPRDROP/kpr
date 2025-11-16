@@ -1,73 +1,67 @@
-name: 🏈 Generate PPVLand Playlists
+name: Generate PPVLand Playlist
 
 on:
+  workflow_dispatch:
   schedule:
-    # Run every 2 hours
-    - cron: "0 */2 * * *"
-  workflow_dispatch: # Allow manual run from GitHub UI
-
-permissions:
-  contents: write
+    - cron: "*/30 * * * *"  # every 30 min
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
 
     steps:
-      - name: 🧾 Checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: 🐍 Set up Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
-      - name: ⚙️ Install dependencies
+      - name: Install Chromium dependencies
         run: |
-          set -e
-          python -m pip install --upgrade pip
-          pip install aiohttp playwright beautifulsoup4
-          python -m playwright install chromium
-          python -m playwright install-deps
+          sudo apt-get update
+          sudo apt-get install -y \
+            libatk1.0-0 \
+            libcairo2 \
+            libcups2 \
+            libdrm2 \
+            libgbm1 \
+            libglib2.0-0 \
+            libnss3 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxfixes3 \
+            libxkbcommon0 \
+            libxrandr2 \
+            libasound2t64 \
+            libxshmfence1 \
+            libx11-6 libx11-xcb1 \
+            libxext6 libxss1 \
+            libatspi2.0-0 \
+            libpangocairo-1.0-0 \
+            libpango-1.0-0 \
+            libjpeg-dev \
+            libxv1 \
+            libxi6
 
-      - name: 🚀 Run generate_ppvland.py
-        env:
-          PYTHONUNBUFFERED: 1
+      - name: Install project dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install playwright
+          playwright install chromium
+
+      - name: Run PPVLand generator
         run: |
           set -e
           echo "▶️ Starting playlist generation..."
-          xvfb-run -a python generate_ppvland.py
-          echo "✅ Script finished."
+          python3 generate_ppvland.py
 
-      - name: 💾 Commit & Push if Playlist Changed
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit & push results
+        if: success()
         run: |
-          set -e
-          git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Stage only the specific PPVLand files
-          git add PPVLand.m3u8 PPVLand_TiviMate.m3u8
-
-          # Exit if no changes
-          if git diff --cached --quiet; then
-            echo "✅ No changes detected — skipping commit."
-            exit 0
-          fi
-
-          # Commit with timestamp
-          git commit -m "🔄 Auto-update PPVLand playlists [skip ci] ($(date -u +'%Y-%m-%d %H:%M UTC'))"
-
-          # Pull remote changes and rebase to avoid push rejection
-          git pull --rebase origin main || {
-            echo "❌ Rebase failed, aborting push."
-            exit 1
-          }
-
-          # Push updated files
-          git push origin main || {
-            echo "❌ Push failed even after rebase."
-            exit 1
-          }
+          git config --local user.name "github-actions[bot]"
+          git add ppvland.m3u
+          git commit -m "Auto-update PPVLand playlist" || echo "No changes"
+          git push
