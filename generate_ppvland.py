@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""
-generate_ppvland.py - patched version (Chromium + context-level response capture)
-
-Notes:
-- Use Chromium in GH Actions: `python -m playwright install chromium`
-- This script listens on the browser context for responses (captures nested iframe requests).
-- It also scans frame DOM for video/source/iframe src attributes as a fallback.
-"""
 
 import asyncio
 from playwright.async_api import async_playwright
