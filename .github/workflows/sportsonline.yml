@@ -40,7 +40,7 @@ jobs:
           echo "✅ Script finished."
 
       - name: 📂 Upload scraper log as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: scraper-log
           path: scraper.log
