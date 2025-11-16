@@ -1,4 +1,4 @@
-name: ⚽ Update Sportsonline Playlist (Full Feature)
+name: ⚽ Update Sportsonline Playlists (Category Split)
 
 on:
   schedule:
@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - name: 📥 Checkout repo
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
       - name: 🐍 Set up Python
@@ -31,30 +31,30 @@ jobs:
         env:
           PYTHONUNBUFFERED: 1
         run: |
-          echo "▶️ Running Sportsonline playlist updater..."
+          echo "▶️ Running Sportsonline scraper..."
           python sportsonline.py
           echo "✅ Script finished."
 
-      - name: 💾 Commit & Push changes
+      - name: 💾 Commit & push updated playlists
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage both playlists
-          git add sportsonline.m3u sportsonline_tivimate.m3u
+          # Add all generated playlists (VLC/Kodi & TiviMate)
+          git add sportsonline_*.m3u
 
-          # Exit if nothing changed
+          # Exit if no changes
           if git diff --cached --quiet; then
-            echo "✓ No changes detected — skipping commit."
+            echo "✓ No playlist changes detected — skipping commit."
             exit 0
           fi
 
           git commit -m "🔄 Auto-update Sportsonline playlists ($(date -u +'%Y-%m-%d %H:%M UTC')) [skip ci]"
 
-          # Pull remote changes and rebase to avoid push conflicts
+          # Pull remote changes and rebase to avoid conflicts
           git pull --rebase origin main || true
 
-          # Push updated files
+          # Push changes
           git push origin main
