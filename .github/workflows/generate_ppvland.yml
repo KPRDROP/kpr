@@ -1,73 +1,86 @@
-name: 🏈 Generate PPVLand Playlists
+name: Generate PPVLand List
 
 on:
+  workflow_dispatch:
   schedule:
-    # Run every 2 hours
-    - cron: "0 */2 * * *"
-  workflow_dispatch: # Allow manual run from GitHub UI
-
-permissions:
-  contents: write
+    - cron: "*/30 * * * *"   # every 30 minutes
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
 
     steps:
-      - name: 🧾 Checkout repo
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: 🐍 Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+    # ------------------------------
+    # Install Python
+    # ------------------------------
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
 
-      - name: ⚙️ Install dependencies
-        run: |
-          set -e
-          python -m pip install --upgrade pip
-          pip install aiohttp playwright beautifulsoup4
-          python -m playwright install chromium
-          python -m playwright install-deps
+    # ------------------------------
+    # Install system dependencies
+    # ------------------------------
+    - name: Install system dependencies (Chromium, ffmpeg, GTK, codecs)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          ffmpeg \
+          libnss3 \
+          libatk1.0-0 \
+          libatk-bridge2.0-0 \
+          libcups2 \
+          libdrm2 \
+          libxkbcommon0 \
+          libxcomposite1 \
+          libxrandr2 \
+          libxdamage1 \
+          libgbm1 \
+          libpango-1.0-0 \
+          libasound2 \
+          libatspi2.0-0 \
+          libxshmfence1 \
+          libwayland-client0 \
+          libwayland-egl1 \
+          libwayland-cursor0 \
+          fonts-liberation \
+          libu2f-udev \
+          libvpx7 \
+          libwoff1 \
+          libopus0 \
+          libwebp7 \
+          libx264-163
 
-      - name: 🚀 Run generate_ppvland.py
-        env:
-          PYTHONUNBUFFERED: 1
-        run: |
-          set -e
-          echo "▶️ Starting playlist generation..."
-          xvfb-run -a python generate_ppvland.py
-          echo "✅ Script finished."
+    # ------------------------------
+    # Install Playwright & Chromium
+    # ------------------------------
+    - name: Install Python requirements
+      run: |
+        pip install --upgrade pip
+        pip install playwright
+        pip install pillow
 
-      - name: 💾 Commit & Push if Playlist Changed
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -e
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+    - name: Install Playwright Chromium
+      run: |
+        playwright install chromium
 
-          # Stage only the specific PPVLand files
-          git add PPVLand.m3u8 PPVLand_TiviMate.m3u8
+    # ------------------------------
+    # Run script
+    # ------------------------------
+    - name: Run PPVLand generator
+      run: |
+        python3 generate_ppvland.py
 
-          # Exit if no changes
-          if git diff --cached --quiet; then
-            echo "✅ No changes detected — skipping commit."
-            exit 0
-          fi
-
-          # Commit with timestamp
-          git commit -m "🔄 Auto-update PPVLand playlists [skip ci] ($(date -u +'%Y-%m-%d %H:%M UTC'))"
-
-          # Pull remote changes and rebase to avoid push rejection
-          git pull --rebase origin main || {
-            echo "❌ Rebase failed, aborting push."
-            exit 1
-          }
-
-          # Push updated files
-          git push origin main || {
-            echo "❌ Push failed even after rebase."
-            exit 1
-          }
+    # ------------------------------
+    # Upload Output
+    # ------------------------------
+    - name: Upload Generated Playlist & Logos
+      uses: actions/upload-artifact@v4
+      with:
+        name: ppvland-output
+        path: |
+          playlist.m3u
+          logos/
