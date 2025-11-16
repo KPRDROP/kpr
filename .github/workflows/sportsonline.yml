@@ -17,7 +17,7 @@ jobs:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0           # full history needed for git rebase
+          fetch-depth: 0
           persist-credentials: true
 
       - name: 🐍 Set up Python
@@ -31,12 +31,12 @@ jobs:
           pip install requests aiohttp playwright
           python -m playwright install chromium
 
-      - name: ⚙️ Run Sportsonline scraper
+      - name: ⚙️ Run Sportsonline scraper with logging
         env:
           PYTHONUNBUFFERED: 1
         run: |
           echo "▶️ Running Sportsonline scraper..."
-          python sportsonline.py
+          python sportsonline.py | tee scraper.log
           echo "✅ Script finished."
 
       - name: 💾 Commit & push updated playlists
@@ -46,24 +46,18 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage all generated category playlists
           git add sportsonline_*.m3u
 
-          # Exit if no changes
           if git diff --cached --quiet; then
             echo "✓ No playlist changes detected — skipping commit."
             exit 0
           fi
 
-          # Ensure on main branch
           git switch main || git checkout -b main
 
-          # Commit changes with timestamp
           git commit -m "🔄 Auto-update Sportsonline playlists ($(date -u +'%Y-%m-%d %H:%M UTC')) [skip ci]"
 
-          # Pull latest remote changes and rebase safely
           git fetch origin main
           git rebase origin/main || echo "⚠️ Rebase failed, continuing"
 
-          # Push changes
           git push origin main
