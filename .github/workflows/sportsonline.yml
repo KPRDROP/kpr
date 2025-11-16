@@ -11,7 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
 
     steps:
       - name: 📥 Checkout repository
@@ -27,6 +27,7 @@ jobs:
 
       - name: 📦 Install dependencies
         run: |
+          pip install --upgrade pip
           pip install requests aiohttp playwright
           python -m playwright install chromium
 
@@ -54,5 +55,14 @@ jobs:
             exit 0
           fi
 
-          # Ensure we are on main branch
-          git switch main || git checkout -
+          # Ensure on main branch
+          git switch main || git checkout -b main
+
+          git commit -m "🔄 Auto-update Sportsonline playlists ($(date -u +'%Y-%m-%d %H:%M UTC')) [skip ci]"
+
+          # Pull latest remote changes and rebase safely
+          git fetch origin main
+          git rebase origin/main || echo "⚠️ Rebase failed, continuing"
+
+          # Push changes
+          git push origin main
