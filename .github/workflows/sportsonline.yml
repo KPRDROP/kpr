@@ -2,7 +2,7 @@ name: ⚽ Update Sportsonline Playlists (Click-Play)
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # run every 30 minutes
+    - cron: "*/30 * * * *"  # run every 30 minutes
   workflow_dispatch:
 
 permissions:
@@ -38,6 +38,12 @@ jobs:
           echo "▶️ Running Sportsonline scraper..."
           python sportsonline.py | tee scraper.log
           echo "✅ Script finished."
+
+      - name: 📂 Upload scraper log as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: scraper-log
+          path: scraper.log
 
       - name: 💾 Commit & push updated playlists
         env:
