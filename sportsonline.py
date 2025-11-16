@@ -14,7 +14,7 @@ ENCODED_USER_AGENT = quote(USER_AGENT, safe="")
 
 VLC_HEADERS = [
     f'#EXTVLCOPT:http-user-agent={USER_AGENT}',
-    '#EXTVLCOPT:http-referrer=https://sportsonline.sn/'
+    '#EXTVLCOPT:http-referrer=https://dukehorror.net/'
 ]
 
 # Example logos, add more as needed
@@ -160,7 +160,7 @@ async def main():
         with open(tivimate_file, "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
             for item in items:
-                headers = f"referer=https://sportsonline.sn/|origin=https://sportsonline.sn|user-agent={ENCODED_USER_AGENT}"
+                headers = f"referer=https://dukehorror.net/|origin=https://dukehorror.net|user-agent={ENCODED_USER_AGENT}"
                 f.write(f'#EXTINF:-1 tvg-logo="{item["logo"]}" group-title="{category}",{item["title"]}\n')
                 f.write(f"{item['url']}|{headers}\n\n")
 
