@@ -1,8 +1,8 @@
-name: ⚽ Update Sportsonline Playlist
+name: ⚽ Update Sportsonline Playlist (with logos & headers)
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # Every 30 minutes
+    - cron: "*/30 * * * *"  # Every 30 minutes
   workflow_dispatch:
 
 permissions:
@@ -31,7 +31,7 @@ jobs:
           PYTHONUNBUFFERED: 1
         run: |
           echo "▶️ Running Sportsonline playlist updater..."
-          python update_sports.py
+          python sportsonline.py
           echo "✅ Script finished."
 
       - name: 💾 Commit & Push changes
@@ -41,15 +41,17 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Only add this file
+          # Add the M3U playlist
           git add sportsonline.m3u
 
-          # Stop if nothing changed
+          # Exit if no changes
           if git diff --cached --quiet; then
             echo "✓ No changes, skipping commit."
             exit 0
           fi
 
           git commit -m "🔄 Auto-update sportsonline.m3u ($(date -u +'%Y-%m-%d %H:%M UTC')) [skip ci]"
+
+          # Pull remote changes and rebase (to avoid push rejection)
           git pull --rebase origin main || true
           git push origin main
