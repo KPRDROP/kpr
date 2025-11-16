@@ -14,7 +14,7 @@ ENCODED_USER_AGENT = quote(USER_AGENT, safe="")
 
 VLC_HEADERS = [
     f'#EXTVLCOPT:http-user-agent={USER_AGENT}',
-    '#EXTVLCOPT:http-referrer=https://sportsonline.sn/'
+    '#EXTVLCOPT:http-referrer=https://dukehorror.net/'
 ]
 
 CHANNEL_LOGOS = {
@@ -96,9 +96,7 @@ async def fetch_valid_m3u8(page, php_url):
             try:
                 async with session.get(url, headers={"User-Agent": USER_AGENT}, timeout=15) as resp:
                     if resp.status == 200:
-                        # Log original URL
                         print(f"🔹 Original m3u8 URL: {url}")
-                        # Replace domain if needed
                         if "twhjon.7380990745.xyz" in url:
                             replaced_url = url.replace("twhjon.7380990745.xyz", "yzarygw.7380990745.xyz")
                             print(f"🔹 Replaced domain URL: {replaced_url}")
@@ -111,7 +109,18 @@ async def fetch_valid_m3u8(page, php_url):
 
     if not valid_urls:
         return None
-    return valid_urls[-1]  # last one usually the freshest token
+    return valid_urls[-1]  # last one usually freshest token
+
+# ------------------------
+# Validate m3u8 URL before writing
+# ------------------------
+async def validate_m3u8(url):
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers={"User-Agent": USER_AGENT}, timeout=10) as resp:
+                return resp.status == 200
+    except:
+        return False
 
 # ------------------------
 # Main routine
@@ -134,8 +143,13 @@ async def main():
                     try:
                         url = await fetch_valid_m3u8(page, event["link"])
                         if url:
-                            print(f"✅ Fetched m3u8 for: {event['title']}")
-                            break
+                            # Validate m3u8 URL
+                            if await validate_m3u8(url):
+                                print(f"✅ Fetched & validated m3u8 for: {event['title']}")
+                                break
+                            else:
+                                print(f"⚠️ m3u8 not reachable, retrying {event['title']}")
+                                url = None
                         else:
                             print(f"⚠️ Attempt {attempt+1} failed for {event['title']}")
                     except Exception as e:
@@ -174,7 +188,7 @@ async def main():
         with open(tivimate_file, "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
             for item in items:
-                headers = f"referer=https://sportsonline.sn/|origin=https://sportsonline.sn|user-agent={ENCODED_USER_AGENT}"
+                headers = f"referer=https://dukehorror.net/|origin=https://dukehorror.net|user-agent={ENCODED_USER_AGENT}"
                 f.write(f'#EXTINF:-1 tvg-logo="{item["logo"]}" group-title="{category}",{item["title"]}\n')
                 f.write(f"{item['url']}|{headers}\n\n")
 
