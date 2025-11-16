@@ -1,6 +1,6 @@
 import asyncio
 from urllib.parse import quote
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
 import aiohttp
 import requests
 from collections import defaultdict
@@ -33,10 +33,9 @@ CATEGORY_KEYWORDS = {
 }
 
 NAV_TIMEOUT = 60000  # 60 seconds
-CONCURRENT_FETCHES = 5  # number of concurrent PHP fetches
+CONCURRENT_FETCHES = 5  # concurrent PHP fetches
 RETRIES = 2  # retry failed PHP pages
 
-# Replace dynamic subdomain with this working domain
 FIXED_DOMAIN = "https://yzarygw.7380990745.xyz:8443"
 
 # ------------------------
@@ -71,9 +70,9 @@ def parse_schedule(raw):
     return events
 
 # ------------------------
-# Fetch valid m3u8 from PHP
+# Fetch real m3u8 from PHP page
 # ------------------------
-async def fetch_valid_m3u8(page, php_url):
+async def fetch_m3u8_from_php(page, php_url):
     found_urls = []
 
     def response_handler(response):
@@ -84,7 +83,13 @@ async def fetch_valid_m3u8(page, php_url):
 
     try:
         await page.goto(php_url, timeout=NAV_TIMEOUT, wait_until="networkidle")
-        await asyncio.sleep(6)  # allow JS to generate dynamic URLs
+        # Click play button if exists
+        try:
+            await page.click("button[class*=play], .vjs-big-play-button", timeout=5000)
+        except PlaywrightTimeout:
+            # No play button found, continue
+            pass
+        await asyncio.sleep(6)  # wait for player to fetch m3u8
     except Exception as e:
         print(f"⚠️ Failed to load {php_url}: {e}")
     finally:
@@ -97,6 +102,7 @@ async def fetch_valid_m3u8(page, php_url):
                 async with session.get(url, headers={"User-Agent": USER_AGENT}, timeout=15) as resp:
                     if resp.status == 200:
                         print(f"🔹 Original m3u8 URL: {url}")
+                        # Replace domain if necessary
                         if "twhjon.7380990745.xyz" in url:
                             replaced_url = url.replace("twhjon.7380990745.xyz", "yzarygw.7380990745.xyz")
                             print(f"🔹 Replaced domain URL: {replaced_url}")
@@ -109,7 +115,7 @@ async def fetch_valid_m3u8(page, php_url):
 
     if not valid_urls:
         return None
-    return valid_urls[-1]  # last one usually freshest token
+    return valid_urls[-1]
 
 # ------------------------
 # Validate m3u8 URL before writing
@@ -141,17 +147,13 @@ async def main():
                 url = None
                 for attempt in range(RETRIES):
                     try:
-                        url = await fetch_valid_m3u8(page, event["link"])
-                        if url:
-                            # Validate m3u8 URL
-                            if await validate_m3u8(url):
-                                print(f"✅ Fetched & validated m3u8 for: {event['title']}")
-                                break
-                            else:
-                                print(f"⚠️ m3u8 not reachable, retrying {event['title']}")
-                                url = None
+                        url = await fetch_m3u8_from_php(page, event["link"])
+                        if url and await validate_m3u8(url):
+                            print(f"✅ Fetched & validated m3u8 for: {event['title']}")
+                            break
                         else:
                             print(f"⚠️ Attempt {attempt+1} failed for {event['title']}")
+                            url = None
                     except Exception as e:
                         print(f"⚠️ Attempt {attempt+1} error for {event['title']}: {e}")
                 await page.close()
