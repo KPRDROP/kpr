@@ -1,4 +1,4 @@
-name: ⚽ Update Sportsonline Playlists (Click-Play)
+name: ⚽ Update Sportsonline Playlists (Momentum Click)
 
 on:
   schedule:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90  # longer timeout for multiple PHP pages
 
     steps:
       - name: 📥 Checkout repository
@@ -31,7 +31,7 @@ jobs:
           pip install requests aiohttp playwright
           python -m playwright install chromium
 
-      - name: ⚙️ Run Sportsonline scraper (Click-Play) with logging
+      - name: ⚙️ Run Sportsonline scraper (Momentum Click) with logging
         env:
           PYTHONUNBUFFERED: 1
         run: |
