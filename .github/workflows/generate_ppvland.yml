@@ -1,86 +1,68 @@
-name: Generate PPVLand List
+name: 🏈 Generate PPVLand Playlists
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes
+    - cron: "0 */2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: 🧾 Checkout repo
+        uses: actions/checkout@v4
 
-    # ------------------------------
-    # Install Python
-    # ------------------------------
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-    # ------------------------------
-    # Install system dependencies
-    # ------------------------------
-    - name: Install system dependencies (Chromium, ffmpeg, GTK, codecs)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          ffmpeg \
-          libnss3 \
-          libatk1.0-0 \
-          libatk-bridge2.0-0 \
-          libcups2 \
-          libdrm2 \
-          libxkbcommon0 \
-          libxcomposite1 \
-          libxrandr2 \
-          libxdamage1 \
-          libgbm1 \
-          libpango-1.0-0 \
-          libasound2 \
-          libatspi2.0-0 \
-          libxshmfence1 \
-          libwayland-client0 \
-          libwayland-egl1 \
-          libwayland-cursor0 \
-          fonts-liberation \
-          libu2f-udev \
-          libvpx7 \
-          libwoff1 \
-          libopus0 \
-          libwebp7 \
-          libx264-163
+      - name: ⚙️ Install dependencies
+        run: |
+          set -e
+          python -m pip install --upgrade pip
+          pip install aiohttp playwright beautifulsoup4
+          python -m playwright install chromium
+          python -m playwright install-deps
 
-    # ------------------------------
-    # Install Playwright & Chromium
-    # ------------------------------
-    - name: Install Python requirements
-      run: |
-        pip install --upgrade pip
-        pip install playwright
-        pip install pillow
+      - name: 🚀 Run generate_ppvland.py
+        env:
+          PYTHONUNBUFFERED: 1
+        run: |
+          set -e
+          echo "▶️ Starting playlist generation..."
+          xvfb-run -a python generate_ppvland.py
+          echo "✅ Script finished."
 
-    - name: Install Playwright Chromium
-      run: |
-        playwright install chromium
+      - name: 💾 Commit & Push if Playlist Changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git_config="github-actions[bot]"
+          git config --local user.name "$git_config"
+          git config --local user.email "$git_config@users.noreply.github.com"
 
-    # ------------------------------
-    # Run script
-    # ------------------------------
-    - name: Run PPVLand generator
-      run: |
-        python3 generate_ppvland.py
+          git add PPVLand.m3u8 PPVLand_TiviMate.m3u8
 
-    # ------------------------------
-    # Upload Output
-    # ------------------------------
-    - name: Upload Generated Playlist & Logos
-      uses: actions/upload-artifact@v4
-      with:
-        name: ppvland-output
-        path: |
-          playlist.m3u
-          logos/
+          if git diff --cached --quiet; then
+            echo "✅ No changes detected — skipping commit."
+            exit 0
+          fi
+
+          git commit -m "🔄 Auto-update PPVLand playlists [skip ci] ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+
+          git pull --rebase origin main || {
+            echo "❌ Rebase failed."
+            exit 1
+          }
+
+          git push origin main || {
+            echo "❌ Push failed."
+            exit 1
+          }
