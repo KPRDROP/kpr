@@ -16,6 +16,9 @@ jobs:
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0           # full history needed for git rebase
+          persist-credentials: true
 
       - name: 🐍 Set up Python
         uses: actions/setup-python@v4
@@ -40,4 +43,16 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@u
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add all generated playlists
+          git add sportsonline_*.m3u
+
+          # Exit if no changes
+          if git diff --cached --quiet; then
+            echo "✓ No playlist changes detected — skipping commit."
+            exit 0
+          fi
+
+          # Ensure we are on main branch
+          git switch main || git checkout -
