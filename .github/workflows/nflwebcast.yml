@@ -1,8 +1,8 @@
-name: 🔁 Update NFLSportsWebcast Playlist 🎥
+name: 🔁 Update NFLWebcast Playlist 🎥
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 * * * *'  # every hour
   workflow_dispatch:
 
 permissions:
@@ -27,15 +27,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install aiohttp beautifulsoup4 playwright
-          # Install Playwright Chromium
           python -m playwright install chromium
 
-      - name: 🚀 Run NFL SportsWebcast scraper
+      - name: 🚀 Run NFLWebcast Scraper
         run: |
-          echo "🚀 Starting NFL Sports Webcast Scraper..."
+          echo "🚀 Starting NFLWebcast Scraper..."
           python nflwebcast.py
 
-      - name: 💾 Commit & Push if Playlist Changed
+      - name: 💾 Commit & Push Playlist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -43,36 +42,17 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           FILE="NFLWebcast.m3u8"
-
           if [ -f "$FILE" ]; then
-            echo "✅ Found $FILE, preparing to commit..."
-            ls -lh "$FILE"
             git add "$FILE"
           else
-            echo "⚠️ Skipping commit — $FILE not found."
+            echo "⚠️ $FILE not found, skipping commit."
             exit 0
           fi
 
-          # Only commit if there are changes
           if git diff --cached --quiet; then
             echo "✅ No changes detected — skipping commit."
             exit 0
           fi
 
           git commit -m "🔁 Auto-update $FILE ($(date -u +'%Y-%m-%d %H:%M UTC'))"
-
-          # Random delay to reduce push collisions
-          sleep $((RANDOM % 10 + 5))
-
-          # Push with safe fallback
-          if ! git push origin main; then
-            echo "⚠️ Push failed, attempting safe rebase..."
-            git pull origin main --rebase || {
-              echo "❌ Rebase failed. Stopping to avoid corruption."
-              exit 1
-            }
-            git push origin main || {
-              echo "❌ Push failed again after rebase."
-              exit 1
-            }
-          fi
+          git push origin main
