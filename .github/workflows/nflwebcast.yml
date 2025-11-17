@@ -64,7 +64,7 @@ jobs:
         run: python streambtw_nfl.py
 
       - name: Upload M3U playlist artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nfl-webcast-playlist
           path: NFLWebcast.m3u8
