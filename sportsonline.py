@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import re
 import asyncio
 import logging
 import requests
@@ -7,106 +11,103 @@ from playwright.async_api import async_playwright
 # -----------------------------
 # Configuration
 # -----------------------------
-PROG_TXT_URL = "https://sportsonline.sn/prog.txt"
-OUTPUT_M3U = Path("sportzonline.m3u")
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
-}
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
+SCHEDULE_URL = "https://sportsonline.sn/prog.txt"  # Update if URL changes
+OUTPUT_FILE = Path("sportzonline.m3u")
+LOG_FILE = Path("scraper.log")
 
 # -----------------------------
-# Utility Functions
+# Logging setup
 # -----------------------------
-def fetch_prog_txt(url):
-    """Download prog.txt and return list of PHP URLs"""
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_FILE),
+        logging.StreamHandler()
+    ]
+)
+
+# -----------------------------
+# Helper functions
+# -----------------------------
+def fetch_schedule(url: str) -> list[str]:
+    """Fetch schedule TXT and return list of lines containing events."""
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=15)
-        resp.raise_for_status()
-        lines = resp.text.splitlines()
-        # Filter lines that look like channel URLs (.php)
-        php_links = [line.strip() for line in lines if line.strip().endswith(".php")]
-        logging.info(f"Found {len(php_links)} PHP links in prog.txt")
-        return php_links
+        r = requests.get(url, timeout=15)
+        r.raise_for_status()
+        lines = [line.strip() for line in r.text.splitlines() if line.strip()]
+        logging.info(f"📺 Found {len(lines)} events in schedule")
+        return lines
     except Exception as e:
-        logging.error(f"Failed to fetch prog.txt: {e}")
+        logging.error(f"❌ Failed to fetch schedule: {e}")
         return []
 
-async def extract_m3u8(page, url):
-    """Open the page and try to extract the m3u8 URL from player"""
+async def extract_m3u8(page, php_url: str) -> list[str]:
+    """Given a PHP URL, load page and extract all m3u8 URLs."""
+    streams = []
     try:
-        title, url = line.split("|")
-        title = title.strip()
-        url = url.strip()
-        await page.goto(url, timeout=15000)
-        # Wait for video element
-        await page.wait_for_selector("video", timeout=10000)
-        
-        # Intercept network requests to find m3u8
-        m3u8_url = None
-        async def handle_route(route):
-            nonlocal m3u8_url
-            if ".m3u8" in route.request.url:
-                m3u8_url = route.request.url
-            await route.continue_()
-        
-        await page.route("**/*", handle_route)
-        await page.wait_for_timeout(5000)  # wait for requests to fire
-        return m3u8_url
-    except Exception as e:
-        logging.warning(f"Failed to extract m3u8 from {url}: {e}")
-        return None
+        await page.goto(php_url, timeout=15000)
+        # Playwright may need to wait for player to load JS
+        await asyncio.sleep(3)
 
-async def scrape_all(php_links):
-    """Scrape all PHP links concurrently"""
+        # Look for m3u8 URLs in HTML or JS
+        content = await page.content()
+        urls = re.findall(r"https?://[^\s'\";]+\.m3u8", content)
+        streams.extend(urls)
+
+        # Also try page.evaluate for player objects if needed
+        # urls = await page.eval_on_selector_all('video', 'els => els.map(v => v.src)')
+        # streams.extend(urls)
+
+    except Exception as e:
+        logging.warning(f"Failed to extract m3u8 from {php_url}: {e}")
+    return list(set(streams))  # Remove duplicates
+
+async def scrape_events(events: list[str]) -> list[tuple[str, str]]:
+    """Scrape all events and return list of tuples (title, m3u8_url)."""
     results = []
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            channel="chrome",  # use system Chrome
-            headless=True,
-            args=["--no-sandbox", "--disable-setuid-sandbox"]
-        )
-        context = await browser.new_context()
-        page = await context.new_page()
-        
-        for link in php_links:
-            logging.info(f"Scraping {link}")
-            m3u8 = await extract_m3u8(page, link)
-            if m3u8:
-                results.append((link, m3u8))
-                logging.info(f"Found m3u8: {m3u8}")
-            else:
-                logging.info(f"No m3u8 found for {link}")
-        
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page()
+        for line in events:
+            if "|" not in line:
+                logging.warning(f"Skipping malformed line: {line}")
+                continue
+            title, url = map(str.strip, line.split("|", maxsplit=1))
+            logging.info(f"Scraping {title} | {url}")
+            m3u8_list = await extract_m3u8(page, url)
+            if not m3u8_list:
+                logging.info(f"No m3u8 found for {title} | {url}")
+                continue
+            for m3u8 in m3u8_list:
+                results.append((title, m3u8))
         await browser.close()
     return results
 
-# -----------------------------
-# Generate M3U Playlist
-# -----------------------------
-def save_m3u(events):
-    with OUTPUT_M3U.open("w", encoding="utf-8") as f:
+def save_m3u(playlist: list[tuple[str, str]], output_file: Path):
+    """Save M3U playlist to file."""
+    with output_file.open("w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
-        for idx, (php_url, m3u8_url) in enumerate(events, 1):
-            title = php_url.split("/")[-1].replace(".php", "")
-            f.write(f"#EXTINF:-1,{title}\n")
-            f.write(f"{m3u8_url}\n")
-    logging.info(f"✅ Saved {len(events)} streams to {OUTPUT_M3U}")
+        for title, url in playlist:
+            f.write(f"#EXTINF:-1,{title}\n{url}\n")
+    logging.info(f"✅ Saved {len(playlist)} streams to {output_file}")
 
 # -----------------------------
-# Main
+# Main execution
 # -----------------------------
 async def main():
     logging.info("🚀 Starting scrape...")
-    php_links = fetch_prog_txt(PROG_TXT_URL)
-    if not php_links:
-        logging.warning("No PHP links found, exiting.")
-        return
-    events = await scrape_all(php_links)
+    events = fetch_schedule(SCHEDULE_URL)
     if not events:
+        logging.warning("No events found.")
+        return
+
+    playlist = await scrape_events(events)
+    if not playlist:
         logging.warning("No m3u8 streams found.")
-    else:
-        save_m3u(events)
+        return
+
+    save_m3u(playlist, OUTPUT_FILE)
     logging.info("✅ Finished scrape.")
 
 if __name__ == "__main__":
