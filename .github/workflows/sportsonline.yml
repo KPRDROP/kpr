@@ -1,66 +1,43 @@
 name: SportsOnline Scraper
 
 on:
-  schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    env:
-      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"  # Avoid re-downloading browsers if installed
-
     steps:
-      # Step 1: Checkout repository
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Step 2: Set up Python
       - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
-      # Step 3: Install system dependencies for Playwright & browser
-      - name: Install system dependencies
+      - name: Install Chrome Beta
         run: |
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
           sudo apt-get update
-          sudo apt-get install -y \
-            libnss3 \
-            libatk-bridge2.0-0 \
-            libgtk-3-0 \
-            libxss1 \
-            libasound2 \
-            libatk1.0-0 \
-            libwoff2-2 \
-            libgraphene-1.0-0 \
-            libgbm1 \
-            libdrm2 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2 \
-            libpango1.0-0 \
-            libatk-bridge2.0-0 \
-            libx11-xcb1 \
-            libxcb-dri3-0 \
-            wget \
-            curl
+          sudo apt-get install -y google-chrome-beta
 
-      # Step 4: Upgrade pip and install Python dependencies
-      - name: Install Python dependencies
+      - name: Install Python deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          playwright install --with-deps
+          playwright install
 
-      # Step 5: Run scraper
       - name: Run scraper
         run: |
           python sportsonline.py | tee scraper.log
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: 0
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: /usr/bin/google-chrome-beta
 
-      # Step 6: Upload logs and generated M3U playlists
-      - name: Upload logs and playlists
+      - name: Upload logs & playlists
         uses: actions/upload-artifact@v4
         with:
           name: scraper-output
