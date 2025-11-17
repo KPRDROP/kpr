@@ -18,31 +18,20 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: Install system dependencies for Playwright + Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            wget curl gnupg \
-            ca-certificates fonts-liberation \
-            libnss3 libatk1.0-0 libcups2 libxcomposite1 libxdamage1 \
-            libxrandr2 libx11-xcb1 libxkbcommon0 libxcb1 libxss1 \
-            libglib2.0-0 libgtk-3-0 libgdk-pixbuf2.0-0 libpango-1.0-0 \
-            libpangocairo-1.0-0 libxrender1 libdbus-1-3 libfontconfig1 \
-            mesa-utils libgl1-mesa-glx libgles2-mesa libvpx7 \
-            libwoff2-1 libx264-dev libasound2 \
-            fonts-noto-color-emoji
-
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install playwright requests pyee
 
-      - name: Install Playwright browsers
+      - name: Install Playwright browsers (skip system deps)
         run: |
           python -m playwright install --with-deps=false
-          # Install Chrome Beta
+
+      - name: Install Chrome Beta
+        run: |
           wget -q -O chrome-beta.deb https://dl.google.com/linux/direct/google-chrome-beta_current_amd64.deb
-          sudo dpkg -i chrome-beta.deb || sudo apt-get install -f -y
+          sudo apt-get update
+          sudo apt-get install -y ./chrome-beta.deb || sudo apt-get install -f -y
 
       - name: Run scraper
         run: |
