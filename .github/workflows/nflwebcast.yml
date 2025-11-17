@@ -1,70 +1,78 @@
-name: NFL Webcast Scraper
+name: 🔁 Update NFLSportsWebcast Playlist 🎥
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 * * * *'  # Runs every hour
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  scrape-nfl:
+  scrape:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v4
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
         with:
-          python-version: '3.12'
+          fetch-depth: 0
 
-      - name: Install system dependencies
+      - name: 🐍 Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            wget \
-            curl \
-            unzip \
-            libnss3 \
-            libatk1.0-0 \
-            libatk-bridge2.0-0 \
-            libcups2 \
-            libdrm2 \
-            libxkbcommon0 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2 \
-            libgbm1 \
-            libpango-1.0-0 \
-            libpangocairo-1.0-0 \
-            libgtk-3-0 \
-            libasound2 \
-            fonts-liberation \
-            libappindicator3-1 \
-            xdg-utils \
-            libgl1 \
-            libgles2 \
-            libvpx6 \
-            libwoff2-1 \
-            libx264 \
-            libx11-xcb1
-
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
-
-      - name: Install Python dependencies
-        run: |
-          pip install --no-cache-dir aiohttp beautifulsoup4 playwright
-
-      - name: Install Playwright browsers
-        run: |
+          python -m pip install --upgrade pip
+          pip install aiohttp beautifulsoup4 playwright
+          # Install Playwright Chromium
           python -m playwright install chromium
 
-      - name: Run NFL scraper
-        run: python streambtw_nfl.py
+      - name: 🚀 Run NFL SportsWebcast scraper
+        run: |
+          echo "🚀 Starting NFL Sports Webcast Scraper..."
+          python nflwebcast.py
 
-      - name: Upload M3U playlist artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: nfl-webcast-playlist
-          path: NFLWebcast.m3u8
+      - name: 💾 Commit & Push if Playlist Changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          FILE="NFLWebcast.m3u8"
+
+          if [ -f "$FILE" ]; then
+            echo "✅ Found $FILE, preparing to commit..."
+            ls -lh "$FILE"
+            git add "$FILE"
+          else
+            echo "⚠️ Skipping commit — $FILE not found."
+            exit 0
+          fi
+
+          # Only commit if there are changes
+          if git diff --cached --quiet; then
+            echo "✅ No changes detected — skipping commit."
+            exit 0
+          fi
+
+          git commit -m "🔁 Auto-update $FILE ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+
+          # Random delay to reduce push collisions
+          sleep $((RANDOM % 10 + 5))
+
+          # Push with safe fallback
+          if ! git push origin main; then
+            echo "⚠️ Push failed, attempting safe rebase..."
+            git pull origin main --rebase || {
+              echo "❌ Rebase failed. Stopping to avoid corruption."
+              exit 1
+            }
+            git push origin main || {
+              echo "❌ Push failed again after rebase."
+              exit 1
+            }
+          fi
