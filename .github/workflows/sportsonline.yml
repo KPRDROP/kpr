@@ -1,4 +1,4 @@
-name: SportsOnline Scraper (Momentum Click + TS Anchoring)
+name: SportsOnline Scraper
 
 on:
   workflow_dispatch:
@@ -12,15 +12,13 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install system dependencies
+      - name: Install system deps (Ubuntu 24.04 compatible)
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -28,15 +26,15 @@ jobs:
             libatk-bridge2.0-0 \
             libgtk-3-0 \
             libgbm1 \
-            libasound2 \
             libxshmfence1 \
             libxcomposite1 \
             libxdamage1 \
             libxfixes3 \
+            libasound2t64 \
             xvfb \
             ffmpeg
 
-      - name: Install Python dependencies & Playwright
+      - name: Install Python deps & Playwright
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -47,20 +45,14 @@ jobs:
         run: |
           python sportsonline.py | tee scraper.log
 
-      - name: Upload scraper log
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: scraper-log
           path: scraper.log
 
-      - name: Commit updated playlists
+      - name: Commit playlists
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add *.m3u
-          if git diff --cached --quiet; then
-            echo "No playlist changes detected."
-          else
-            git commit -m "Update playlists"
-            git push
-          fi
+          if git diff --cached --quiet; then echo "No changes"; else git commit -m "Update playlists" && git push; fi
