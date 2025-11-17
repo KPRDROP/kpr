@@ -1,47 +1,70 @@
 name: SportsOnline Scraper
 
 on:
-  workflow_dispatch:
-    # Allows manual triggering
   schedule:
-    - cron: "0 * * * *"  # every hour, adjust as needed
+    - cron: '*/30 * * * *'   # Runs every 30 minutes
+  workflow_dispatch:          # Manual trigger
 
 jobs:
-  scrape:
+  scraper:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout repository
+      # Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      # Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
+      # Install system dependencies including Chrome Beta
       - name: Install system dependencies
         run: |
-          sudo apt update
-          sudo apt install -y wget curl gnupg apt-transport-https ca-certificates software-properties-common
-          # Add Google Chrome Beta repo
+          sudo apt-get update
+          sudo apt-get install -y \
+            wget \
+            curl \
+            unzip \
+            fonts-liberation \
+            libxss1 \
+            libappindicator3-1 \
+            libatk-bridge2.0-0 \
+            libatk1.0-0 \
+            libcups2 \
+            libdrm2 \
+            libnspr4 \
+            libnss3 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxrandr2 \
+            libgbm1 \
+            xdg-utils \
+            ca-certificates
+          # Install Chrome Beta
           wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-          sudo apt update
-          sudo apt install -y google-chrome-beta
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-beta
 
+      # Upgrade pip and install Python dependencies
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests playwright
-          # Do not install Playwright browsers; we use system Chrome
-          playwright install chromium --with-deps=false
+          pip install requests playwright pyee
 
+      # Run scraper
       - name: Run SportsOnline scraper
         run: |
           python sportsonline.py | tee scraper.log
 
-      - name: Upload M3U artifact
+      # Upload scraper output
+      - name: Upload scraper artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: sportzonline-m3u
-          path: sportzonline.m3u
+          name: scraper-output
+          path: |
+            sportzonline.m3u
+            scraper.log
