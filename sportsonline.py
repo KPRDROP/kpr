@@ -3,26 +3,20 @@ import re
 import requests
 import logging
 from datetime import datetime
-from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
 from urllib.parse import quote
+from playwright.async_api import async_playwright
 
-# ------------------- Logging -------------------
 logging.basicConfig(
-    filename="scrape.log",
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-console.setFormatter(logging.Formatter("%(asctime)s | %(levelname)-8s | %(message)s", "%H:%M:%S"))
-logging.getLogger("").addHandler(console)
 log = logging.getLogger("scraper")
 
-# ------------------- Config -------------------
-SCHEDULE_URL = "https://sportsonline.sn/prog.txt"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 ENCODED_USER_AGENT = quote(USER_AGENT, safe="")
+
+SCHEDULE_URL = "https://sportzonline.live/prog.txt"
 
 FALLBACK_LOGOS = {
     "basketball": "https://i.postimg.cc/FHBqZPjF/Basketball5.png",
@@ -51,9 +45,10 @@ CONCURRENT_FETCHES = 4
 RETRIES = 3
 CLICK_WAIT = 3
 
-# ------------------- Helpers -------------------
+
 def strip_non_ascii(text: str) -> str:
     return re.sub(r"[^\x00-\x7F]+", "", text) if text else ""
+
 
 def fetch_schedule():
     try:
@@ -65,11 +60,12 @@ def fetch_schedule():
         log.error(f"❌ Failed to fetch schedule: {e}")
         return ""
 
+
 def parse_schedule(raw):
     events = []
     for line in raw.splitlines():
         line = line.strip()
-        if not line or line.startswith("*") or line.startswith("="):
+        if not line or line.startswith("*") or line.upper().startswith("HD"):
             continue
         try:
             time_part, rest = line.split("   ", 1)
@@ -80,16 +76,17 @@ def parse_schedule(raw):
                 title, link = parts[0], parts[-1]
             title = strip_non_ascii(title.strip())
             link = link.strip()
-            category = "Miscellaneous"
+            category = "miscellaneous"
             for keyword, cat in CATEGORY_KEYWORDS.items():
                 if keyword.lower() in title.lower():
-                    category = cat
+                    category = cat.lower()
                     break
             events.append({"time": time_part, "title": title, "link": link, "category": category})
         except ValueError:
             continue
     log.info(f"📺 Parsed {len(events)} events from schedule")
     return events
+
 
 async def extract_m3u8(page, url):
     found = None
@@ -104,17 +101,16 @@ async def extract_m3u8(page, url):
 
         for attempt in range(1, RETRIES + 1):
             try:
-                await page.goto(url, wait_until="domcontentloaded", timeout=10000)
+                await page.goto(url, wait_until="domcontentloaded", timeout=15000)
                 await asyncio.sleep(CLICK_WAIT)
                 if found:
                     break
-            except PlaywrightTimeout:
-                log.warning(f"⚠️ Timeout on {url} attempt {attempt}")
             except Exception as e:
                 log.warning(f"⚠️ Error on {url} attempt {attempt}: {e}")
 
         page.remove_listener("request", on_request)
 
+        # fallback regex extraction
         if not found:
             html = await page.content()
             matches = re.findall(r'https?://[^\s"<>]+\.m3u8(?:\?[^"<>]*)?', html)
@@ -126,13 +122,15 @@ async def extract_m3u8(page, url):
         log.warning(f"⚠️ Failed extracting m3u8 from {url}: {e}")
         return None
 
+
 async def process_event(event, ctx):
     page = await ctx.new_page()
     url = await extract_m3u8(page, event["link"])
     await page.close()
     return {"title": event["title"], "url": url, "category": event["category"]}
 
-async def generate_playlist():
+
+async def generate_playlists():
     raw = fetch_schedule()
     events = parse_schedule(raw)
     if not events:
@@ -143,7 +141,8 @@ async def generate_playlist():
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            executable_path="/usr/bin/google-chrome-beta",  # Use system Chrome Beta
+            executable_path="/usr/bin/google-chrome-beta",
+            args=["--no-sandbox", "--disable-dev-shm-usage"]
         )
         ctx = await browser.new_context(user_agent=USER_AGENT)
 
@@ -171,11 +170,11 @@ async def generate_playlist():
 
     return "\n".join(content)
 
-# ------------------- Main -------------------
+
 if __name__ == "__main__":
     start = datetime.now()
     log.info("🚀 Starting SportsOnline scrape...")
-    playlist = asyncio.run(generate_playlist())
+    playlist = asyncio.run(generate_playlists())
     with open("SportsOnline_TiviMate.m3u8", "w", encoding="utf-8") as f:
         f.write(playlist)
     duration = (datetime.now() - start).total_seconds()
