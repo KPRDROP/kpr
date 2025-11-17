@@ -1,62 +1,52 @@
-name: 🔄 Generate StreamBTW Playlists ⚡
+name: Sportzonline Scraper
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '*/30 * * * *'  # every 30 minutes
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: 🐍 Set up Python 3.11
-        uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: 📦 Install Python dependencies
+      - name: Install system dependencies for Playwright
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            wget curl ffmpeg \
+            libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+            libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 \
+            libgbm1 libpango-1.0-0 libpangocairo-1.0-0 \
+            libgtk-4-1 libgdk-pixbuf-2.0-0 libgl1 libgles2-mesa \
+            libxshmfence1 libxcb-dri3-0 libwoff1 libopus0 libvpx6 \
+            libharfbuzz-icu0 libsecret-1-0 libflite1
+
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4
+          pip install requests playwright pyee
 
-      - name: 🎯 Run scraping script
-        run: python streambtw.py
-
-      - name: 💾 Commit & Safely Push if Playlists Changed
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Playwright browsers
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          python -m playwright install --with-deps
 
-          git add Streambtw_VLC.m3u8 Streambtw_TiviMate.m3u8
+      - name: Run scraper
+        run: |
+          python sportsonline.py | tee scraper.log
 
-          if git diff --cached --quiet; then
-            echo "✅ No changes to commit"
-            exit 0
-          fi
-
-          git commit -m "✅ Update StreamBTW Playlists ⚡ $(date -u +'%a %b %d %T UTC %Y')"
-
-          sleep $((RANDOM % 10 + 5))
-
-          if ! git push origin main; then
-            echo "⚠️ Push rejected. Trying safe fetch + rebase..."
-            git pull origin main --rebase || {
-              echo "❌ Rebase failed. Exiting safely."
-              exit 1
-            }
-            git push origin main || {
-              echo "❌ Second push failed. Remote changed again."
-              exit 1
-            }
-          fi
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sportzonline-m3u
+          path: |
+            sportzonline.m3u
+            scraper.log
