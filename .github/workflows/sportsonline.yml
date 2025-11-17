@@ -2,8 +2,9 @@ name: SportsOnline Scraper
 
 on:
   workflow_dispatch:
+    # Allows manual triggering
   schedule:
-    - cron: "0 */6 * * *" # every 6 hours
+    - cron: "0 * * * *"  # every hour, adjust as needed
 
 jobs:
   scrape:
@@ -11,40 +12,36 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: 3.11
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            wget gnupg libnss3 libxss1 libatk-bridge2.0-0 libgtk-4-1 \
-            libdrm2 libxcomposite1 libxrandr2 libgbm1 libpango-1.0-0 \
-            libglib2.0-0 libsecret-1-0 fonts-liberation curl unzip python3-pip
-          
-          # Add Google Chrome Beta repository and install
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-linux-signing-key.gpg
-          echo "deb [signed-by=/usr/share/keyrings/google-linux-signing-key.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-beta
+          sudo apt update
+          sudo apt install -y wget curl gnupg apt-transport-https ca-certificates software-properties-common
+          # Add Google Chrome Beta repo
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+          sudo apt update
+          sudo apt install -y google-chrome-beta
 
       - name: Install Python dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install requests playwright
+          # Do not install Playwright browsers; we use system Chrome
+          playwright install chromium --with-deps=false
 
       - name: Run SportsOnline scraper
         run: |
           python sportsonline.py | tee scraper.log
 
-      - name: Upload scraper output
+      - name: Upload M3U artifact
         uses: actions/upload-artifact@v4
         with:
-          name: scraper-output
-          path: |
-            sportzonline.m3u
-            scraper.log
+          name: sportzonline-m3u
+          path: sportzonline.m3u
