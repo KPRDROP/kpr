@@ -16,24 +16,25 @@ ENCODED_USER_AGENT = quote(USER_AGENT, safe="")
 
 VLC_HEADERS = [
     f'#EXTVLCOPT:http-user-agent={USER_AGENT}',
-    '#EXTVLCOPT:http-referrer=https://sportsonline.sn/'
+    '#EXTVLCOPT:http-referrer=https://dukehorror.net/'
 ]
 
-CHANNEL_LOGOS = {}
+CHANNEL_LOGOS = {
+    # Add known logos if needed
+}
 
 CATEGORY_KEYWORDS = {
     "NBA": "Basketball",
     "UFC": "Combat Sports",
     "Football": "Football",
     "Soccer": "Football",
-    "x": "Football",
 }
 
-NAV_TIMEOUT = 60000
+NAV_TIMEOUT = 60000  # ms
 CONCURRENT_FETCHES = 8
 RETRIES = 3
-CLICK_WAIT = 4
-VALIDATE_TIMEOUT = 10
+CLICK_WAIT = 4  # seconds after clicking to wait for requests
+VALIDATE_TIMEOUT = 10  # seconds for aiohttp validation
 MIN_TOKEN_PARAMS = ("?s=", "&e=")
 
 # ------------------------
@@ -46,7 +47,7 @@ def has_tokenized_query(url: str) -> bool:
 def hostname_of(url: str) -> str:
     try:
         return urlparse(url).hostname or ""
-    except:
+    except Exception:
         return ""
 
 def replace_hostname(original_url: str, new_hostname: str) -> str:
@@ -57,14 +58,14 @@ def replace_hostname(original_url: str, new_hostname: str) -> str:
             new_netloc = f"{new_hostname}:{p.port}"
         new_p = p._replace(netloc=new_netloc)
         return urlunparse(new_p)
-    except:
+    except Exception:
         return original_url
 
 async def http_check(url: str, session: aiohttp.ClientSession, timeout: int = VALIDATE_TIMEOUT) -> bool:
     try:
         async with session.get(url, headers={"User-Agent": USER_AGENT, "Referer": "https://sportsonline.sn/"}, timeout=timeout) as resp:
             return resp.status == 200
-    except:
+    except Exception:
         return False
 
 # ------------------------
@@ -104,115 +105,128 @@ def parse_schedule(raw):
     return events
 
 # ------------------------
-# Clappr extraction
+# Core extraction logic
 # ------------------------
 
 async def extract_from_clappr(page):
     try:
-        js = """() => {
-            try {
-                const out = [];
-                if (window.Clappr && window.Clappr._players) {
-                    for (const p of Object.values(window.Clappr._players)) {
-                        if (p && p.core && p.core.activePlayback) {
-                            const src = p.core.activePlayback.options && p.core.activePlayback.options.src;
-                            if (src) out.push(src);
-                        }
-                    }
+        sources = await page.evaluate("""
+() => {
+    try {
+        const out = [];
+        if (window.Clappr && window.Clappr._players) {
+            for (const p of Object.values(window.Clappr._players)) {
+                if (p && p.core && p.core.activePlayback) {
+                    const src = p.core.activePlayback.options && p.core.activePlayback.options.src;
+                    if (src) out.push(src);
                 }
-                if (window.player && window.player.getPlaylist) {
-                    try {
-                        const p = window.player.getPlaylist();
-                        if (p && p.length) out.push(p[0].file || (p[0].sources && p[0].sources[0].file));
-                    } catch(e){}
-                }
-                return out;
-            } catch(e){
-                return [];
             }
-        }"""
-        sources = await page.evaluate(js)
+        }
+        if (window.player && window.player.play && window.player.getPlaylist) {
+            try {
+                const p = window.player.getPlaylist();
+                if (p && p.length) out.push(p[0].file || (p[0].sources && p[0].sources[0].file));
+            } catch(e){}
+        }
+        return out;
+    } catch(e){ return []; }
+}
+""")
         if sources and isinstance(sources, list):
             return [s for s in sources if isinstance(s, str) and s]
-    except:
-        pass
-    return []
+    except Exception:
+        return []
 
 # ------------------------
-# Fetch m3u8 from PHP
+# Fetch m3u8 with momentum clicks, ad handling, retries
 # ------------------------
 
 async def fetch_m3u8_from_php(page, php_url):
     found_m3u8 = set()
     found_ts = []
 
+    main_page = page  # mark main page
+    pages_before = list(page.context.pages)
+
     def on_response(response):
         try:
             url = response.url
-            if ".m3u8" in url:
+            if url and ".m3u8" in url:
                 found_m3u8.add(url)
-            if url.endswith(".ts"):
+            if url and url.endswith('.ts'):
                 found_ts.append(url)
-        except:
+        except Exception:
             pass
 
-    page.on("response", on_response)
+    page.on('response', on_response)
 
     for attempt in range(1, RETRIES + 1):
         try:
             print(f"⏳ Loading (attempt {attempt}): {php_url}")
-            await page.goto(php_url, timeout=NAV_TIMEOUT, wait_until="load")
+            await page.goto(php_url, timeout=NAV_TIMEOUT, wait_until='load')
 
-            # momentum click
+            # Momentum double click
             try:
                 await page.mouse.click(200, 200)
-                pages_before = list(page.context.pages)
-                new_tab = None
+                print("  👆 First click (may open ads)")
 
+                new_tab = None
                 for _ in range(12):
-                    now = list(page.context.pages)
-                    if len(now) > len(pages_before):
-                        new_tab = [p for p in now if p not in pages_before][0]
+                    pages_now = page.context.pages
+                    for p in pages_now:
+                        if p is not main_page and p not in pages_before:
+                            new_tab = p
+                            break
+                    if new_tab:
                         break
                     await asyncio.sleep(0.25)
 
                 if new_tab:
                     try:
                         await asyncio.sleep(0.5)
-                        print(f"  🚫 Closing ad: {new_tab.url}")
+                        print(f"  🚫 Closing ad tab: {new_tab.url}")
                         await new_tab.close()
-                    except:
-                        pass
+                    except Exception:
+                        print("  ⚠️ Failed to close ad tab")
 
                 await asyncio.sleep(1)
                 await page.mouse.click(200, 200)
-            except:
+                print("  ▶️ Second click triggered player")
+            except Exception as e:
+                print(f"  ⚠️ Momentum clicks failed: {e}")
+
+            # Try any play buttons
+            try:
+                await page.click("button[class*=play], .vjs-big-play-button, .jw-display-icon-display", timeout=2000)
+            except Exception:
                 pass
 
-            # try clappr
+            # Clappr extraction
             try:
-                clap = await extract_from_clappr(page)
-                for s in clap:
+                clappr_sources = await extract_from_clappr(page)
+                for s in clappr_sources:
                     if ".m3u8" in s:
                         found_m3u8.add(s)
-            except:
+            except Exception:
                 pass
 
             await asyncio.sleep(CLICK_WAIT)
-
             if found_m3u8 or found_ts:
                 break
 
         except PlaywrightTimeout:
-            print(f"⚠ timeout {php_url}")
-            await asyncio.sleep(1)
+            print(f"⚠️ Timeout loading {php_url} (attempt {attempt})")
+            await asyncio.sleep(1 + attempt)
+            continue
         except Exception as e:
-            print(f"⚠ error {php_url}: {e}")
-            await asyncio.sleep(1)
+            print(f"⚠️ Error loading {php_url} (attempt {attempt}): {e}")
+            await asyncio.sleep(1 + attempt)
+            continue
 
-    page.remove_listener("response", on_response)
+    page.remove_listener('response', on_response)
+    await asyncio.sleep(0.2)
 
-    # TOKENIZED first
+    # Prioritization
     tokenized = [u for u in found_m3u8 if has_tokenized_query(u)]
     candidates = tokenized if tokenized else list(found_m3u8)
 
@@ -220,31 +234,44 @@ async def fetch_m3u8_from_php(page, php_url):
     host_counts = Counter(ts_hosts)
     preferred_host = host_counts.most_common(1)[0][0] if host_counts else None
 
-    def score(u):
-        s = 0
-        if u.startswith("https://"): s += 10
-        if has_tokenized_query(u): s += 20 + len(u.split("?")[1]) // 10
-        if preferred_host and hostname_of(u) == preferred_host: s += 50
-        return s
+    def score_url(u):
+        score = 0
+        if u.startswith('https://'):
+            score += 10
+        if has_tokenized_query(u):
+            score += 20
+            score += len(u.split('?')[1]) // 10
+        if preferred_host and hostname_of(u) == preferred_host:
+            score += 50
+        return score
 
-    scored = sorted(candidates, key=lambda x: score(x), reverse=True)
+    scored = sorted(candidates, key=lambda x: score_url(x), reverse=True)
 
     async with aiohttp.ClientSession() as session:
         for u in scored:
-            if await http_check(u, session):
-                print("  ✔ validated", u)
-                return u
+            try:
+                ok = await http_check(u, session)
+                print(f"🔹 Validated {u}: {ok}")
+                if ok:
+                    return u
+            except Exception:
+                continue
 
+    # fallback
     async with aiohttp.ClientSession() as session:
         for u in found_m3u8:
-            if await http_check(u, session):
-                print("  ✔ fallback", u)
-                return u
+            try:
+                ok = await http_check(u, session)
+                if ok:
+                    print(f"🔸 Fallback valid {u}")
+                    return u
+            except Exception:
+                continue
 
     return None
 
 # ------------------------
-# Main
+# Main routine
 # ------------------------
 
 async def main():
@@ -255,54 +282,54 @@ async def main():
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(headless=True)
         context = await browser.new_context(user_agent=USER_AGENT)
-
-        sem = asyncio.Semaphore(CONCURRENT_FETCHES)
+        semaphore = asyncio.Semaphore(CONCURRENT_FETCHES)
 
         async def worker(event):
-            async with sem:
+            async with semaphore:
                 page = await context.new_page()
-                final = None
-
+                url = None
                 for attempt in range(1, RETRIES + 1):
-                    final = await fetch_m3u8_from_php(page, event["link"])
-                    if final:
+                    url = await fetch_m3u8_from_php(page, event['link'])
+                    if url:
+                        print(f"✅ Got m3u8 for {event['title']}: {url}")
                         break
-                    await asyncio.sleep(attempt)
-
+                    else:
+                        print(f"⚠️ No m3u8 for {event['title']} on attempt {attempt}")
+                        await asyncio.sleep(1 + attempt)
                 await page.close()
-
-                if final:
-                    categorized[event["category"]].append({
-                        "title": event["title"],
-                        "url": final,
-                        "logo": CHANNEL_LOGOS.get(event["title"], "")
+                if url:
+                    categorized[event['category']].append({
+                        'title': event['title'],
+                        'url': url,
+                        'logo': CHANNEL_LOGOS.get(event['title'], '')
                     })
 
-        await asyncio.gather(*(worker(e) for e in events))
+        tasks = [worker(e) for e in events]
+        await asyncio.gather(*tasks)
         await browser.close()
 
+    # write playlists
     for category, items in categorized.items():
-        safe = category.replace(" ", "_").lower()
+        safe = category.replace(' ', '_').lower()
         vlc = f"sportsonline_{safe}.m3u"
         tiv = f"sportsonline_{safe}_tivimate.m3u"
 
-        with open(vlc, "w", encoding="utf-8") as f:
-            f.write("#EXTM3U\n")
+        with open(vlc, 'w', encoding='utf-8') as f:
+            f.write('#EXTM3U\n')
             for it in items:
                 f.write(f'#EXTINF:-1 tvg-logo="{it["logo"]}" group-title="{category}",{it["title"]}\n')
                 for h in VLC_HEADERS:
-                    f.write(h + "\n")
-                f.write(it["url"] + "\n\n")
+                    f.write(h + '\n')
+                f.write(it['url'] + '\n\n')
 
-        with open(tiv, "w", encoding="utf-8") as f:
-            f.write("#EXTM3U\n")
+        with open(tiv, 'w', encoding='utf-8') as f:
+            f.write('#EXTM3U\n')
             for it in items:
-                headers = f"referer=https://sportsonline.sn/|origin=https://sportsonline.sn|user-agent={ENCODED_USER_AGENT}"
+                headers = f"referer=https://dukehorror.net/|origin=https://dukehorror.net|user-agent={ENCODED_USER_AGENT}"
                 f.write(f'#EXTINF:-1 tvg-logo="{it["logo"]}" group-title="{category}",{it["title"]}\n')
-                f.write(it["url"] + "|" + headers + "\n\n")
+                f.write(it['url'] + '|' + headers + '\n\n')
 
-        print("✔ wrote", vlc, tiv)
+        print(f"✅ Wrote playlists: {vlc}, {tiv}")
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     asyncio.run(main())
