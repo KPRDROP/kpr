@@ -3,7 +3,7 @@ name: Sportsonline Scraper
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"   # Runs every 30 minutes
+    - cron: "*/20 * * * *"   # Runs every 20 minutes
 
 jobs:
   scrape:
@@ -14,76 +14,56 @@ jobs:
       actions: read
 
     steps:
-      # ---------------------------------------------------------
-      # CHECKOUT REPO
-      # ---------------------------------------------------------
-      - name: 📥 Checkout repository
+
+      - name: 📁 Checkout repository
         uses: actions/checkout@v4
 
-      # ---------------------------------------------------------
-      # INSTALL PYTHON
-      # ---------------------------------------------------------
-      - name: 🐍 Setup Python
-        uses: actions/setup-python@v4
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.11"
 
-      # ---------------------------------------------------------
-      # INSTALL DEPENDENCIES
-      # ---------------------------------------------------------
-      - name: 📦 Install dependencies
+      - name: 🛠 Install system dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install playwright aiohttp requests
-          playwright install chromium
-          playwright install-deps
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 \
+            libatk-bridge2.0-0 \
+            libgtk-3-0 \
+            libgbm1 \
+            libasound2 \
+            libxshmfence1 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxfixes3 \
+            xvfb \
+            ffmpeg
 
-      # ---------------------------------------------------------
-      # RUN SCRAPER
-      # ---------------------------------------------------------
-      - name: ▶️ Running Sportsonline scraper...
+      - name: 🎭 Install Playwright + Chromium
         run: |
-          echo "▶️ Running Sportsonline scraper..."
-          python sportsonline.py
-        env:
-          PYTHONUNBUFFERED: "1"
+          pip install playwright
+          playwright install chromium --with-deps
 
-      # ---------------------------------------------------------
-      # ZIP THE OUTPUT PLAYLISTS
-      # ---------------------------------------------------------
-      - name: 📦 Zip playlists
+      - name: 📦 Install Python dependencies
         run: |
-          mkdir output
-          cp *.m3u output/
-          cd output
-          zip -r playlists.zip ./*
-        shell: bash
+          pip install -r requirements.txt
 
-      # ---------------------------------------------------------
-      # UPLOAD ARTIFACTS (v4)
-      # ---------------------------------------------------------
-      - name: ⬆️ Upload playlists artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: sportsonline-playlists
-          path: output/playlists.zip
-          retention-days: 7
+      - name: ▶️ Run scraper with retries + timeout
+        run: |
+          echo "Running Sportsonline scraper..."
+          for attempt in 1 2 3; do
+            echo "Attempt $attempt..."
+            timeout 240 python3 sportsonline.py && break
+            echo "Attempt $attempt failed."
+            sleep 5
+          done
 
-      # ---------------------------------------------------------
-      # AUTO-COMMIT UPDATED PLAYLISTS TO REPO
-      # ---------------------------------------------------------
-      - name: 🔄 Commit updated playlists
+      - name: 📝 Commit & Push changes
         if: success()
         run: |
           git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.email "actions@github.com"
 
-          git add *.m3u
-
-          if git diff --cached --quiet; then
-            echo "🟦 No playlist changes detected. Skipping commit."
-          else
-            git commit -m "Auto-update playlists 🚀"
-            git push origin "${GITHUB_REF##*/}"
-            echo "✅ Playlists updated and pushed."
-          fi
+          git add -A
+          git commit -m "Auto-update sportsonline playlists $(date -u)" || echo "No changes to commit"
+          git push
