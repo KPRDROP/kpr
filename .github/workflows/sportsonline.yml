@@ -3,58 +3,48 @@ name: SportsOnline Scraper
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */4 * * *"  # every 4 hours
-
-env:
-  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-  PLAYWRIGHT_SKIP_VALIDATION: 1
+    - cron: "0 */6 * * *" # every 6 hours
 
 jobs:
   scrape:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          google-chrome-beta \
-          wget \
-          gnupg \
-          libnss3 \
-          libxss1 \
-          libatk-bridge2.0-0 \
-          libgtk-4-1 \
-          libdrm2 \
-          libxcomposite1 \
-          libxrandr2 \
-          libgbm1 \
-          libpango-1.0-0 \
-          libglib2.0-0 \
-          libsecret-1-0 \
-          fonts-liberation \
-          curl \
-          unzip \
-          python3-pip
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.11
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            wget gnupg libnss3 libxss1 libatk-bridge2.0-0 libgtk-4-1 \
+            libdrm2 libxcomposite1 libxrandr2 libgbm1 libpango-1.0-0 \
+            libglib2.0-0 libsecret-1-0 fonts-liberation curl unzip python3-pip
+          
+          # Add Google Chrome Beta repository and install
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-linux-signing-key.gpg
+          echo "deb [signed-by=/usr/share/keyrings/google-linux-signing-key.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-beta
 
-    - name: Install Python packages
-      run: pip install --upgrade pip && pip install -r requirements.txt
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Run SportsOnline Scraper
-      run: python sportsonline.py | tee scraper.log
+      - name: Run SportsOnline scraper
+        run: |
+          python sportsonline.py | tee scraper.log
 
-    - name: Upload scraper output
-      uses: actions/upload-artifact@v4
-      with:
-        name: scraper-output
-        path: |
-          sportzonline.m3u
-          scraper.log
+      - name: Upload scraper output
+        uses: actions/upload-artifact@v4
+        with:
+          name: scraper-output
+          path: |
+            sportzonline.m3u
+            scraper.log
