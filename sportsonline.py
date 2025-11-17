@@ -1,181 +1,98 @@
-import asyncio
-import re
+import os
+import time
 import requests
-import logging
-from datetime import datetime
-from urllib.parse import quote
-from playwright.async_api import async_playwright
+from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-log = logging.getLogger("scraper")
+# -----------------------------
+# CONFIG
+# -----------------------------
+CHROME_PATH = "/usr/bin/google-chrome-beta"
+BASE_URL = "https://sportzonline.live/"
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
-ENCODED_USER_AGENT = quote(USER_AGENT, safe="")
+# Output
+M3U_FILE = "sportzonline.m3u"
 
-SCHEDULE_URL = "https://sportzonline.live/prog.txt"
+# -----------------------------
+# FUNCTIONS
+# -----------------------------
 
-FALLBACK_LOGOS = {
-    "basketball": "https://i.postimg.cc/FHBqZPjF/Basketball5.png",
-    "football": "https://i.postimg.cc/FKq4YrPT/Rv-N0XSF.png",
-    "nba": "https://i.postimg.cc/FHBqZPjF/Basketball5.png",
-    "ufc": "https://i.postimg.cc/1Xr2rsKc/Combat-Sports.png",
-    "miscellaneous": "https://i.postimg.cc/1Xr2rsKc/Combat-Sports.png",
-}
+def fetch_schedule_html():
+    """Fetch the main page HTML"""
+    resp = requests.get(BASE_URL, timeout=15)
+    resp.raise_for_status()
+    return resp.text
 
-TV_IDS = {
-    "basketball": "Basketball.Dummy.us",
-    "football": "Soccer.Dummy.us",
-    "nba": "NBA.Dummy.us",
-    "ufc": "UFC.Dummy.us",
-    "miscellaneous": "Sports.Dummy.us",
-}
-
-CATEGORY_KEYWORDS = {
-    "NBA": "NBA",
-    "UFC": "UFC",
-    "Football": "Football",
-    "Soccer": "Football",
-}
-
-CONCURRENT_FETCHES = 4
-RETRIES = 3
-CLICK_WAIT = 3
-
-
-def strip_non_ascii(text: str) -> str:
-    return re.sub(r"[^\x00-\x7F]+", "", text) if text else ""
-
-
-def fetch_schedule():
-    try:
-        log.info(f"🌐 Fetching schedule from {SCHEDULE_URL}")
-        r = requests.get(SCHEDULE_URL, headers={"User-Agent": USER_AGENT}, timeout=15)
-        r.raise_for_status()
-        return r.text
-    except Exception as e:
-        log.error(f"❌ Failed to fetch schedule: {e}")
-        return ""
-
-
-def parse_schedule(raw):
+def parse_events(html):
+    """Parse categories and events from HTML"""
+    soup = BeautifulSoup(html, "lxml")
     events = []
-    for line in raw.splitlines():
-        line = line.strip()
-        if not line or line.startswith("*") or line.upper().startswith("HD"):
-            continue
-        try:
-            time_part, rest = line.split("   ", 1)
-            if " | " in rest:
-                title, link = rest.rsplit(" | ", 1)
-            else:
-                parts = rest.rsplit(" ", 1)
-                title, link = parts[0], parts[-1]
-            title = strip_non_ascii(title.strip())
-            link = link.strip()
-            category = "miscellaneous"
-            for keyword, cat in CATEGORY_KEYWORDS.items():
-                if keyword.lower() in title.lower():
-                    category = cat.lower()
-                    break
-            events.append({"time": time_part, "title": title, "link": link, "category": category})
-        except ValueError:
-            continue
-    log.info(f"📺 Parsed {len(events)} events from schedule")
+
+    # Example: all links in main schedule section
+    for link in soup.select("a[href*='/channels/']"):
+        title = link.get_text(strip=True)
+        href = link["href"]
+        full_url = href if href.startswith("http") else BASE_URL.rstrip("/") + href
+        events.append({
+            "title": title,
+            "url": full_url
+        })
+
     return events
 
+def extract_m3u8_url(playwright, url):
+    """Open event page and extract the actual m3u8 stream"""
+    browser = playwright.chromium.launch(
+        executable_path=CHROME_PATH,
+        headless=True,
+        args=["--no-sandbox", "--disable-dev-shm-usage"]
+    )
+    page = browser.new_page()
+    page.goto(url, wait_until="networkidle")
+    time.sleep(2)  # wait for JS content
 
-async def extract_m3u8(page, url):
-    found = None
-    try:
-        async def on_request(request):
-            nonlocal found
-            if ".m3u8" in request.url and not found:
-                found = request.url
-                log.info(f"  ⚡ Stream found: {found}")
+    # Try to find m3u8 URLs in page source
+    content = page.content()
+    page.close()
+    browser.close()
 
-        page.on("request", on_request)
+    # Simple heuristic: find .m3u8 in page
+    for part in content.split('"'):
+        if ".m3u8" in part:
+            return part
+    return None
 
-        for attempt in range(1, RETRIES + 1):
+def save_m3u(events):
+    """Save M3U playlist"""
+    with open(M3U_FILE, "w") as f:
+        f.write("#EXTM3U\n")
+        for e in events:
+            if e.get("m3u8"):
+                f.write(f"#EXTINF:-1,{e['title']}\n")
+                f.write(f"{e['m3u8']}\n")
+
+# -----------------------------
+# MAIN
+# -----------------------------
+def main():
+    print("🚀 Starting SportsOnline scrape...")
+
+    html = fetch_schedule_html()
+    events = parse_events(html)
+    print(f"📺 Found {len(events)} events")
+
+    with sync_playwright() as p:
+        for e in events:
             try:
-                await page.goto(url, wait_until="domcontentloaded", timeout=15000)
-                await asyncio.sleep(CLICK_WAIT)
-                if found:
-                    break
-            except Exception as e:
-                log.warning(f"⚠️ Error on {url} attempt {attempt}: {e}")
+                m3u8 = extract_m3u8_url(p, e["url"])
+                e["m3u8"] = m3u8
+                print(f"✅ {e['title']}: {m3u8}")
+            except Exception as ex:
+                print(f"❌ Failed {e['title']}: {ex}")
+                e["m3u8"] = None
 
-        page.remove_listener("request", on_request)
-
-        # fallback regex extraction
-        if not found:
-            html = await page.content()
-            matches = re.findall(r'https?://[^\s"<>]+\.m3u8(?:\?[^"<>]*)?', html)
-            if matches:
-                found = matches[0]
-                log.info(f"  🕵️ Fallback M3U8: {found}")
-        return found
-    except Exception as e:
-        log.warning(f"⚠️ Failed extracting m3u8 from {url}: {e}")
-        return None
-
-
-async def process_event(event, ctx):
-    page = await ctx.new_page()
-    url = await extract_m3u8(page, event["link"])
-    await page.close()
-    return {"title": event["title"], "url": url, "category": event["category"]}
-
-
-async def generate_playlists():
-    raw = fetch_schedule()
-    events = parse_schedule(raw)
-    if not events:
-        log.warning("❌ No events found.")
-        return "#EXTM3U\n"
-
-    content = ["#EXTM3U"]
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            executable_path="/usr/bin/google-chrome-beta",
-            args=["--no-sandbox", "--disable-dev-shm-usage"]
-        )
-        ctx = await browser.new_context(user_agent=USER_AGENT)
-
-        sem = asyncio.Semaphore(CONCURRENT_FETCHES)
-
-        async def worker(ev):
-            async with sem:
-                return await process_event(ev, ctx)
-
-        results = await asyncio.gather(*[worker(ev) for ev in events])
-        await browser.close()
-
-    for r in results:
-        if not r["url"]:
-            continue
-        cat = r["category"].lower()
-        logo = FALLBACK_LOGOS.get(cat, FALLBACK_LOGOS["miscellaneous"])
-        tv_id = TV_IDS.get(cat, TV_IDS["miscellaneous"])
-        title = r["title"]
-        content.append(
-            f'#EXTINF:-1 tvg-id="{tv_id}" tvg-name="{title}" tvg-logo="{logo}" group-title="{cat}",{title}'
-        )
-        headers = f"referer=https://dukehorror.net/|origin=https://dukehorror.net|user-agent={ENCODED_USER_AGENT}"
-        content.append(f"{r['url']}|{headers}")
-
-    return "\n".join(content)
-
+    save_m3u(events)
+    print(f"✅ Saved {len(events)} events to {M3U_FILE}")
 
 if __name__ == "__main__":
-    start = datetime.now()
-    log.info("🚀 Starting SportsOnline scrape...")
-    playlist = asyncio.run(generate_playlists())
-    with open("SportsOnline_TiviMate.m3u8", "w", encoding="utf-8") as f:
-        f.write(playlist)
-    duration = (datetime.now() - start).total_seconds()
-    log.info(f"✅ Finished in {duration:.2f} sec | Events: {len(playlist.splitlines())}")
+    main()
