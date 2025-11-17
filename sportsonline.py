@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-BASE_URL = "https://sportzonline.live/"
+BASE_URL = "https://sportsonline.sn/prog.txt"
 CHROME_PATH = "/usr/bin/google-chrome-beta"
 M3U_FILE = "sportzonline.m3u"
 
