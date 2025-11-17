@@ -35,7 +35,10 @@ def fetch_prog_txt(url):
 async def extract_m3u8(page, url):
     """Open the page and try to extract the m3u8 URL from player"""
     try:
-        await page.goto(url, timeout=30000)
+        title, url = line.split("|")
+        title = title.strip()
+        url = url.strip()
+        await page.goto(url, timeout=15000)
         # Wait for video element
         await page.wait_for_selector("video", timeout=10000)
         
