@@ -1,0 +1,67 @@
+name: Generate PPVLand Playlist
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"  # every 30 min
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Chromium dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libatk1.0-0 \
+            libcairo2 \
+            libcups2 \
+            libdrm2 \
+            libgbm1 \
+            libglib2.0-0 \
+            libnss3 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxfixes3 \
+            libxkbcommon0 \
+            libxrandr2 \
+            libasound2t64 \
+            libxshmfence1 \
+            libx11-6 libx11-xcb1 \
+            libxext6 libxss1 \
+            libatspi2.0-0 \
+            libpangocairo-1.0-0 \
+            libpango-1.0-0 \
+            libjpeg-dev \
+            libxv1 \
+            libxi6
+
+      - name: Install project dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install playwright
+          playwright install chromium
+
+      - name: Run PPVLand generator
+        run: |
+          set -e
+          echo "▶️ Starting playlist generation..."
+          python3 generate_ppvland.py
+
+      - name: Commit & push results
+        if: success()
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add ppvland.m3u
+          git commit -m "Auto-update PPVLand playlist" || echo "No changes"
+          git push
