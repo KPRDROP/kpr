@@ -1,9 +1,9 @@
-name: Sportzonline Scraper
+name: SportsOnline Scraper
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'  # every 30 minutes
   workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"
 
 jobs:
   scrape:
@@ -13,31 +13,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-
-      - name: Install system dependencies for Playwright
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            wget curl ffmpeg \
-            libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
-            libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 \
-            libgbm1 libpango-1.0-0 libpangocairo-1.0-0 \
-            libgtk-4-1 libgdk-pixbuf-2.0-0 libgl1 libgles2-mesa \
-            libxshmfence1 libxcb-dri3-0 libwoff1 libopus0 libvpx6 \
-            libharfbuzz-icu0 libsecret-1-0 libflite1
+          python-version: 3.11
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests playwright pyee
+          pip install playwright requests pyee
 
       - name: Install Playwright browsers
         run: |
-          python -m playwright install --with-deps
+          python -m playwright install chromium firefox webkit
+
+      - name: Install Chrome Beta
+        run: |
+          wget -q -O chrome-beta.deb https://dl.google.com/linux/direct/google-chrome-beta_current_amd64.deb
+          sudo apt-get update
+          sudo apt-get install -y ./chrome-beta.deb || sudo apt-get install -f -y
 
       - name: Run scraper
         run: |
@@ -46,7 +40,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sportzonline-m3u
+          name: scraper-output
           path: |
-            sportzonline.m3u
             scraper.log
+            sportzonline.m3u
