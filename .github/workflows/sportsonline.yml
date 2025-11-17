@@ -3,24 +3,21 @@ name: Sportsonline Scraper
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 min
+    - cron: "*/30 * * * *"
 
 jobs:
   scrape:
     runs-on: ubuntu-24.04
 
     steps:
-      # Step 1: Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Install Python
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      # Step 3: Install system dependencies needed by Playwright
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -48,30 +45,26 @@ jobs:
             libgbm1 \
             libgtk-3-0 \
             libwoff1 \
-            libwoff2-1 \
+            libwoff2-1-0 \
             fonts-liberation \
             libappindicator3-1 \
             xdg-utils \
             wget \
             unzip
 
-      # Step 4: Install Python packages
-      - name: Install Python dependencies
+      - name: Install Python packages
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Step 5: Install Playwright browsers
       - name: Install Playwright Browsers
         run: |
           python -m playwright install chromium
 
-      # Step 6: Run scraper
       - name: Run sportsonline scraper
         run: |
           python sportsonline.py | tee scraper.log
 
-      # Step 7: Upload logs and generated playlist files
       - name: Upload scraper artifacts
         uses: actions/upload-artifact@v4
         with:
