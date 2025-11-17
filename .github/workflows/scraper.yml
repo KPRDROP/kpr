@@ -57,7 +57,7 @@ jobs:
 
       # Step 7: Upload scraper logs and generated M3U playlists
       - name: Upload logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: scraper-log
           path: |
