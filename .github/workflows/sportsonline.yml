@@ -1,9 +1,9 @@
-name: SportsOnline Scraper (Momentum Click + TS anchoring)
+name: SportsOnline Scraper (Momentum Click + TS Anchoring)
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/20 * * * *'
+    - cron: "*/20 * * * *"
 
 jobs:
   run-scraper:
@@ -12,13 +12,15 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: Install system deps
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -26,7 +28,7 @@ jobs:
             libatk-bridge2.0-0 \
             libgtk-3-0 \
             libgbm1 \
-            libasound2t64 \
+            libasound2 \
             libxshmfence1 \
             libxcomposite1 \
             libxdamage1 \
@@ -34,7 +36,7 @@ jobs:
             xvfb \
             ffmpeg
 
-      - name: Install Python deps & Playwright
+      - name: Install Python dependencies & Playwright
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -45,18 +47,19 @@ jobs:
         run: |
           python sportsonline.py | tee scraper.log
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload scraper log
+        uses: actions/upload-artifact@v4
         with:
           name: scraper-log
           path: scraper.log
 
-      - name: Commit playlists
+      - name: Commit updated playlists
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add *.m3u
           if git diff --cached --quiet; then
-            echo "No changes"
+            echo "No playlist changes detected."
           else
             git commit -m "Update playlists"
             git push
