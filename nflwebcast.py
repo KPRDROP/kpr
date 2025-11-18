@@ -1,174 +1,203 @@
 #!/usr/bin/env python3
 """
 nflwebcast.py
-Robust, bounded scraper for https://nflwebcast.com that:
- - avoids hanging indefinitely
- - captures .m3u8 / .ts network requests (works even behind Cloudflare)
- - retries navigation sensibly
- - writes an M3U playlist file (even if empty)
+Robust scraper for https://nflwebcast.com that:
+ - finds event pages (including /sbl/ listing),
+ - visits event pages, sniffs network requests for playable .m3u8/.ts,
+ - validates m3u8 URLs with aiohttp,
+ - writes a TiviMate-style playlist with pipe headers:
+     url|referer=https://nflwebcast.com/|origin=https://nflwebcast.com|user-agent=<encoded UA>
 """
 
 import asyncio
 import sys
 import time
 import traceback
-from urllib.parse import urljoin, urlparse
-from typing import Optional, Set
-
+import aiohttp
+from urllib.parse import urljoin, quote, urlparse
+from typing import Set, Optional, List
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
 
 START_URL = "https://nflwebcast.com/"
 OUTPUT_FILE = "NFLWebcast.m3u8"
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-)
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 
-# Timeouts and limits (tweakable)
-GLOBAL_TIMEOUT = 180              # overall script timeout (seconds)
-NAV_TIMEOUT = 15_000              # per navigation timeout (ms)
-NETWORK_IDLE_WAIT = 3             # seconds to wait after last request
-NAV_RETRIES = 3                   # retries for top-level pages
-DEEP_SCAN_LIMIT = 10              # max number of deep links to visit
-PAGE_CAPTURE_WAIT = 6             # seconds to wait after load to capture requests
-CLICK_WAIT = 1.0                  # seconds between simulated clicks
-MAX_REQUEST_CAPTURE_SECONDS = 12  # seconds to keep listening for requests after load
+# Tunables
+GLOBAL_TIMEOUT = 240               # overall script timeout (s)
+NAV_TIMEOUT_MS = 20_000            # per navigation timeout (ms)
+NAV_RETRIES = 3
+PAGE_CAPTURE_SECONDS = 10          # seconds to capture network requests after load
+DEEP_SCAN_LIMIT = 10               # max event pages to visit
+VALIDATE_TIMEOUT = 10              # aiohttp validation timeout (s)
+CLICK_WAIT = 0.8                   # wait after simulated clicks (s)
 
-# Patterns we consider playable
-PLAYABLE_SUFFIXES = (".m3u8", ".ts")
-PLAYABLE_INCLUDES = (".m3u8", "/hls/", "/live/")
+# Playable heuristics
+PLAYABLE_MARK = (".m3u8", ".ts", "/hls/", "/live/")
 
-# Logging helpers
 def log(*parts):
     print(" ".join(str(p) for p in parts), flush=True)
 
-# Utility
-def is_playable_url(url: str) -> bool:
-    url = (url or "").lower()
-    if any(s in url for s in PLAYABLE_INCLUDES):
-        if any(url.endswith(s) or s in url for s in PLAYABLE_SUFFIXES):
-            return True
-        # m3u8 with params too
-        if ".m3u8" in url:
-            return True
-    return False
+def is_playable_url(u: str) -> bool:
+    if not u:
+        return False
+    low = u.lower()
+    return any(mark in low for mark in PLAYABLE_MARK)
 
-# Wait until page content appears to look like real site (not Cloudflare intermediate)
-async def looks_like_real_site(page) -> bool:
+async def validate_m3u8(url: str, referer: str, origin: str, session: aiohttp.ClientSession) -> bool:
+    """Check that URL returns 200 and looks like a playable m3u8 or media segment."""
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Referer": referer,
+        "Origin": origin,
+    }
     try:
-        html = await page.content()
-        lower = (html or "").lower()
-        if "cf-browser-verification" in lower or "just a moment" in lower or "checking your browser" in lower:
+        async with session.get(url, headers=headers, timeout=VALIDATE_TIMEOUT, allow_redirects=True) as resp:
+            if resp.status != 200:
+                log(f"    ✖ validation failed status={resp.status} for {url}")
+                return False
+            ctype = (resp.headers.get("Content-Type") or "").lower()
+            text_preview = ""
+            # read small portion to detect .m3u8 file contents
+            try:
+                chunk = await resp.content.read(1024)
+                text_preview = chunk.decode(errors="ignore").lower()
+            except Exception:
+                pass
+            if ".m3u8" in url or "application/vnd.apple.mpegurl" in ctype or "#extm3u" in text_preview or "#extinf" in text_preview:
+                log(f"    ✔ validated (200 + m3u8-like) {url}")
+                return True
+            # ts segment or other media: acceptable if content-type video or octet-stream
+            if "video" in ctype or "octet-stream" in ctype:
+                log(f"    ✔ validated (media) {url}")
+                return True
+            # fallback: accept 200 for known hosts with /hls/ etc
+            if "/hls/" in url or "/live/" in url:
+                log(f"    ✔ validated (heuristic) {url}")
+                return True
+            log(f"    ✖ validation ambiguous for {url} (ctype={ctype})")
             return False
-        # site-specific heuristic: main menu or 'sbl' path present
-        if "sbl" in (await page.url):
-            return True
-        if "<article" in lower or "live stream" in lower or "hd" in lower:
-            return True
-        # default to True (don't block too aggressively)
-        return True
-    except Exception:
+    except Exception as e:
+        log(f"    ✖ validation exception for {url}: {e}")
         return False
 
-# robust navigation with retries
 async def robust_goto(page, url: str, attempts: int = NAV_RETRIES) -> bool:
+    """Navigate with retries and small waits; returns True when page looks loaded."""
     for i in range(1, attempts + 1):
         try:
-            log(f"➡️ Navigating to {url} (attempt {i}/{attempts})")
-            await page.goto(url, timeout=NAV_TIMEOUT, wait_until="domcontentloaded")
-            # quick check for Cloudflare or redirect loops
-            ok = await looks_like_real_site(page)
-            if ok:
-                return True
-            log("⏳ Page looks like challenge or not ready; will wait briefly then retry.")
-            await asyncio.sleep(2)
+            log(f"  → goto {url} (attempt {i}/{attempts})")
+            await page.goto(url, timeout=NAV_TIMEOUT_MS, wait_until="domcontentloaded")
+            # short wait for JS to run a bit
+            await asyncio.sleep(1.0)
+            # heuristics: if Cloudflare challenge text appears, treat as not-ready
+            content = (await page.content()).lower()
+            if any(x in content for x in ("cf-browser-verification", "checking your browser", "just a moment")):
+                log("    ⏳ Cloudflare/challenge detected; retrying after short sleep")
+                await asyncio.sleep(2 + i)
+                continue
+            return True
         except PlaywrightTimeout:
-            log(f"⚠️ Navigation timeout for {url} (attempt {i})")
+            log("    ⚠ playwright navigation timeout")
         except Exception as e:
-            log(f"⚠️ Navigation error for {url} (attempt {i}): {e}")
+            log("    ⚠ goto error:", e)
         await asyncio.sleep(1 + i)
     return False
 
-# capture playable urls via network sniffing
-async def capture_from_page(context, url: str, max_capture_seconds: int = MAX_REQUEST_CAPTURE_SECONDS) -> Set[str]:
+async def sniff_requests_on_page(context, page_url: str, session: aiohttp.ClientSession, capture_seconds: int = PAGE_CAPTURE_SECONDS) -> Set[str]:
+    """Open page, attach page.on('request') and collect playable URLs during capture window."""
     page = await context.new_page()
-    captured = set()
-    last_req_time = time.time()
+    captured: Set[str] = set()
+    handler_added = False
 
     def on_request(req):
-        nonlocal last_req_time
-        u = req.url or ""
-        last_req_time = time.time()
-        if is_playable_url(u):
-            captured.add(u)
-            log("  🎯 Captured candidate:", u)
-
-    context.on("request", on_request)
-    try:
-        ok = await robust_goto(page, url)
-        if not ok:
-            log("  ⚠️ Could not load", url)
-            await asyncio.sleep(0.5)
-            await page.close()
-            context.remove_listener("request", on_request)
-            return captured
-
-        # attempt to trigger common play buttons and clicks
         try:
-            await page.bring_to_front()
-            # try a few common selectors
-            for sel in ["button.play", "button[class*=play]", ".vjs-big-play-button", ".jw-icon-display", "div.play"]:
-                try:
-                    el = await page.query_selector(sel)
-                    if el:
-                        await el.click(timeout=1000)
-                        log("  👆 Clicked", sel)
-                        await asyncio.sleep(CLICK_WAIT)
-                except Exception:
-                    pass
+            u = req.url
+            if is_playable_url(u):
+                if u not in captured:
+                    captured.add(u)
+                    log("    ▶ sniffed candidate:", u)
         except Exception:
             pass
 
-        # wait and capture requests for a limited time
+    try:
+        page.on("request", on_request)
+        handler_added = True
+
+        ok = await robust_goto(page, page_url)
+        if not ok:
+            log("    ✖ failed to load:", page_url)
+            return captured
+
+        # try some clicks to trigger players
+        for sel in ["button.play", ".vjs-big-play-button", ".jw-icon-display", "button[class*=play]", "div[class*=play]"]:
+            try:
+                el = await page.query_selector(sel)
+                if el:
+                    try:
+                        await el.click(timeout=1000)
+                        log("    👆 clicked", sel)
+                        await asyncio.sleep(CLICK_WAIT)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+        # Wait for network activity; break early if we captured and network quiet
         start = time.time()
-        while time.time() - start < max_capture_seconds:
+        last_add = time.time()
+        while time.time() - start < capture_seconds:
             await asyncio.sleep(0.5)
-            # short-circuit if we recently captured something
-            if captured and (time.time() - last_req_time) > NETWORK_IDLE_WAIT:
+            # small optimization: if captured and no requests for 2s, break
+            if captured and (time.time() - last_add) > 2:
                 break
 
-        # deep-scan: inspect iframes and follow a few links (bounded)
+        # Additionally inspect iframes (visit iframe srcs bounded)
         try:
             frames = page.frames
             for f in frames:
                 try:
-                    frame_url = f.url or ""
-                    if frame_url and frame_url != url and len(captured) < 3:
-                        log("  ↳ Inspecting iframe:", frame_url)
-                        # clicking inside iframe might be blocked; attempt simple capture
-                        await asyncio.sleep(0.25)
+                    fu = f.url
+                    if fu and fu != page_url and fu not in captured:
+                        # try a quick fetch on iframe url (it might be embed page)
+                        if is_playable_url(fu):
+                            captured.add(fu)
+                            log("    ▶ iframe direct candidate:", fu)
                 except Exception:
                     pass
         except Exception:
             pass
 
     finally:
-        await page.close()
-        context.remove_listener("request", on_request)
+        try:
+            if handler_added:
+                # remove listener gracefully; Playwright may throw if already removed
+                try:
+                    page.remove_listener("request", on_request)
+                except Exception:
+                    # fallback: ignore
+                    pass
+            await page.close()
+        except Exception:
+            pass
 
     return captured
 
-# shallow link extraction (main page)
-async def extract_event_links_from_homepage(context) -> Set[str]:
+async def extract_event_links(context) -> List[str]:
+    """Fetch START_URL and extract event links (works with sbl listing and dracula classes)."""
     page = await context.new_page()
-    urls = set()
+    found: Set[str] = set()
     try:
         ok = await robust_goto(page, START_URL)
         if not ok:
-            await page.close()
-            return urls
+            # try /sbl/ explicitly
+            sbl = urljoin(START_URL, "sbl/")
+            log("  trying listing path", sbl)
+            ok2 = await robust_goto(page, sbl)
+            if not ok2:
+                log("  ✖ couldn't load homepage or /sbl/ listing")
+                await page.close()
+                return []
 
-        # try to find anchors that look like event pages
+        # find anchors that match event patterns
         anchors = await page.query_selector_all("a[href]")
         for a in anchors:
             try:
@@ -179,106 +208,111 @@ async def extract_event_links_from_homepage(context) -> Set[str]:
                 parsed = urlparse(href)
                 if not parsed.netloc:
                     href = urljoin(START_URL, href)
-                if "/live-stream" in href or "/live-stream-online" in href or "/live-stream-online-free" in href or "/watch-" in href or "/sbl/" in href:
-                    urls.add(href)
-                # also include event-like slugs under site domain
-                if href.startswith(START_URL) and href.count("/") > 3 and "channel" not in href:
-                    urls.add(href)
+                # specific heuristics from the site: pages with long slugs and 'live-stream' / 'live-stream-online' or team links
+                if any(x in href for x in ("/live-stream", "live-stream-online", "/watch-", "/sbl/", "/houston-texans") ) or href.startswith(START_URL) and href.count("/") > 3:
+                    found.add(href)
+                # also match dracula-style link anchors indicated in your paste
+                text = (await a.inner_text() or "").lower()
+                if "@" in text and "november" in text or "december" in text or "live stream" in text:
+                    found.add(href)
             except Exception:
                 pass
 
-        # some sites redirect to /sbl/ path; ensure that
-        # also include the /sbl/ root
-        urls.add(urljoin(START_URL, "sbl/"))
+        # fallback: add /sbl/ explicitly
+        found.add(urljoin(START_URL, "sbl/"))
 
-    except Exception as e:
-        log("⚠️ Error extracting links:", e)
     finally:
         await page.close()
-    return urls
 
-# bounded deep-scan visiting extracted event pages
-async def deep_scan_for_streams(context, event_links, max_visit=DEEP_SCAN_LIMIT):
-    found = set()
-    count = 0
-    for link in event_links:
-        if count >= max_visit:
-            break
-        try:
-            log(f"🔎 Deep-scan visiting: {link}")
-            cands = await capture_from_page(context, link)
-            for u in cands:
-                found.add(u)
-            count += 1
-        except Exception as e:
-            log("  ⚠️ scan error:", e)
-    return found
+    # return deduped list
+    return list(found)
 
-# top-level orchestrator with overall timeout guard
 async def main():
-    start_ts = time.time()
-    log("🚀 Starting NFLWebcast scraper (bounded, network-sniff mode)")
+    start = time.time()
+    log("🚀 Starting NFLWebcast scraper (Playwright sniff + aiohttp validation)")
 
-    # overall timeout guard
+    found_valid: Set[str] = set()
+
     try:
-        async with async_playwright() as pw:
+        async with async_playwright() as pw, aiohttp.ClientSession(headers={"User-Agent": USER_AGENT}) as session:
             browser = await pw.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
             context = await browser.new_context(user_agent=USER_AGENT)
+
             try:
-                # 1) Extract candidate event links from homepage
-                log("🔍 Extracting event links from homepage...")
-                event_links = await extract_event_links_from_homepage(context)
-                log("📌 Found", len(event_links), "candidate links")
+                # 1) extract candidate event URLs
+                event_urls = await extract_event_links(context)
+                log("  ℹ candidate event links:", len(event_urls))
+                if event_urls:
+                    # cap deep-scan
+                    to_visit = event_urls[:DEEP_SCAN_LIMIT]
+                else:
+                    to_visit = [urljoin(START_URL, "sbl/")]
 
-                # 2) First attempt capture directly on homepage (some streams load inline)
-                homepage_captures = await capture_from_page(context, START_URL, max_capture_seconds=PAGE_CAPTURE_WAIT + 6)
-                log("📥 Homepage captures:", len(homepage_captures))
+                # 2) sniff homepage quickly (some sites load inline players)
+                homepage_candidates = await sniff_requests_on_page(context, START_URL, session, capture_seconds=6)
+                log("  ℹ homepage sniffed candidates:", len(homepage_candidates))
 
-                # 3) Deep-scan event links (bounded)
-                deep_found = await deep_scan_for_streams(context, list(event_links), max_visit=DEEP_SCAN_LIMIT)
-                log("📥 Deep-scan found:", len(deep_found))
+                # 3) deep-scan event pages
+                total_visited = 0
+                for ev in to_visit:
+                    if total_visited >= DEEP_SCAN_LIMIT:
+                        break
+                    total_visited += 1
+                    log(f"  ↳ deep visiting ({total_visited}/{len(to_visit)}): {ev}")
+                    cands = await sniff_requests_on_page(context, ev, session, capture_seconds=PAGE_CAPTURE_SECONDS)
+                    log("    → sniffed:", len(cands))
+                    for c in cands:
+                        if c not in found_valid:
+                            # validate candidate
+                            if await validate_m3u8(c, referer=START_URL, origin=START_URL, session=session):
+                                found_valid.add(c)
+                            else:
+                                log("      ✖ candidate failed validation:", c)
 
-                # Combine and validate (dedupe)
-                all_candidates = set(homepage_captures) | set(deep_found)
-                filtered = set(u for u in all_candidates if is_playable_url(u))
-                log("🧾 Total playable candidates:", len(filtered))
-
-                # Write playlist (pipe-style TiviMate entries are easily supported by adding headers)
-                with open(OUTPUT_FILE, "w", encoding="utf-8") as fh:
-                    fh.write("#EXTM3U\n")
-                    if not filtered:
-                        fh.write("# no streams found\n")
-                    for u in sorted(filtered):
-                        fh.write('#EXTINF:-1,Live\n')
-                        # add basic headers as comments; user can modify to pipe headers if needed
-                        fh.write(u + "\n")
-
-                elapsed = time.time() - start_ts
-                log("✅ Done — wrote", OUTPUT_FILE, "| streams:", len(filtered), "| time:", f"{elapsed:.1f}s")
+                # also validate homepage candidates
+                for c in homepage_candidates:
+                    if c not in found_valid:
+                        if await validate_m3u8(c, referer=START_URL, origin=START_URL, session=session):
+                            found_valid.add(c)
 
             finally:
                 await context.close()
                 await browser.close()
 
-    except Exception as exc:
-        log("❌ Fatal error:", exc)
+    except Exception as e:
+        log("❌ Fatal error during scraping:", e)
         traceback.print_exc()
-        # ensure we create an empty playlist so CI doesn't break
+        # create a minimal playlist to avoid missing-file downstream
         try:
             with open(OUTPUT_FILE, "w", encoding="utf-8") as fh:
-                fh.write("#EXTM3U\n# fatal error occurred\n")
+                fh.write("#EXTM3U\n# error during scraping\n")
         except Exception:
             pass
-        # exit non-zero so CI can signal failure
+        sys.exit(1)
+
+    # Write playlist (TiviMate pipe-style headers)
+    try:
+        with open(OUTPUT_FILE, "w", encoding="utf-8") as fh:
+            fh.write("#EXTM3U\n")
+            if not found_valid:
+                fh.write("# no streams validated\n")
+            for url in sorted(found_valid):
+                # build tivimate header
+                ua_enc = quote(USER_AGENT, safe="")
+                headers = f"referer={START_URL}|origin={START_URL}|user-agent={ua_enc}"
+                fh.write(f'#EXTINF:-1,Live\n')
+                fh.write(f'{url}|{headers}\n')
+        log("✅ Playlist written:", OUTPUT_FILE, "| streams:", len(found_valid), "| time:", f"{time.time()-start:.1f}s")
+    except Exception as e:
+        log("❌ Failed to write playlist:", e)
+        traceback.print_exc()
         sys.exit(1)
 
 if __name__ == "__main__":
-    # enforce overall global timeout to prevent indefinite hanging
     try:
         asyncio.run(asyncio.wait_for(main(), timeout=GLOBAL_TIMEOUT))
     except asyncio.TimeoutError:
-        log("❌ Global timeout reached — aborting.")
-        # ensure a playlist file exists
+        log("❌ Global timeout reached; writing empty playlist and exiting.")
         try:
             with open(OUTPUT_FILE, "w", encoding="utf-8") as fh:
                 fh.write("#EXTM3U\n# timeout\n")
