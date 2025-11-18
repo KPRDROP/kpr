@@ -2,7 +2,7 @@ name: 🔁 Update NFLWebcast Playlist 🎥
 
 on:
   schedule:
-    - cron: '0 * * * *'  # every hour
+    - cron: '0 * * * *'   # every hour
   workflow_dispatch:
 
 permissions:
@@ -13,28 +13,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
+      - name: 📥 Checkout repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: 🐍 Set up Python 3.11
+      - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: 📦 Install dependencies
+      - name: 📦 Install Python deps
         run: |
           python -m pip install --upgrade pip
           pip install aiohttp beautifulsoup4 playwright
           python -m playwright install chromium
 
-      - name: 🚀 Run NFLWebcast Scraper
+      - name: 🚀 Run scraper
         run: |
-          echo "🚀 Starting NFLWebcast Scraper..."
+          echo "🏈 Running NFLWebcast scraper..."
           python nflwebcast.py
 
-      - name: 💾 Commit & Push Playlist
+      - name: 💾 Commit playlist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -42,17 +40,18 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           FILE="NFLWebcast.m3u8"
-          if [ -f "$FILE" ]; then
-            git add "$FILE"
-          else
-            echo "⚠️ $FILE not found, skipping commit."
+
+          if [ ! -f "$FILE" ]; then
+            echo "⚠️ No playlist produced — skipping push"
             exit 0
           fi
+
+          git add "$FILE"
 
           if git diff --cached --quiet; then
-            echo "✅ No changes detected — skipping commit."
+            echo "⏹ No changes — nothing to commit."
             exit 0
           fi
 
-          git commit -m "🔁 Auto-update $FILE ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+          git commit -m "Auto-update NFL playlist ($(date -u +'%Y-%m-%d %H:%M UTC'))"
           git push origin main
