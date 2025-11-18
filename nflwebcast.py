@@ -4,7 +4,7 @@ import base64
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 
-BASE_URL = "https://nflwebcast.com/"
+BASE_URL = "https://nflwebcast.com/sbl/"
 HEADERS = {
     "Referer": BASE_URL,
     "Origin": BASE_URL.rstrip("/")
