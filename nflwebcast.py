@@ -1,5 +1,6 @@
 import asyncio
 import re
+import base64
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 
@@ -9,7 +10,10 @@ HEADERS = {
     "Origin": BASE_URL.rstrip("/")
 }
 
-# ------------------ Retry Navigation ------------------ #
+
+# --------------------------------------------------------------------
+# Navigation With Robust Retry
+# --------------------------------------------------------------------
 async def safe_goto(page, url, retries=5):
     for attempt in range(1, retries + 1):
         try:
@@ -20,16 +24,56 @@ async def safe_goto(page, url, retries=5):
         except Exception as e:
             print(f"⚠️ Navigation failed: {e}")
             await page.wait_for_timeout(1500)
-    print("❌ Gave up navigating.")
+
+    print("❌ Giving up navigation.")
     return False
 
 
-# ------------------ Extract .m3u8 URLs ------------------ #
+# --------------------------------------------------------------------
+# Extract Plain .m3u8 URLs
+# --------------------------------------------------------------------
 def extract_m3u8(html):
-    return list(set(re.findall(r'https?://[^\s"\'<>]+\.m3u8', html)))
+    return list(set(re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', html)))
 
 
-# ------------------ Main Scraper ------------------ #
+# --------------------------------------------------------------------
+# Deep Scan Mode: Extract streams from scripts, js, base64, json
+# --------------------------------------------------------------------
+def deep_scan_m3u8(html):
+    streams = []
+
+    # 1. Standard detection
+    streams.extend(extract_m3u8(html))
+
+    # 2. Decode base64 blobs
+    base64_blobs = re.findall(rb"[A-Za-z0-9+/]{50,}={0,2}", html.encode())
+    for blob in base64_blobs:
+        try:
+            decoded = base64.b64decode(blob).decode(errors="ignore")
+            streams.extend(extract_m3u8(decoded))
+        except Exception:
+            continue
+
+    # 3. JS variable assignments: var src="xxx.m3u8"
+    var_matches = re.findall(r"['\"](https?://[^\"']+\.m3u8[^\"']*)['\"]", html)
+    streams.extend(var_matches)
+
+    # 4. JSON-like structures
+    json_candidates = re.findall(r"{[^{}]+}", html)
+    for block in json_candidates:
+        streams.extend(extract_m3u8(block))
+
+    # 5. Look inside escaped HTML
+    escaped = html.replace("\\/", "/")
+    streams.extend(extract_m3u8(escaped))
+
+    return list(set(streams))
+
+
+
+# --------------------------------------------------------------------
+# Scraper Core Logic
+# --------------------------------------------------------------------
 async def scrape_nfl():
     print("🚀 Starting NFL Webcast Scraper...")
 
@@ -38,7 +82,7 @@ async def scrape_nfl():
         context = await browser.new_context(extra_http_headers=HEADERS)
         page = await context.new_page()
 
-        # ---------- Load Homepage ---------- #
+        # Load homepage
         ok = await safe_goto(page, BASE_URL)
         if not ok:
             return []
@@ -46,7 +90,7 @@ async def scrape_nfl():
         html = await page.content()
         soup = BeautifulSoup(html, "html.parser")
 
-        # ---------- Correct Event Selector ---------- #
+        # Core selector for event links
         event_links = []
         for a in soup.select("div.match-block a"):
             href = a.get("href", "")
@@ -55,7 +99,6 @@ async def scrape_nfl():
 
             if href.startswith("/"):
                 href = BASE_URL.rstrip("/") + href
-
             if href.startswith(BASE_URL):
                 event_links.append(href)
 
@@ -64,9 +107,9 @@ async def scrape_nfl():
 
         all_streams = []
 
-        # ---------- Visit Each Event Page ---------- #
+        # Visit each event page
         for link in event_links:
-            print(f"\n📺 Event page: {link}")
+            print(f"\n📺 Event Page: {link}")
 
             ok = await safe_goto(page, link)
             if not ok:
@@ -75,7 +118,9 @@ async def scrape_nfl():
             event_html = await page.content()
             soup2 = BeautifulSoup(event_html, "html.parser")
 
-            # ----- Common iframe locations ----- #
+            # ------------------------------
+            # Step 1: Extract from iframe tags
+            # ------------------------------
             iframes = soup2.select("iframe, .iframe-container iframe, .video-container iframe")
 
             for iframe in iframes:
@@ -95,27 +140,47 @@ async def scrape_nfl():
                     continue
 
                 frame_html = await page.content()
-                m3u8s = extract_m3u8(frame_html)
 
+                # Shallow extraction
+                m3u8s = extract_m3u8(frame_html)
                 for m in m3u8s:
-                    print(f"   🎯 STREAM FOUND: {m}")
+                    print(f"   🎯 Shallow: {m}")
                     all_streams.append(m)
 
+                # Deep scan extraction
+                deep_results = deep_scan_m3u8(frame_html)
+                for m in deep_results:
+                    print(f"   🔍 Deep Scan: {m}")
+                    all_streams.append(m)
+
+            # ------------------------------
+            # Step 2: Deep scan the event page HTML too
+            # ------------------------------
+            page_deep = deep_scan_m3u8(event_html)
+            for m in page_deep:
+                print(f"   🔍 Deep Scan (event page): {m}")
+                all_streams.append(m)
+
         await browser.close()
+
         return list(set(all_streams))
 
 
-# ------------------ Write Playlist ------------------ #
+# --------------------------------------------------------------------
+# Write playlist
+# --------------------------------------------------------------------
 def write_playlist(streams):
     filename = "NFLWebcast.m3u8.m3u8"
     with open(filename, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for i, s in enumerate(streams, start=1):
-            f.write(f"#EXTINF:-1,NFL Stream {i}\n{s}\n")
+            f.write(f"#EXTINF:-1,NFL Stream {i}\n{s}|Referer={BASE_URL}|Origin={BASE_URL}\n")
     print(f"✅ Playlist saved → {filename}")
 
 
-# ------------------ Entry Point ------------------ #
+# --------------------------------------------------------------------
+# Entry
+# --------------------------------------------------------------------
 async def main():
     streams = await scrape_nfl()
     if streams:
