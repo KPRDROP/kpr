@@ -1,18 +1,28 @@
 import asyncio
 import re
-from typing import Dict, List, Optional, Tuple
+import random
+from typing import Dict, List, Optional, Callable, Awaitable
 from urllib.parse import urljoin
+
 import aiohttp
 from bs4 import BeautifulSoup
-from playwright.async_api import BrowserContext, async_playwright
+from playwright.async_api import async_playwright, BrowserContext, Page
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0"
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0"
+)
+
+MAX_RETRIES = 5
+BASE_DELAY = 1
 DYNAMIC_WAIT_TIMEOUT = 15000
 GAME_TABLE_WAIT_TIMEOUT = 15000
+
 STREAM_PATTERN = re.compile(r"\.m3u8($|\?)", re.IGNORECASE)
+
 OUTPUT_FILE = "NFLWebcast.m3u8"
 
 NFL_BASE_URL = "https://nflwebcast.com/"
+
 NFL_CHANNEL_URLS = [
     "http://nflwebcast.com/nflnetwork/",
     "https://nflwebcast.com/nflredzone/",
@@ -23,171 +33,240 @@ CHANNEL_METADATA = {
     "nflnetwork": {
         "name": "NFL Network",
         "id": "NFL.Network.HD.us2",
-        "logo": "https://github.com/tv-logo/tv-logos/blob/main/countries/united-states/nfl-network-hz-us.png?raw=true"
+        "logo": "https://github.com/tv-logo/tv-logos/blob/main/countries/united-states/nfl-network-hz-us.png?raw=true",
     },
     "nflredzone": {
         "name": "NFL RedZone",
         "id": "NFL.RedZone.HD.us2",
-        "logo": "https://github.com/tv-logo/tv-logos/blob/main/countries/united-states/nfl-red-zone-hz-us.png?raw=true"
+        "logo": "https://github.com/tv-logo/tv-logos/blob/main/countries/united-states/nfl-red-zone-hz-us.png?raw=true",
     },
     "espnusa": {
-        "name": "ESPN",
-        "id": "ESPN.HD.us2",
-        "logo": "https://github.com/tv-logo/tv-logos/blob/main/countries/united-states/espn-us.png?raw=true"
+        "name": "ESPN USA",
+        "id": "ESPN.USA.HD.us2",
+        "logo": "https://github.com/tv-logo/tv-logos/blob/main/countries/united-states/espn-us.png?raw=true",
     },
 }
 
+
+# -----------------------------------------------------------
+#  RETRY WRAPPER
+# -----------------------------------------------------------
+async def retry_async(label: str, func: Callable[[], Awaitable], retries=MAX_RETRIES):
+    for i in range(retries):
+        try:
+            return await func()
+        except Exception as e:
+            if i == retries - 1:
+                print(f"❌ {label} FAILED after {retries} attempts: {e}")
+                return None
+
+            delay = BASE_DELAY * (2 ** i) + random.uniform(0, 0.5)
+            print(f"⚠️ {label} failed (attempt {i+1}/{retries}): {e}, retrying in {delay:.1f}s...")
+            await asyncio.sleep(delay)
+
+
+# -----------------------------------------------------------
+#  UTILITY
+# -----------------------------------------------------------
 def normalize_game_name(original_name: str) -> str:
     return " ".join(original_name.strip().split()).title()
 
-async def verify_stream_url(session: aiohttp.ClientSession, url: str, headers: Optional[Dict[str, str]] = None) -> bool:
+
+# -----------------------------------------------------------
+#  STREAM VERIFICATION
+# -----------------------------------------------------------
+async def verify_stream_url(
+    session: aiohttp.ClientSession, url: str, headers: Optional[Dict[str, str]] = None
+) -> bool:
     request_headers = headers or {"User-Agent": USER_AGENT}
-    try:
-        async with session.get(url, timeout=10, allow_redirects=True, headers=request_headers) as response:
-            if response.status == 200:
-                print(f" ✔️ URL Verified: {url}")
-                return True
-            else:
-                print(f" ❌ URL Failed ({response.status}): {url}")
-                return False
-    except Exception as e:
-        print(f" ❌ URL Error ({type(e).__name__}): {url}")
-        return False
 
-async def find_stream_from_servers_on_page(context: BrowserContext, page_url: str, base_url: str, session: aiohttp.ClientSession) -> Optional[str]:
-    verification_headers = {"Origin": base_url.rstrip('/'), "Referer": base_url}
-    page = await context.new_page()
-    candidate_urls: List[str] = []
+    async def _req():
+        async with session.get(
+            url, timeout=10, allow_redirects=True, headers=request_headers
+        ) as response:
+            return response.status == 200
 
-    def handle_request(request):
-        if STREAM_PATTERN.search(request.url) and request.url not in candidate_urls:
-            candidate_urls.append(request.url)
-            print(f" ✅ Captured potential stream: {request.url}")
+    result = await retry_async(f"Verify stream URL {url}", _req, retries=4)
 
-    page.on("request", handle_request)
+    if result:
+        print(f" ✔️ Verified stream: {url}")
+    else:
+        print(f" ❌ Verification failed: {url}")
+    return bool(result)
 
-    try:
+
+# -----------------------------------------------------------
+#  STREAM EXTRACTION FROM PAGE
+# -----------------------------------------------------------
+async def find_stream_from_page(
+    context: BrowserContext, page_url: str, session: aiohttp.ClientSession
+) -> Optional[str]:
+
+    page: Page = await context.new_page()
+
+    candidate_streams = []
+
+    def on_request(req):
+        if STREAM_PATTERN.search(req.url):
+            candidate_streams.append(req.url)
+            print(f"🌐 Detected stream: {req.url}")
+
+    page.on("request", on_request)
+
+    async def do_goto():
         await page.goto(page_url, wait_until="domcontentloaded", timeout=60000)
-        await page.wait_for_load_state('networkidle', timeout=DYNAMIC_WAIT_TIMEOUT)
 
-        for stream_url in reversed(candidate_urls):
-            if await verify_stream_url(session, stream_url, headers=verification_headers):
-                return stream_url
+    # Retry navigation
+    await retry_async(f"Navigate to {page_url}", do_goto)
 
-        # Optional: handle iframes or server links
-        iframe_locator = page.locator("iframe").first
-        if await iframe_locator.count():
-            frame_content = await iframe_locator.content_frame()
-            if frame_content:
-                candidate_iframe_urls: List[str] = []
-                def handle_iframe_request(request):
-                    if STREAM_PATTERN.search(request.url) and request.url not in candidate_iframe_urls:
-                        candidate_iframe_urls.append(request.url)
-                        print(f" ✅ Captured iframe stream: {request.url}")
-                frame_content.on("request", handle_iframe_request)
-                await asyncio.sleep(3)  # allow iframe to load streams
-                for url in reversed(candidate_iframe_urls):
-                    if await verify_stream_url(session, url, headers=verification_headers):
-                        return url
+    # Wait for JS to load streams
+    await asyncio.sleep(3)
 
-    except Exception as e:
-        print(f" ❌ Error processing page {page_url}: {e}")
-    finally:
-        if not page.is_closed():
-            page.remove_listener("request", handle_request)
-        await page.close()
+    # Test captured streams
+    for url in reversed(candidate_streams):
+        if await verify_stream_url(session, url):
+            await page.close()
+            return url
 
+    # Try iframe
+    iframes = page.frames
+    for frame in iframes:
+        try:
+            for req in frame._requests.values():
+                if STREAM_PATTERN.search(req.url):
+                    if await verify_stream_url(session, req.url):
+                        await page.close()
+                        return req.url
+        except:
+            pass
+
+    await page.close()
     return None
 
-async def scrape_nfl() -> List[Dict]:
-    streams = []
-    async with async_playwright() as p, aiohttp.ClientSession(headers={"User-Agent": USER_AGENT}) as session:
+
+# -----------------------------------------------------------
+#  MAIN SCRAPER
+# -----------------------------------------------------------
+async def scrape_nfl():
+    all_streams = []
+
+    async with async_playwright() as p, aiohttp.ClientSession(
+        headers={"User-Agent": USER_AGENT}
+    ) as session:
+
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(user_agent=USER_AGENT)
+
         page = await context.new_page()
-        try:
-            await page.goto(NFL_BASE_URL, wait_until="domcontentloaded", timeout=60000)
 
-            selectors = [
-                "tr.single_match_date, .match-row.clearfix",
-                "div.game-row, div.match-row",
-                "h1.gametitle a"
-            ]
-            event_rows = None
-            for sel in selectors:
-                try:
-                    await page.wait_for_selector(sel, timeout=GAME_TABLE_WAIT_TIMEOUT)
-                    event_rows = page.locator(sel)
-                    print(f"✅ Using selector: {sel}")
-                    break
-                except Exception:
-                    continue
+        # Retry homepage
+        await retry_async(
+            "Open NFLWebcast homepage",
+            lambda: page.goto(NFL_BASE_URL, wait_until="domcontentloaded", timeout=60000),
+        )
 
-            if not event_rows:
-                print("⚠️ Could not find any event rows.")
-                return []
+        selectors = [
+            "tr.single_match_date, .match-row.clearfix",
+            "div.match-row",
+            ".game-row",
+            "table tbody tr",
+        ]
 
+        event_rows = None
+        for sel in selectors:
+            print(f"Trying selector: {sel}")
+            ok = await retry_async(
+                f"Wait for selector: {sel}",
+                lambda s=sel: page.wait_for_selector(s, timeout=GAME_TABLE_WAIT_TIMEOUT),
+            )
+            if ok:
+                event_rows = page.locator(sel)
+                break
+
+        if not event_rows:
+            print("⚠️ No game rows found")
+        else:
             count = await event_rows.count()
-            print(f"Found {count} event rows.")
+            print(f"📌 Found {count} rows")
 
             for i in range(count):
-                row = event_rows.nth(i)
                 try:
-                    link = row.locator("td.teamvs a, span.tm").first
+                    row = event_rows.nth(i)
+                    link = row.locator("a").first
                     href = await link.get_attribute("href")
-                    name = (await link.inner_text()).strip() if link else "Unknown Game"
-                    full_url = urljoin(NFL_BASE_URL, href) if href else None
-                    if full_url:
-                        stream_url = await find_stream_from_servers_on_page(context, full_url, NFL_BASE_URL, session)
-                        if stream_url:
-                            streams.append({
-                                "name": normalize_game_name(name),
+                    name = normalize_game_name(await link.inner_text())
+
+                    full_url = urljoin(NFL_BASE_URL, href)
+
+                    stream_url = await find_stream_from_page(context, full_url, session)
+                    if stream_url:
+                        all_streams.append(
+                            {
+                                "name": name,
                                 "url": stream_url,
-                                "tvg_id": "NFL.Dummy.us",
-                                "tvg_logo": "https://imgur.com/a/uUISWtN#ARfsHVA.png",
+                                "tvg_id": "NFL.Webcast.Game",
+                                "tvg_logo": "https://i.imgur.com/NFLlogo.png",
                                 "group": "NFLWebcast - Live Games",
-                                "ref": NFL_BASE_URL
-                            })
+                                "ref": NFL_BASE_URL,
+                            }
+                        )
                 except Exception as e:
-                    print(f" ⚠️ Error processing row {i}: {e}")
-                    continue
+                    print(f"⚠️ Error parsing row {i}: {e}")
 
-            for url in NFL_CHANNEL_URLS:
-                slug = url.strip("/").split("/")[-1]
-                stream_url = await find_stream_from_servers_on_page(context, url, NFL_BASE_URL, session)
-                if stream_url:
-                    streams.append({
-                        "name": CHANNEL_METADATA.get(slug, {}).get("name", normalize_game_name(slug)),
+        # STATIC CHANNELS
+        for url in NFL_CHANNEL_URLS:
+            slug = url.strip("/").split("/")[-1]
+            meta = CHANNEL_METADATA.get(slug, {})
+
+            print(f"📺 Scraping channel: {meta.get('name', slug)}")
+
+            stream_url = await find_stream_from_page(context, url, session)
+            if stream_url:
+                all_streams.append(
+                    {
+                        "name": meta.get("name", slug),
                         "url": stream_url,
-                        "tvg_id": CHANNEL_METADATA.get(slug, {}).get("id", "NFL.Dummy.us"),
-                        "tvg_logo": CHANNEL_METADATA.get(slug, {}).get("logo", "https://imgur.com/a/uUISWtN#ARfsHVA.png"),
+                        "tvg_id": meta.get("id", slug),
+                        "tvg_logo": meta.get("logo", ""),
                         "group": "NFLWebcast - 24/7 Channels",
-                        "ref": NFL_BASE_URL
-                    })
+                        "ref": NFL_BASE_URL,
+                    }
+                )
 
-        except Exception as e:
-            print(f"❌ Error scraping NFL page: {e}")
-        finally:
-            await browser.close()
-    return streams
+        await browser.close()
+        return all_streams
 
+
+# -----------------------------------------------------------
+#  WRITE M3U
+# -----------------------------------------------------------
 def write_playlist(streams: List[Dict], filename: str):
     if not streams:
-        print("⏹️ No streams found.")
+        print("⚠️ No streams found, skipping file write.")
         return
+
     with open(filename, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
-        for entry in streams:
-            f.write(f'#EXTINF:-1 tvg-id="{entry["tvg_id"]}" tvg-name="{entry["name"]}" tvg-logo="{entry["tvg_logo"]}" group-title="{entry["group"]}",{entry["name"]}\n')
-            f.write(f'#EXTVLCOPT:http-origin={entry["ref"]}\n')
-            f.write(f'#EXTVLCOPT:http-referrer={entry["ref"]}\n')
+        for s in streams:
+            f.write(
+                f'#EXTINF:-1 tvg-id="{s["tvg_id"]}" tvg-logo="{s["tvg_logo"]}" '
+                f'group-title="{s["group"]}",{s["name"]}\n'
+            )
+            f.write(f'#EXTVLCOPT:http-origin={s["ref"]}\n')
+            f.write(f'#EXTVLCOPT:http-referrer={s["ref"]}\n')
             f.write(f"#EXTVLCOPT:http-user-agent={USER_AGENT}\n")
-            f.write(entry["url"] + "\n")
-    print(f"✅ Playlist saved to {filename} ({len(streams)} streams).")
+            f.write(s["url"] + "\n")
 
+    print(f"✅ Saved {filename} ({len(streams)} streams)")
+
+
+# -----------------------------------------------------------
+#  ENTRY POINT
+# -----------------------------------------------------------
 async def main():
     streams = await scrape_nfl()
     write_playlist(streams, OUTPUT_FILE)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
