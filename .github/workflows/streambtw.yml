@@ -1,9 +1,9 @@
 name: StreamBTW Scraper
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "0 * * * *"  # every hour
+    - cron: '0 * * * *'   # Every hour
+  workflow_dispatch:
 
 jobs:
   scrape:
