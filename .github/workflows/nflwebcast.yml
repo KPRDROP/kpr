@@ -2,7 +2,7 @@ name: 🔁 Update NFLWebcast Playlist
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes
+    - cron: '0 * * * *'   # hourly
   workflow_dispatch:
 
 permissions:
@@ -11,60 +11,62 @@ permissions:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 🐍 Set up Python 3.11
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: 📦 Install Python + Playwright
+      - name: Install Python deps
         run: |
           python -m pip install --upgrade pip
-          pip install playwright aiohttp beautifulsoup4
+          pip install aiohttp playwright
+
+      - name: Install Playwright browsers (chromium)
+        run: |
+          # install only the browsers; avoid --with-deps to prevent apt attempts
           python -m playwright install chromium
 
-      - name: 🚀 Running nflwebcast.py ...
+      - name: Run nflwebcast.py
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
         run: |
           echo "🚀 Running nflwebcast.py ..."
           python nflwebcast.py
+        timeout-minutes: 10
 
-      - name: 💾 Commit & Push if Playlist Changed
+      - name: Upload playlist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nflwebcast-output
+          path: |
+            NFLWebcast.m3u8
+
+      - name: Commit playlist if changed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          FILE="NFLWebcast.m3u8"
-
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if [ ! -f "$FILE" ]; then
-            echo "⚠️ No playlist generated — skipping commit."
-            exit 0
+          FILE="NFLWebcast.m3u8"
+          if [ -f "$FILE" ]; then
+            git add "$FILE"
+            if git diff --cached --quiet; then
+              echo "No changes to commit."
+              exit 0
+            fi
+            git commit -m "Auto-update NFLWebcast playlist: $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push origin HEAD:main || {
+              echo "Push failed; trying pull --rebase then push"
+              git pull --rebase origin main || true
+              git push origin HEAD:main || true
+            }
+          else
+            echo "Playlist not found; nothing to commit."
           fi
-
-          git add "$FILE"
-
-          if git diff --cached --quiet; then
-            echo "✔ No changes — nothing to commit."
-            exit 0
-          fi
-
-          git commit -m "🔁 Auto-update NFLWebcast playlist ($(date -u +'%Y-%m-%d %H:%M UTC'))"
-
-          # Random delay 5–15s to reduce push collisions
-          sleep $((RANDOM % 10 + 5))
-
-          # Safe push
-          if ! git push origin main; then
-            echo "⚠️ Push failed — retrying with rebase..."
-            git pull origin main --rebase || exit 1
-            git push origin main || exit 1
-          fi
-
-          echo "✅ Playlist updated & pushed!"
