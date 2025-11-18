@@ -144,7 +144,7 @@ async def scrape_nfl() -> List[Dict]:
                                 "name": normalize_game_name(name),
                                 "url": stream_url,
                                 "tvg_id": "NFL.Dummy.us",
-                                "tvg_logo": "http://drewlive24.duckdns.org:9000/Logos/Maxx.png",
+                                "tvg_logo": "https://imgur.com/a/uUISWtN#ARfsHVA.png",
                                 "group": "NFLWebcast - Live Games",
                                 "ref": NFL_BASE_URL
                             })
@@ -160,7 +160,7 @@ async def scrape_nfl() -> List[Dict]:
                         "name": CHANNEL_METADATA.get(slug, {}).get("name", normalize_game_name(slug)),
                         "url": stream_url,
                         "tvg_id": CHANNEL_METADATA.get(slug, {}).get("id", "NFL.Dummy.us"),
-                        "tvg_logo": CHANNEL_METADATA.get(slug, {}).get("logo", "http://drewlive24.duckdns.org:9000/Logos/Maxx.png"),
+                        "tvg_logo": CHANNEL_METADATA.get(slug, {}).get("logo", "https://imgur.com/a/uUISWtN#ARfsHVA.png"),
                         "group": "NFLWebcast - 24/7 Channels",
                         "ref": NFL_BASE_URL
                     })
