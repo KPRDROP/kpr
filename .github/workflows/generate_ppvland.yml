@@ -39,6 +39,7 @@ jobs:
           else
             git commit -m "Update PPVLand.m3u8 [skip ci]"
             git push origin HEAD
+          fi
 
       - name: Verify playlist
         run: |
