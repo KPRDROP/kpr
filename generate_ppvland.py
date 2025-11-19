@@ -130,4 +130,75 @@ def build_m3u(streams, url_map):
             continue
 
         orig_category = s["category"].strip()
-        final_group = GROUP_RENAME_MAP.get(orig_
+        final_group = GROUP_RENAME_MAP.get(orig_category, orig_category)
+        logo = CATEGORY_LOGOS.get(orig_category, "")
+        tvg_id = CATEGORY_TVG_IDS.get(orig_category, "Sports.Dummy.us")
+        url = next(iter(urls))
+
+        lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{final_group}",{s["name"]}')
+        lines.extend(CUSTOM_HEADERS)
+        lines.append(url)
+
+    return "\n".join(lines)
+
+
+async def main():
+    print("🚀 Starting PPV Stream Fetcher")
+    data = await get_streams()
+    if not data or 'streams' not in data:
+        print("❌ No valid data from API")
+        return
+
+    streams = []
+    for category in data.get("streams", []):
+        cat = category.get("category", "").strip()
+        if cat not in ALLOWED_CATEGORIES:
+            continue
+        for stream in category.get("streams", []):
+            iframe = stream.get("iframe")
+            name = stream.get("name", "Unnamed Event")
+            if iframe:
+                streams.append({"name": name, "iframe": iframe, "category": cat})
+
+    # Deduplicate streams by name
+    seen_names = set()
+    deduped_streams = []
+    for s in streams:
+        key = s["name"].strip().lower()
+        if key not in seen_names:
+            seen_names.add(key)
+            deduped_streams.append(s)
+    streams = deduped_streams
+
+    if not streams:
+        print("🚫 No valid streams found.")
+        return
+
+    print(f"🔍 Processing {len(streams)} unique streams from {len({s['category'] for s in streams})} categories")
+
+    async with async_playwright() as p:
+        browser = await p.firefox.launch(headless=True)
+        context = await browser.new_context()
+        page = await context.new_page()
+
+        url_map = {}
+        for s in streams:
+            key = f"{s['name']}::{s['category']}::{s['iframe']}"
+            print(f"\n🔍 Scraping: {s['name']} ({s['category']})")
+            urls = await grab_m3u8_from_iframe(page, s["iframe"])
+            if urls:
+                print(f"✅ Found {len(urls)} stream(s) for {s['name']}")
+            url_map[key] = urls
+
+        await browser.close()
+
+    print("\n💾 Writing playlist to PPVLand.m3u8 ...")
+    playlist = build_m3u(streams, url_map)
+    with open("PPVLand.m3u8", "w", encoding="utf-8") as f:
+        f.write(playlist)
+
+    print(f"✅ Done! Playlist saved as PPVLand.m3u8 at {datetime.utcnow().isoformat()} UTC")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
