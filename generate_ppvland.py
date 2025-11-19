@@ -1,6 +1,7 @@
 import asyncio
 import aiohttp
 from datetime import datetime
+from playwright.async_api import async_playwright
 
 API_URL = "https://ppv.to/api/streams"
 
@@ -63,8 +64,8 @@ async def get_streams():
         return None
 
 
-async def fetch_m3u8(session, iframe_url):
-    """Directly fetch m3u8 links from iframe URL"""
+async def fetch_direct_m3u8(session, iframe_url):
+    """Try to fetch direct m3u8 URLs from iframe HTML"""
     urls = set()
     try:
         async with session.get(iframe_url, headers=HEADERS, timeout=15) as resp:
@@ -76,6 +77,41 @@ async def fetch_m3u8(session, iframe_url):
     except Exception as e:
         print(f"❌ Error fetching iframe {iframe_url}: {e}")
     return urls
+
+
+async def fetch_m3u8_playwright(iframe_url):
+    """Fallback to Playwright for JS-generated streams"""
+    found_streams = set()
+    async with async_playwright() as p:
+        browser = await p.firefox.launch(headless=True)
+        page = await browser.new_page()
+        def handle_response(response):
+            if ".m3u8" in response.url:
+                found_streams.add(response.url)
+        page.on("response", handle_response)
+        try:
+            await page.goto(iframe_url, timeout=15000)
+            await asyncio.sleep(3)
+        except Exception as e:
+            print(f"❌ Playwright iframe load error: {e}")
+        await browser.close()
+    return found_streams
+
+
+async def get_valid_urls(session, iframe_url):
+    """Try direct fetch first, fallback to Playwright if empty"""
+    urls = await fetch_direct_m3u8(session, iframe_url)
+    valid_urls = set()
+    for url in urls:
+        if await check_m3u8_url(session, url):
+            valid_urls.add(url)
+    if not valid_urls:
+        print("⚡ Falling back to Playwright for dynamic JS iframe...")
+        urls = await fetch_m3u8_playwright(iframe_url)
+        for url in urls:
+            if await check_m3u8_url(session, url):
+                valid_urls.add(url)
+    return valid_urls
 
 
 def build_m3u(streams, url_map):
@@ -145,14 +181,10 @@ async def main():
     async with aiohttp.ClientSession(headers=HEADERS) as session:
         for s in streams:
             key = f"{s['name']}::{s['category']}::{s['iframe']}"
-            urls = await fetch_m3u8(session, s["iframe"])
-            valid_urls = set()
-            for url in urls:
-                if await check_m3u8_url(session, url):
-                    valid_urls.add(url)
+            valid_urls = await get_valid_urls(session, s["iframe"])
+            url_map[key] = valid_urls
             if valid_urls:
                 print(f"✅ Found {len(valid_urls)} stream(s) for {s['name']}")
-            url_map[key] = valid_urls
 
     print("\n💾 Writing playlist to PPVLand.m3u8 ...")
     playlist = build_m3u(streams, url_map)
