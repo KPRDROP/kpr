@@ -1,113 +1,197 @@
 #!/usr/bin/env python3
 import asyncio
-import aiohttp
 import sys
-import time
-from urllib.parse import urljoin, quote
+import re
+from urllib.parse import urljoin
+import aiohttp
 from playwright.async_api import async_playwright
 
 START_URL = "https://nflwebcast.com/"
-OUTPUT_FILE = "NFLWebcast.m3u8"
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+LISTING_URL = "https://nflwebcast.com/sbl/"
+UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+      "(KHTML, like Gecko) Chrome/120.0.6099.200 Safari/537.36")
 
-NAV_TIMEOUT_MS = 25_000
-NAV_RETRIES = 3
-GLOBAL_TIMEOUT = 180
-VALIDATE_TIMEOUT = 10
+NAV_TIMEOUT = 30000
+CF_WAIT = 4
+M3U_OUT = "NFLWebcast.m3u8"
 
-PLAYABLE_MARK = (".m3u8", ".ts")
+EVENT_PATTERNS = [
+    r"live-stream-online",
+    r"live-stream",
+    r"live\-stream",
+]
 
-def log(*args):
-    print(*args, flush=True)
+M3U_PAT = re.compile(r"https?://[^\s\"']+\.m3u8")
 
-def is_playable(url: str):
-    return url and any(p in url.lower() for p in PLAYABLE_MARK)
 
-async def validate_url(url, session):
-    headers = {"User-Agent": USER_AGENT, "Referer": START_URL, "Origin": START_URL}
+# ---------------------------------------------------------------
+#  Utility: real browser anti-bot patches
+# ---------------------------------------------------------------
+async def apply_stealth(page):
+    await page.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+        window.chrome = { runtime: {} };
+        Object.defineProperty(navigator, 'plugins', {
+            get: () => [1, 2, 3, 4]
+        });
+        Object.defineProperty(navigator, 'languages', {
+            get: () => ['en-US', 'en']
+        });
+    """)
+
+
+# ---------------------------------------------------------------
+#  Navigation with Cloudflare handling
+# ---------------------------------------------------------------
+async def cf_safe_goto(page, url, retries=4):
+    for attempt in range(1, retries + 1):
+        print(f"→ goto {url} attempt {attempt}/{retries}")
+        try:
+            resp = await page.goto(url, wait_until="domcontentloaded", timeout=NAV_TIMEOUT)
+            await asyncio.sleep(CF_WAIT)
+
+            text = (await page.content()).lower()
+
+            if "cloudflare" in text or "checking your browser" in text:
+                print("   ⏳ Cloudflare challenge, waiting…")
+                await asyncio.sleep(CF_WAIT + 2)
+                continue
+
+            return resp
+
+        except Exception as e:
+            print("   ⚠️ navigation error:", e)
+
+    print("   ✖ failed navigation:", url)
+    return None
+
+
+# ---------------------------------------------------------------
+#  Extract event page <a href=""> links
+# ---------------------------------------------------------------
+def extract_event_links(html: str):
+    links = re.findall(r'href="([^"]+)"', html)
+    out = []
+
+    for link in links:
+        full = link.strip()
+        if not full.startswith("http"):
+            continue
+
+        for pat in EVENT_PATTERNS:
+            if re.search(pat, full):
+                out.append(full)
+
+    return list(set(out))
+
+
+# ---------------------------------------------------------------
+#  Extract .m3u8 URLs from event page HTML
+# ---------------------------------------------------------------
+def extract_m3u8(html: str):
+    return list(set(M3U_PAT.findall(html)))
+
+
+# ---------------------------------------------------------------
+#  Validate m3u8 via aiohttp
+# ---------------------------------------------------------------
+async def validate_m3u8(url):
+    headers = {
+        "User-Agent": UA,
+        "Referer": START_URL,
+        "Origin": START_URL,
+    }
     try:
-        async with session.get(url, headers=headers, timeout=VALIDATE_TIMEOUT) as r:
-            return r.status == 200
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.head(url, timeout=10, allow_redirects=True) as resp:
+                return resp.status == 200
     except:
         return False
 
-async def robust_goto(page, url, attempts=NAV_RETRIES):
-    for i in range(1, attempts + 1):
-        try:
-            log(f"→ goto {url} attempt {i}/{attempts}")
-            await page.goto(url, timeout=NAV_TIMEOUT_MS, wait_until="domcontentloaded")
-            await page.wait_for_selector("body", timeout=5000)
-            content = (await page.content()).lower()
-            if any(x in content for x in ("cf-browser-verification","checking your browser","just a moment")):
-                log("⏳ Cloudflare/challenge detected, retrying...")
-                await asyncio.sleep(2 + i)
-                continue
-            return True
-        except:
-            await asyncio.sleep(1)
-    return False
 
-async def extract_event_links(page):
-    anchors = await page.query_selector_all("a[href]")
-    links = set()
-    for a in anchors:
-        try:
-            href = await a.get_attribute("href")
-            if href and any(x in href.lower() for x in ("/live-stream","live-stream-online")):
-                links.add(urljoin(START_URL, href))
-        except:
-            continue
-    return list(links)
-
+# ---------------------------------------------------------------
+#  Main scraping logic
+# ---------------------------------------------------------------
 async def main():
-    start = time.time()
-    log("🚀 Starting NFLWebcast scraper (headful + direct <a> scan)")
-    found_urls = set()
-    try:
-        async with async_playwright() as pw, aiohttp.ClientSession() as session:
-            browser = await pw.chromium.launch(headless=False, args=["--no-sandbox"])
-            context = await browser.new_context(user_agent=USER_AGENT, viewport={"width":1280,"height":720})
-            page = await context.new_page()
+    print("🚀 Starting NFLWebcast scraper (full rewrite)")
 
-            # Try main page first
-            ok = await robust_goto(page, START_URL)
-            if not ok:
-                # try /sbl/ listing
-                sbl = urljoin(START_URL, "sbl/")
-                ok = await robust_goto(page, sbl)
-            if ok:
-                links = await extract_event_links(page)
-                found_urls.update(links)
-            await page.close()
-            await context.close()
-            await browser.close()
+    async with async_playwright() as pw:
+        browser = await pw.chromium.launch(
+            headless=False,
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--start-maximized",
+                "--no-sandbox",
+            ],
+        )
+        context = await browser.new_context(
+            user_agent=UA,
+            viewport={"width": 1366, "height": 768},
+        )
+        page = await context.new_page()
+        await apply_stealth(page)
 
-            log(f"ℹ candidate links found: {len(found_urls)}")
-            validated = set()
-            for u in found_urls:
-                if is_playable(u):
-                    if await validate_url(u, session):
-                        validated.add(u)
+        # 1) Try homepage
+        print("🌐 Loading homepage…")
+        r1 = await cf_safe_goto(page, START_URL)
+        html1 = await page.content()
 
-            # write playlist
-            with open(OUTPUT_FILE, "w", encoding="utf-8") as fh:
-                fh.write("#EXTM3U\n")
-                if not validated:
-                    fh.write("# no streams validated\n")
-                for u in validated:
-                    ua_enc = quote(USER_AGENT, safe="")
-                    fh.write(f"#EXTINF:-1,Live\n{u}|referer={START_URL}|origin={START_URL}|user-agent={ua_enc}\n")
-            log(f"✅ Playlist written: {OUTPUT_FILE} | streams: {len(validated)} | time: {time.time()-start:.1f}s")
+        # 2) Try /sbl/
+        print("🌐 Loading listing /sbl/…")
+        r2 = await cf_safe_goto(page, LISTING_URL)
+        html2 = await page.content()
 
-    except Exception as e:
-        log("❌ Fatal error:", e)
-        sys.exit(1)
+        # Extract event links
+        event_links = extract_event_links(html1) + extract_event_links(html2)
+        event_links = list(set(event_links))
 
+        print(f"🔍 Event links discovered: {len(event_links)}")
+        for ev in event_links:
+            print("  •", ev)
+
+        streams = []
+
+        # Visit each event page
+        for ev in event_links:
+            print(f"\n🎯 Visiting event page:\n   {ev}")
+            rr = await cf_safe_goto(page, ev)
+            if rr is None:
+                print("   ✖ could not load event")
+                continue
+
+            html = await page.content()
+            found = extract_m3u8(html)
+
+            if not found:
+                print("   ⚠️ no .m3u8 found in HTML — scanning scripts…")
+                # scan JS requests via network logs later if needed
+                continue
+
+            for url in found:
+                print("   → candidate:", url)
+                ok = await validate_m3u8(url)
+                if ok:
+                    print("     ✔ valid")
+                    streams.append(url)
+                else:
+                    print("     ✖ invalid")
+
+        # Write playlist
+        print(f"\n📄 Writing playlist: {M3U_OUT}")
+        with open(M3U_OUT, "w", encoding="utf-8") as f:
+            f.write("#EXTM3U\n")
+            for idx, s in enumerate(streams, 1):
+                pipe = (
+                    f"{s}|referer={START_URL}|origin={START_URL}|"
+                    f"user-agent={UA}"
+                )
+                f.write(f"#EXTINF:-1,NFLWebcast Stream {idx}\n{pipe}\n")
+
+        print(f"✅ Playlist written: {M3U_OUT} | streams: {len(streams)}")
+
+        await browser.close()
+
+
+# ---------------------------------------------------------------
 if __name__ == "__main__":
-    try:
-        asyncio.run(asyncio.wait_for(main(), timeout=GLOBAL_TIMEOUT))
-    except asyncio.TimeoutError:
-        log("❌ Global timeout reached")
-        with open(OUTPUT_FILE, "w", encoding="utf-8") as fh:
-            fh.write("#EXTM3U\n# timeout\n")
-        sys.exit(2)
+    asyncio.run(main())
