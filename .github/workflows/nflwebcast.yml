@@ -1,63 +1,114 @@
-name: 🔁 Update NFLWebcast Playlist
+name: NFLWebcast Scraper
 
 on:
-  schedule:
-    - cron: '0 * * * *' # hourly
   workflow_dispatch:
-
-permissions:
-  contents: write
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes
 
 jobs:
-  scrape-nfl:
+  scrape:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
+    # ------------------------------
+    # Checkout repo
+    # ------------------------------
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: 🐍 Setup Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    # ------------------------------
+    # Install system dependencies
+    # Headful Chromium requires many libs
+    # ------------------------------
+    - name: Install Linux dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          xvfb \
+          x11-xkb-utils \
+          xfonts-100dpi \
+          xfonts-75dpi \
+          xfonts-scalable \
+          xfonts-cyrillic \
+          libasound2t64 \
+          libnss3 \
+          libxss1 \
+          libatk1.0-0 \
+          libatk-bridge2.0-0 \
+          libcups2 \
+          libgbm1 \
+          libxkbcommon0 \
+          libpango-1.0-0 \
+          libxcomposite1 \
+          libxdamage1 \
+          libxrandr2 \
+          libxfixes3 \
+          libxshmfence1 \
+          libwayland-client0 \
+          libwayland-egl1 \
+          libwayland-cursor0
 
-      - name: 📦 Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install aiohttp playwright
-          # Install Chromium + other browsers for Playwright
-          python -m playwright install chromium
+    # ------------------------------
+    # Install Python environment
+    # ------------------------------
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
 
-      - name: 🖥️ Start XVFB and run scraper
-        run: |
-          # start virtual framebuffer in background
-          Xvfb :99 -screen 0 1280x720x24 &
-          export DISPLAY=:99
+    - name: Install Python dependencies
+      run: |
+        pip install --upgrade pip
+        pip install playwright aiohttp
 
-          echo "🚀 Running nflwebcast.py ..."
-          python nflwebcast.py
-        env:
-          PYTHONUNBUFFERED: 1
+    # ------------------------------
+    # Install Chromium only
+    # (We don't need Firefox/WebKit)
+    # ------------------------------
+    - name: Install Playwright Chromium
+      run: |
+        python -m playwright install chromium
 
-      - name: 💾 Commit & push playlist if updated
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+    # ------------------------------
+    # Start XVFB virtual screen
+    # ------------------------------
+    - name: Start X virtual framebuffer
+      run: |
+        export DISPLAY=:99
+        nohup Xvfb :99 -screen 0 1366x768x24 &
+        sleep 3
 
-          FILE="NFLWebcast.m3u8"
-          if [ -f "$FILE" ]; then
-            git add "$FILE"
-          else
-            echo "⚠️ $FILE not found, skipping commit"
-            exit 0
-          fi
+    # ------------------------------
+    # Run the scraper
+    # ------------------------------
+    - name: Run nflwebcast.py
+      env:
+        DISPLAY: :99
+      run: |
+        echo "🚀 Running nflwebcast.py ..."
+        python nflwebcast.py
 
-          if git diff --cached --quiet; then
-            echo "✅ No changes detected"
-            exit 0
-          fi
+    # ------------------------------
+    # Upload generated NFLWebcast.m3u8
+    # ------------------------------
+    - name: Upload playlist
+      uses: actions/upload-artifact@v4
+      with:
+        name: NFLWebcast-playlist
+        path: NFLWebcast.m3u8
 
-          git commit -m "🔁 Auto-update NFLWebcast playlist ($(date -u +'%Y-%m-%d %H:%M UTC'))"
-          git push origin main || (git pull --rebase origin main && git push origin main)
+    # ------------------------------
+    # Commit updated playlist to repo
+    # Optional: remove if you don't want auto-commit
+    # ------------------------------
+    - name: Commit playlist to repo
+      if: success()
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add NFLWebcast.m3u8 || true
+        git commit -m "Updated playlist $(date -u '+%Y-%m-%d %H:%M:%S')" || true
+        git push || true
