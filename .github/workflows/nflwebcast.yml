@@ -3,112 +3,60 @@ name: NFLWebcast Scraper
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes
+    - cron: "*/30 * * * *"
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-
     steps:
-    # ------------------------------
-    # Checkout repo
-    # ------------------------------
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
 
-    # ------------------------------
-    # Install system dependencies
-    # Headful Chromium requires many libs
-    # ------------------------------
-    - name: Install Linux dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          xvfb \
-          x11-xkb-utils \
-          xfonts-100dpi \
-          xfonts-75dpi \
-          xfonts-scalable \
-          xfonts-cyrillic \
-          libasound2t64 \
-          libnss3 \
-          libxss1 \
-          libatk1.0-0 \
-          libatk-bridge2.0-0 \
-          libcups2 \
-          libgbm1 \
-          libxkbcommon0 \
-          libpango-1.0-0 \
-          libxcomposite1 \
-          libxdamage1 \
-          libxrandr2 \
-          libxfixes3 \
-          libxshmfence1 \
-          libwayland-client0 \
-          libwayland-egl1 \
-          libwayland-cursor0
-
-    # ------------------------------
-    # Install Python environment
-    # ------------------------------
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
 
-    - name: Install Python dependencies
+    - name: Install System Dependencies (Xvfb, fonts, browser deps)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          xvfb xauth x11-apps \
+          libnss3 libnspr4 libgbm1 libatk1.0-0 libcups2 \
+          libxcomposite1 libxrandr2 libdbus-1-3 libxdamage1 \
+          libxkbcommon0 libpango-1.0-0 libcairo2 libasound2 \
+          fonts-liberation libxshmfence1
+
+        # Shared memory fix for Chromium crashes
+        sudo mount -o remount,size=1G /dev/shm || true
+        df -h /dev/shm
+
+    - name: Install Python Dependencies
       run: |
         pip install --upgrade pip
-        pip install playwright aiohttp
+        pip install playwright aiohttp aiodns bs4 lxml
+        playwright install chromium
 
-    # ------------------------------
-    # Install Chromium only
-    # (We don't need Firefox/WebKit)
-    # ------------------------------
-    - name: Install Playwright Chromium
+    - name: Start Xvfb (DISPLAY=:99)
       run: |
-        python -m playwright install chromium
-
-    # ------------------------------
-    # Start XVFB virtual screen
-    # ------------------------------
-    - name: Start X virtual framebuffer
-      run: |
-        export DISPLAY=:99
-        nohup Xvfb :99 -screen 0 1366x768x24 &
-        sleep 3
-
-    # ------------------------------
-    # Run the scraper
-    # ------------------------------
-    - name: Run nflwebcast.py
+        echo "Starting Xvfb on :99 ..."
+        Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp &
+        sleep 2
       env:
-        DISPLAY: :99
+        DISPLAY: ":99"
+
+    - name: Run scraper
+      env:
+        DISPLAY: ":99"
+        PLAYWRIGHT_BROWSERS_PATH: "0"
+        PYTHONUNBUFFERED: "1"
       run: |
         echo "🚀 Running nflwebcast.py ..."
-        python nflwebcast.py
+        python3 nflwebcast.py
 
-    # ------------------------------
-    # Upload generated NFLWebcast.m3u8
-    # ------------------------------
     - name: Upload playlist
       uses: actions/upload-artifact@v4
       with:
-        name: NFLWebcast-playlist
+        name: nflwebcast-playlist
         path: NFLWebcast.m3u8
-
-    # ------------------------------
-    # Commit updated playlist to repo
-    # Optional: remove if you don't want auto-commit
-    # ------------------------------
-    - name: Commit playlist to repo
-      if: success()
-      run: |
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
-        git add NFLWebcast.m3u8 || true
-        git commit -m "Updated playlist $(date -u '+%Y-%m-%d %H:%M:%S')" || true
-        git push || true
