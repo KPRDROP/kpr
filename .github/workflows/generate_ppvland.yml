@@ -1,67 +1,49 @@
-name: Generate PPVLand Playlist
+name: Generate and Commit PPVLand M3U8
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "*/30 * * * *"  # every 30 min
 
 jobs:
-  build:
+  generate-and-commit:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: true  # Needed for pushing back
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
-      - name: Install Chromium dependencies
+      - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libatk1.0-0 \
-            libcairo2 \
-            libcups2 \
-            libdrm2 \
-            libgbm1 \
-            libglib2.0-0 \
-            libnss3 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxfixes3 \
-            libxkbcommon0 \
-            libxrandr2 \
-            libasound2t64 \
-            libxshmfence1 \
-            libx11-6 libx11-xcb1 \
-            libxext6 libxss1 \
-            libatspi2.0-0 \
-            libpangocairo-1.0-0 \
-            libpango-1.0-0 \
-            libjpeg-dev \
-            libxv1 \
-            libxi6
+          python -m pip install --upgrade pip
+          pip install aiohttp playwright
 
-      - name: Install project dependencies
+      - name: Install Playwright Browsers
         run: |
-          pip install -r requirements.txt
-          pip install playwright
-          playwright install chromium
+          playwright install firefox
 
-      - name: Run PPVLand generator
+      - name: Run generate_ppvland.py
         run: |
-          set -e
-          echo "▶️ Starting playlist generation..."
-          python3 generate_ppvland.py
+          python generate_ppvland.py
 
-      - name: Commit & push results
-        if: success()
+      - name: Commit and push updated playlist
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add ppvland.m3u
-          git commit -m "Auto-update PPVLand playlist" || echo "No changes"
-          git push
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add PPVLand.m3u8
+          if git diff --cached --quiet; then
+            echo "No changes in PPVLand.m3u8"
+          else
+            git commit -m "Update PPVLand.m3u8 [skip ci]"
+            git push origin HEAD
+          fi
+
+      - name: Verify playlist
+        run: |
+          ls -lh PPVLand.m3u8
+          head -n 20 PPVLand.m3u8
