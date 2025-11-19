@@ -3,60 +3,81 @@ name: NFLWebcast Scraper
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/30 * * * *"   # every 30 minutes
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
+    - name: Checkout repo
       uses: actions/checkout@v4
 
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-
-    - name: Install System Dependencies (Xvfb, fonts, browser deps)
+    # ------------------------------------------------------------
+    # Install Ubuntu dependencies (fixed for Ubuntu 24.04)
+    # ------------------------------------------------------------
+    - name: Install System Dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           xvfb xauth x11-apps \
           libnss3 libnspr4 libgbm1 libatk1.0-0 libcups2 \
           libxcomposite1 libxrandr2 libdbus-1-3 libxdamage1 \
-          libxkbcommon0 libpango-1.0-0 libcairo2 libasound2 \
-          fonts-liberation libxshmfence1
+          libxkbcommon0 libpango-1.0-0 libcairo2 libasound2t64 \
+          fonts-liberation libxshmfence1 curl wget gnupg
 
-        # Shared memory fix for Chromium crashes
+        # Expand shared memory (Chromium stability)
         sudo mount -o remount,size=1G /dev/shm || true
-        df -h /dev/shm
 
+    # ------------------------------------------------------------
+    # Install Google Chrome Stable (REAL Chrome, not Chromium)
+    # ------------------------------------------------------------
+    - name: Install Google Chrome Stable
+      run: |
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | \
+            gpg --dearmor | sudo tee /usr/share/keyrings/googlechrome.gpg >/dev/null
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome.gpg] \
+            https://dl.google.com/linux/chrome/deb/ stable main" | \
+            sudo tee /etc/apt/sources.list.d/google-chrome.list
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+
+        # Hard-disable sandbox (GitHub runner cannot use sandbox)
+        sudo tee /etc/chromium.d/disabled-sandbox.conf <<EOF
+        CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox"
+        EOF
+
+    # ------------------------------------------------------------
+    # Install Python + Playwright (Chrome-specific)
+    # ------------------------------------------------------------
     - name: Install Python Dependencies
       run: |
-        pip install --upgrade pip
-        pip install playwright aiohttp aiodns bs4 lxml
-        playwright install chromium
+        python3 -m pip install --upgrade pip
+        pip install playwright aiohttp
+        playwright install chrome
 
-    - name: Start Xvfb (DISPLAY=:99)
+    # ------------------------------------------------------------
+    # Start Xvfb (headful mode for Cloudflare bypass)
+    # ------------------------------------------------------------
+    - name: Start Xvfb
       run: |
-        echo "Starting Xvfb on :99 ..."
-        Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp &
-        sleep 2
-      env:
-        DISPLAY: ":99"
+        Xvfb :99 -screen 0 1920x1080x24 &
+        export DISPLAY=:99
+        echo "DISPLAY=:99" >> $GITHUB_ENV
 
-    - name: Run scraper
-      env:
-        DISPLAY: ":99"
-        PLAYWRIGHT_BROWSERS_PATH: "0"
-        PYTHONUNBUFFERED: "1"
+    # ------------------------------------------------------------
+    # Run Scraper
+    # ------------------------------------------------------------
+    - name: Run nflwebcast.py
       run: |
         echo "🚀 Running nflwebcast.py ..."
-        python3 nflwebcast.py
+        DISPLAY=:99 python3 nflwebcast.py
 
+    # ------------------------------------------------------------
+    # Upload output playlist artifact
+    # ------------------------------------------------------------
     - name: Upload playlist
       uses: actions/upload-artifact@v4
       with:
-        name: nflwebcast-playlist
+        name: NFLWebcast.m3u8
         path: NFLWebcast.m3u8
