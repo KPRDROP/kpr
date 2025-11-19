@@ -29,6 +29,10 @@ jobs:
         pip install aiohttp playwright
         playwright install
         playwright install-deps
+
+    - name: Install Playwright Browsers
+      run: |
+         playwright install firefox
         
     - name: Run PPV script
       run: |
