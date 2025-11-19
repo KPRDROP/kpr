@@ -65,7 +65,7 @@ async def get_streams():
 
 
 async def fetch_direct_m3u8(session, iframe_url):
-    """Try to fetch direct m3u8 URLs from iframe HTML"""
+    """Try to fetch direct .m3u8 URLs from iframe HTML"""
     urls = set()
     try:
         async with session.get(iframe_url, headers=HEADERS, timeout=15) as resp:
@@ -80,21 +80,45 @@ async def fetch_direct_m3u8(session, iframe_url):
 
 
 async def fetch_m3u8_playwright(iframe_url):
-    """Fallback to Playwright for JS-generated streams"""
+    """Fallback to Playwright for JS-generated streams with retry, stealth, and longer timeout"""
     found_streams = set()
+    max_attempts = 3
+
     async with async_playwright() as p:
         browser = await p.firefox.launch(headless=True)
-        page = await browser.new_page()
+        context = await browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+            java_script_enabled=True,
+            viewport={"width": 1280, "height": 720},
+        )
+        page = await context.new_page()
+        await page.set_extra_http_headers({
+            "Referer": "https://ppv.to",
+            "Origin": "https://ppv.to",
+        })
+
+        # Capture any network response containing .m3u8
         def handle_response(response):
             if ".m3u8" in response.url:
                 found_streams.add(response.url)
+
         page.on("response", handle_response)
-        try:
-            await page.goto(iframe_url, timeout=15000)
-            await asyncio.sleep(3)
-        except Exception as e:
-            print(f"❌ Playwright iframe load error: {e}")
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                print(f"⚡ Playwright loading iframe (attempt {attempt}): {iframe_url}")
+                await page.goto(iframe_url, wait_until="networkidle", timeout=45000)
+                await asyncio.sleep(3)
+                if found_streams:
+                    break
+            except Exception as e:
+                print(f"⚡ Attempt {attempt} failed: {e}")
+                if attempt == max_attempts:
+                    print(f"❌ Failed to load iframe after {max_attempts} attempts: {iframe_url}")
+
         await browser.close()
+
     return found_streams
 
 
