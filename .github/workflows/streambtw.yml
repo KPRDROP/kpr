@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true  # required for pushing commits
+          fetch-depth: 0            # fetch full history
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v4
@@ -32,7 +35,22 @@ jobs:
         run: |
           python streambtw.py
 
-      - name: Upload M3U playlists
+      - name: Commit and push updated M3U playlists
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add Streambtw_VLC.m3u8 Streambtw_TiviMate.m3u8
+          
+          # Only commit if there are changes
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "Update StreamBTW M3U playlists [skip ci]"
+            git push origin HEAD
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Upload M3U playlists as artifact
         uses: actions/upload-artifact@v4
         with:
           name: streambtw-playlists
