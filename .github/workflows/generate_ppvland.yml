@@ -1,51 +1,48 @@
-name: Generate and Commit PPVLand M3U8
+name: Generate PPVLand Playlist
 
 on:
-  workflow_dispatch:       # Manual trigger
   schedule:
-    - cron: '0 */4 * * *'  # Every 4 hours (UTC)
+    # Every day at 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 jobs:
-  generate-and-commit:
+  generate-playlist:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
+      # 1️⃣ Checkout the repo
       - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          persist-credentials: true
 
-      - name: Set up Python 3.11
+      # 2️⃣ Setup Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: 3.11
 
-      - name: Upgrade pip and install dependencies
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install aiohttp playwright
 
+      # 4️⃣ Install Playwright browsers
       - name: Install Playwright browsers
-        run: |
-          playwright install firefox
+        run: playwright install firefox
 
+      # 5️⃣ Run Python script to generate playlist
       - name: Run generate_ppvland.py
         run: python generate_ppvland.py
 
-      - name: Commit and push updated playlist
+      # 6️⃣ Commit and push updated playlist back to repo
+      - name: Commit updated playlist
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add PPVLand.m3u8
-          if git diff --cached --quiet; then
-            echo "No changes in PPVLand.m3u8"
-          else
-            git commit -m "Update PPVLand.m3u8 [skip ci]"
-            git push origin HEAD
-          fi
-
-      - name: Verify playlist
-        run: |
-          ls -lh PPVLand.m3u8
-          head -n 20 PPVLand.m3u8
+          git diff --quiet && echo "No changes detected" || git commit -m "Update PPVLand playlist [skip ci]" 
+          git push origin HEAD:main
+        shell: bash
