@@ -2,7 +2,6 @@ import asyncio
 from playwright.async_api import async_playwright
 import aiohttp
 from datetime import datetime
-from zoneinfo import ZoneInfo
 
 API_URL = "https://ppv.to/api/streams"
 
@@ -12,7 +11,6 @@ CUSTOM_HEADERS = [
     '#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0'
 ]
 
-# Only new allowed categories
 ALLOWED_CATEGORIES = {"Basketball", "Football", "Wrestling", "24/7 Streams"}
 
 CATEGORY_LOGOS = {
@@ -89,7 +87,6 @@ async def grab_m3u8_from_iframe(page, iframe_url):
 
     await asyncio.sleep(2)
 
-    # Optional click attempts to trigger streams
     box = page.viewport_size or {"width": 1280, "height": 720}
     cx, cy = box["width"] / 2, box["height"] / 2
     for i in range(4):
@@ -160,7 +157,6 @@ async def main():
             if iframe:
                 streams.append({"name": name, "iframe": iframe, "category": cat})
 
-    # Deduplicate streams by name
     seen_names = set()
     deduped_streams = []
     for s in streams:
