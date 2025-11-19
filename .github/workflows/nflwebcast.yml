@@ -28,7 +28,7 @@ jobs:
           python generate_nflwebcast.py
 
       - name: Upload VLC playlist
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: NFLWebcast_VLC
           path: NFLwebcast_VLC.m3u8
