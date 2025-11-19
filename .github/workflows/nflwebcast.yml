@@ -25,7 +25,7 @@ jobs:
 
       - name: Run NFLWebcast scraper
         run: |
-          python generate_nflwebcast.py
+          python nflwebcast.py
 
       - name: Upload VLC playlist
         uses: actions/upload-artifact@v4
