@@ -1,165 +1,335 @@
-import json
-import urllib.request
-import ssl
-from urllib.error import URLError, HTTPError
-from datetime import datetime, timezone, timedelta
-from urllib.parse import quote
+#!/usr/bin/env python3
+"""
+nflwebcast.py -- scraped tuned to detect event <a href> anchors like:
+<a href="https://nflwebcast.com/houston-texans-live-stream-online-free-.../"
+   class="dracula-style-txt-border dracula-style-link dracula-processed">...</a>
 
-# Disable SSL certificate verification (be cautious in production)
-ssl._create_default_https_context = ssl._create_unverified_context
+Features:
+- Chrome stealth init (Playwright)
+- Cloudflare/challenge-aware navigation retries
+- Waits for the dracula link selectors and falls back to broad scan
+- Extracts m3u8 candidates from page HTML
+- Validates m3u8 with aiohttp (200 OK) and writes TiviMate pipe headers
+"""
 
-BASE = "https://nflwebcast.com"
-PAGE_PATH = "/sbl/"
+import asyncio
+import sys
+import re
+import time
+from urllib.parse import urljoin, urlparse
 
-# Output files
-OUTPUT_FILE_VLC = "NFLwebcast_VLC.m3u8"
-OUTPUT_FILE_TIVIMATE = "NFLwebcast_TiviMate.m3u8"
+from playwright.async_api import async_playwright
+import aiohttp
 
-# Headers
-VLC_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"
-VLC_REFERER = f"{BASE}{PAGE_PATH}"
-TIVIMATE_USER_AGENT = quote(VLC_USER_AGENT, safe="")
+START_URL = "https://nflwebcast.com/"
+LISTING_URL = "https://nflwebcast.com/sbl/"
+OUTPUT_FILE = "NFLWebcast.m3u8"
 
-LEAGUE_INFO = {
-    # ... (your existing league info)
+MAX_NAV_RETRIES = 4
+NAV_TIMEOUT_MS = 30000
+DEEP_SCAN = True
+VALIDATION_TIMEOUT = 10
+
+# stealth JS to reduce automation fingerprints
+STEALTH_JS = """
+Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+Object.defineProperty(navigator, 'plugins', { get: () => [1,2,3,4,5] });
+Object.defineProperty(navigator, 'languages', { get: () => ['en-US','en'] });
+const _origPerm = navigator.permissions && navigator.permissions.query;
+if (_origPerm) {
+  navigator.permissions.query = (p) => (p.name === 'notifications' ? Promise.resolve({ state: Notification.permission }) : _origPerm(p));
 }
+Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8 });
+"""
 
-def utc_to_eastern(utc_str):
-    try:
-        utc_dt = datetime.fromisoformat(utc_str.replace("Z", "+00:00"))
-        month = utc_dt.month
-        # naive offset (Daylight Savings not handled precisely)
-        offset = -4 if 3 <= month <= 11 else -5
-        et = utc_dt + timedelta(hours=offset)
-        return et.strftime("%I:%M %p ET - %m/%d/%Y").lstrip("0")
-    except Exception as e:
-        print(f"[!] utc_to_eastern parsing error: {e} (input: {utc_str})")
+M3U8_RE = re.compile(r"https?://[^\s\"']+?\.m3u8(?:\?[^\s\"']*)?", re.I)
+EVENT_HREF_PATTERNS = [
+    re.compile(r"/[a-z0-9-]+-live-stream", re.I),                # typical slug pattern
+    re.compile(r"/[a-z0-9-]+live-stream", re.I),
+    re.compile(r"houston-texans-live-stream", re.I),             # example explicit
+]
+
+
+def clean_url(u: str) -> str:
+    if not u:
         return ""
+    return u.split("#", 1)[0].strip()
 
-def get_game_status(utc_str):
-    try:
-        utc_dt = datetime.fromisoformat(utc_str.replace("Z", "+00:00")).astimezone(timezone.utc)
-        now = datetime.now(timezone.utc)
-        diff = (utc_dt - now).total_seconds()
 
-        if diff < -10800:  # ended 3 hours ago
-            return "Finished"
-        elif diff < 0:
-            return "Started"
-        else:
-            hours = int(diff // 3600)
-            minutes = int((diff % 3600) // 60)
-            if hours > 0:
-                return f"In {hours}h {minutes}m"
-            else:
-                return f"In {minutes}m"
-    except Exception as e:
-        print(f"[!] get_game_status error: {e} (input: {utc_str})")
-        return ""
+async def looks_like_challenge(page):
+    html = await page.content()
+    low = html.lower()
+    if "cf-browser-verification" in low or "just a moment" in html or "cf-challenge" in low:
+        return True
+    return False
 
-def fetch_json(url):
-    headers = {
-        "User-Agent": VLC_USER_AGENT,
-        "Referer": VLC_REFERER,
-        "Accept": "application/json, text/javascript, */*; q=0.01",
-        "Connection": "close",
-    }
-    req = urllib.request.Request(url, headers=headers)
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            raw = resp.read().decode("utf-8")
-            return json.loads(raw)
-    except HTTPError as e:
-        print(f"[!] HTTPError fetching {url}: {e.code} — {e.reason}")
-    except URLError as e:
-        print(f"[!] URLError fetching {url}: {e.reason}")
-    except json.JSONDecodeError as e:
-        print(f"[!] JSON parse error for {url}: {e}")
-        print("Raw response:", raw)
-    except Exception as e:
-        print(f"[!] Unexpected error fetching JSON: {e}")
-    return None
 
-def collect_links_with_labels(event):
-    links = []
-    comp1_home = event.get("competitors1_homeAway", "").lower() == "home"
-    chan = event.get("channel", {}) or {}
-    for i in range(1, 4):
-        key = f"server{i}URL"
-        link = chan.get(key)
-        if not link or link.lower() == "null":
+async def safe_goto(page, url: str) -> bool:
+    for attempt in range(1, MAX_NAV_RETRIES + 1):
+        try:
+            print(f"→ goto {url} (attempt {attempt}/{MAX_NAV_RETRIES})")
+            resp = await page.goto(url, timeout=NAV_TIMEOUT_MS, wait_until="domcontentloaded")
+            # small pause so client-side scripts can run
+            await asyncio.sleep(1.25)
+            if await looks_like_challenge(page):
+                print("   ⏳ Cloudflare challenge detected; sleeping and retrying...")
+                await asyncio.sleep(3 + attempt * 2)
+                continue
+            # wait a bit for dynamic links to appear
+            try:
+                await page.wait_for_load_state("networkidle", timeout=2500)
+            except Exception:
+                pass
+            return True
+        except Exception as e:
+            print(f"   ⚠ navigation error: {e}; retrying shortly")
+            await asyncio.sleep(1 + attempt)
+    print(f"   ✖ failed navigation: {url}")
+    return False
+
+
+async def extract_event_links_from_page(page, base_url: str):
+    """Primary extraction: wait for known selectors then gather hrefs."""
+    found = set()
+
+    # first try: wait for the specific dracula link selector (the site uses this)
+    selectors_to_try = [
+        "a.dracula-style-link",
+        "a.dracula-style-txt-border",
+        "a.team",                     # team link
+        "a[href*='live-stream']"      # direct href containing live-stream
+    ]
+
+    for sel in selectors_to_try:
+        try:
+            # try waiting a short time for this selector to appear
+            await page.wait_for_selector(sel, timeout=2500)
+            anchors = page.locator(sel)
+            count = await anchors.count()
+            for i in range(count):
+                href = await anchors.nth(i).get_attribute("href") or ""
+                href = clean_url(urljoin(base_url, href))
+                if href and href.startswith("http"):
+                    found.add(href)
+            if found:
+                print(f"   ✔ collected {len(found)} links from selector '{sel}'")
+                return sorted(found)
+        except Exception:
+            # not found quickly — continue to next selector
             continue
-        if i == 1:
-            label = "Home" if comp1_home else "Away"
-        elif i == 2:
-            label = "Away" if comp1_home else "Home"
-        else:
-            label = "Alt"
-        links.append((link, label))
-    return links
 
-def get_league_info(league_name):
-    for key, (tvid, logo, disp) in LEAGUE_INFO.items():
-        if key.lower() in league_name.lower():
-            return tvid, logo, disp
-    return ("Pixelsports.Dummy.us", "", "Live Sports")
+    # fallback #1: gather all anchor hrefs and filter by pattern (safer)
+    try:
+        anchors = await page.eval_on_selector_all("a[href]", "els => els.map(e => e.getAttribute('href'))")
+        for a in anchors:
+            if not a:
+                continue
+            a_clean = clean_url(urljoin(base_url, a))
+            if not a_clean.startswith("http"):
+                continue
+            # keep only links that belong to the same host (nflwebcast) or match pattern
+            if START_URL in a_clean or any(p.search(a_clean) for p in EVENT_HREF_PATTERNS):
+                found.add(a_clean)
+    except Exception:
+        pass
 
-def build_m3u(events, tivimate=False):
-    lines = ["#EXTM3U"]
-    for ev in events:
-        title = ev.get("match_name", ev.get("name", "Unknown Event")).strip()
-        date_str = ev.get("date")
-        time_et = utc_to_eastern(date_str) if date_str else ""
-        status = get_game_status(date_str) if date_str else ""
-        if time_et:
-            title += f" - {time_et}"
-        if status:
-            title += f" - {status}"
+    # fallback #2: scan HTML for common slug patterns directly
+    if not found:
+        try:
+            html = await page.content()
+            for m in re.finditer(r'href=["\']([^"\']+)["\']', html, re.I):
+                href = clean_url(m.group(1))
+                if not href:
+                    continue
+                full = urljoin(base_url, href)
+                if START_URL in full or any(p.search(full) for p in EVENT_HREF_PATTERNS):
+                    found.add(full)
+        except Exception:
+            pass
 
-        league = ev.get("channel", {}).get("TVCategory", {}).get("name", "")
-        tvid, group_logo, group_display = get_league_info(league)
+    return sorted(found)
 
-        logo = ev.get("competitors1_logo") or group_logo
 
-        for link, label in collect_links_with_labels(ev):
-            lines.append(
-                f'#EXTINF:-1 tvg-id="{tvid}" tvg-logo="{logo}" group-title="NFLwebcast - {group_display} - {label}",{title}'
-            )
-            if tivimate:
-                full = f"{link}|referer={VLC_REFERER}|origin={VLC_REFERER}|user-agent={TIVIMATE_USER_AGENT}"
-                lines.append(full)
-            else:
-                lines.append(f"#EXTVLCOPT:http-user-agent={VLC_USER_AGENT}")
-                lines.append(f"#EXTVLCOPT:http-referrer={VLC_REFERER}")
-                lines.append(link)
-    return "\n".join(lines)
+async def extract_m3u8_candidates_from_html(page):
+    html = await page.content()
+    matches = M3U8_RE.findall(html)
+    return [clean_url(m) for m in matches]
 
-def main():
-    print("[*] Starting scraper…")
-    # TODO: Replace this with actual API endpoint you discover
-    API_EVENTS = "https://pixelsport.tv/backend/liveTV/events"  # <-- placeholder
 
-    data = fetch_json(API_EVENTS)
-    if not data:
-        print("[-] No data returned from API.")
-        return
+async def validate_m3u8(url: str) -> bool:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari",
+        "Referer": START_URL,
+        "Origin": START_URL,
+    }
+    try:
+        timeout = aiohttp.ClientTimeout(total=VALIDATION_TIMEOUT)
+        async with aiohttp.ClientSession(timeout=timeout, headers=headers) as s:
+            async with s.get(url, allow_redirects=True) as r:
+                ok = r.status == 200
+                print(f"   🔎 validate {url} -> {r.status}")
+                return ok
+    except Exception as e:
+        print(f"   ⚠ validation error for {url}: {e}")
+        return False
 
-    events = data.get("events")
-    if not events:
-        print("[-] No 'events' key in API response, or it's empty.")
-        return
 
-    print(f"[*] Fetched {len(events)} events.")
+async def scan_event_page_for_m3u8(context, url: str):
+    page = await context.new_page()
+    page.add_init_script(STEALTH_JS)
+    try:
+        ok = await safe_goto(page, url)
+        if not ok:
+            return []
 
-    vlc_playlist = build_m3u(events, tivimate=False)
-    with open(OUTPUT_FILE_VLC, "w", encoding="utf-8") as f:
-        f.write(vlc_playlist)
-    print(f"[+] VLC playlist written to {OUTPUT_FILE_VLC}")
+        # try clicking a likely play button if present (best-effort)
+        try:
+            # common play button selectors
+            for ps in ["button.play", ".vjs-big-play-button", ".jw-icon-display", "button"]:
+                try:
+                    el = await page.query_selector(ps)
+                    if el:
+                        await el.click(timeout=1200)
+                        await asyncio.sleep(1.0)
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
-    tiv_playlist = build_m3u(events, tivimate=True)
-    with open(OUTPUT_FILE_TIVIMATE, "w", encoding="utf-8") as f:
-        f.write(tiv_playlist)
-    print(f"[+] TiviMate playlist written to {OUTPUT_FILE_TIVIMATE}")
+        # collect m3u8 from HTML
+        m3u8s = await extract_m3u8_candidates_from_html(page)
+        return list(dict.fromkeys(m3u8s))  # unique preserving order
+    finally:
+        try:
+            await page.close()
+        except Exception:
+            pass
+
+
+async def write_playlist(validated_urls):
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        f.write("#EXTM3U\n")
+        for i, u in enumerate(validated_urls, 1):
+            f.write(f'#EXTINF:-1 tvg-id="NFL.{i}" tvg-name="Stream {i}" tvg-logo="" group-title="NFL",Stream {i}\n')
+            # TiviMate pipe headers
+            headers = f"referer={START_URL}|origin={START_URL}|user-agent=Mozilla%2F5.0"
+            f.write(f"{u}|{headers}\n")
+    print(f"✅ Playlist written: {OUTPUT_FILE} | streams: {len(validated_urls)}")
+
+
+async def main():
+    print("🚀 Starting NFLWebcast scraper — improved event-link detection")
+    async with async_playwright() as pw:
+        # use a "real" chrome if available (channel=chrome), headful to help CF
+        browser = await pw.chromium.launch(
+            headless=False,
+            channel="chrome",
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-blink-features=AutomationControlled",
+            ],
+        )
+        context = await browser.new_context(
+            user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari"),
+            viewport={"width": 1280, "height": 900},
+        )
+        # add stealth before pages are created
+        context.add_init_script(STEALTH_JS)
+
+        # Try homepage + listing page to collect candidate event links
+        candidate_links = []
+        page = await context.new_page()
+        page.add_init_script(STEALTH_JS)
+
+        # prefer listing page, but try homepage too
+        for target in (LISTING_URL, START_URL):
+            ok = await safe_goto(page, target)
+            if not ok:
+                print(f" ✖ couldn't load {target} reliably (CF?)")
+                continue
+            try:
+                # try to extract dracula/event links
+                links = await extract_event_links_from_page(page, target)
+                if links:
+                    print(f" 🔍 Found {len(links)} event links on {target}")
+                    for l in links:
+                        if l not in candidate_links:
+                            candidate_links.append(l)
+                else:
+                    print(f" ℹ no event links found quickly on {target}")
+            except Exception as e:
+                print(f" ⚠ extraction error on {target}: {e}")
+
+        # optionally deep-scan homepage anchors
+        if DEEP_SCAN and page:
+            try:
+                deep_links = await extract_event_links_from_page(page, START_URL)
+                for l in deep_links:
+                    if l not in candidate_links:
+                        candidate_links.append(l)
+            except Exception:
+                pass
+
+        await page.close()
+
+        # Last-resort: if no candidates, try to perform a targeted HTML search on listing URL via fetch (no-js)
+        if not candidate_links:
+            try:
+                print(" 🔎 Fallback: fetch listing HTML and search for event slugs (no-JS)")
+                import requests
+                r = requests.get(LISTING_URL, headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+                if r.status_code == 200:
+                    for m in re.finditer(r'href=["\']([^"\']+)["\']', r.text, re.I):
+                        href = clean_url(m.group(1))
+                        full = urljoin(LISTING_URL, href)
+                        if START_URL in full or any(p.search(full) for p in EVENT_HREF_PATTERNS):
+                            if full not in candidate_links:
+                                candidate_links.append(full)
+                    print(f"   fallback found {len(candidate_links)} candidates")
+            except Exception as e:
+                print(f"   fallback fetch failed: {e}")
+
+        # dedupe preserve order
+        seen = set()
+        candidate_links = [x for x in candidate_links if not (x in seen or seen.add(x))]
+
+        print(f"🔍 Total candidate event links: {len(candidate_links)}")
+
+        # scan each event page for m3u8 candidates
+        m3u8_candidates = []
+        for ev in candidate_links:
+            try:
+                cands = await scan_event_page_for_m3u8(context, ev)
+                for c in cands:
+                    if c not in m3u8_candidates:
+                        m3u8_candidates.append(c)
+            except Exception as e:
+                print(f" ⚠ error scanning {ev}: {e}")
+
+        print(f"🎯 Raw m3u8 candidates found: {len(m3u8_candidates)}")
+
+        # Validate candidates with aiohttp
+        validated = []
+        for u in m3u8_candidates:
+            try:
+                ok = await validate_m3u8(u)
+                if ok:
+                    validated.append(u)
+            except Exception as e:
+                print(f"   ⚠ validation exception for {u}: {e}")
+
+        await context.close()
+        await browser.close()
+
+    # write playlist (even if empty)
+    await write_playlist(validated)
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Interrupted.")
+        sys.exit(0)
