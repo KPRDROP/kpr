@@ -1,40 +1,41 @@
-name: NFLWebcast Scraper
+name: Playwright Chrome Scraper
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "*/15 * * * *"  # every 15 minutes
+  push:
 
 jobs:
-  scrape:
+  run-scraper:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt || true
+    - name: Install Google Chrome Stable
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget gnupg
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
 
-      - name: Run NFLWebcast scraper
-        run: |
-          python nflwebcast.py
+    - name: Add Chromium sandbox stub
+      run: |
+        sudo ln -sf /usr/bin/true /usr/local/bin/chrome-sandbox
 
-      - name: Upload VLC playlist
-        uses: actions/upload-artifact@v4
-        with:
-          name: NFLWebcast_VLC
-          path: NFLwebcast_VLC.m3u8
+    - name: Install Python dependencies
+      run: |
+        pip install playwright
+        playwright install-deps
+        playwright install chromium
 
-      - name: Upload TiviMate playlist
-        uses: actions/upload-artifact@v4
-        with:
-          name: NFLWebcast_TiviMate
-          path: NFLwebcast_TiviMate.m3u8
+    - name: Run scraper
+      run: |
+        python nflwebcast.py
