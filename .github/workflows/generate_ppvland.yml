@@ -29,7 +29,7 @@ jobs:
         
     - name: Run PPV script
       run: |
-        python ppv.py
+        python generate_ppvland.py
         
     - name: Commit changes
       if: success()
