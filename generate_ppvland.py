@@ -2,16 +2,19 @@ import asyncio
 from playwright.async_api import async_playwright
 import aiohttp
 from datetime import datetime
-from zoneinfo import ZoneInfo
-import platform
-import urllib.parse
 
 API_URL = "https://ppv.to/api/streams"
 
-CUSTOM_HEADERS = [
+# VLC headers
+CUSTOM_HEADERS_VLC = [
     '#EXTVLCOPT:http-origin=https://ppvs.su',
     '#EXTVLCOPT:http-referrer=https://ppvs.su',
     '#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0'
+]
+
+# TiviMate headers (pipe encoded)
+CUSTOM_HEADERS_TIVIMATE = [
+    'http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0|http-referrer=https://ppvs.su|http-origin=https://ppvs.su'
 ]
 
 ALLOWED_CATEGORIES = {
@@ -65,7 +68,6 @@ GROUP_RENAME_MAP = {
     "American Football": "PPVLand - NFL Action"
 }
 
-# ------------------ Helper functions ------------------
 
 async def check_m3u8_url(url):
     try:
@@ -82,11 +84,12 @@ async def check_m3u8_url(url):
         print(f"❌ Error checking {url}: {e}")
         return False
 
+
 async def get_streams():
     try:
         timeout = aiohttp.ClientTimeout(total=30)
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
         }
         async with aiohttp.ClientSession(timeout=timeout, headers=headers) as session:
             print(f"🌐 Fetching streams from {API_URL}")
@@ -101,37 +104,29 @@ async def get_streams():
         print(f"❌ Error in get_streams: {str(e)}")
         return None
 
+
 async def grab_m3u8_from_iframe(page, iframe_url):
     found_streams = set()
+
     def handle_response(response):
         if ".m3u8" in response.url:
             found_streams.add(response.url)
+
     page.on("response", handle_response)
     print(f"🌐 Navigating to iframe: {iframe_url}")
+
     try:
-        await page.goto(iframe_url, timeout=30000, wait_until="domcontentloaded")
+        await page.goto(iframe_url, timeout=60000, wait_until="domcontentloaded")
     except Exception as e:
         print(f"❌ Failed to load iframe: {e}")
         page.remove_listener("response", handle_response)
         return set()
+
     await asyncio.sleep(2)
-    try:
-        box = page.viewport_size or {"width": 1280, "height": 720}
-        cx, cy = box["width"] / 2, box["height"] / 2
-        for i in range(4):
-            if found_streams:
-                break
-            print(f"🖱️ Click #{i + 1}")
-            try:
-                await page.mouse.click(cx, cy)
-            except Exception:
-                pass
-            await asyncio.sleep(0.3)
-    except Exception as e:
-        print(f"❌ Mouse click error: {e}")
-    print("⏳ Waiting 5s for final stream load...")
-    await asyncio.sleep(5)
+
+    # mouse clicks optional, skip if not needed in CI
     page.remove_listener("response", handle_response)
+
     valid_urls = set()
     for url in found_streams:
         if await check_m3u8_url(url):
@@ -140,73 +135,48 @@ async def grab_m3u8_from_iframe(page, iframe_url):
             print(f"❌ Invalid or unreachable URL: {url}")
     return valid_urls
 
-# ------------------ Build playlists ------------------
 
-def build_tivimate_headers(user_agent: str):
-    encoded_ua = urllib.parse.quote(user_agent)
-    return [
-        f'#EXTVLCOPT:http-user-agent={encoded_ua} |',
-        '#EXTVLCOPT:http-referrer=https://ppvs.su |',
-        '#EXTVLCOPT:http-origin=https://ppvs.su |'
-    ]
-
-def build_m3u_vlc(streams, url_map):
+def build_m3u(streams, url_map, headers_type='vlc'):
     lines = ['#EXTM3U url-tvg="https://epgshare01.online/epgshare01/epg_ripper_DUMMY_CHANNELS.xml.gz"']
     seen_names = set()
+
+    headers_list = CUSTOM_HEADERS_VLC if headers_type == 'vlc' else CUSTOM_HEADERS_TIVIMATE
+
     for s in streams:
         name_lower = s["name"].strip().lower()
         if name_lower in seen_names:
             continue
         seen_names.add(name_lower)
+
         key = f"{s['name']}::{s['category']}::{s['iframe']}"
         urls = url_map.get(key, [])
         if not urls:
             continue
+        url = next(iter(urls))
+
         orig_category = s["category"].strip()
         final_group = GROUP_RENAME_MAP.get(orig_category, orig_category)
         logo = CATEGORY_LOGOS.get(orig_category, "")
         tvg_id = CATEGORY_TVG_IDS.get(orig_category, "Sports.Dummy.us")
-        url = next(iter(urls))
-        lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{final_group}",{s["name"]}')
-        lines.extend(CUSTOM_HEADERS)
-        lines.append(url)
+
+        if headers_type == 'vlc':
+            lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{final_group}",{s["name"]}')
+            lines.extend(headers_list)
+            lines.append(url)
+        else:  # TiviMate
+            lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{final_group}",{s["name"]}|{headers_list[0]}')
+            lines.append(url)
+
     return "\n".join(lines)
 
-def build_m3u_tivimate(streams, url_map):
-    lines = ['#EXTM3U url-tvg="https://epgshare01.online/epgshare01/epg_ripper_DUMMY_CHANNELS.xml.gz"']
-    seen_names = set()
-    tivimate_ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0"
-    tivimate_headers = build_tivimate_headers(tivimate_ua)
-    for s in streams:
-        name_lower = s["name"].strip().lower()
-        if name_lower in seen_names:
-            continue
-        seen_names.add(name_lower)
-        key = f"{s['name']}::{s['category']}::{s['iframe']}"
-        urls = url_map.get(key, [])
-        if not urls:
-            continue
-        orig_category = s["category"].strip()
-        final_group = GROUP_RENAME_MAP.get(orig_category, orig_category)
-        logo = CATEGORY_LOGOS.get(orig_category, "")
-        tvg_id = CATEGORY_TVG_IDS.get(orig_category, "Sports.Dummy.us")
-        url = next(iter(urls))
-        lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{final_group}",{s["name"]}')
-        lines.extend(tivimate_headers)
-        lines.append(url)
-    return "\n".join(lines)
-
-# ------------------ Main ------------------
 
 async def main():
     print("🚀 Starting PPV Stream Fetcher")
     data = await get_streams()
     if not data or 'streams' not in data:
         print("❌ No valid data received from the API")
-        if data:
-            print(f"API Response: {data}")
         return
-    print(f"✅ Found {len(data['streams'])} categories")
+
     streams = []
     for category in data.get("streams", []):
         cat = category.get("category", "").strip()
@@ -217,47 +187,42 @@ async def main():
             name = stream.get("name", "Unnamed Event")
             if iframe:
                 streams.append({"name": name, "iframe": iframe, "category": cat})
-    # Deduplicate
-    seen_names = set()
+
+    # deduplicate
+    seen = set()
     deduped_streams = []
     for s in streams:
-        name_key = s["name"].strip().lower()
-        if name_key not in seen_names:
-            seen_names.add(name_key)
+        key = s["name"].strip().lower()
+        if key not in seen:
+            seen.add(key)
             deduped_streams.append(s)
     streams = deduped_streams
-    if not streams:
-        print("🚫 No valid streams found in the API response.")
-        if 'streams' in data:
-            print(f"Raw categories found: {[cat.get('category', 'Unknown') for cat in data['streams']]}")
-        return
-    print(f"🔍 Found {len(streams)} unique streams to process from {len({s['category'] for s in streams})} categories")
 
     async with async_playwright() as p:
         browser = await p.firefox.launch(headless=True)
-        context = await browser.new_context()
+        context = await browser.new_context(viewport={"width": 1280, "height": 720})
         page = await context.new_page()
+
         url_map = {}
         for s in streams:
             key = f"{s['name']}::{s['category']}::{s['iframe']}"
-            print(f"\n🔍 Scraping: {s['name']} ({s['category']})")
             urls = await grab_m3u8_from_iframe(page, s["iframe"])
-            if urls:
-                print(f"✅ Got {len(urls)} stream(s) for {s['name']}")
             url_map[key] = urls
+
         await browser.close()
 
-    print("\n💾 Writing final playlists ...")
-    playlist_vlc = build_m3u_vlc(streams, url_map)
-    playlist_tivimate = build_m3u_tivimate(streams, url_map)
-
+    # Write VLC playlist
+    playlist_vlc = build_m3u(streams, url_map, headers_type='vlc')
     with open("PPVland_VLC.m3u8", "w", encoding="utf-8") as f:
         f.write(playlist_vlc)
 
+    # Write TiviMate playlist
+    playlist_tm = build_m3u(streams, url_map, headers_type='tivimate')
     with open("PPVland_TiviMate.m3u8", "w", encoding="utf-8") as f:
-        f.write(playlist_tivimate)
+        f.write(playlist_tm)
 
-    print(f"✅ Done! Playlists saved as PPVland_VLC.m3u8 and PPVland_TiviMate.m3u8 at {datetime.utcnow().isoformat()} UTC")
+    print(f"✅ Done! Files saved at {datetime.utcnow().isoformat()} UTC")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
