@@ -2,10 +2,9 @@ name: PPV Stream Fetcher
 
 on:
   schedule:
-    # Run every hour on the hour
+    # Run every hour
     - cron: '0 * * * *'
   workflow_dispatch:
-    # Allow manual trigger
 
 jobs:
   fetch-streams:
@@ -13,35 +12,38 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: '3.11'
         
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install aiohttp playwright
-        playwright install
+        playwright install chromium
         playwright install-deps
-        
-    - name: Run PPV script
+
+    - name: Run PPV generator script
       env:
         API_URL: ${{ secrets.API_URL }}
       run: |
         python generate_ppvland.py
         
-    - name: Commit changes
+    - name: Commit updated playlists
       if: success()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
+
         git add PPVland_VLC.m3u8
         git add PPVland_TiviMate.m3u8
+
+        # Only commit when there are changes
         git diff --quiet && git diff --staged --quiet || \
-          (git commit -m "Update PPV streams [skip ci]" && \
-           git push) || echo "No changes to commit"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          (git commit -m "Update PPV streams [skip ci]" && git push) || \
+          echo "No changes to commit"
