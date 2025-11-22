@@ -1,67 +1,48 @@
 name: Generate PPVLand Playlist
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"  # every 30 min
+    # Every day at 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 jobs:
-  build:
+  generate-playlist:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      # 1️⃣ Checkout the repo
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
+      # 2️⃣ Setup Python 3.11
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: 3.11
 
-      - name: Install Chromium dependencies
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libatk1.0-0 \
-            libcairo2 \
-            libcups2 \
-            libdrm2 \
-            libgbm1 \
-            libglib2.0-0 \
-            libnss3 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxfixes3 \
-            libxkbcommon0 \
-            libxrandr2 \
-            libasound2t64 \
-            libxshmfence1 \
-            libx11-6 libx11-xcb1 \
-            libxext6 libxss1 \
-            libatspi2.0-0 \
-            libpangocairo-1.0-0 \
-            libpango-1.0-0 \
-            libjpeg-dev \
-            libxv1 \
-            libxi6
+          python -m pip install --upgrade pip
+          pip install aiohttp playwright
 
-      - name: Install project dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install playwright
-          playwright install chromium
+      # 4️⃣ Install Playwright browsers
+      - name: Install Playwright browsers
+        run: playwright install firefox
 
-      - name: Run PPVLand generator
-        run: |
-          set -e
-          echo "▶️ Starting playlist generation..."
-          python3 generate_ppvland.py
+      # 5️⃣ Run Python script to generate playlist
+      - name: Run generate_ppvland.py
+        run: python generate_ppvland.py
 
-      - name: Commit & push results
-        if: success()
+      # 6️⃣ Commit and push updated playlist back to repo
+      - name: Commit updated playlist
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add ppvland.m3u
-          git commit -m "Auto-update PPVLand playlist" || echo "No changes"
-          git push
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add PPVLand.m3u8
+          git diff --quiet && echo "No changes detected" || git commit -m "Update PPVLand playlist [skip ci]" 
+          git push origin HEAD:main
+        shell: bash

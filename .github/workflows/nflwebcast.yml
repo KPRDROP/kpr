@@ -1,63 +1,41 @@
-name: 🔁 Update NFLWebcast Playlist
+name: Playwright Chrome Scraper
 
 on:
-  schedule:
-    - cron: '0 * * * *' # hourly
   workflow_dispatch:
-
-permissions:
-  contents: write
+  push:
 
 jobs:
-  scrape-nfl:
+  run-scraper:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v4
 
-      - name: 🐍 Setup Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
 
-      - name: 📦 Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install aiohttp playwright
-          # Install Chromium + other browsers for Playwright
-          python -m playwright install chromium
+    - name: Install Google Chrome Stable
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget gnupg
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
 
-      - name: 🖥️ Start XVFB and run scraper
-        run: |
-          # start virtual framebuffer in background
-          Xvfb :99 -screen 0 1280x720x24 &
-          export DISPLAY=:99
+    - name: Add Chromium sandbox stub
+      run: |
+        sudo ln -sf /usr/bin/true /usr/local/bin/chrome-sandbox
 
-          echo "🚀 Running nflwebcast.py ..."
-          python nflwebcast.py
-        env:
-          PYTHONUNBUFFERED: 1
+    - name: Install Python dependencies
+      run: |
+        pip install playwright
+        playwright install-deps
+        playwright install chromium
 
-      - name: 💾 Commit & push playlist if updated
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          FILE="NFLWebcast.m3u8"
-          if [ -f "$FILE" ]; then
-            git add "$FILE"
-          else
-            echo "⚠️ $FILE not found, skipping commit"
-            exit 0
-          fi
-
-          if git diff --cached --quiet; then
-            echo "✅ No changes detected"
-            exit 0
-          fi
-
-          git commit -m "🔁 Auto-update NFLWebcast playlist ($(date -u +'%Y-%m-%d %H:%M UTC'))"
-          git push origin main || (git pull --rebase origin main && git push origin main)
+    - name: Run scraper
+      run: |
+        python nflwebcast.py
