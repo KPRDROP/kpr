@@ -27,6 +27,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install playwright urllib3 aiohttp
+          playwright install
           playwright install firefox
           playwright install-deps
 
