@@ -25,6 +25,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install aiohttp playwright
         playwright install
+        playwright install chromium
         playwright install-deps
         
     - name: Run PPV script
