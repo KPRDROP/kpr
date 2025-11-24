@@ -1,0 +1,77 @@
+name: PPVLand Scraper
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"   # every 20 minutes
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      # -------------------------
+      # CHECKOUT REPO
+      # -------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -------------------------
+      # INSTALL GOOGLE CHROME (stronger CF bypass)
+      # -------------------------
+      - name: Install Google Chrome stable
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
+            | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      # -------------------------
+      # PYTHON + PLAYWRIGHT
+      # -------------------------
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+          playwright install-deps
+
+      # -------------------------
+      # INSTALL XVFB (headful support)
+      # -------------------------
+      - name: Install Xvfb
+        run: sudo apt-get install -y xvfb
+
+      # -------------------------
+      # RUN THE SCRAPER (headful via xvfb-run)
+      # -------------------------
+      - name: Run PPVLand scraper under Xvfb (headful Chrome)
+        env:
+          DISPLAY: ":99"
+        run: |
+          echo "🚀 Running PPVLand scraper with headful Chromium..."
+          xvfb-run --auto-servernum --server-num=99 python3 ppvland.py
+
+      # -------------------------
+      # COMMIT UPDATED PLAYLIST
+      # -------------------------
+      - name: Commit playlist
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          git add PPVLand.m3u8
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Auto-update PPVLand playlist"
+            git push
+          fi
