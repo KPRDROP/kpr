@@ -1,52 +1,49 @@
 import asyncio
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 import aiohttp
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-import platform
+import re 
 
 API_URL = "https://ppv.to/api/streams"
 
 CUSTOM_HEADERS = [
-    '#EXTVLCOPT:http-origin=https://ppvs.su',
-    '#EXTVLCOPT:http-referrer=https://ppvs.su',
-    '#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0'
+    '#EXTVLCOPT:http-origin=https://ppv.to',
+    '#EXTVLCOPT:http-referrer=https://ppv.to/',
+    '#EXTVLCOPT:http-user-agent=Mozilla/5.0'
 ]
 
 ALLOWED_CATEGORIES = {
     "24/7 Streams", "Wrestling", "Football", "Basketball", "Baseball",
-    "Combat Sports", "Motorsports", "Miscellaneous", "Boxing", "Darts",
-    "American Football", "Ice Hockey"
+    "Combat Sports", "American Football", "Darts", "Motorsports", "Ice Hockey"
 }
 
 CATEGORY_LOGOS = {
-    "24/7 Streams": "https://github.com/BuddyChewChew/ppv/blob/main/assets/24-7.png?raw=true",
-    "Wrestling": "https://github.com/BuddyChewChew/ppv/blob/main/assets/wwe.png?raw=true",
-    "Football": "https://github.com/BuddyChewChew/ppv/blob/main/assets/football.png?raw=true",
-    "Basketball": "https://github.com/BuddyChewChew/ppv/blob/main/assets/nba.png?raw=true",
-    "Baseball": "https://github.com/BuddyChewChew/ppv/blob/main/assets/baseball.png?raw=true",
-    "Combat Sports": "https://github.com/BuddyChewChew/ppv/blob/main/assets/mma.png?raw=true",
-    "Motorsports": "https://github.com/BuddyChewChew/ppv/blob/main/assets/f1.png?raw=true",
-    "Miscellaneous": "https://github.com/BuddyChewChew/ppv/blob/main/assets/24-7.png?raw=true",
-    "Boxing": "https://github.com/BuddyChewChew/ppv/blob/main/assets/boxing.png?raw=true",
-    "Darts": "https://github.com/BuddyChewChew/ppv/blob/main/assets/darts.png?raw=true",
-    "Ice Hockey": "https://github.com/BuddyChewChew/ppv/blob/main/assets/hockey.png?raw=true",
-    "American Football": "https://github.com/BuddyChewChew/ppv/blob/main/assets/nfl.png?raw=true"
+    "24/7 Streams": "http://drewlive24.duckdns.org:9000/Logos/247.png",
+    "Wrestling": "http://drewlive24.duckdns.org:9000/Logos/Wrestling.png",
+    "Football": "http://drewlive24.duckdns.org:9000/Logos/Football.png",
+    "Basketball": "http://drewlive24.duckdns.org:9000/Logos/Basketball.png",
+    "Baseball": "http://drewlive24.duckdns.org:9000/Logos/Baseball.png",
+    "American Football": "http://drewlive24.duckdns.org:9000/Logos/NFL3.png",
+    "Combat Sports": "http://drewlive24.duckdns.org:9000/Logos/CombatSports2.png",
+    "Darts": "http://drewlive24.duckdns.org:9000/Logos/Darts.png",
+    "Motorsports": "http://drewlive24.duckdns.org:9000/Logos/Motorsports2.png",
+    "Live Now": "http://drewlive24.duckdns.org:9000/Logos/DrewLiveSports.png",
+    "Ice Hockey": "http://drewlive24.duckdns.org:9000/Logos/Hockey.png"
 }
 
 CATEGORY_TVG_IDS = {
     "24/7 Streams": "24.7.Dummy.us",
-    "Football": "Soccer.Dummy.us",
     "Wrestling": "PPV.EVENTS.Dummy.us",
-    "Combat Sports": "PPV.EVENTS.Dummy.us",
-    "Baseball": "MLB.Baseball.Dummy.us",
+    "Football": "Soccer.Dummy.us",
     "Basketball": "Basketball.Dummy.us",
-    "Motorsports": "Racing.Dummy.us",
-    "Miscellaneous": "PPV.EVENTS.Dummy.us",
-    "Boxing": "PPV.EVENTS.Dummy.us",
-    "Ice Hockey": "NHL.Hockey.Dummy.us",
+    "Baseball": "MLB.Baseball.Dummy.us",
+    "American Football": "NFL.Dummy.us",
+    "Combat Sports": "PPV.EVENTS.Dummy.us",
     "Darts": "Darts.Dummy.us",
-    "American Football": "NFL.Dummy.us"
+    "Motorsports": "Racing.Dummy.us",
+    "Live Now": "24.7.Dummy.us",
+    "Ice Hockey": "NHL.Hockey.Dummy.us"
 }
 
 GROUP_RENAME_MAP = {
@@ -54,95 +51,180 @@ GROUP_RENAME_MAP = {
     "Wrestling": "PPVLand - Wrestling Events",
     "Football": "PPVLand - Global Football Streams",
     "Basketball": "PPVLand - Basketball Hub",
-    "Baseball": "PPVLand - Baseball Action HD",
-    "Combat Sports": "PPVLand - MMA & Fight Nights",
-    "Motorsports": "PPVLand - Motorsport Live",
-    "Miscellaneous": "PPVLand - Random Events",
-    "Boxing": "PPVLand - Boxing",
-    "Ice Hockey": "PPVLand - Ice Hockey",
+    "Baseball": "PPVLand - MLB",
+    "American Football": "PPVLand - NFL Action",
+    "Combat Sports": "PPVLand - Combat Sports",
     "Darts": "PPVLand - Darts",
-    "American Football": "PPVLand - NFL Action"
+    "Motorsports": "PPVLand - Racing Action",
+    "Live Now": "PPVLand - Live Now",
+    "Ice Hockey": "PPVLand - NHL Action"
 }
 
-async def check_m3u8_url(url):
+NFL_TEAMS = {
+    "arizona cardinals", "atlanta falcons", "baltimore ravens", "buffalo bills",
+    "carolina panthers", "chicago bears", "cincinnati bengals", "cleveland browns",
+    "dallas cowboys", "denver broncos", "detroit lions", "green bay packers",
+    "houston texans", "indianapolis colts", "jacksonville jaguars", "kansas city chiefs",
+    "las vegas raiders", "los angeles chargers", "los angeles rams", "miami dolphins",
+    "minnesota vikings", "new england patriots", "new orleans saints", "new york giants",
+    "new york jets", "philadelphia eagles", "pittsburgh steelers", "san francisco 49ers",
+    "seattle seahawks", "tampa bay buccaneers", "tennessee titans", "washington commanders"
+}
+
+COLLEGE_TEAMS = {
+    "alabama crimson tide", "auburn tigers", "arkansas razorbacks", "georgia bulldogs",
+    "florida gators", "lsu tigers", "ole miss rebels", "mississippi state bulldogs",
+    "tennessee volunteers", "texas longhorns", "oklahoma sooners", "oklahoma state cowboys",
+    "baylor bears", "tcu horned frogs", "kansas jayhawks", "kansas state wildcats",
+    "iowa state cyclones", "iowa hawkeyes", "michigan wolverines", "ohio state buckeyes",
+    "penn state nittany lions", "michigan state spartans", "wisconsin badgers",
+    "minnesota golden gophers", "illinois fighting illini", "northwestern wildcats",
+    "indiana hoosiers", "notre dame fighting irish", "usc trojans", "ucla bruins",
+    "oregon ducks", "oregon state beavers", "washington huskies", "washington state cougars",
+    "arizona wildcats", "stanford cardinal", "california golden bears", "colorado buffaloes",
+    "florida state seminoles", "miami hurricanes", "clemson tigers", "north carolina tar heels",
+    "duke blue devils", "nc state wolfpack", "wake forest demon deacons", "syracuse orange",
+    "virginia cavaliers", "virginia tech hokies", "louisville cardinals", "pittsburgh panthers",
+    "maryland terrapins", "rutgers scarlet knights", "nebraska cornhuskers", "purdue boilermakers",
+    "texas a&m aggies", "kentucky wildcats", "missouri tigers", "vanderbilt commodores",
+    "houston cougars", "utah utes", "byu cougars", "boise state broncos", "san diego state aztecs",
+    "cincinnati bearcats", "memphis tigers", "ucf knights", "south florida bulls", "smu mustangs",
+    "tulsa golden hurricane", "tulane green wave", "navy midshipmen", "army black knights",
+    "arizona state sun devils", "texas tech red raiders", "florida atlantic owls"
+}
+
+def get_display_time(timestamp):
+    if not timestamp or timestamp <= 0: return ""
     try:
-        headers = {
-            "User-Agent": "Mozilla/5.0",
-            "Referer": "https://ppvs.su",
-            "Origin": "https://ppvs.su"
-        }
-        timeout = aiohttp.ClientTimeout(total=15)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(url, headers=headers) as resp:
-                return resp.status == 200
+        dt_utc = datetime.fromtimestamp(timestamp, tz=ZoneInfo("UTC"))
+        
+        dt_est = dt_utc.astimezone(ZoneInfo("America/New_York"))
+        est_str = dt_est.strftime("%I:%M %p ET")
+
+        dt_mt = dt_utc.astimezone(ZoneInfo("America/Denver"))
+        mt_str = dt_mt.strftime("%I:%M %p MT")
+        
+        dt_uk = dt_utc.astimezone(ZoneInfo("Europe/London"))
+        uk_str = dt_uk.strftime("%H:%M UK")
+        
+        return f"{est_str} / {mt_str} / {uk_str}"
     except Exception as e:
-        print(f"❌ Error checking {url}: {e}")
+        return ""
+
+async def grab_m3u8_from_iframe(page, iframe_url):
+    first_url = None
+
+    def handle_response(response):
+        nonlocal first_url
+        url = response.url
+
+        if ".m3u8" in url and first_url is None:
+            print(f"✅ Found M3U8 Stream: {url}")
+            first_url = url
+            try:
+                page.remove_listener("response", handle_response)
+            except:
+                pass
+
+    page.on("response", handle_response)
+
+
+    try:
+        await page.goto(iframe_url, timeout=5000, wait_until="commit")
+    except Exception:
+        pass
+
+    try:
+        await page.wait_for_timeout(300)
+        nested_iframe = page.locator("iframe")
+
+        if await nested_iframe.count() > 0:
+            await page.mouse.click(200, 200)
+        else:
+            await page.mouse.click(200, 200)
+
+    except Exception as e:
+        print(f"⚠️ Clicking failed, but proceeding anyway. Error: {e}")
+
+
+    for _ in range(400): 
+        if first_url:
+            break
+        await page.wait_for_timeout(25)
+
+    try:
+        page.remove_listener("response", handle_response)
+    except:
+        pass
+
+    if not first_url:
+        return set()
+
+    valid = await check_m3u8_url(first_url, iframe_url)
+    if valid:
+        return {first_url}
+
+    return set()
+
+async def check_m3u8_url(url, referer):
+    if "gg.poocloud.in" in url:
+        return True
+    try:
+        origin = "https://" + referer.split('/')[2]
+        headers = {"User-Agent": "Mozilla/5.0", "Referer": referer, "Origin": origin}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+            async with session.get(url, headers=headers) as resp:
+                return resp.status in (200, 403)
+    except:
         return False
 
 async def get_streams():
     try:
-        timeout = aiohttp.ClientTimeout(total=30)
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        async with aiohttp.ClientSession(timeout=timeout, headers=headers) as session:
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=30),
+            headers={'User-Agent': 'Mozilla/5.0'}
+        ) as session:
             print(f"🌐 Fetching streams from {API_URL}")
-            async with session.get(API_URL) as resp:
-                print(f"🔍 Response status: {resp.status}")
-                if resp.status != 200:
-                    error_text = await resp.text()
-                    print(f"❌ Error response: {error_text[:500]}")
-                    return None
-                return await resp.json()
+            resp = await session.get(API_URL)
+            print(f"🔍 Response status: {resp.status}")
+            if resp.status != 200:
+                print(f"❌ Error response: {await resp.text()}")
+                return None
+            return await resp.json()
     except Exception as e:
         print(f"❌ Error in get_streams: {str(e)}")
         return None
 
-async def grab_m3u8_from_iframe(page, iframe_url):
-    found_streams = set()
-
-    def handle_response(response):
-        if ".m3u8" in response.url:
-            found_streams.add(response.url)
-
-    page.on("response", handle_response)
-    print(f"🌐 Navigating to iframe: {iframe_url}")
-
+async def grab_live_now_from_html(page, base_url="https://ppv.to/"):
+    print("🌐 Scraping 'Live Now' streams from HTML...")
+    live_now_streams = []
     try:
-        await page.goto(iframe_url, timeout=30000, wait_until="domcontentloaded")
+        await page.goto(base_url, timeout=20000)
+        await asyncio.sleep(3)
+
+        live_cards = await page.query_selector_all("#livecards a.item-card")
+        for card in live_cards:
+            href = await card.get_attribute("href")
+            name_el = await card.query_selector(".card-title")
+            poster_el = await card.query_selector("img.card-img-top")
+            name = await name_el.inner_text() if name_el else "Unnamed Live"
+            poster = await poster_el.get_attribute("src") if poster_el else None
+
+            if href:
+                iframe_url = f"{base_url.rstrip('/')}{href}"
+                live_now_streams.append({
+                    "name": name.strip(),
+                    "iframe": iframe_url,
+                    "category": "Live Now",
+                    "poster": poster,
+                    "starts_at": -1, 
+                    "clock_time": "LIVE"
+                })
     except Exception as e:
-        print(f"❌ Failed to load iframe: {e}")
-        page.remove_listener("response", handle_response)
-        return set()
+        print(f"❌ Failed scraping 'Live Now': {e}")
 
-    await asyncio.sleep(2)
-
-    try:
-        box = page.viewport_size or {"width": 1280, "height": 720}
-        cx, cy = box["width"] / 2, box["height"] / 2
-        for i in range(4):
-            if found_streams:
-                break
-            print(f"🖱️ Click #{i + 1}")
-            try:
-                await page.mouse.click(cx, cy)
-            except Exception:
-                pass
-            await asyncio.sleep(0.3)
-    except Exception as e:
-        print(f"❌ Mouse click error: {e}")
-
-    print("⏳ Waiting 5s for final stream load...")
-    await asyncio.sleep(5)
-    page.remove_listener("response", handle_response)
-
-    valid_urls = set()
-    for url in found_streams:
-        if await check_m3u8_url(url):
-            valid_urls.add(url)
-        else:
-            print(f"❌ Invalid or unreachable URL: {url}")
-    return valid_urls
+    print(f"✅ Found {len(live_now_streams)} 'Live Now' streams")
+    return live_now_streams
 
 def build_m3u(streams, url_map):
     lines = ['#EXTM3U url-tvg="https://epgshare01.online/epgshare01/epg_ripper_DUMMY_CHANNELS.xml.gz"']
@@ -151,25 +233,40 @@ def build_m3u(streams, url_map):
     for s in streams:
         name_lower = s["name"].strip().lower()
         if name_lower in seen_names:
-            continue  # skip duplicates by display name
+            continue
         seen_names.add(name_lower)
 
-        unique_key = f"{s['name']}::{s['category']}::{s['iframe']}"
-        urls = url_map.get(unique_key, [])
-
+        key = f"{s['name']}::{s['category']}::{s['iframe']}"
+        urls = url_map.get(key, [])
         if not urls:
-            print(f"⚠️ No working URLs for {s['name']}")
             continue
 
-        orig_category = s["category"].strip()
-        final_group = GROUP_RENAME_MAP.get(orig_category, orig_category)
-        logo = CATEGORY_LOGOS.get(orig_category, "")
-        tvg_id = CATEGORY_TVG_IDS.get(orig_category, "Sports.Dummy.us")
+        orig_cat = s["category"]
+        final_group = GROUP_RENAME_MAP.get(orig_cat, "PPVLand - Random Events")
+        logo = s.get("poster") or CATEGORY_LOGOS.get(orig_cat)
+        tvg_id = CATEGORY_TVG_IDS.get(orig_cat, "24.7.Dummy.us")
 
-        # Use first valid URL only to avoid multiple entries with same name
+        if orig_cat == "American Football":
+            nl = name_lower
+            for t in NFL_TEAMS:
+                if t in nl:
+                    final_group = "PPVLand - NFL Action"
+                    tvg_id = "NFL.Dummy.us"
+            for t in COLLEGE_TEAMS:
+                if t in nl:
+                    final_group = "PPVLand - College Football"
+                    tvg_id = "NCAA.Football.Dummy.us"
+        
+        display_name = s["name"]
+        if s.get("category") != "24/7 Streams":
+            clock = s.get("clock_time", "")
+            if clock == "LIVE":
+                display_name = f"{display_name} [LIVE]"
+            elif clock:
+                display_name = f"{display_name} [{clock}]"
+
         url = next(iter(urls))
-
-        lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{final_group}",{s["name"]}')
+        lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{final_group}",{display_name}')
         lines.extend(CUSTOM_HEADERS)
         lines.append(url)
 
@@ -178,44 +275,51 @@ def build_m3u(streams, url_map):
 async def main():
     print("🚀 Starting PPV Stream Fetcher")
     data = await get_streams()
-    
-    if not data or 'streams' not in data:
-        print("❌ No valid data received from the API")
-        if data:
-            print(f"API Response: {data}")
+    if not data or "streams" not in data:
+        print("❌ No valid data received from API")
         return
-        
+
     print(f"✅ Found {len(data['streams'])} categories")
     streams = []
 
-    for category in data.get("streams", []):
-        cat = category.get("category", "").strip()
-        if cat not in ALLOWED_CATEGORIES:
-            continue
-        for stream in category.get("streams", []):
+    for cat_obj in data["streams"]:
+        cat = cat_obj.get("category", "")
+        for stream in cat_obj.get("streams", []):
             iframe = stream.get("iframe")
-            name = stream.get("name", "Unnamed Event")
+            name = stream.get("name")
+            poster = stream.get("poster")
+            
+            starts_at = stream.get("starts_at", 0)
+            
+
+            if cat == "24/7 Streams":
+                sort_key = float('inf') 
+                clock_str = ""
+            else:
+                sort_key = starts_at
+                clock_str = get_display_time(starts_at)
+
             if iframe:
-                streams.append({"name": name, "iframe": iframe, "category": cat})
+                streams.append({
+                    "name": name,
+                    "iframe": iframe,
+                    "category": cat,
+                    "poster": poster,
+                    "starts_at": sort_key, 
+                    "clock_time": clock_str
+                })
 
-    # Deduplicate streams by name (case-insensitive) before scraping
-    seen_names = set()
-    deduped_streams = []
+    seen = set()
+    unique = []
     for s in streams:
-        name_key = s["name"].strip().lower()
-        if name_key not in seen_names:
-            seen_names.add(name_key)
-            deduped_streams.append(s)
-    streams = deduped_streams
+        k = s["name"].lower()
+        if k not in seen:
+            seen.add(k)
+            unique.append(s)
+    streams = unique
 
-    if not streams:
-        print("🚫 No valid streams found in the API response.")
-        if 'streams' in data:
-            print(f"Raw categories found: {[cat.get('category', 'Unknown') for cat in data['streams']]}")
-        return
-    
-    print(f"🔍 Found {len(streams)} unique streams to process" + 
-          f" from {len({s['category'] for s in streams})} categories")
+    print("⏱️ Sorting streams: Events First -> 24/7 Last...")
+    streams.sort(key=lambda x: x["starts_at"])
 
     async with async_playwright() as p:
         browser = await p.firefox.launch(headless=True)
@@ -223,22 +327,40 @@ async def main():
         page = await context.new_page()
 
         url_map = {}
-        for s in streams:
+        total = len(streams)
+
+        for idx, s in enumerate(streams, start=1):
+            display_name = s['name']
+            if s.get("category") != "24/7 Streams" and s.get("clock_time"):
+                 display_name = f"{s['name']} [{s['clock_time']}]"
+            
+            print(f"\n🔎 Scraping stream {idx}/{total}: {display_name} [{s['category']}]")
+
             key = f"{s['name']}::{s['category']}::{s['iframe']}"
-            print(f"\n🔍 Scraping: {s['name']} ({s['category']})")
-            urls = await grab_m3u8_from_iframe(page, s["iframe"])
-            if urls:
-                print(f"✅ Got {len(urls)} stream(s) for {s['name']}")
-            url_map[key] = urls
+            url_map[key] = await grab_m3u8_from_iframe(page, s["iframe"])
+
+      
+
+        live_now = await grab_live_now_from_html(page)
+
+        for s in live_now:
+            key = f"{s['name']}::{s['category']}::{s['iframe']}"
+            url_map[key] = await grab_m3u8_from_iframe(page, s["iframe"])
+
+        for s in live_now:
+            s["category"] = "Live Now"
+
+        streams = live_now + streams 
 
         await browser.close()
 
     print("\n💾 Writing final playlist to PPVLand.m3u8 ...")
     playlist = build_m3u(streams, url_map)
+
     with open("PPVLand.m3u8", "w", encoding="utf-8") as f:
         f.write(playlist)
 
-    print(f"✅ Done! Playlist saved as PPVLand.m3u8 at {datetime.utcnow().isoformat()} UTC")
+    print(f"✅ Done! Playlist saved as PPVLand.m3u8 at", datetime.utcnow().isoformat(), "UTC")
 
 if __name__ == "__main__":
     asyncio.run(main())
