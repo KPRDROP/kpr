@@ -29,7 +29,7 @@ jobs:
           pip install playwright urllib3 aiohttp
           playwright install
           playwright install firefox
-          playwright install -deps
+          playwright install-deps
 
       - name: 🎯 Run scraping script
         run: python ppv.py
