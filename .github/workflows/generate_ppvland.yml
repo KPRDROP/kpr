@@ -24,7 +24,9 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install aiohttp playwright
           playwright install
+          playwright install-deps
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run PPVland generator
