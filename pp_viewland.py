@@ -90,6 +90,7 @@ COLLEGE_TEAMS = {
     "cincinnati bearcats", "memphis tigers", "ucf knights", "south florida bulls", "smu mustangs",
     "tulsa golden hurricane", "tulane green wave", "navy midshipmen", "army black knights",
     "arizona state sun devils", "texas tech red raiders", "florida atlantic owls"
+}
 
 # ================================
 # ✔ ADDED: TiviMate Pipe Header Builder
