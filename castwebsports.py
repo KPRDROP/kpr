@@ -44,6 +44,29 @@ NBA_CUSTOM_HEADERS = {
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0",
 }
 
+NBA_TEAM_LOGOS = {
+    "Lakers": "https://a.espncdn.com/i/teamlogos/nba/500/lal.png",
+    "Celtics": "https://a.espncdn.com/i/teamlogos/nba/500/bos.png",
+    "Warriors": "https://a.espncdn.com/i/teamlogos/nba/500/gs.png",
+    "Heat": "https://a.espncdn.com/i/teamlogos/nba/500/mia.png",
+    "Bulls": "https://a.espncdn.com/i/teamlogos/nba/500/chi.png",
+    "Knicks": "https://a.espncdn.com/i/teamlogos/nba/500/ny.png",
+    "Mavericks": "https://a.espncdn.com/i/teamlogos/nba/500/dal.png",
+    "Nets": "https://a.espncdn.com/i/teamlogos/nba/500/bkn.png",
+    "Hawks": "https://a.espncdn.com/i/teamlogos/nba/500/atl.png",
+    "Clippers": "https://a.espncdn.com/i/teamlogos/nba/500/lac.png",
+    "Rockets": "https://a.espncdn.com/i/teamlogos/nba/500/hou.png",
+    "76ers": "https://a.espncdn.com/i/teamlogos/nba/500/phi.png",
+    "Spurs": "https://a.espncdn.com/i/teamlogos/nba/500/sa.png",
+    "Raptors": "https://a.espncdn.com/i/teamlogos/nba/500/tor.png",
+    "Suns": "https://a.espncdn.com/i/teamlogos/nba/500/phx.png",
+    "Bucks": "https://a.espncdn.com/i/teamlogos/nba/500/mil.png",
+    "Grizzlies": "https://a.espncdn.com/i/teamlogos/nba/500/mem.png",
+    "Pelicans": "https://a.espncdn.com/i/teamlogos/nba/500/no.png",
+    "Jazz": "https://a.espncdn.com/i/teamlogos/nba/500/utah.png",
+    "Thunder": "https://a.espncdn.com/i/teamlogos/nba/500/okc.png",
+}
+
 # --------------------------------------------------------------------------------
 # ✔ INSERTED PATCH: TIVIMATE PLAYLIST GENERATOR
 # --------------------------------------------------------------------------------
@@ -85,16 +108,23 @@ def write_playlist_tivimate(streams: List[Dict], filename: str):
     print(f"✅ TiviMate playlist saved: {filename}")
 # --------------------------------------------------------------------------------
 
-
 def normalize_game_name(original_name: str) -> str:
+    """Cleans up game names scraped from the site — replaces @ with vs."""
     cleaned_name = " ".join(original_name.splitlines()).strip()
+
     if "@" in cleaned_name:
         parts = cleaned_name.split("@")
         if len(parts) == 2:
             team1 = parts[0].strip().title()
             team2 = parts[1].strip().title()
-            team2 = re.split(r'\b(January|February|March|April|May|June|July|August|September|October|November|December)\b', team2, 1)[0].strip()
-            return f"{team1} @ {team2}"
+
+            team2 = re.split(
+                r'\b(January|February|March|April|May|June|July|August|September|October|November|December)\b',
+                team2, 1
+            )[0].strip()
+
+            return f"{team1} vs {team2}"   # ⬅️ ONLY CHANGE
+
     return " ".join(cleaned_name.strip().split()).title()
 
 async def verify_stream_url(session: aiohttp.ClientSession, url: str, headers: Optional[Dict[str, str]] = None) -> bool:
