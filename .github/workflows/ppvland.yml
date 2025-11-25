@@ -1,114 +1,68 @@
-name: Stream Scrapers (Enhanced)
+name: 🚀 Update PPVLand Playlist 📺
 
 on:
   schedule:
-    - cron: "*/20 * * * *"  # every 20 minutes
+    - cron: '0 * * * *'  # ⏰ Run every hour
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  setup-env:
+  scrape:
     runs-on: ubuntu-latest
-    outputs:
-      python-version: ${{ steps.out.outputs.py }}
-    steps:
-      - id: out
-        run: echo "py=3.11" >> $GITHUB_OUTPUT
-
-  scraper:
-    needs: setup-env
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        script:
-          - ppv.py
-          # add more scrapers here...
 
     steps:
-      # -------------------------
-      # CHECKOUT CODE
-      # -------------------------
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-      # -------------------------
-      # INSTALL GOOGLE CHROME
-      # -------------------------
-      - name: Install Google Chrome Stable
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget gnupg
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
-            | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-
-      # -------------------------
-      # PYTHON + PLAYWRIGHT
-      # -------------------------
-      - name: Setup Python
+      - name: 🐍 Set up Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ needs.setup-env.outputs.python-version }}
+          python-version: '3.11'
 
-      - name: Install Python Dependencies
+      - name: 📦 Install Python dependencies & Playwright
         run: |
-          pip install -r requirements.txt
-          playwright install chromium
+          python -m pip install --upgrade pip
+          pip install playwright urllib3 aiohttp
+          playwright install firefox
           playwright install-deps
 
-      # -------------------------
-      # INSTALL XVFB
-      # -------------------------
-      - name: Install Xvfb
-        run: sudo apt-get install -y xvfb
+      - name: 🎯 Run scraping script
+        run: python pp_viewland.py
 
-      # -------------------------
-      # RUN SCRAPER WITH DIAGNOSTICS
-      # -------------------------
-      - name: Run Scraper (headful Chrome with XVFB)
+      - name: 💾 Commit & Safely Push if Playlist Changed
         env:
-          DISPLAY: ":99"
-          SCRAPER: ${{ matrix.script }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdir -p debug
-          echo "🚀 Starting scraper: $SCRAPER"
-          xvfb-run --auto-servernum --server-num=99 \
-            python3 "$SCRAPER" || echo "⚠ Script exited with error"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # -------------------------
-      # SAVE DEBUG ARTIFACTS
-      # -------------------------
-      - name: Upload Debug Files
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-${{ matrix.script }}
-          path: |
-            debug/*.png
-            debug/*.html
-            debug/*.log
-          if-no-files-found: ignore
+          # Stage the output
+          git add PPVLand.m3u8
 
-      # -------------------------
-      # COMMIT PLAYLIST CHANGES PER SCRAPER
-      # -------------------------
-      - name: Commit Playlist
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-          # Detect playlist name -> script name mapping
-          base="${{ matrix.script }}"
-          playlist="${base%.py}.m3u8"
-
-          echo "Checking playlist: $playlist"
-
-          git add "$playlist"
-
+          # Check if file actually changed
           if git diff --cached --quiet; then
-            echo "No playlist updates."
-          else
-            git commit -m "Auto-update playlist: $playlist"
-            git push
+            echo "✅ No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "🔁 Update playlist $(date -u +'%a %b %d %T UTC %Y')"
+
+          # Small random delay to reduce collisions
+          sleep $((RANDOM % 10 + 5))
+
+          # Safe push, fallback merge if rejected
+          if ! git push origin main; then
+            echo "⚠️ Push rejected. Trying safe fetch + merge..."
+            git pull origin main --rebase || {
+              echo "❌ Rebase failed. Exiting to avoid corruption."
+              exit 1
+            }
+            git push origin main || {
+              echo "❌ Second push failed. Remote changed again."
+              exit 1
+            }
           fi
