@@ -1,7 +1,7 @@
 import asyncio
 import re
 from typing import Dict, List, Optional, Tuple
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote
 import aiohttp
 from bs4 import BeautifulSoup
 from playwright.async_api import BrowserContext, Page, async_playwright
