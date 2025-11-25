@@ -329,7 +329,6 @@ def write_playlist_tivimate(streams: List[Dict], filename: str):
     if not streams:
         print("⏹️ No streams found to write to TiviMate playlist.")
         return
-
     with open(filename, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
 
