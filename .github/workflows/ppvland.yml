@@ -41,7 +41,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Stage the output
-          git add PPVLand.m3u8
+          git add PP_Viewland.m3u8
 
           # Check if file actually changed
           if git diff --cached --quiet; then
