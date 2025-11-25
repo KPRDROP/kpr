@@ -1,68 +1,65 @@
-name: 🚀 Update PPVLand Playlist 📺
+name: 🛰️ PPVland Stream Auto-Updater
 
 on:
   schedule:
-    - cron: '0 * * * *'  # ⏰ Run every hour
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  scrape:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: 📥 Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: 🐍 Set up Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: 📦 Install Python dependencies & Playwright
+      - name: 📦 Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install playwright urllib3 aiohttp
           playwright install firefox
           playwright install-deps
 
-      - name: 🎯 Run scraping script
+      - name: 🚀 Run PPVland scraper
         run: python pp_viewland.py
 
-      - name: 💾 Commit & Safely Push if Playlist Changed
+      - name: 💾 Commit & Push BOTH playlists if changed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage the output
-          git add PP_Viewland.m3u8
+          git add PPVland_VLC.m3u8
+          git add PPVland_TiviMate.m3u8
 
-          # Check if file actually changed
           if git diff --cached --quiet; then
-            echo "✅ No changes to commit"
+            echo "✅ No playlist changes detected"
             exit 0
           fi
 
-          git commit -m "🔁 Update playlist $(date -u +'%a %b %d %T UTC %Y')"
+          git commit -m "🔁 Auto-update PPVland playlists $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
-          # Small random delay to reduce collisions
           sleep $((RANDOM % 10 + 5))
 
-          # Safe push, fallback merge if rejected
           if ! git push origin main; then
-            echo "⚠️ Push rejected. Trying safe fetch + merge..."
-            git pull origin main --rebase || {
-              echo "❌ Rebase failed. Exiting to avoid corruption."
+            echo "⚠️ Push rejected. Attempting safe rebase..."
+            git pull --rebase origin main || {
+              echo "❌ Rebase failed."
               exit 1
             }
             git push origin main || {
-              echo "❌ Second push failed. Remote changed again."
+              echo "❌ Final push failed."
               exit 1
             }
           fi
