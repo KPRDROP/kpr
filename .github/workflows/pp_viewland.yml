@@ -1,65 +1,41 @@
-name: 🛰️ PPVland Stream Auto-Updater
+name: PP_Viewland Scraper
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: '0 * * * *'  # every hour
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  build:
+  scrape:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: 🐍 Set up Python 3.11
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: 3.11
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install playwright urllib3 aiohttp
+          pip install aiohttp playwright urllib3 aiohttp
           playwright install firefox
           playwright install-deps
 
-      - name: 🚀 Run PPVland scraper
+      - name: Install Playwright browsers
+        run: playwright install
+
+      - name: Run PP_Viewland scraper
         run: python pp_viewland.py
 
-      - name: 💾 Commit & Push BOTH playlists if changed
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and push updated playlists
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add PP_Viewland.m3u8
-          git add PP_Viewland_TiviMate.m3u8
-
-          if git diff --cached --quiet; then
-            echo "✅ No playlist changes detected"
-            exit 0
-          fi
-
-          git commit -m "🔁 Auto-update PPVland playlists $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-
-          sleep $((RANDOM % 10 + 5))
-
-          if ! git push origin main; then
-            echo "⚠️ Push rejected. Attempting safe rebase..."
-            git pull --rebase origin main || {
-              echo "❌ Rebase failed."
-              exit 1
-            }
-            git push origin main || {
-              echo "❌ Final push failed."
-              exit 1
-            }
-          fi
+          git config --local user.name "GitHub Action"
+          git config --local user.email "action@github.com"
+          git add PP_Viewland.m3u8 PP_Viewland_TiviMate.m3u8
+          # Commit only if there are changes
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update PP_Viewland playlists"
+          git push
