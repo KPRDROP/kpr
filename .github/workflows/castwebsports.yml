@@ -39,7 +39,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add CastwebSports.m3u8
+          # ⬇⬇⬇ UPDATED — Now commits TWO PLAYLIST FILES ⬇⬇⬇
+          git add CastwebSports.m3u8 CastwebSports_TiviMate.m3u8
 
           if git diff --cached --quiet; then
             echo "✅ No changes to commit"
