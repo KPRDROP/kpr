@@ -1,7 +1,7 @@
 import asyncio
 import re
 from typing import Dict, List, Optional, Tuple
-from urllib.parse import urljoin, quote
+from urllib.parse import urljoin, quote   # <-- PATCH INSERTED HERE
 import aiohttp
 from bs4 import BeautifulSoup
 from playwright.async_api import BrowserContext, Page, async_playwright
@@ -10,8 +10,8 @@ USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0"
 )
 
-DYNAMIC_WAIT_TIMEOUT = 15000 
-GAME_TABLE_WAIT_TIMEOUT = 30000 
+DYNAMIC_WAIT_TIMEOUT = 15000
+GAME_TABLE_WAIT_TIMEOUT = 30000
 
 STREAM_PATTERN = re.compile(r"\.m3u8($|\?)", re.IGNORECASE)
 OUTPUT_FILE = "CastwebSports.m3u8"
@@ -44,8 +44,49 @@ NBA_CUSTOM_HEADERS = {
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0",
 }
 
+# --------------------------------------------------------------------------------
+# ✔ INSERTED PATCH: TIVIMATE PLAYLIST GENERATOR
+# --------------------------------------------------------------------------------
+def write_playlist_tivimate(streams: List[Dict], filename: str):
+    """
+    Writes a second M3U playlist in TiviMate pipe format.
+    """
+    if not streams:
+        print("⏹️ No streams found to write to TiviMate playlist.")
+        return
+
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write("#EXTM3U\n")
+
+        for entry in streams:
+            extinf_line = (
+                f'#EXTINF:-1 tvg-id="{entry["tvg_id"]}" '
+                f'tvg-name="{entry["name"]}" '
+                f'tvg-logo="{entry["tvg_logo"]}" '
+                f'group-title="{entry["group"]}",{entry["name"]}\n'
+            )
+            f.write(extinf_line)
+
+            base_url = entry.get("ref", "")
+            pipe = ""
+
+            if "custom_headers" in entry:
+                ch = entry["custom_headers"]
+                pipe += f'|origin={ch.get("origin","")}'
+                pipe += f'|referer={ch.get("referrer","")}'
+                pipe += f'|user-agent={quote(ch.get("user_agent",""), safe="")}'
+            else:
+                pipe += f"|origin={base_url}"
+                pipe += f"|referer={base_url}"
+                pipe += f"|user-agent={quote(USER_AGENT, safe='')}"
+
+            f.write(entry["url"] + pipe + "\n")
+
+    print(f"✅ TiviMate playlist saved: {filename}")
+# --------------------------------------------------------------------------------
+
+
 def normalize_game_name(original_name: str) -> str:
-    """Cleans up game names scraped from the site."""
     cleaned_name = " ".join(original_name.splitlines()).strip()
     if "@" in cleaned_name:
         parts = cleaned_name.split("@")
@@ -57,7 +98,6 @@ def normalize_game_name(original_name: str) -> str:
     return " ".join(cleaned_name.strip().split()).title()
 
 async def verify_stream_url(session: aiohttp.ClientSession, url: str, headers: Optional[Dict[str, str]] = None) -> bool:
-    """Verifies a stream URL, passing custom headers for origin and referer checks."""
     request_headers = headers if headers else {}
     if "User-Agent" not in request_headers:
         request_headers["User-Agent"] = session.headers.get("User-Agent", USER_AGENT)
@@ -78,10 +118,6 @@ async def verify_stream_url(session: aiohttp.ClientSession, url: str, headers: O
         return False
 
 async def find_stream_from_servers_on_page(context: BrowserContext, page_url: str, base_url: str, session: aiohttp.ClientSession) -> Optional[str]:
-    """
-    Navigates to a page, finds the player iframe, clicks through server links 
-    *inside* that iframe, and captures the first valid .m3u8 URL.
-    """
     verification_headers = {
         "Origin": base_url.rstrip('/'),
         "Referer": base_url
@@ -155,6 +191,7 @@ async def find_stream_from_servers_on_page(context: BrowserContext, page_url: st
             
     print(f"  ❌ All servers tried for {page_url}, but no valid stream was found.")
     return None
+
 
 async def scrape_league(base_url: str, channel_urls: List[str], group_prefix: str, default_id: str, default_logo: str) -> List[Dict]:
     print(f"\nScraping {group_prefix} streams from {base_url}...")
@@ -318,50 +355,6 @@ def write_playlist(streams: List[Dict], filename: str):
             f.write(entry["url"] + "\n")
             
     print(f"✅ Playlist with {len(streams)} streams saved successfully to {filename}!")
-	
-       from urllib.parse import quote
-
-def write_playlist_tivimate(streams: List[Dict], filename: str):
-    """
-    Writes a second M3U playlist in TiviMate pipe format.
-    The scraper logic remains untouched — only formatting changes.
-    """
-    if not streams:
-        print("⏹️ No streams found to write to TiviMate playlist.")
-        return
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-
-        for entry in streams:
-            extinf_line = (
-                f'#EXTINF:-1 tvg-id="{entry["tvg_id"]}" '
-                f'tvg-name="{entry["name"]}" '
-                f'tvg-logo="{entry["tvg_logo"]}" '
-                f'group-title="{entry["group"]}",{entry["name"]}\n'
-            )
-            f.write(extinf_line)
-
-            base_url = entry.get("ref", "")
-
-            # --- PIPE HEADER BUILDER ---
-            pipe = ""
-
-            if "custom_headers" in entry:
-                ch = entry["custom_headers"]
-
-                pipe += f'|origin={ch.get("origin","")}'
-                pipe += f'|referer={ch.get("referrer","")}'
-                pipe += f'|user-agent={quote(ch.get("user_agent",""), safe="")}'
-
-            else:
-                pipe += f"|origin={base_url}"
-                pipe += f"|referer={base_url}"
-                pipe += f"|user-agent={quote(USER_AGENT, safe='')}"
-
-            # write final URL
-            f.write(entry["url"] + pipe + "\n")
-
-    print(f"✅ TiviMate playlist saved: {filename}")	
 
 async def main():
     print("🚀 Starting Sports Webcast Scraper...")
@@ -388,12 +381,13 @@ async def main():
     ]
     
     results = await asyncio.gather(*tasks)
-    
     all_streams = [stream for league_streams in results for stream in league_streams]
-    
-    write_playlist(all_streams, OUTPUT_FILE)
-    write_playlist_tivimate(all_streams, "CastwebSports_TiviMate.m3u8")
 
+    # Write VLC Format
+    write_playlist(all_streams, OUTPUT_FILE)
+
+    # Write TiviMate Format
+    write_playlist_tivimate(all_streams, "CastwebSports_TiviMate.m3u8")
 
 if __name__ == "__main__":
     asyncio.run(main())
