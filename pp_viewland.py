@@ -326,20 +326,22 @@ async def main():
             url_map[key] = urls
         streams.extend(live_now_streams)
 
-        await browser.close()
+            await browser.close()
 
     print("\n💾 Writing final playlist to LandView_pp.m3u8 ...")
-playlist = build_m3u(streams, url_map)
-with open("LandView_pp.m3u8", "w", encoding="utf-8") as f:
-    f.write(playlist)
-print(f"✅ Done! Playlist saved as LandView_pp.m3u8 at {datetime.utcnow().isoformat()} UTC")
+    playlist = build_m3u(streams, url_map)
+    with open("LandView_pp.m3u8", "w", encoding="utf-8") as f:
+        f.write(playlist)
+    print(f"✅ Done! Playlist saved as LandView_pp.m3u8 at {datetime.utcnow().isoformat()} UTC")
 
-print("\n💾 Writing TiviMate playlist to LandView_pp_TiviMate.m3u8 ...")
-tivi_playlist = build_m3u_tivimate(streams, url_map)
-with open("LandView_pp_TiviMate.m3u8", "w", encoding="utf-8") as f:
-    f.write(tivi_playlist)
-print(f"✅ Done! Playlist saved as LandView_pp_TiviMate.m3u8 at {datetime.utcnow().isoformat()} UTC")
+    print("\n💾 Writing TiviMate playlist to LandView_pp_TiviMate.m3u8 ...")
+    tivi_playlist = build_m3u_tivimate(streams, url_map)
+    with open("LandView_pp_TiviMate.m3u8", "w", encoding="utf-8") as f:
+        f.write(tivi_playlist)
+    print(f"✅ Done! Playlist saved as LandView_pp_TiviMate.m3u8 at {datetime.utcnow().isoformat()} UTC")
+
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+
