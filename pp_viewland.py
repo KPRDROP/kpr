@@ -324,7 +324,7 @@ async def main():
             url_map[key] = urls
         streams.extend(live_now_streams)
 
-            await browser.close()
+        await browser.close()
 
     # Write normal playlist
     print("\n💾 Writing final playlist to LandView_pp.m3u8 ...")
