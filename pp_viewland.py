@@ -265,8 +265,6 @@ async def main():
     data = await get_streams()
     if not data or 'streams' not in data:
         print("❌ No valid data received from the API")
-        if data:
-            print(f"API Response: {data}")
         return
 
     print(f"✅ Found {len(data['streams'])} categories")
@@ -328,17 +326,19 @@ async def main():
 
             await browser.close()
 
+    # Write normal playlist
     print("\n💾 Writing final playlist to LandView_pp.m3u8 ...")
     playlist = build_m3u(streams, url_map)
     with open("LandView_pp.m3u8", "w", encoding="utf-8") as f:
         f.write(playlist)
-    print(f"✅ Done! Playlist saved as LandView_pp.m3u8 at {datetime.utcnow().isoformat()} UTC")
+    print(f"✅ Saved LandView_pp.m3u8")
 
+    # Write TiviMate playlist
     print("\n💾 Writing TiviMate playlist to LandView_pp_TiviMate.m3u8 ...")
     tivi_playlist = build_m3u_tivimate(streams, url_map)
     with open("LandView_pp_TiviMate.m3u8", "w", encoding="utf-8") as f:
         f.write(tivi_playlist)
-    print(f"✅ Done! Playlist saved as LandView_pp_TiviMate.m3u8 at {datetime.utcnow().isoformat()} UTC")
+    print(f"✅ Saved LandView_pp_TiviMate.m3u8")
 
 
 
