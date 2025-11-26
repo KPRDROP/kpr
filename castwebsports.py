@@ -94,13 +94,13 @@ def write_playlist_tivimate(streams: List[Dict], filename: str):
             pipe = ""
 
             if "custom_headers" in entry:
-                ch = entry["custom_headers"]
-                pipe += f'|origin={ch.get("origin","")}'
+                ch = entry["custom_headers"]                
                 pipe += f'|referer={ch.get("referrer","")}'
+                pipe += f'|origin={ch.get("origin","")}'
                 pipe += f'|user-agent={quote(ch.get("user_agent",""), safe="")}'
             else:
-                pipe += f"|origin={base_url}"
                 pipe += f"|referer={base_url}"
+                pipe += f"|origin={base_url}"
                 pipe += f"|user-agent={quote(USER_AGENT, safe='')}"
 
             f.write(entry["url"] + pipe + "\n")
