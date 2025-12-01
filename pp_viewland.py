@@ -213,6 +213,44 @@ async def grab_live_now_from_html(page, base_url="https://ppv.to/"):
     print(f"✅ Found {len(live_now_streams)} 'Live Now' streams")
     return live_now_streams
 
+def build_m3u(streams, url_map):
+    """
+    Build a standard VLC-style M3U playlist (uses CUSTOM_HEADERS).
+    Returns the playlist as a string.
+    """
+    lines = ['#EXTM3U url-tvg="https://epgshare01.online/epgshare01/epg_ripper_DUMMY_CHANNELS.xml.gz"']
+    seen_names = set()
+
+    for s in streams:
+        name = s.get("name", "Unnamed").strip()
+        name_lower = name.lower()
+        if name_lower in seen_names:
+            continue
+        seen_names.add(name_lower)
+
+        key = f"{s.get('name')}::{s.get('category')}::{s.get('iframe')}"
+        urls = url_map.get(key, [])
+        if not urls:
+            print(f"⚠️ No working URLs for {name}")
+            continue
+
+        url = next(iter(urls))  # use the first validated url
+
+        orig_category = s.get("category", "Misc").strip()
+        final_group = GROUP_RENAME_MAP.get(orig_category, orig_category)
+        logo = s.get("poster") or CATEGORY_LOGOS.get(orig_category, "")
+        tvg_id = CATEGORY_TVG_IDS.get(orig_category, "Misc.Dummy.us")
+
+        # Write EXTINF line and headers
+        lines.append(
+            f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{final_group}",{name}'
+        )
+        # include VLC custom headers (each on its own line)
+        lines.extend(CUSTOM_HEADERS)
+        lines.append(url)
+
+    return "\n".join(lines)
+    
 def build_m3u_tivimate(streams, url_map):
     """Builds a TiviMate-compatible M3U using pipe headers."""
     lines = ['#EXTM3U url-tvg="https://epgshare01.online/epgshare01/epg_ripper_DUMMY_CHANNELS.xml.gz"']
