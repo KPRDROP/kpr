@@ -1,17 +1,4 @@
 #!/usr/bin/env python3
-"""
-nflwebcast.py -- scraped tuned to detect event <a href> anchors like:
-<a href="https://nflwebcast.com/houston-texans-live-stream-online-free-.../"
-   class="dracula-style-txt-border dracula-style-link dracula-processed">...</a>
-
-Features:
-- Chrome stealth init (Playwright)
-- Cloudflare/challenge-aware navigation retries
-- Waits for the dracula link selectors and falls back to broad scan
-- Extracts m3u8 candidates from page HTML
-- Validates m3u8 with aiohttp (200 OK) and writes TiviMate pipe headers
-"""
-
 import asyncio
 import sys
 import re
