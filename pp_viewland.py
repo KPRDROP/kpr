@@ -334,11 +334,11 @@ async def main():
     print(f"✅ Saved pp_landview.m3u8")
 
     # Write TiviMate playlist
-    print("\n💾 Writing TiviMate playlist to pp_landview.m3u8_TiviMate.m3u8 ...")
+    print("\n💾 Writing TiviMate playlist to pp_landview_TiviMate.m3u8 ...")
     tivi_playlist = build_m3u_tivimate(streams, url_map)
-    with open("pp_landview.m3u8_TiviMate.m3u8", "w", encoding="utf-8") as f:
+    with open("pp_landview_TiviMate.m3u8", "w", encoding="utf-8") as f:
         f.write(tivi_playlist)
-    print(f"✅ Saved pp_landview.m3u8_TiviMate.m3u8")
+    print(f"✅ Saved pp_landview_TiviMate.m3u8")
 
 
 
