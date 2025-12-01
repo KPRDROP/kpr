@@ -41,8 +41,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Stage both output playlist files
-          git add LandView_pp.m3u8
-          git add LandView_pp_TiviMate.m3u8
+          git add pp_landview.m3u8
+          git add pp_landview_TiviMate.m3u8
 
           # Check if either file changed
           if git diff --cached --quiet; then
