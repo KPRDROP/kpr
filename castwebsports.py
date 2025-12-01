@@ -1,13 +1,13 @@
 import asyncio
 import re
 from typing import Dict, List, Optional, Tuple
-from urllib.parse import urljoin, quote   # <-- PATCH INSERTED HERE
+from urllib.parse import urljoin, quote   
 import aiohttp
 from bs4 import BeautifulSoup
 from playwright.async_api import BrowserContext, Page, async_playwright
 
 USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 )
 
 DYNAMIC_WAIT_TIMEOUT = 15000
@@ -39,9 +39,9 @@ CHANNEL_METADATA = {
 
 NBA_STREAM_URL_PATTERN = "https://gg.poocloud.in/{team_name}/tracks-v1a1/mono.ts.m3u8"
 NBA_CUSTOM_HEADERS = {
-    "origin": "https://ppv.to",
-    "referrer": "https://ppv.to/",
-    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0",
+    "origin": "https://embednow.top",
+    "referrer": "https://embednow.top/",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
 }
 
 NBA_TEAM_LOGOS = {
@@ -388,24 +388,24 @@ def write_playlist(streams: List[Dict], filename: str):
 
 async def main():
     print("🚀 Starting Sports Webcast Scraper...")
-    NBA_DEFAULT_LOGO = "http://drewlive24.duckdns.org:9000/Logos/Basketball.png"
+    NBA_DEFAULT_LOGO = "https://i.postimg.cc/B6WMnCRT/basketball-sport-logo-minimalist-style-600nw-2484656797.jpg"
     
     tasks = [
         scrape_league(
             base_url=NFL_BASE_URL, channel_urls=NFL_CHANNEL_URLS, group_prefix="NFLWebcast",
-            default_id="NFL.Dummy.us", default_logo="http://drewlive24.duckdns.org:9000/Logos/Maxx.png"
+            default_id="NFL.Dummy.us", default_logo="https://i.postimg.cc/CLDMZMZC/nfl-logo-png-seeklogo-520492.png"
         ),
         scrape_league(
             base_url=NHL_BASE_URL, channel_urls=NHL_CHANNEL_URLS, group_prefix="NHLWebcast",
-            default_id="NHL.Hockey.Dummy.us", default_logo="http://drewlive24.duckdns.org:9000/Logos/Hockey.png"
+            default_id="NHL.Hockey.Dummy.us", default_logo="https://i.postimg.cc/4dqZdjsh/nhl-logo-png-seeklogo-196350.png"
         ),
         scrape_league(
             base_url=MLB_BASE_URL, channel_urls=MLB_CHANNEL_URLS, group_prefix="MLBWebcast",
-            default_id="MLB.Baseball.Dummy.us", default_logo="http://drewlive24.duckdns.org:9000/Logos/MLB.png"
+            default_id="MLB.Baseball.Dummy.us", default_logo="https://i.postimg.cc/wBBdk9Bc/mlb-logo-png-seeklogo-250501.png"
         ),
         scrape_league(
             base_url=MLS_BASE_URL, channel_urls=MLS_CHANNEL_URLS, group_prefix="MLSWebcast",
-            default_id="MLS.Soccer.Dummy.us", default_logo="http://drewlive24.duckdns.org:9000/Logos/Football2.png"
+            default_id="MLS.Soccer.Dummy.us", default_logo="https://i.postimg.cc/SRhTDGrm/MLS-Nola-Cox-811x900.png"
         ),
         scrape_nba_league(default_logo=NBA_DEFAULT_LOGO),
     ]
