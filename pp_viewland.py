@@ -117,7 +117,7 @@ async def get_streams():
     try:
         timeout = aiohttp.ClientTimeout(total=30)
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36'
         }
         async with aiohttp.ClientSession(timeout=timeout, headers=headers) as session:
             print(f"🌐 Fetching streams from {API_URL}")
@@ -327,18 +327,18 @@ async def main():
         await browser.close()
 
     # Write normal playlist
-    print("\n💾 Writing final playlist to LandView_pp.m3u8 ...")
+    print("\n💾 Writing final playlist to pp_landview.m3u8 ...")
     playlist = build_m3u(streams, url_map)
-    with open("LandView_pp.m3u8", "w", encoding="utf-8") as f:
+    with open("pp_landview.m3u8", "w", encoding="utf-8") as f:
         f.write(playlist)
-    print(f"✅ Saved LandView_pp.m3u8")
+    print(f"✅ Saved pp_landview.m3u8")
 
     # Write TiviMate playlist
-    print("\n💾 Writing TiviMate playlist to LandView_pp_TiviMate.m3u8 ...")
+    print("\n💾 Writing TiviMate playlist to pp_landview.m3u8_TiviMate.m3u8 ...")
     tivi_playlist = build_m3u_tivimate(streams, url_map)
-    with open("LandView_pp_TiviMate.m3u8", "w", encoding="utf-8") as f:
+    with open("pp_landview.m3u8_TiviMate.m3u8", "w", encoding="utf-8") as f:
         f.write(tivi_playlist)
-    print(f"✅ Saved LandView_pp_TiviMate.m3u8")
+    print(f"✅ Saved pp_landview.m3u8_TiviMate.m3u8")
 
 
 
