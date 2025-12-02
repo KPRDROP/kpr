@@ -117,7 +117,7 @@ async def get_streams():
     try:
         timeout = aiohttp.ClientTimeout(total=30)
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36'
+            'User-Agent': 'http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0'
         }
         async with aiohttp.ClientSession(timeout=timeout, headers=headers) as session:
             print(f"🌐 Fetching streams from {API_URL}")
