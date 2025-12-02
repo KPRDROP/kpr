@@ -217,7 +217,7 @@ def build_m3u(streams, url_map):
             print(f"⚠️ No working URLs for {name}")
             continue
 
-        url = rewrite_poocloud_url(next(iter(urls)))  # use the first validated url
+        url = next(iter(urls))  # use the first validated url
 
         orig_category = s.get("category", "Misc").strip()
         final_group = GROUP_RENAME_MAP.get(orig_category, orig_category)
@@ -254,7 +254,7 @@ def build_m3u_tivimate(streams, url_map):
         if not urls:
             continue
 
-        url = rewrite_poocloud_url(next(iter(urls)))
+        url = next(iter(urls))
 
         # Extract domain for referer/origin
         referer = s["iframe"]
