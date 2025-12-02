@@ -8,6 +8,11 @@ on:
 permissions:
   contents: write
 
+# 🚫 Prevent overlapping runs from pushing at the same time
+concurrency:
+  group: ppvland-playlist-update
+  cancel-in-progress: true
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
