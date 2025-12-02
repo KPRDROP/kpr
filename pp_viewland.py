@@ -59,44 +59,31 @@ GROUP_RENAME_MAP = {
     "Ice Hockey": "PPVLand - NHL Action"
 }
 
-NFL_TEAMS = {
-    "arizona cardinals", "atlanta falcons", "baltimore ravens", "buffalo bills",
-    "carolina panthers", "chicago bears", "cincinnati bengals", "cleveland browns",
-    "dallas cowboys", "denver broncos", "detroit lions", "green bay packers",
-    "houston texans", "indianapolis colts", "jacksonville jaguars", "kansas city chiefs",
-    "las vegas raiders", "los angeles chargers", "los angeles rams", "miami dolphins",
-    "minnesota vikings", "new england patriots", "new orleans saints", "new york giants",
-    "new york jets", "philadelphia eagles", "pittsburgh steelers", "san francisco 49ers",
-    "seattle seahawks", "tampa bay buccaneers", "tennessee titans", "washington commanders"
-}
+# -----------------------------
+# 🔧 PATCH APPLIED BELOW
+# -----------------------------
 
-COLLEGE_TEAMS = {
-    "alabama crimson tide", "auburn tigers", "arkansas razorbacks", "georgia bulldogs",
-    "florida gators", "lsu tigers", "ole miss rebels", "mississippi state bulldogs",
-    "tennessee volunteers", "texas longhorns", "oklahoma sooners", "oklahoma state cowboys",
-    "baylor bears", "tcu horned frogs", "kansas jayhawks", "kansas state wildcats",
-    "iowa state cyclones", "iowa hawkeyes", "michigan wolverines", "ohio state buckeyes",
-    "penn state nittany lions", "michigan state spartans", "wisconsin badgers",
-    "minnesota golden gophers", "illinois fighting illini", "northwestern wildcats",
-    "indiana hoosiers", "notre dame fighting irish", "usc trojans", "ucla bruins",
-    "oregon ducks", "oregon state beavers", "washington huskies", "washington state cougars",
-    "arizona wildcats", "stanford cardinal", "california golden bears", "colorado buffaloes",
-    "florida state seminoles", "miami hurricanes", "clemson tigers", "north carolina tar heels",
-    "duke blue devils", "nc state wolfpack", "wake forest demon deacons", "syracuse orange",
-    "virginia cavaliers", "virginia tech hokies", "louisville cardinals", "pittsburgh panthers",
-    "maryland terrapins", "rutgers scarlet knights", "nebraska cornhuskers", "purdue boilermakers",
-    "texas a&m aggies", "kentucky wildcats", "missouri tigers", "vanderbilt commodores",
-    "houston cougars", "utah utes", "byu cougars", "boise state broncos", "san diego state aztecs",
-    "cincinnati bearcats", "memphis tigers", "ucf knights", "south florida bulls", "smu mustangs",
-    "tulsa golden hurricane", "tulane green wave", "navy midshipmen", "army black knights",
-    "arizona state sun devils", "texas tech red raiders", "florida atlantic owls"
-}
+def force_index_m3u8(url: str) -> str:
+    """
+    Convert any segment-style m3u8 to index.m3u8.
+    Example:
+       .../tracks-v1a1/mono.ts.m3u8  -->  .../index.m3u8
+    """
+    if "/index.m3u8" in url:
+        return url
 
-# --- CORRECTED FUNCTION #1 ---
+    if "/tracks" in url or ".ts.m3u8" in url:
+        base = url.split("/")[0:4]     # keep: https://domain/key/
+        base = "/".join(base)
+        return f"{base}/index.m3u8"
+
+    return url
+
+# -----------------------------
+
+
 async def check_m3u8_url(url, referer):
-    """Checks the M3U8 URL using the correct referer for validation."""
     try:
-        # Dynamically generate the origin from the referer URL
         origin = "https://" + referer.split('/')[2]
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0",
@@ -106,12 +93,11 @@ async def check_m3u8_url(url, referer):
         timeout = aiohttp.ClientTimeout(total=15)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(url, headers=headers) as resp:
-                # A 200 (OK) or 403 (Forbidden) can both indicate a working link,
-                # as some servers block direct file access but confirm the path exists.
                 return resp.status in [200, 403]
     except Exception as e:
         print(f"❌ Error checking {url}: {e}")
         return False
+
 
 async def get_streams():
     try:
@@ -128,19 +114,24 @@ async def get_streams():
                     print(f"❌ Error response: {error_text[:500]}")
                     return None
                 return await resp.json()
+
     except Exception as e:
         print(f"❌ Error in get_streams: {str(e)}")
         return None
 
-# --- CORRECTED FUNCTION #2 ---
+
 async def grab_m3u8_from_iframe(page, iframe_url):
     found_streams = set()
+
     def handle_response(response):
         if ".m3u8" in response.url:
-            print(f"✅ Found M3U8 Stream: {response.url}")
-            found_streams.add(response.url)
+            patched = force_index_m3u8(response.url)   # 🔧 PATCH HERE
+            print(f"✅ Found M3U8: {response.url}")
+            print(f"👉 Rewritten to: {patched}")
+            found_streams.add(patched)
 
     page.on("response", handle_response)
+
     print(f"🌐 Navigating to iframe: {iframe_url}")
     try:
         await page.goto(iframe_url, timeout=30000, wait_until="domcontentloaded")
@@ -153,36 +144,28 @@ async def grab_m3u8_from_iframe(page, iframe_url):
         await page.wait_for_timeout(5000)
         nested_iframe = page.locator("iframe")
         if await nested_iframe.count() > 0:
-            print("🔎 Found nested iframe, attempting to click inside it.")
-            player_frame = page.frame_locator("iframe").first
-            # Use force=True to click even if the element is not "visible"
-            await player_frame.locator("body").click(timeout=5000, force=True)
+            print("🔎 Found nested iframe...")
+            frame = page.frame_locator("iframe").first
+            await frame.locator("body").click(timeout=5000, force=True)
         else:
-            print("🖱️ No nested iframe found. Clicking main page body.")
             await page.locator("body").click(timeout=5000, force=True)
-    except Exception as e:
-        print(f"⚠️ Clicking failed, but proceeding anyway. Error: {e}")
+    except:
+        pass
 
-    print("⏳ Waiting 8s for stream to be requested...")
+    print("⏳ Waiting 8s for stream requests...")
     await asyncio.sleep(8)
+
     page.remove_listener("response", handle_response)
 
     if not found_streams:
-        print(f"❌ No M3U8 URLs were captured for {iframe_url}")
+        print(f"❌ No M3U8 found for {iframe_url}")
         return set()
 
-    valid_urls = set()
-    # Pass the correct iframe_url as the referer to the check function
     tasks = [check_m3u8_url(url, iframe_url) for url in found_streams]
     results = await asyncio.gather(*tasks)
-    
-    for url, is_valid in zip(found_streams, results):
-        if is_valid:
-            valid_urls.add(url)
-        else:
-            print(f"🗑️ Discarding invalid or unreachable URL: {url}")
-            
-    return valid_urls
+
+    valid = {url for url, ok in zip(found_streams, results) if ok}
+    return valid
 
 async def grab_live_now_from_html(page, base_url="https://ppv.to/"):
     print("🌐 Scraping 'Live Now' streams from HTML...")
@@ -234,7 +217,7 @@ def build_m3u(streams, url_map):
             print(f"⚠️ No working URLs for {name}")
             continue
 
-        url = next(iter(urls))  # use the first validated url
+        url = rewrite_poocloud_url(next(iter(urls)))  # use the first validated url
 
         orig_category = s.get("category", "Misc").strip()
         final_group = GROUP_RENAME_MAP.get(orig_category, orig_category)
@@ -271,7 +254,7 @@ def build_m3u_tivimate(streams, url_map):
         if not urls:
             continue
 
-        url = next(iter(urls))
+        url = rewrite_poocloud_url(next(iter(urls)))
 
         # Extract domain for referer/origin
         referer = s["iframe"]
