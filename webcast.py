@@ -46,7 +46,7 @@ CHANNEL_METADATA = {
     },
 }
 
-NBA_STREAM_URL_PATTERN = "https://gg.poocloud.in/{stream_key}/tracks-v1a1/mono.ts.m3u8"
+NBA_STREAM_URL_PATTERN = "https://gg.poocloud.in/{stream_key}/index.m3u8"
 NBA_CUSTOM_HEADERS = {
     "origin": "https.embednow.top",
     "referrer": "https.embednow.top/",
@@ -267,7 +267,6 @@ async def scrape_league(base_url: str, channel_urls: List[str], group_prefix: st
         })
     return results
 
-# The rest of your webcast.py (scrape_nba_league, write_playlist, main) stays the same
 
 async def scrape_nba_league(default_logo: str) -> List[Dict]:
     print(f"\nScraping NBAWebcast streams from {NBA_BASE_URL}...")
@@ -343,12 +342,12 @@ def write_playlist(streams: List[Dict], filename: str):
 
 async def main():
     print("🚀 Starting Sports Webcast Scraper...")
-    NBA_DEFAULT_LOGO = "http://drewlive24.duckdns.org:9000/Logos/Basketball.png"
+    NBA_DEFAULT_LOGO = "https://i.postimg.cc/B6WMnCRT/basketball-sport-logo-minimalist-style-600nw-2484656797.jpg"
     tasks = [
-        scrape_league(NFL_BASE_URL, NFL_CHANNEL_URLS, "NFLWebcast", "NFL.Dummy.us", "http://drewlive24.duckdns.org:9000/Logos/Maxx.png"),
-        scrape_league(NHL_BASE_URL, NHL_CHANNEL_URLS, "NHLWebcast", "NHL.Hockey.Dummy.us", "http://drewlive24.duckdns.org:9000/Logos/Hockey.png"),
-        scrape_league(MLB_BASE_URL, MLB_CHANNEL_URLS, "MLBWebcast", "MLB.Baseball.Dummy.us", "http://drewlive24.duckdns.org:9000/Logos/MLB.png"),
-        scrape_league(MLS_BASE_URL, MLS_CHANNEL_URLS, "MLSWebcast", "MLS.Soccer.Dummy.us", "http://drewlive24.duckdns.org:9000/Logos/Football2.png"),
+        scrape_league(NFL_BASE_URL, NFL_CHANNEL_URLS, "NFLWebcast", "NFL.Dummy.us", "https://i.postimg.cc/J73Cdrsp/nfl-logo-png-seeklogo-168592.png"),
+        scrape_league(NHL_BASE_URL, NHL_CHANNEL_URLS, "NHLWebcast", "NHL.Hockey.Dummy.us", "https://i.postimg.cc/KjxwyT1J/nhl-logo-png-seeklogo-298232.png"),
+        scrape_league(MLB_BASE_URL, MLB_CHANNEL_URLS, "MLBWebcast", "MLB.Baseball.Dummy.us", "https://i.postimg.cc/sDn8tvsK/major-league-baseball-logo-png-seeklogo-176127.png"),
+        scrape_league(MLS_BASE_URL, MLS_CHANNEL_URLS, "MLSWebcast", "MLS.Soccer.Dummy.us", "https://i.postimg.cc/vTYqKdKN/soccer-logo-png-seeklogo-380207.png"),
         scrape_nba_league(NBA_DEFAULT_LOGO),
     ]
     results = await asyncio.gather(*tasks)
