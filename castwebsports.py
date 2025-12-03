@@ -37,7 +37,7 @@ CHANNEL_METADATA = {
     "espnusa": {"name": "ESPN", "id": "ESPN.HD.us2", "logo": "https://github.com/tv-logo/tv-logos/blob/main/countries/united-states/espn-us.png?raw=true"},
 }
 
-NBA_STREAM_URL_PATTERN = "https://gg.poocloud.in/{team_name}/tracks-v1a1/mono.ts.m3u8"
+NBA_STREAM_URL_PATTERN = "https://gg.poocloud.in/{team_name}/index.m3u8"
 NBA_CUSTOM_HEADERS = {
     "origin": "https://embednow.top",
     "referrer": "https://embednow.top/",
