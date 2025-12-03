@@ -6,21 +6,21 @@ from datetime import datetime
 from playwright.async_api import async_playwright
 
 M3U8_FILE = "TheTV.m3u8"
-BASE_URL = "https://thetvapp.link"
-CHANNEL_LIST_URL = f"{BASE_URL}/live-tv"
+BASE_URL = "https://thetvapp.to"
+CHANNEL_LIST_URL = f"{BASE_URL}/tv"
 
 SECTIONS_TO_APPEND = {
-    "/nbastreams": "NBA",
-    "/mlbstreams": "MLB",
-    "/nhlstreams": "NHL",
-    "/nflstreams": "NFL",
-    "/soccerstreams": "Soccer",        
-    "/cfbstreams": "NCAAF",
-    "/ncaastreams": "NCAAB",
-    "/f1streams": "F1",    
-    "/wwestreams": "WWE",    
-    "/boxingstreams": "Boxing",
-    "/mmastreams": "MMA",
+    "/nba": "NBA",
+    "/mlb": "MLB",
+    "/nhl": "NHL",
+    "/nfl": "NFL",
+    "/ncaaf": "NCAAF",
+    "/ncaab": "NCAAB",
+    "/soccerstreams": "Soccer",    
+    "/ppv": "PPV",   
+        
+    
+    
 }
 
 SPORTS_METADATA = {
@@ -72,7 +72,7 @@ async def scrape_tv_urls():
         browser = await p.firefox.launch(headless=True)
         context = await browser.new_context()
         page = await context.new_page()
-        print("🔄 Loading /live-tv channel list...")
+        print("🔄 Loading /tv channel list...")
         await page.goto(CHANNEL_LIST_URL, wait_until="domcontentloaded", timeout=60000)
         links = await page.locator("ol.list-group a").all()
         hrefs_and_titles = [
