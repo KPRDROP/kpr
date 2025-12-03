@@ -2,7 +2,7 @@ name: 🚀 Update PPVLand Playlists 📺
 
 on:
   schedule:
-    - cron: '0 */2 * * *'  # ⏰ Run every 2 hours
+    - cron: '0 */3 * * *'   # Run every 3 hours
   workflow_dispatch:
 
 permissions:
@@ -19,25 +19,23 @@ jobs:
 
     steps:
       - name: 📥 Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: 🐍 Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: 📦 Install Python dependencies & Playwright (Firefox only)
+      - name: 📦 Install Python dependencies & Playwright (Firefox)
         run: |
           python -m pip install --upgrade pip
-          pip install aiohttp urllib3 playwright
-
-          # Install only Firefox (your script uses Firefox)
+          pip install aiohttp playwright urllib3
           playwright install firefox
           playwright install-deps
 
-      - name: 🎯 Run PPVLand scraper
+      - name: 🎯 Run scraping script
         run: python pp_viewland.py
 
       - name: 💾 Commit & Safely Push if Playlists Changed
@@ -47,30 +45,35 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage both playlist outputs
+          # Stage playlist files
           git add pp_landview.m3u8
           git add pp_landview_TiviMate.m3u8
 
-          # If nothing changed → exit
+          # Nothing changed?
           if git diff --cached --quiet; then
-            echo "✅ No changes to commit"
+            echo "✅ No playlist changes detected. Exiting..."
             exit 0
           fi
 
-          git commit -m "🔁 Update PPVLand playlists $(date -u +'%a %b %d %T UTC %Y')"
+          git commit -m "🔁 Update playlists $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
 
-          # Random push delay (mitigates multi-run push conflicts)
-          sleep $((RANDOM % 10 + 5))
+          echo "🚀 Attempting safe push..."
+          if git push origin main; then
+            echo "✅ Push successful!"
+            exit 0
+          fi
 
-          # Push safely with rebase fallback
-          if ! git push origin main; then
-            echo "⚠️ Push rejected. Trying safe fetch + rebase..."
-            git pull origin main --rebase || {
-              echo "❌ Rebase failed. Exiting to avoid corruption."
-              exit 1
-            }
-            git push origin main || {
-              echo "❌ Second push failed after rebase."
-              exit 1
-            }
+          echo "⚠️ Push rejected — attempting safe pull + rebase"
+          git pull origin main --rebase || {
+            echo "❌ Rebase failed — aborting to prevent corruption"
+            exit 1
+          }
+
+          echo "🚀 Retrying push..."
+          if git push origin main; then
+            echo "✅ Push successful after rebase!"
+            exit 0
+          else
+            echo "❌ Final push attempt failed"
+            exit 1
           fi
