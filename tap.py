@@ -16,7 +16,7 @@ SECTIONS_TO_APPEND = {
     "/nfl": "NFL",
     "/ncaaf": "NCAAF",
     "/ncaab": "NCAAB",
-    "/soccerstreams": "Soccer",    
+    "/soccer": "Soccer",    
     "/ppv": "PPV",   
         
     
