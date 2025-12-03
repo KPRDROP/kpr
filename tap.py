@@ -16,11 +16,8 @@ SECTIONS_TO_APPEND = {
     "/nfl": "NFL",
     "/ncaaf": "NCAAF",
     "/ncaab": "NCAAB",
-    "/soccer": "Soccer",    
-    "/ppv": "PPV",   
-        
-    
-    
+    "/soccer": "Soccer",
+    "/ppv": "PPV",
 }
 
 SPORTS_METADATA = {
@@ -74,6 +71,7 @@ async def scrape_tv_urls():
         page = await context.new_page()
         print("🔄 Loading /tv channel list...")
         await page.goto(CHANNEL_LIST_URL, wait_until="domcontentloaded", timeout=60000)
+
         links = await page.locator("ol.list-group a").all()
         hrefs_and_titles = [
             (await l.get_attribute("href"), await l.text_content())
@@ -85,11 +83,13 @@ async def scrape_tv_urls():
             stream = await scrape_single_tv(context, href, title_raw)
             if stream:
                 urls.append(stream)
+
             if idx % 10 == 0:
                 print("⏳ Cooling down Firefox after 10 pages...")
                 await asyncio.sleep(random.uniform(3.0, 4.5))
 
         await browser.close()
+
     return urls
 
 def clean_m3u_header(lines):
@@ -112,31 +112,51 @@ def replace_urls_only(lines, new_urls):
             replaced.append(line)
     return replaced
 
+# ----------------------------------------------------------------------
+# ✅ NEW — DO NOT REMOVE ANY EXISTING CODE
+# ----------------------------------------------------------------------
+def append_missing_tv_channels(lines, tv_urls):
+    """
+    Ensures all /tv channels get added even if they do not exist in the base M3U.
+    Creates a generic EXTINF entry for missing channels.
+    """
+    existing_urls = set(l.strip() for l in lines if l.startswith("http"))
+    output = lines.copy()
+
+    for idx, url in enumerate(tv_urls, 1):
+        if url not in existing_urls:
+            name = f"TV Channel {idx}"
+            extinf = (
+                f'#EXTINF:-1 tvg-id="" tvg-logo="" '
+                f'group-title="TheTV - Channels",{name}'
+            )
+            output.append(extinf)
+            output.append(url)
+
+    return output
+# ----------------------------------------------------------------------
+
 def remove_sd_entries(lines):
-    cleaned = []
-    skip_next = False
-    for line in lines:
-        if skip_next:
-            skip_next = False
-            continue
-        if line.strip().startswith("#EXTINF") and "SD" in line.upper():
-            skip_next = True
-            continue
-        cleaned.append(line)
-    return cleaned
+    # <-- YOUR REQUEST: remove SD removal functionality
+    print("🧹 SKIPPED removing SD entries — SD/HD/all valid streams will be kept.")
+    return lines
 
 def replace_sports_section(lines, sports_urls):
     cleaned = []
     skip_next = False
     sports_groups = tuple(f'TheTV - {s}' for s in SECTIONS_TO_APPEND.values())
+
     for line in lines:
         if skip_next:
             skip_next = False
             continue
+
         if any(group in line for group in sports_groups):
             skip_next = True
             continue
+
         cleaned.append(line)
+
     for url, group, title in sports_urls:
         title = title.replace(",", "").strip() + " HD"
         meta = SPORTS_METADATA.get(group, {})
@@ -147,6 +167,7 @@ def replace_sports_section(lines, sports_urls):
         )
         cleaned.append(extinf)
         cleaned.append(url)
+
     return cleaned
 
 async def scrape_all_sports_sections():
@@ -154,18 +175,23 @@ async def scrape_all_sports_sections():
     async with async_playwright() as p:
         browser = await p.firefox.launch(headless=True)
         context = await browser.new_context()
+
         for section_path, group_name in SECTIONS_TO_APPEND.items():
             try:
                 page = await context.new_page()
                 section_url = BASE_URL + section_path
                 print(f"\n📁 Loading section: {section_url}")
                 await page.goto(section_url, wait_until="domcontentloaded", timeout=60000)
+
                 links = await page.locator("ol.list-group a").all()
+
                 for idx, link in enumerate(links, 1):
                     href = await link.get_attribute("href")
                     title_raw = await link.text_content()
+
                     if not href or not title_raw:
                         continue
+
                     title = " - ".join(line.strip() for line in title_raw.splitlines() if line.strip())
                     title = title.replace(",", "")
                     full_url = BASE_URL + href
@@ -180,21 +206,28 @@ async def scrape_all_sports_sections():
                             print(f"✅ [{group_name}] {title} → {real}")
 
                     sub.on("response", handle_response)
+
                     try:
                         await sub.goto(full_url, wait_until="domcontentloaded", timeout=60000)
                         await asyncio.sleep(random.uniform(2.8, 3.5))
                     except Exception as e:
                         print(f"⚠️ {group_name} page failed: {e}")
+
                     await sub.close()
+
                     if stream_url:
                         all_urls.append((stream_url, group_name, title))
+
                     if idx % 8 == 0:
                         print("⏳ Cooling down Firefox to sync responses...")
                         await asyncio.sleep(random.uniform(3.0, 4.5))
+
                 await page.close()
+
             except Exception as e:
                 print(f"⚠️ Skipped {group_name}: {e}")
                 continue
+
         await browser.close()
     return all_urls
 
@@ -202,21 +235,30 @@ async def main():
     if not Path(M3U8_FILE).exists():
         print(f"❌ File not found: {M3U8_FILE}")
         return
+
     lines = Path(M3U8_FILE).read_text(encoding="utf-8").splitlines()
     lines = clean_m3u_header(lines)
+
     print("🔧 Updating TV URLs only...")
     new_urls = await scrape_tv_urls()
+
     if new_urls:
         lines = replace_urls_only(lines, new_urls)
-    # Modified: skip removing SD entries so SD streams remain in file
-    print("🧹 SKIPPED removing SD entries — SD/HD/all valid streams will be kept.")
-    # lines = remove_sd_entries(lines)
+        # ✅ NEW PATCH — Add missing /tv channels safely
+        lines = append_missing_tv_channels(lines, new_urls)
+
+    print("🧹 Removing SD entries...")
+    lines = remove_sd_entries(lines)
+
     print("⚽ Replacing Sports Sections...")
     sports_urls = await scrape_all_sports_sections()
+
     if sports_urls:
         lines = replace_sports_section(lines, sports_urls)
+
     Path(M3U8_FILE).write_text("\n".join(lines), encoding="utf-8")
-    print("✅ Done — SD removed, URLs replaced, old sports wiped, new ones appended.")
+
+    print("✅ DONE — All TV channels + sports sections included successfully.")
 
 if __name__ == "__main__":
     asyncio.run(main())
