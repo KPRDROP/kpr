@@ -71,7 +71,7 @@ async def scrape_tv_urls():
         browser = await p.firefox.launch(headless=True)
         context = await browser.new_context()
         page = await context.new_page()
-        print("🔄 Loading /tv channel list...")
+        print("🔄 Loading /live-tv channel list...")
         await page.goto(CHANNEL_LIST_URL, wait_until="domcontentloaded", timeout=60000)
         links = await page.locator("ol.list-group a").all()
         hrefs_and_titles = [
