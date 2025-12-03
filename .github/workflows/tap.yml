@@ -40,10 +40,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage the output
+          if [ ! -f "TheTV.m3u8" ]; then
+            echo "❌ TheTV.m3u8 NOT found — script did not generate the file"
+            exit 0
+          fi
+
           git add TheTV.m3u8
 
-          # Check if file actually changed
           if git diff --cached --quiet; then
             echo "✅ No changes to commit"
             exit 0
@@ -51,12 +54,10 @@ jobs:
 
           git commit -m "🔁 Update playlist $(date -u +'%a %b %d %T UTC %Y')"
 
-          # Small random delay to reduce collisions
           sleep $((RANDOM % 10 + 5))
 
-          # Safe push, fallback merge if rejected
           if ! git push origin main; then
-            echo "⚠️ Push rejected. Trying safe fetch + merge..."
+            echo "⚠️ Push rejected. Trying safe fetch + rebase..."
             git pull origin main --rebase || {
               echo "❌ Rebase failed. Exiting to avoid corruption."
               exit 1
