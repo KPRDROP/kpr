@@ -6,20 +6,21 @@ from datetime import datetime
 from playwright.async_api import async_playwright
 
 M3U8_FILE = "TheTV.m3u8"
-BASE_URL = "https://thetvapp.digital"
+BASE_URL = "https://thetvapp.link"
 CHANNEL_LIST_URL = f"{BASE_URL}/live-tv"
 
 SECTIONS_TO_APPEND = {
-    "/nba": "NBA",
-    "/mlb": "MLB",
-    "/wnba": "WNBA",
-    "/nfl": "NFL",
-    "/ncaaf": "NCAAF",
-    "/ncaab": "NCAAB",
-    "/soccer": "Soccer",
-    "/ppv": "PPV",
-    "/events": "Events",
-    "/nhl": "NHL",
+    "/nbastreams": "NBA",
+    "/mlbstreams": "MLB",
+    "/nhlstreams": "NHL",
+    "/nflstreams": "NFL",
+    "/soccerstreams": "Soccer",        
+    "/cfbstreams": "NCAAF",
+    "/ncaastreams": "NCAAB",
+    "/f1streams": "F1",    
+    "/wwestreams": "WWE",    
+    "/boxingstreams": "Boxing",
+    "/mmastreams": "MMA",
 }
 
 SPORTS_METADATA = {
