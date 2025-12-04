@@ -221,10 +221,15 @@ async def scrape_tv_urls(max_channels=None):
 
 # --- Sports sections (similar to your previous implementation) ---
 async def scrape_all_sports_sections(max_per_section=None):
+    """
+    Returns list of tuples (stream_url, group_name, title)
+    Fixed: collect href/title strings while section page is open, then close page
+    and visit each item with a fresh page (avoids using Locator objects after page.close()).
+    """
     all_urls = []
-    # keep similar protective timeouts as above
     SECTION_GOTO_TIMEOUT = 25000
     PER_ITEM_TIMEOUT = 18
+
     async with async_playwright() as p:
         browser = await p.firefox.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
         context = await browser.new_context()
@@ -236,23 +241,52 @@ async def scrape_all_sports_sections(max_per_section=None):
                 try:
                     await page.goto(section_url, wait_until="domcontentloaded", timeout=SECTION_GOTO_TIMEOUT)
                 except PlaywrightTimeoutError:
-                    print(f"⚠️ Timeout loading section {group_name}")
-                links = await page.locator("ol.list-group a").all()
-                await page.close()
-                for i, link in enumerate(links, start=1):
-                    try:
-                        href = await link.get_attribute("href")
-                        title_raw = await link.text_content()
-                        if not href or not title_raw:
-                            continue
-                        title = " - ".join(line.strip() for line in title_raw.splitlines() if line.strip())
-                        title = title.replace(",", "")
-                        full_url = BASE_URL + href
-                        stream_url = None
+                    print(f"⚠️ Timeout loading section {group_name}; continuing with what we can.")
+                except Exception as e:
+                    print(f"⚠️ Error loading section page {group_name}: {e}")
 
-                        async def work_item():
-                            nonlocal stream_url
-                            sub = await context.new_page()
+                # Collect hrefs/titles into a plain list (no locators kept)
+                items = []
+                try:
+                    anchors = await page.locator("ol.list-group a").all()
+                    for a in anchors:
+                        try:
+                            href = await a.get_attribute("href")
+                            title_raw = await a.text_content() or ""
+                            if not href or not title_raw:
+                                continue
+                            title = " - ".join(line.strip() for line in title_raw.splitlines() if line.strip())
+                            title = title.replace(",", "")
+                            items.append({"href": href, "title": title})
+                        except Exception as e:
+                            # skip problematic anchor but continue
+                            print(f"⚠️ Skipping an anchor in {group_name}: {e}")
+                            continue
+                except Exception as e:
+                    print(f"⚠️ Failed to enumerate anchors in {group_name}: {e}")
+                    items = []
+
+                # close the section page now that we have plain data
+                try:
+                    await page.close()
+                except Exception:
+                    pass
+
+                # iterate collected items and open new pages to capture m3u8
+                for i, item in enumerate(items, start=1):
+                    if max_per_section and i > max_per_section:
+                        break
+
+                    href = item["href"]
+                    title = item["title"]
+                    full_url = BASE_URL + href
+                    stream_url = None
+
+                    async def work_item():
+                        nonlocal stream_url
+                        sub = await context.new_page()
+                        handler = None
+                        try:
                             def on_resp(resp):
                                 nonlocal stream_url
                                 try:
@@ -262,41 +296,57 @@ async def scrape_all_sports_sections(max_per_section=None):
                                         print(f"✅ [{group_name}] {title} → {real}")
                                 except Exception:
                                     pass
-                            sub.on("response", on_resp)
-                            try:
-                                try:
-                                    await sub.goto(full_url, wait_until="domcontentloaded", timeout=15000)
-                                except PlaywrightTimeoutError:
-                                    pass
-                                await asyncio.sleep(random.uniform(1.2, 2.4))
-                            finally:
-                                try:
-                                    sub.off("response", on_resp)
-                                except Exception:
-                                    pass
-                                try:
-                                    await sub.close()
-                                except Exception:
-                                    pass
 
-                        try:
-                            await asyncio.wait_for(work_item(), timeout=PER_ITEM_TIMEOUT)
-                        except asyncio.TimeoutError:
-                            print(f"⚠️ Timeout for {title} in {group_name}")
-                        if stream_url:
-                            all_urls.append((stream_url, group_name, title))
-                        if max_per_section and i >= max_per_section:
-                            break
-                        if i % 8 == 0:
-                            await asyncio.sleep(random.uniform(1.6, 3.5))
+                            handler = on_resp
+                            sub.on("response", handler)
+                            try:
+                                await sub.goto(full_url, wait_until="domcontentloaded", timeout=15000)
+                            except PlaywrightTimeoutError:
+                                # ignore individual goto timeouts; continue to allow network requests
+                                pass
+                            except Exception:
+                                pass
+
+                            await asyncio.sleep(random.uniform(1.2, 2.4))
+                        finally:
+                            # remove handler and close sub page cleanly
+                            try:
+                                if handler:
+                                    sub.off("response", handler)
+                            except Exception:
+                                try:
+                                    sub.remove_listener("response", handler)
+                                except Exception:
+                                    pass
+                            try:
+                                await sub.close()
+                            except Exception:
+                                pass
+
+                    try:
+                        await asyncio.wait_for(work_item(), timeout=PER_ITEM_TIMEOUT)
+                    except asyncio.TimeoutError:
+                        print(f"⚠️ Timeout for {title} in {group_name}")
                     except Exception as e:
-                        print(f"⚠️ Error extracting item in {group_name}: {e}")
-                        continue
+                        print(f"⚠️ Error processing {title} in {group_name}: {e}")
+
+                    if stream_url:
+                        all_urls.append((stream_url, group_name, title))
+
+                    # small cooldown every few items
+                    if i % 8 == 0:
+                        await asyncio.sleep(random.uniform(1.6, 3.5))
+
             except Exception as e:
                 print(f"⚠️ Skipped section {group_name}: {e}")
                 continue
-        await browser.close()
+        try:
+            await browser.close()
+        except Exception:
+            pass
+
     return all_urls
+
 
 # Playlist helpers (unchanged logic, kept robust)
 def clean_m3u_header(lines):
