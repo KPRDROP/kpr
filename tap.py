@@ -64,33 +64,100 @@ async def scrape_single_tv(context, href, title_raw):
     return stream_url
 
 async def scrape_tv_urls():
-    urls = []
+    """
+    Returns list of dicts:
+    {
+        "url": stream_url,
+        "title": channel_title,
+        "tvg_id": extracted_tvg_id or "",
+        "logo": extracted_logo or ""
+    }
+    """
+    results = []
+
     async with async_playwright() as p:
         browser = await p.firefox.launch(headless=True)
         context = await browser.new_context()
         page = await context.new_page()
+
         print("🔄 Loading /tv channel list...")
         await page.goto(CHANNEL_LIST_URL, wait_until="domcontentloaded", timeout=60000)
 
         links = await page.locator("ol.list-group a").all()
-        hrefs_and_titles = [
-            (await l.get_attribute("href"), await l.text_content())
-            for l in links if await l.get_attribute("href")
-        ]
+
+        # Extract metadata for each channel
+        tv_entries = []
+        for l in links:
+            href = await l.get_attribute("href")
+            txt = await l.inner_html()
+
+            if not href:
+                continue
+
+            # Extract cleaner title
+            title_raw = (await l.text_content()).strip()
+            title = " - ".join(t.strip() for t in title_raw.splitlines() if t.strip())
+            title = title.replace(",", "")
+
+            # Try to extract tvg-id and logo from <img> tag inside the <a>
+            logo = ""
+            tvg_id = ""
+
+            try:
+                img = await l.locator("img").get_attribute("src")
+                if img:
+                    logo = img
+
+                # Some channels include data attributes that help
+                tvg_id_attr = await l.get_attribute("data-tvg-id")
+                if tvg_id_attr:
+                    tvg_id = tvg_id_attr
+            except:
+                pass
+
+            tv_entries.append({
+                "href": href,
+                "title": title,
+                "logo": logo,
+                "tvg_id": tvg_id,
+            })
+
         await page.close()
 
-        for idx, (href, title_raw) in enumerate(hrefs_and_titles, 1):
-            stream = await scrape_single_tv(context, href, title_raw)
-            if stream:
-                urls.append(stream)
+        # Visit each channel’s page to capture the .m3u8
+        for idx, entry in enumerate(tv_entries, 1):
+            stream_url = None
+            page = await context.new_page()
+
+            async def handle_response(response):
+                nonlocal stream_url
+                real = extract_real_m3u8(response.url)
+                if real and not stream_url:
+                    stream_url = real
+                    print(f"✅ [TV] {entry['title']} → {real}")
+
+            page.on("response", handle_response)
+
+            try:
+                await page.goto(BASE_URL + entry["href"], wait_until="domcontentloaded", timeout=60000)
+                await asyncio.sleep(random.uniform(2.8, 3.5))
+            except Exception as e:
+                print(f"⚠️ Failed {entry['title']}: {e}")
+
+            await page.close()
+
+            if stream_url:
+                entry["url"] = stream_url
+                results.append(entry)
 
             if idx % 10 == 0:
-                print("⏳ Cooling down Firefox after 10 pages...")
+                print("⏳ Cooling down Firefox…")
                 await asyncio.sleep(random.uniform(3.0, 4.5))
 
         await browser.close()
 
-    return urls
+    return results
+
 
 def clean_m3u_header(lines):
     lines = [l for l in lines if not l.strip().startswith("#EXTM3U")]
@@ -115,25 +182,29 @@ def replace_urls_only(lines, new_urls):
 # ----------------------------------------------------------------------
 # ✅ NEW — DO NOT REMOVE ANY EXISTING CODE
 # ----------------------------------------------------------------------
-def append_missing_tv_channels(lines, tv_urls):
+def append_missing_tv_channels(lines, tv_entries):
     """
-    Ensures all /tv channels get added even if they do not exist in the base M3U.
-    Creates a generic EXTINF entry for missing channels.
+    Appends cleaner, metadata-rich TV channels to the playlist.
     """
     existing_urls = set(l.strip() for l in lines if l.startswith("http"))
     output = lines.copy()
 
-    for idx, url in enumerate(tv_urls, 1):
-        if url not in existing_urls:
-            name = f"TV Channel {idx}"
-            extinf = (
-                f'#EXTINF:-1 tvg-id="" tvg-logo="" '
-                f'group-title="TheTV - Channels",{name}'
-            )
-            output.append(extinf)
-            output.append(url)
+    for entry in tv_entries:
+        if entry["url"] in existing_urls:
+            continue
+
+        extinf = (
+            f'#EXTINF:-1 tvg-id="{entry["tvg_id"]}" '
+            f'tvg-name="{entry["title"]}" '
+            f'tvg-logo="{entry["logo"]}" '
+            f'group-title="TheTV - Channels",{entry["title"]}'
+        )
+
+        output.append(extinf)
+        output.append(entry["url"])
 
     return output
+
 # ----------------------------------------------------------------------
 
 def remove_sd_entries(lines):
@@ -240,12 +311,15 @@ async def main():
     lines = clean_m3u_header(lines)
 
     print("🔧 Updating TV URLs only...")
-    new_urls = await scrape_tv_urls()
+    tv_entries = await scrape_tv_urls()
 
     if new_urls:
         lines = replace_urls_only(lines, new_urls)
-        # ✅ NEW PATCH — Add missing /tv channels safely
-        lines = append_missing_tv_channels(lines, new_urls)
+        # Extract just URLs for replacement
+    only_urls = [entry["url"] for entry in tv_entries]
+
+    lines = replace_urls_only(lines, only_urls)
+    lines = append_missing_tv_channels(lines, tv_entries)
 
     print("🧹 Removing SD entries...")
     lines = remove_sd_entries(lines)
