@@ -383,6 +383,10 @@ def remove_sd_entries(lines):
     return cleaned
 
 def replace_sports_section(lines, sports_urls):
+    """
+    Remove current sports groups and append new ones from sports_urls list of tuples.
+    This version also replaces '@' with 'vs' in event titles for nicer output.
+    """
     cleaned = []
     skip_next = False
     sports_groups = tuple(f'TheTV - {s}' for s in SECTIONS_TO_APPEND.values())
@@ -394,13 +398,25 @@ def replace_sports_section(lines, sports_urls):
             skip_next = True
             continue
         cleaned.append(line)
+
     for url, group, title in sports_urls:
-        title = title.replace(",", "").strip() + " HD"
+        # sanitize title, remove commas, normalize whitespace
+        safe_title = title.replace(",", "").strip()
+
+        # Replace " @ " and "@" with " vs " (case-sensitive fine for sports titles)
+        # Keep spacing tidy: collapse multiple spaces
+        safe_title = safe_title.replace(" @ ", " vs ")
+        safe_title = safe_title.replace("@", " vs ")
+        safe_title = " ".join(safe_title.split())
+
+        # append HD suffix
+        safe_title = f"{safe_title} HD"
+
         meta = SPORTS_METADATA.get(group, {})
         extinf = (
             f'#EXTINF:-1 tvg-id="{meta.get("tvg-id","")}" '
-            f'tvg-name="{title}" tvg-logo="{meta.get("logo","")}" '
-            f'group-title="TheTV - {group}",{title}'
+            f'tvg-name="{safe_title}" tvg-logo="{meta.get("logo","")}" '
+            f'group-title="TheTV - {group}",{safe_title}'
         )
         cleaned.append(extinf)
         cleaned.append(url)
