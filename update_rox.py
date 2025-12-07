@@ -1,19 +1,4 @@
 #!/usr/bin/env python3
-"""
-update_rox.py
-
-Scrape https://roxiestreams.live/ categories and event pages to extract .m3u8
-stream URLs. Produce two playlists:
- - Roxiestreams_VLC.m3u8
- - Roxiestreams_TiviMate.m3u8
-
-This version:
- - Robustly extracts .m3u8 from anchors, <source>/<video>, iframes and inline JS
- - Cleans event titles (removes site suffixes like "- Roxiestreams - Watch Live...")
- - Avoids HTML being injected into URLs or titles
- - Uses TV_INFO to include tvg-id and tvg-logo metadata
- - Encodes user-agent in TiviMate output
-"""
 
 from datetime import datetime
 from urllib.parse import quote, urljoin, urlparse
