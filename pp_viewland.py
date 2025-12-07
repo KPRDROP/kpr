@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# pp_viewland.py - rebuilt with stealth Playwright + recursive iframe scanning
-# Outputs: pp_landview.m3u8 and pp_landview_TiviMate.m3u8
 
 import asyncio
 import os
