@@ -1,181 +1,301 @@
-import requests
-from bs4 import BeautifulSoup
+#!/usr/bin/env python3
+"""
+streambtw.py — lightweight scraper that extracts .m3u8 streams from iframe pages
+(no API). Produces two outputs:
+  - Streambtw_VLC.m3u8      (VLC-friendly with #EXTVLCOPT headers)
+  - Streambtw_TiviMate.m3u8 (TiviMate pipe-format with referer|origin|user-agent)
+
+Behavior:
+ - Fetch the site homepage (config HOME_URL) and find iframe pages under /iframe/
+ - For each iframe page, GET its HTML and search for any .m3u8 occurrences
+   (also handles embedded nested <iframe> tags).
+ - Attempts simple rewriting (tracks-v1a1/... -> index.m3u8) to prefer index
+ - Deduplicates by normalized title
+ - Replaces "@" with "vs" in event titles
+ - Prints progress and warnings for items with no m3u8
+"""
+from __future__ import annotations
+import asyncio
+import aiohttp
 import re
 import urllib.parse
+from pathlib import Path
+from typing import List, Dict, Set
 
-# Base URL and headers
-BASE_URL = "https://streambtw.com/"
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Referer': 'https://streambtw.com'
-}
+HOME_URL = "https://streambtw.com/"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
 
-def fetch_homepage():
-    """Fetch the homepage HTML content."""
-    response = requests.get(BASE_URL, headers=HEADERS)
-    response.raise_for_status()
-    return response.text
+VLC_OUTPUT = "Streambtw_VLC.m3u8"
+TIVIMATE_OUTPUT = "Streambtw_TiviMate.m3u8"
 
-def parse_events(html_content):
-    """Parse events from the homepage HTML."""
-    soup = BeautifulSoup(html_content, 'html.parser')
-    events = []
+VLC_CUSTOM_HEADERS = [
+    '#EXTVLCOPT:http-origin=https://streambtw.live',
+    '#EXTVLCOPT:http-referrer=https://streambtw.live',
+    f'#EXTVLCOPT:http-user-agent={USER_AGENT}',
+]
 
-    # Find all card elements
-    cards = soup.find_all('div', class_='card')
+# Regex to find .m3u8-like URLs (covers quoted, unquoted, querystring)
+M3U8_RE = re.compile(
+    r"""(?P<url>https?://[^\s"'<>]+?\.m3u8(?:\?[^\s"'<>]*)?)""",
+    re.IGNORECASE,
+)
 
-    for card in cards:
-        try:
-            # Extract category/league name
-            category = card.find('h5', class_='card-title')
-            category = category.text.strip() if category else "Unknown"
+# Fallback regex to detect URLs encoded inside js params (mu=... or src=...),
+# and unquote them if found.
+ENCODED_PARAM_RE = re.compile(r'(?:mu|src|file)=([^&"\'<>]+)', re.IGNORECASE)
 
-            # Extract event name
-            event_name = card.find('p', class_='card-text')
-            event_name = event_name.text.strip() if event_name else "Unknown Event"
 
-            # Extract iframe URL
-            link = card.find('a', class_='btn btn-primary')
-            iframe_url = link['href'] if link and 'href' in link.attrs else None
-            if iframe_url and not iframe_url.startswith('http'):
-                iframe_url = f"https://streambtw.com{iframe_url}"
-
-            # Extract logo (optional)
-            logo = card.find('img', class_='league-logo')
-            logo_url = logo['src'] if logo and 'src' in logo.attrs else ""
-
-            if iframe_url:
-                events.append({
-                    'category': category,
-                    'name': event_name,
-                    'iframe_url': iframe_url,
-                    'logo': logo_url
-                })
-        except Exception as e:
-            print(f"Error parsing card: {e}")
-            continue
-
-    return events
-
-def extract_m3u8_new(event_url):
-    """
-    NEW StreamBtw extraction:
-    - Extract event ID
-    - Query new API https://api.streambtw.com/v1/source/{id}
-    - Extract m3u8 from returned player pages
-    """
+async def fetch_text(session: aiohttp.ClientSession, url: str, timeout: int = 20) -> str | None:
     try:
-        # Extract event ID (digits only)
-        match = re.search(r'/live/(\d+)', event_url)
-        if not match:
-            print(f"❌ Cannot extract event ID from {event_url}")
-            return None
+        async with session.get(url, timeout=timeout) as resp:
+            text = await resp.text(errors="ignore")
+            return text
+    except Exception as e:
+        print(f"❌ Fetch failed for {url}: {e}")
+        return None
 
-        event_id = match.group(1)
 
-        # Step 1: Query new API
-        api_url = f"https://api.streambtw.com/v1/source/{event_id}"
-        print(f"🔍 Fetching API: {api_url}")
+def find_iframe_links_from_home(html: str) -> List[str]:
+    """
+    Extract candidate iframe URLs from the homepage HTML.
+    Looks for hrefs containing '/iframe/' or direct iframe srcs.
+    Returns absolute paths (joined with HOME_URL where necessary).
+    """
+    links: List[str] = []
+    # href="/iframe/xxx.php" or href="iframe/xxx.php" or src="/iframe/xxx.php"
+    for m in re.finditer(r'(?:href|src)\s*=\s*["\']([^"\']+)["\']', html, flags=re.IGNORECASE):
+        href = m.group(1).strip()
+        if "/iframe/" in href or href.startswith("iframe/"):
+            # make absolute
+            full = urllib.parse.urljoin(HOME_URL + "/", href)
+            if full not in links:
+                links.append(full)
+    # also scan for javascript window.open('/iframe/...')
+    for m in re.finditer(r'["\'](/?iframe/[^"\']+)["\']', html, flags=re.IGNORECASE):
+        full = urllib.parse.urljoin(HOME_URL + "/", m.group(1))
+        if full not in links:
+            links.append(full)
+    return links
 
-        r = requests.get(api_url, headers=HEADERS, timeout=10)
-        if r.status_code != 200:
-            print("❌ API returned non-200")
-            return None
 
-        data = r.json()
-        if not data.get("success"):
-            print("❌ API success=false")
-            return None
+def extract_m3u8_candidates_from_text(text: str) -> List[str]:
+    found: List[str] = []
+    if not text:
+        return found
+    # first, direct .m3u8 urls
+    for m in M3U8_RE.finditer(text):
+        url = m.group("url")
+        # decode entities
+        url = urllib.parse.unquote(url)
+        found.append(url)
+    # second, encoded params like mu=<encoded_url>
+    for m in ENCODED_PARAM_RE.finditer(text):
+        val = urllib.parse.unquote(m.group(1))
+        if ".m3u8" in val:
+            # ensure it looks like an http url
+            if val.startswith("http"):
+                found.append(val)
+            else:
+                # maybe relative: join with HOME_URL
+                found.append(urllib.parse.urljoin(HOME_URL + "/", val))
+    # dedupe, preserve order
+    out: List[str] = []
+    seen: Set[str] = set()
+    for u in found:
+        if u not in seen:
+            seen.add(u)
+            out.append(u)
+    return out
 
-        sources = data.get("sources", [])
-        if not sources:
-            print("❌ No sources returned")
-            return None
 
-        # Step 2: Loop player pages
-        for player_url in sources:
-            try:
-                if player_url.startswith("//"):
-                    player_url = "https:" + player_url
+def prefer_index_m3u8(url: str) -> str:
+    """
+    If URL ends with tracks-v1a1/... or similar, rewrite to index.m3u8
+    e.g. https://.../tracks-v1a1/mono.ts.m3u8 --> https://.../index.m3u8
+    or https://.../.../playlist/stream_redzone.m3u8?.... -> keep as-is
+    """
+    if "tracks-v1" in url and url.endswith(".m3u8"):
+        # change everything after the last '/' to index.m3u8
+        parsed = urllib.parse.urlparse(url)
+        base = parsed.scheme + "://" + parsed.netloc + "/"
+        # preserve path up to last segment before 'tracks-v1'
+        path = parsed.path
+        # try to find segment before '/tracks-v1'
+        idx = path.find("/tracks-v1")
+        if idx != -1:
+            new_path = path[:idx] + "/index.m3u8"
+            new_url = parsed._replace(path=new_path, query="").geturl()
+            return new_url
+    # if contains '/tracks-v1a1/' but then '/mono.ts.m3u8' we still try to rewrite:
+    if re.search(r"/tracks-v1[^/]*?/[^/]*?\.m3u8", url):
+        parsed = urllib.parse.urlparse(url)
+        # take directory up to the 'tracks...' parent
+        new_path = re.sub(r"/tracks-v1[^/]*?/.*$", "/index.m3u8", parsed.path)
+        new_url = parsed._replace(path=new_path, query="").geturl()
+        return new_url
+    return url
 
-                print(f"🌐 Checking player: {player_url}")
 
-                r2 = requests.get(player_url, headers=HEADERS, timeout=10)
-                if r2.status_code != 200:
-                    continue
+def sanitize_title(raw: str) -> str:
+    # normalize whitespace, remove enclosing quotes, replace '@' -> 'vs'
+    t = raw.strip()
+    t = re.sub(r"\s*\@\s*", " vs ", t)
+    t = re.sub(r"\s{2,}", " ", t)
+    return t
 
-                html = r2.text
 
-                # Detect direct m3u8
-                m3u8 = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\'>]*', html)
-                if m3u8:
-                    print(f"👉 M3U8 FOUND: {m3u8.group(0)}")
-                    return m3u8.group(0)
+def build_vlc_playlist(entries: List[Dict]) -> str:
+    lines = ['#EXTM3U']
+    for e in entries:
+        title = sanitize_title(e["title"])
+        tvg_logo = e.get("logo", "")
+        group = e.get("group", "Live")
+        tvg_id = e.get("tvg_id", "")
+        lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{tvg_logo}" group-title="{group}",{title}')
+        # add VLC headers
+        for h in VLC_CUSTOM_HEADERS:
+            lines.append(h)
+        lines.append(e["url"])
+    return "\n".join(lines)
 
-                # Try quoted m3u8
-                m3u8_q = re.search(r'["\']([^"\']+\.m3u8[^"\']*)["\']', html)
-                if m3u8_q:
-                    print(f"👉 M3U8 FOUND: {m3u8_q.group(1)}")
-                    return m3u8_q.group(1)
 
-            except Exception:
+def build_tivimate_playlist(entries: List[Dict]) -> str:
+    """
+    TiviMate pipe format: url|referer=<referer>|origin=<origin>|user-agent=<encoded UA>
+    IMPORTANT: order the pipe parts as the user requested: referer first, then origin.
+    """
+    lines = ['#EXTM3U']
+    ua_encoded = urllib.parse.quote(USER_AGENT, safe="")
+    for e in entries:
+        title = sanitize_title(e["title"])
+        tvg_logo = e.get("logo", "")
+        group = e.get("group", "Live")
+        tvg_id = e.get("tvg_id", "")
+        lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{tvg_logo}" group-title="{group}",{title}')
+        referer = e.get("referer") or HOME_URL
+        origin = urllib.parse.urlparse(referer).scheme + "://" + urllib.parse.urlparse(referer).netloc
+        url_with_pipe = f'{e["url"]}|referer={referer}|origin={origin}|user-agent={ua_encoded}'
+        lines.append(url_with_pipe)
+    return "\n".join(lines)
+
+
+async def process_iframe_page(session: aiohttp.ClientSession, iframe_url: str) -> List[str]:
+    """
+    Fetch iframe page, extract m3u8 candidates from its HTML and from nested iframe sources.
+    Returns list of m3u8 URLs (possibly rewritten).
+    """
+    html = await fetch_text(session, iframe_url)
+    if not html:
+        return []
+    candidates = extract_m3u8_candidates_from_text(html)
+
+    # Also search for nested iframe src attributes and try to fetch them as well
+    nested_iframes = []
+    for m in re.finditer(r'<iframe[^>]+src=["\']([^"\']+)["\']', html, flags=re.IGNORECASE):
+        src = m.group(1)
+        nested_iframes.append(urllib.parse.urljoin(iframe_url, src))
+
+    # fetch nested iframe pages concurrently to look for m3u8 there too
+    if nested_iframes:
+        tasks = [fetch_text(session, u) for u in nested_iframes]
+        pages = await asyncio.gather(*tasks)
+        for p in pages:
+            if p:
+                candidates += extract_m3u8_candidates_from_text(p)
+
+    # prefer index style and dedupe preserving order
+    out: List[str] = []
+    seen: Set[str] = set()
+    for c in candidates:
+        c = prefer_index_m3u8(c)
+        if c not in seen:
+            seen.add(c)
+            out.append(c)
+    return out
+
+
+async def main():
+    print("Fetching homepage...")
+    headers = {"User-Agent": USER_AGENT, "Referer": HOME_URL}
+    timeout = aiohttp.ClientTimeout(total=25)
+    async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
+        home_html = await fetch_text(session, HOME_URL)
+        if not home_html:
+            print("❌ Failed to download homepage; aborting.")
+            return
+
+        iframe_pages = find_iframe_links_from_home(home_html)
+        if not iframe_pages:
+            # as fallback: search for explicit example endpoints like '/iframe/redzone.php'
+            for m in re.finditer(r'(/iframe/[^"\'>\s]+\.php)', home_html, flags=re.IGNORECASE):
+                url = urllib.parse.urljoin(HOME_URL + "/", m.group(1))
+                if url not in iframe_pages:
+                    iframe_pages.append(url)
+
+        print(f"Parsing homepage — found {len(iframe_pages)} iframe pages to check.")
+
+        entries: List[Dict] = []
+        seen_titles: Set[str] = set()
+
+        # process pages sequentially (avoid too many concurrent connections that trip hosts)
+        for idx, frame_url in enumerate(iframe_pages, start=1):
+            print(f"\n🔎 [{idx}/{len(iframe_pages)}] Checking iframe: {frame_url}")
+            m3u8s = await process_iframe_page(session, frame_url)
+            if not m3u8s:
+                print(f"⚠️ No m3u8 found for {frame_url}")
                 continue
 
-    except Exception as e:
-        print(f"❌ Error extract_m3u8_new: {e}")
+            # Determine a friendly title from the iframe path or from page (cheap)
+            title = ""
+            # try to infer name in the iframe url path (e.g. /iframe/redzone.php -> REDZONE)
+            p = urllib.parse.urlparse(frame_url).path
+            name_guess = p.rstrip("/").split("/")[-1].replace(".php", "")
+            name_guess = name_guess.replace("_", " ").replace("-", " ").strip()
+            title = name_guess if name_guess else frame_url
 
-    return None
+            # prefer the first m3u8 candidate that's usable
+            selected = None
+            for candidate in m3u8s:
+                # very basic check: must be http and end with .m3u8 (or contain .m3u8)
+                if candidate.startswith("http") and ".m3u8" in candidate:
+                    selected = candidate
+                    break
+            if not selected:
+                print(f"⚠️ No valid http m3u8 candidates for {frame_url}")
+                continue
 
-def generate_m3u_playlists(events):
-    """Generate both VLC and TiviMate M3U playlist content."""
-    vlc_content = "#EXTM3U\n"
-    tivimate_content = "#EXTM3U\n"
+            # store entry
+            # create TVG id from name_guess
+            tvg_id = re.sub(r'[^a-z0-9\-]+', '-', name_guess.lower()).strip('-') or ""
+            # use frame_url as referer for headers
+            entry = {
+                "title": title,
+                "url": selected,
+                "logo": "",  # site doesn't provide logos here; user can post-process
+                "group": "StreamBTW",
+                "tvg_id": tvg_id,
+                "referer": frame_url,
+            }
+            # dedupe by normalized title
+            normalized = sanitize_title(title).lower()
+            if normalized in seen_titles:
+                print(f"ℹ️ Skipping duplicate title: {title}")
+                continue
+            seen_titles.add(normalized)
+            entries.append(entry)
+            print(f"✅ Captured: {selected}")
 
-    for event in events:
-        category = event['category']
-        name = event['name']
-        m3u8_url = extract_m3u8_new(event_url)
-        if not m3u8_url:
-            print(f"No m3u8 found for {name}")
-            continue
+        if not entries:
+            print("❌ No streams captured from any iframe pages.")
+        else:
+            print("\nGenerating playlists...")
+            vlc_text = build_vlc_playlist(entries)
+            tivi_text = build_tivimate_playlist(entries)
+            Path(VLC_OUTPUT).write_text(vlc_text, encoding="utf-8")
+            Path(TIVIMATE_OUTPUT).write_text(tivi_text, encoding="utf-8")
+            print(f"VLC playlist generated: {VLC_OUTPUT}")
+            print(f"TiviMate playlist generated: {TIVIMATE_OUTPUT}")
 
-        # VLC playlist
-        vlc_content += f'#EXTINF:-1 tvg-logo="{event["logo"]}" group-title="{category.upper()}",{name}\n'
-        vlc_content += '#EXTVLCOPT:http-origin=https://streambtw.com\n'
-        vlc_content += '#EXTVLCOPT:http-referrer=https://streambtw.com/\n'
-        vlc_content += f'#EXTVLCOPT:http-user-agent={HEADERS["User-Agent"]}\n'
-        vlc_content += f'{m3u8_url}\n'
 
-        # TiviMate playlist (pipe-separated headers)
-        user_agent_encoded = urllib.parse.quote(HEADERS['User-Agent'], safe='')
-        tivimate_headers = f'Referer=https://streambtw.com/|Origin=https://streambtw.com|User-Agent={user_agent_encoded}'
-        tivimate_content += f'#EXTINF:-1 tvg-logo="{event["logo"]}" group-title="{category.upper()}",{name}\n'
-        tivimate_content += f'{m3u8_url}|{tivimate_headers}\n'
-
-        print(f"Processed event: {name}")
-
-    return vlc_content, tivimate_content
-
-# Main execution
 if __name__ == "__main__":
-    try:
-        print("Fetching homepage...")
-        html = fetch_homepage()
-
-        print("Parsing events...")
-        events = parse_events(html)
-        print(f"Found {len(events)} events")
-
-        print("\nGenerating M3U playlists...")
-        vlc_playlist, tivimate_playlist = generate_m3u_playlists(events)
-
-        with open("Streambtw_VLC.m3u8", "w", encoding="utf-8") as f:
-            f.write(vlc_playlist)
-        print("VLC playlist generated: Streambtw_VLC.m3u8")
-
-        with open("Streambtw_TiviMate.m3u8", "w", encoding="utf-8") as f:
-            f.write(tivimate_playlist)
-        print("TiviMate playlist generated: Streambtw_TiviMate.m3u8")
-
-    except Exception as e:
-        print(f"Error: {e}")
+    asyncio.run(main())
