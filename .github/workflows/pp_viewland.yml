@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install aiohttp playwright
+          pip install aiohttp playwright urllib3
           playwright install
           playwright install-deps
       
