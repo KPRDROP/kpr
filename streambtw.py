@@ -58,21 +58,60 @@ def parse_events(html_content):
     return events
 
 def extract_m3u8_from_iframe(iframe_url):
-    """Extract the m3u8 URL from the iframe page."""
+    """Extract m3u8 from first page, second nested iframe, or JS redirect."""
     try:
-        response = requests.get(iframe_url, headers=HEADERS, timeout=10)
-        if response.status_code == 200:
-            html_content = response.text
-            m3u8_match = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\'>]*', html_content)
-            if m3u8_match:
-                return m3u8_match.group(0)
+        # Fetch first iframe/page
+        r1 = requests.get(iframe_url, headers=HEADERS, timeout=10)
+        if r1.status_code != 200:
+            return None
 
-            m3u8_match = re.search(r'["\']([^"\'\s]+\.m3u8[^"\'\s]*)["\']', html_content)
-            if m3u8_match:
-                return m3u8_match.group(1)
+        html1 = r1.text
+
+        # --- 1) DIRECT M3U8 DETECTION ---------------------------------------
+        m3u8 = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\'>]*', html1)
+        if m3u8:
+            return m3u8.group(0)
+
+        # --- 2) FIND NESTED IFRAME ------------------------------------------
+        nested = re.search(r'<iframe[^>]+src=["\']([^"\']+)["\']', html1)
+        if nested:
+            nested_url = nested.group(1)
+            if nested_url.startswith('//'):
+                nested_url = "https:" + nested_url
+            elif nested_url.startswith('/'):
+                nested_url = "https://streambtw.com" + nested_url
+
+            # Load nested iframe
+            r2 = requests.get(nested_url, headers=HEADERS, timeout=10)
+            if r2.status_code == 200:
+                html2 = r2.text
+
+                # Direct m3u8 inside nested iframe
+                m3u8_2 = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\'>]*', html2)
+                if m3u8_2:
+                    return m3u8_2.group(0)
+
+                # Example: ".m3u8" inside quotes
+                m3u8_3 = re.search(r'["\']([^"\']+\.m3u8[^"\']*)["\']', html2)
+                if m3u8_3:
+                    return m3u8_3.group(1)
+
+        # --- 3) DETECT JS REDIRECTS ------------------------------------------
+        redirect_match = re.search(r'window\.location\.href\s*=\s*["\']([^"\']+)["\']', html1)
+        if redirect_match:
+            redirect_url = redirect_match.group(1)
+            if not redirect_url.startswith('http'):
+                redirect_url = "https://streambtw.com" + redirect_url
+
+            r3 = requests.get(redirect_url, headers=HEADERS, timeout=10)
+            if r3.status_code == 200:
+                html3 = r3.text
+                m3u8_4 = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\'>]*', html3)
+                if m3u8_4:
+                    return m3u8_4.group(0)
 
     except Exception as e:
-        print(f"Error fetching iframe {iframe_url}: {e}")
+        print(f"Error parsing iframe {iframe_url}: {e}")
 
     return None
 
