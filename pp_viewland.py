@@ -25,7 +25,7 @@ FALLBACK_API_URLS = [
 CUSTOM_HEADERS = [
     '#EXTVLCOPT:http-origin=https://ppvs.su',
     '#EXTVLCOPT:http-referrer=https://ppvs.su',
-    '#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0'
+    '#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36'
 ]
 
 # Allowed categories to include — keep your original mapping
@@ -88,7 +88,7 @@ OUT_VLC = "PPVland_VLC.m3u8"
 OUT_TIVIMATE = "PPVland_TiviMate.m3u8"
 
 # User-Agent to encode for TiviMate
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
 
 # --- Utilities -------------------------------------------------------------
 
