@@ -2,10 +2,10 @@ name: PPV Stream Fetcher
 
 on:
   schedule:
-    # Run every hour on the hour
-    - cron: '0 * * * *'
+    # Run every 2 hours
+    - cron: "0 */2 * * *"
   workflow_dispatch:
-    # Allow manual trigger
+    # Allow manual run from GitHub UI
 
 jobs:
   fetch-streams:
