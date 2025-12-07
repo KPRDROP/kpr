@@ -4,7 +4,7 @@ import urllib.parse
 import aiohttp
 from datetime import datetime
 
-API_URL = "https://ppv.to/api/streams"
+API_URL = "https://api.ppv.to/api/streams"
 
 CUSTOM_HEADERS = [
     '#EXTVLCOPT:http-origin=https://ppv.to',
