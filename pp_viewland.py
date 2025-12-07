@@ -10,7 +10,7 @@ import aiohttp
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 # ---- Configuration ----
-# default API (you found the new one earlier)
+# default API
 API_URL = os.getenv("API_URL", "https://api.ppv.to/api/streams")
 
 # VLC style custom headers (kept from your prior script)
