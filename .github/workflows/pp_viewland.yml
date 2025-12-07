@@ -18,27 +18,13 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install system dependencies (Chromium)
+      - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            chromium-browser chromium-codecs-ffmpeg-extra \
-            libx11-6 libx11-xcb1 libxcb1 libxcomposite1 \
-            libxdamage1 libxfixes3 libxrandr2 libgbm1 libgtk-3-0 \
-            libglib2.0-0 libnss3 libxss1 libasound2 \
-            libatk1.0-0 libatk-bridge2.0-0 libcups2 \
-            libpango-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 \
-            libexpat1 libwoff1 libwoff2-1
-
-      - name: Install Python dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install playwright aiohttp
-
-      - name: Install Playwright Chromium
-        run: |
-          python -m playwright install --with-deps chromium
-
+          python -m pip install --upgrade pip
+          pip install aiohttp playwright
+          playwright install
+          playwright install-deps
+      
       - name: Run PPVLand Scraper
         env:
           API_URL: ${{ secrets.API_URL }}
@@ -53,3 +39,5 @@ jobs:
           git add PPVland_VLC.m3u8 PPVland_TiviMate.m3u8
           git commit -m "Auto-update PPV playlists ($(date -u))" || echo "No changes to commit"
           git push
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
