@@ -2,8 +2,10 @@ name: PPVLand Scraper
 
 on:
   schedule:
-    - cron: "0 * * * *"     # Every hour
+    # Run every 2 hours
+    - cron: "0 */2 * * *"
   workflow_dispatch:
+    # Allow manual run from GitHub UI
 
 jobs:
   scrape:
