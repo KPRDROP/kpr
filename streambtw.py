@@ -1,19 +1,5 @@
 #!/usr/bin/env python3
-"""
-streambtw.py — lightweight scraper that extracts .m3u8 streams from iframe pages
-(no API). Produces two outputs:
-  - Streambtw_VLC.m3u8      (VLC-friendly with #EXTVLCOPT headers)
-  - Streambtw_TiviMate.m3u8 (TiviMate pipe-format with referer|origin|user-agent)
 
-Behavior:
- - Fetch the site homepage (config HOME_URL) and find iframe pages under /iframe/
- - For each iframe page, GET its HTML and search for any .m3u8 occurrences
-   (also handles embedded nested <iframe> tags).
- - Attempts simple rewriting (tracks-v1a1/... -> index.m3u8) to prefer index
- - Deduplicates by normalized title
- - Replaces "@" with "vs" in event titles
- - Prints progress and warnings for items with no m3u8
-"""
 from __future__ import annotations
 import asyncio
 import aiohttp
