@@ -57,61 +57,72 @@ def parse_events(html_content):
 
     return events
 
-def extract_m3u8_from_iframe(iframe_url):
-    """Extract m3u8 from first page, second nested iframe, or JS redirect."""
+def extract_m3u8_new(event_url):
+    """
+    NEW StreamBtw extraction:
+    - Extract event ID
+    - Query new API https://api.streambtw.com/v1/source/{id}
+    - Extract m3u8 from returned player pages
+    """
     try:
-        # Fetch first iframe/page
-        r1 = requests.get(iframe_url, headers=HEADERS, timeout=10)
-        if r1.status_code != 200:
+        # Extract event ID (digits only)
+        match = re.search(r'/live/(\d+)', event_url)
+        if not match:
+            print(f"❌ Cannot extract event ID from {event_url}")
             return None
 
-        html1 = r1.text
+        event_id = match.group(1)
 
-        # --- 1) DIRECT M3U8 DETECTION ---------------------------------------
-        m3u8 = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\'>]*', html1)
-        if m3u8:
-            return m3u8.group(0)
+        # Step 1: Query new API
+        api_url = f"https://api.streambtw.com/v1/source/{event_id}"
+        print(f"🔍 Fetching API: {api_url}")
 
-        # --- 2) FIND NESTED IFRAME ------------------------------------------
-        nested = re.search(r'<iframe[^>]+src=["\']([^"\']+)["\']', html1)
-        if nested:
-            nested_url = nested.group(1)
-            if nested_url.startswith('//'):
-                nested_url = "https:" + nested_url
-            elif nested_url.startswith('/'):
-                nested_url = "https://streambtw.com" + nested_url
+        r = requests.get(api_url, headers=HEADERS, timeout=10)
+        if r.status_code != 200:
+            print("❌ API returned non-200")
+            return None
 
-            # Load nested iframe
-            r2 = requests.get(nested_url, headers=HEADERS, timeout=10)
-            if r2.status_code == 200:
-                html2 = r2.text
+        data = r.json()
+        if not data.get("success"):
+            print("❌ API success=false")
+            return None
 
-                # Direct m3u8 inside nested iframe
-                m3u8_2 = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\'>]*', html2)
-                if m3u8_2:
-                    return m3u8_2.group(0)
+        sources = data.get("sources", [])
+        if not sources:
+            print("❌ No sources returned")
+            return None
 
-                # Example: ".m3u8" inside quotes
-                m3u8_3 = re.search(r'["\']([^"\']+\.m3u8[^"\']*)["\']', html2)
-                if m3u8_3:
-                    return m3u8_3.group(1)
+        # Step 2: Loop player pages
+        for player_url in sources:
+            try:
+                if player_url.startswith("//"):
+                    player_url = "https:" + player_url
 
-        # --- 3) DETECT JS REDIRECTS ------------------------------------------
-        redirect_match = re.search(r'window\.location\.href\s*=\s*["\']([^"\']+)["\']', html1)
-        if redirect_match:
-            redirect_url = redirect_match.group(1)
-            if not redirect_url.startswith('http'):
-                redirect_url = "https://streambtw.com" + redirect_url
+                print(f"🌐 Checking player: {player_url}")
 
-            r3 = requests.get(redirect_url, headers=HEADERS, timeout=10)
-            if r3.status_code == 200:
-                html3 = r3.text
-                m3u8_4 = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\'>]*', html3)
-                if m3u8_4:
-                    return m3u8_4.group(0)
+                r2 = requests.get(player_url, headers=HEADERS, timeout=10)
+                if r2.status_code != 200:
+                    continue
+
+                html = r2.text
+
+                # Detect direct m3u8
+                m3u8 = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\'>]*', html)
+                if m3u8:
+                    print(f"👉 M3U8 FOUND: {m3u8.group(0)}")
+                    return m3u8.group(0)
+
+                # Try quoted m3u8
+                m3u8_q = re.search(r'["\']([^"\']+\.m3u8[^"\']*)["\']', html)
+                if m3u8_q:
+                    print(f"👉 M3U8 FOUND: {m3u8_q.group(1)}")
+                    return m3u8_q.group(1)
+
+            except Exception:
+                continue
 
     except Exception as e:
-        print(f"Error parsing iframe {iframe_url}: {e}")
+        print(f"❌ Error extract_m3u8_new: {e}")
 
     return None
 
@@ -123,7 +134,7 @@ def generate_m3u_playlists(events):
     for event in events:
         category = event['category']
         name = event['name']
-        m3u8_url = extract_m3u8_from_iframe(event['iframe_url'])
+        m3u8_url = extract_m3u8_new(event_url)
         if not m3u8_url:
             print(f"No m3u8 found for {name}")
             continue
