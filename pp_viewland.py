@@ -369,16 +369,17 @@ async def main():
 
     # Launch Playwright and scrape each iframe with stealth-ish context
     async with async_playwright() as p:
-        browser = await p.firefox.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
-        context = await browser.new_context(
-            user_agent=USER_AGENT,
-            locale="en-US",
-            timezone_id="UTC",
-            extra_http_headers={
-                "Accept-Language": "en-US,en;q=0.9"
-            }
-        )
-        page = await context.new_page()
+        browser = await p.chromium.launch(
+    headless=True,
+    args=["--no-sandbox", "--disable-setuid-sandbox"]
+)
+context = await browser.new_context(
+    user_agent=USER_AGENT,
+    locale="en-US",
+    timezone_id="UTC",
+    extra_http_headers={"Accept-Language": "en-US,en;q=0.9"}
+)
+page = await context.new_page()
 
         url_map = {}
         total = len(streams)
