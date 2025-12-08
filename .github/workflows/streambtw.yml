@@ -42,7 +42,7 @@ jobs:
 
       - name: Install Python Requirements
         run: |
-          pip install requests beautifulsoup4 playwright
+          pip install requests beautifulsoup4 playwright aiohttp
           playwright install chromium
           playwright install-deps chromium
 
