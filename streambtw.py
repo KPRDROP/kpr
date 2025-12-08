@@ -1,97 +1,111 @@
-import asyncio
 import re
+import base64
 import requests
-from urllib.parse import urljoin
 from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright
 
-HOMEPAGE = "https://streambtw.com/"
+STREAMBTW = "https://streambtw.com"
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-}
+def decode_stream(encoded_js):
+    """
+    Extract and decode StreamBTW's obfuscated Base64 reverse-encoded m3u8 URL.
+    """
 
-M3U8_REGEX = re.compile(r"https?://[^\s\"']+\.m3u8[^\s\"']*")
+    # find:  var encoded = "xxxxxxxx"
+    m = re.search(r'var\s+encoded\s*=\s*"([^"]+)"', encoded_js)
+    if not m:
+        return None
 
-async def extract_m3u8(playwright, iframe_url):
-    """Loads the iframe in headless Chromium and captures m3u8 URLs."""
+    encoded = m.group(1)
+
     try:
-        browser = await playwright.chromium.launch(headless=True)
-        context = await browser.new_context()
-        page = await context.new_page()
+        step1 = encoded[::-1]                     # reverse string
+        step2 = step1[::-1]                      # reverse again (yes they do it twice)
+        decoded = base64.b64decode(step2).decode("utf-8")
+        return decoded
+    except:
+        return None
 
-        await page.goto(iframe_url, timeout=30000)
 
-        m3u8_urls = set()
+def scrape_iframe(url):
+    """
+    Fetch iframe HTML and extract the stream URL.
+    """
 
-        async def capture_request(route):
-            url = route.request.url
-            if ".m3u8" in url:
-                m3u8_urls.add(url)
-            await route.continue_()
+    print(f"🔎 Checking: {url}")
 
-        await page.route("**/*", capture_request)
-
-        await page.wait_for_timeout(8000)
-
-        await browser.close()
-        return list(m3u8_urls)
-
+    try:
+        r = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
     except Exception as e:
-        print(f"⚠️ Error scraping iframe {iframe_url}: {e}")
-        return []
+        print("  ❌ Request error:", e)
+        return None
+
+    html = r.text
+
+    # FIRST: Try decoding the embedded JS
+    decoded = decode_stream(html)
+    if decoded and "m3u8" in decoded:
+        print("  ✅ m3u8 found (JS decode):", decoded)
+        return decoded
+
+    # SECOND: Fallback — search directly for Base64 strings that decode into m3u8
+    all_strings = re.findall(r'"([A-Za-z0-9+/=]{50,})"', html)
+
+    for s in all_strings:
+        try:
+            candidate = base64.b64decode(s).decode("utf-8")
+            if "m3u8" in candidate:
+                print("  ✅ m3u8 found (Base64 brute):", candidate)
+                return candidate
+        except:
+            pass
+
+    print("  ❌ No m3u8 found")
+    return None
 
 
-async def main():
+def get_iframe_list():
+    """
+    Fetch main page and extract iframe URLs.
+    """
+
     print("🔍 Fetching StreamBTW homepage...")
+    r = requests.get(STREAMBTW, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
 
-    r = requests.get(HOMEPAGE, headers=HEADERS)
     soup = BeautifulSoup(r.text, "html.parser")
 
-    iframe_links = []
+    iframes = soup.find_all("iframe")
 
-    for a in soup.select("a"):
-        href = a.get("href")
-        if href and "iframe/" in href:
-            full = urljoin(HOMEPAGE, href)
-            iframe_links.append(full)
+    links = []
+    for i in iframes:
+        src = i.get("src")
+        if src:
+            if not src.startswith("http"):
+                src = STREAMBTW + "/" + src.lstrip("/")
+            links.append(src)
 
-    print(f"📌 Found {len(iframe_links)} iframe pages")
+    print(f"📌 Found {len(links)} iframe pages")
+    return links
 
-    results = {}
 
-    async with async_playwright() as p:
-        for idx, link in enumerate(iframe_links, start=1):
-            print(f"🔎 [{idx}/{len(iframe_links)}] Checking iframe: {link}")
+def main():
+    iframes = get_iframe_list()
 
-            streams = await extract_m3u8(p, link)
+    found = []
 
-            if streams:
-                print(f"✅ Found stream: {streams[0]}")
-                results[link] = streams[0]
-            else:
-                print(f"⚠️ No m3u8 found for {link}")
+    for idx, iframe in enumerate(iframes, start=1):
+        print(f"\n[{idx}/{len(iframes)}] iframe: {iframe}")
+        m3u8 = scrape_iframe(iframe)
+        if m3u8:
+            found.append((iframe, m3u8))
 
-    if not results:
-        print("❌ No streams captured from any iframe pages.")
+    if not found:
+        print("\n❌ No streams captured.")
         return
 
-    print("📺 Generating M3U playlists...")
-
-    with open("Streambtw_VLC.m3u8", "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-        for title, stream_url in results.items():
-            f.write(f'#EXTINF:-1,{title}\n{stream_url}\n')
-
-    with open("Streambtw_TiviMate.m3u8", "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-        for title, stream_url in results.items():
-            f.write(f'#EXTINF:-1 tvg-name="{title}" group-title="StreamBTW",StreamBTW\n{stream_url}\n')
-
-    print("🎉 DONE — Playlists generated:")
-    print("➡ Streambtw_VLC.m3u8")
-    print("➡ Streambtw_TiviMate.m3u8")
+    print("\n🎉 DONE — Captured streams:\n")
+    for src, stream in found:
+        print(src, "→", stream)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
