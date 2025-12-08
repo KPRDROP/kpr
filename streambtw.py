@@ -69,7 +69,8 @@ async def main():
 
         # Also catch /iframe/*.php links
         more = re.findall(r'href="([^"]*iframe/[^"]+)"', await page.content())
-        links += [page.urljoin(l) for l in more]
+        from urllib.parse import urljoin
+        links += [urljoin(HOMEPAGE, l) for l in more]
 
         # remove None and dedupe
         links = [l for l in links if l]
