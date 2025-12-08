@@ -313,11 +313,6 @@ async def main():
         lines.append(f"#EXTINF:-1,{real_title}")
         lines.append(m3u)
 
-     # Flatten and write output playlist (VLC simple)
-    all_streams = []
-    for k, v in found_map.items():
-        for s in v:
-            all_streams.append((k, s))
 
     Path(OUTPUT_VLC).write_text("\n".join(lines), encoding="utf-8")
     print(f"✅ Captured {len(all_streams)} streams — saved to {OUTPUT_VLC}")
