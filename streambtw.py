@@ -1,135 +1,96 @@
-#!/usr/bin/env python3
 import asyncio
 import re
-from pathlib import Path
+import requests
+from urllib.parse import urljoin
+from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 
-HOME_URL = "https://streambtw.com/"
-VLC_OUTPUT = "Streambtw_VLC.m3u8"
-TIVIMATE_OUTPUT = "Streambtw_TiviMate.m3u8"
-
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-)
+HOMEPAGE = "https://streambtw.com/"
 
 HEADERS = {
-    "referer": HOME_URL,
-    "origin": "https://streambtw.live",
-    "user-agent": USER_AGENT,
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 }
 
-def sanitize(title):
-    return title.replace("@", " vs ").replace("_", " ").replace("-", " ").strip()
+M3U8_REGEX = re.compile(r"https?://[^\s\"']+\.m3u8[^\s\"']*")
 
-async def sniff_m3u8(page):
-    """Capture ANY .m3u8 requested by the iframe page."""
-    found = []
-
-    def handle_request(req):
-        url = req.url
-        if ".m3u8" in url:
-            if url not in found:
-                found.append(url)
-
-    page.on("request", handle_request)
-    return found
-
-
-async def process_iframe(browser, url):
-    page = await browser.new_page(user_agent=USER_AGENT)
-
-    # start sniffing
-    m3u8_list = sniff_m3u8(page)
-
+async def extract_m3u8(playwright, iframe_url):
+    """Loads the iframe in headless Chromium and captures m3u8 URLs."""
     try:
-        await page.goto(url, timeout=20000, wait_until="networkidle")
+        browser = await playwright.chromium.launch(headless=True)
+        context = await browser.new_context()
+        page = await context.new_page()
 
-        # also wait after load for dynamic JS calls
+        await page.goto(iframe_url, timeout=30000)
+
+        m3u8_urls = set()
+
+        async def capture_request(route):
+            url = route.request.url
+            if ".m3u8" in url:
+                m3u8_urls.add(url)
+            await route.continue_()
+
+        await page.route("**/*", capture_request)
+
         await page.wait_for_timeout(8000)
-    except:
-        pass
 
-    return (await m3u8_list)
+        await browser.close()
+        return list(m3u8_urls)
+
+    except Exception as e:
+        print(f"⚠️ Error scraping iframe {iframe_url}: {e}")
+        return []
 
 
 async def main():
     print("🔍 Fetching StreamBTW homepage...")
-    async with async_playwright() as pw:
-        browser = await pw.chromium.launch(args=["--no-sandbox"])
 
-        page = await browser.new_page(user_agent=USER_AGENT)
-        await page.goto(HOME_URL, wait_until="domcontentloaded")
+    r = requests.get(HOMEPAGE, headers=HEADERS)
+    soup = BeautifulSoup(r.text, "html.parser")
 
-        # find ALL iframe links
-        links = await page.eval_on_selector_all(
-            "iframe",
-            "nodes => nodes.map(n => n.src)"
-        )
+    iframe_links = []
 
-        # Also catch /iframe/*.php links
-        more = re.findall(r'href="([^"]*iframe/[^"]+)"', await page.content())
-        from urllib.parse import urljoin
-        links += [urljoin(HOME_URL, l) for l in more]
+    for a in soup.select("a"):
+        href = a.get("href")
+        if href and "iframe/" in href:
+            full = urljoin(HOMEPAGE, href)
+            iframe_links.append(full)
 
-        # remove None and dedupe
-        links = [l for l in links if l]
-        links = list(dict.fromkeys(links))
+    print(f"📌 Found {len(iframe_links)} iframe pages")
 
-        print(f"📡 Found {len(links)} iframe pages.")
+    results = {}
 
-        results = []
+    async with async_playwright() as p:
+        for idx, link in enumerate(iframe_links, start=1):
+            print(f"🔎 [{idx}/{len(iframe_links)}] Checking iframe: {link}")
 
-        for idx, link in enumerate(links, start=1):
-            print(f"\n[{idx}/{len(links)}] Checking {link}")
-            m3u8s = await process_iframe(browser, link)
+            streams = await extract_m3u8(p, link)
 
-            if not m3u8s:
-                print("⚠️ No m3u8 found.")
-                continue
-
-            main_m3u8 = m3u8s[0]
-
-            # build readable channel name
-            name = sanitize(link.split("/")[-1].replace(".php", ""))
-
-            results.append({
-                "name": name,
-                "url": main_m3u8,
-                "ref": link,
-            })
-
-            print(f"✅ Captured stream: {main_m3u8}")
-
-        await browser.close()
+            if streams:
+                print(f"✅ Found stream: {streams[0]}")
+                results[link] = streams[0]
+            else:
+                print(f"⚠️ No m3u8 found for {link}")
 
     if not results:
-        print("❌ No streams found at all.")
+        print("❌ No streams captured from any iframe pages.")
         return
 
-    # ───────────────────────────────────────────────
-    # VLC output
-    # ───────────────────────────────────────────────
-    lines = ["#EXTM3U"]
-    for r in results:
-        lines.append(f'#EXTINF:-1 group-title="StreamBTW",{r["name"]}')
-        lines.append(f'#EXTVLCOPT:http-user-agent={USER_AGENT}')
-        lines.append(f'#EXTVLCOPT:http-referrer={r["ref"]}')
-        lines.append(r["url"])
-    Path(VLC_OUTPUT).write_text("\n".join(lines), encoding="utf-8")
+    print("📺 Generating M3U playlists...")
 
-    # ───────────────────────────────────────────────
-    # TiviMate output
-    # ───────────────────────────────────────────────
-    tlines = ["#EXTM3U"]
-    for r in results:
-        encoded_ua = USER_AGENT.replace(" ", "%20")
-        stream = f'{r["url"]}|referer={r["ref"]}|user-agent={encoded_ua}'
-        tlines.append(f'#EXTINF:-1 group-title="StreamBTW",{r["name"]}')
-        tlines.append(stream)
-    Path(TIVIMATE_OUTPUT).write_text("\n".join(tlines), encoding="utf-8")
+    with open("Streambtw_VLC.m3u8", "w", encoding="utf-8") as f:
+        f.write("#EXTM3U\n")
+        for title, stream_url in results.items():
+            f.write(f'#EXTINF:-1,{title}\n{stream_url}\n')
 
-    print("\n🎉 DONE! All playable m3u8 streams captured.")
+    with open("Streambtw_TiviMate.m3u8", "w", encoding="utf-8") as f:
+        f.write("#EXTM3U\n")
+        for title, stream_url in results.items():
+            f.write(f'#EXTINF:-1 tvg-name="{title}" group-title="StreamBTW",StreamBTW\n{stream_url}\n')
+
+    print("🎉 DONE — Playlists generated:")
+    print("➡ Streambtw_VLC.m3u8")
+    print("➡ Streambtw_TiviMate.m3u8")
 
 
 if __name__ == "__main__":
