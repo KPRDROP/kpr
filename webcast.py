@@ -39,14 +39,14 @@ def write_playlists(streams):
         return
 
     # VLC playlist
-    with open("Webcast_VLC.m3u8", "w", encoding="utf-8") as f:
+    with open("mls_webcast.m3u8", "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for s in streams:
             title = clean_title(s["title"])
             f.write(f"#EXTINF:-1,{title}\n{s['url']}\n")
 
     # TiviMate playlist
-    with open("Webcast_TiviMate.m3u8", "w", encoding="utf-8") as f:
+    with open("mls_webcast_TiviMate.m3u8", "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for s in streams:
             title = clean_title(s["title"])
@@ -58,8 +58,8 @@ def write_playlists(streams):
             f.write(f"#EXTINF:-1,{title}\n{s['url']}{headers}\n")
 
     print("✅ Playlists written:")
-    print("   - Webcast_VLC.m3u8")
-    print("   - Webcast_TiviMate.m3u8")
+    print("   - mls_webcast.m3u8")
+    print("   - mls_webcast_TiviMate.m3u8")
 
 
 # ------------------------------------------------------
