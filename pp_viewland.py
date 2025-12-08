@@ -31,18 +31,18 @@ STREAM_HEADERS = [
 ]
 
 BACKUP_LOGOS = {
-    "24/7 Streams": "http://drewlive2423.duckdns.org:9000/Logos/247.png",
+    "24/7 Streams": "https://i.postimg.cc/pd0ThMCK/247.png",
     "Wrestling": "http://drewlive2423.duckdns.org:9000/Logos/Wrestling.png",
-    "Football": "http://drewlive2423.duckdns.org:9000/Logos/Football.png",
-    "Basketball": "http://drewlive2423.duckdns.org:9000/Logos/Basketball.png",
-    "Baseball": "http://drewlive2423.duckdns.org:9000/Logos/Baseball.png",
-    "American Football": "http://drewlive2423.duckdns.org:9000/Logos/NFL3.png",
-    "Combat Sports": "http://drewlive2423.duckdns.org:9000/Logos/CombatSports2.png",
-    "Darts": "http://drewlive2423.duckdns.org:9000/Logos/Darts.png",
-    "Motorsports": "http://drewlive2423.duckdns.org:9000/Logos/Motorsports2.png",
-    "Live Now": "http://drewlive2423.duckdns.org:9000/Logos/DrewLiveSports.png",
-    "Ice Hockey": "http://drewlive2423.duckdns.org:9000/Logos/Hockey.png",
-    "Cricket": "http://drewlive2423.duckdns.org:9000/Logos/Cricket.png",
+    "Football": "https://i.postimg.cc/5tP0YWpV/Wrestling.png",
+    "Basketball": "https://i.postimg.cc/XJmYLKTd/Basketball.png",
+    "Baseball": "https://i.postimg.cc/prjX6hHg/Baseball.png",
+    "American Football": "https://i.postimg.cc/bYSJJMtC/NFL3.png",
+    "Combat Sports": "https://i.postimg.cc/J4whBq3M/Combat-Sports2.png",
+    "Darts": "https://i.postimg.cc/L6z8k1v9/Darts.png",
+    "Motorsports": "https://i.postimg.cc/jStdMSkQ/Motorsports2.png",
+    "Live Now": "https://i.postimg.cc/3JHKww7N/live-now-logo-icon-for-tv-news-entertaining-show-vector-28535279.jpg",
+    "Ice Hockey": "https://i.postimg.cc/Qt9XF9HW/Hockey.png",
+    "Cricket": "https://i.postimg.cc/2Skr4X1k/Cricket.png",
 }
 
 GROUP_RENAME_MAP = {
