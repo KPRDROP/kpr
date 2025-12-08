@@ -1,15 +1,4 @@
 #!/usr/bin/env python3
-# streambtw.py
-# Revised deep-fix: uses Playwright (Chromium) to open homepage, normalize .com -> .live,
-# open each iframe page, click player, remove/adblock overlays by attempting common selectors,
-# capture network responses with .m3u8, and also attempt to extract obfuscated/base64 m3u8 strings
-# from inline scripts if present.
-#
-# Requirements:
-#   pip install playwright
-#   playwright install chromium
-#
-# Designed for GitHub Actions: uses headless Chromium, no extra heavy deps.
 
 import asyncio
 import re
@@ -281,53 +270,47 @@ async def main():
         print("❌ No streams captured.")
         return
 
-    print(f"📌 Found {len(iframe_pages)} iframe pages")
-    # unique preserve order
-    seen = set()
-    iframe_pages = [p for p in iframe_pages if not (p in seen or seen.add(p))]
+        # ---- NEW PATCH ----
+    # Fetch event names from homepage, build mapping {iframe_url: event_name}
+    print("📌 Extracting event names from homepage for metadata...")
+    event_titles = {}  # url → event title
 
-    found_map = {}  # page -> [streams]
+    try:
+        async with async_playwright() as p2:
+            browser2 = await p2.chromium.launch(headless=True, args=["--no-sandbox"])
+            ctx2 = await browser2.new_context()
+            pg2 = await ctx2.new_page()
+            await pg2.goto(HOMEPAGE, wait_until="domcontentloaded", timeout=25000)
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
-        context = await browser.new_context()
+            cards = pg2.locator(".card")
+            count = await cards.count()
 
-        # iterate and attempt extraction
-        for idx, page_url in enumerate(iframe_pages, start=1):
-            print(f"🔎 [{idx}/{len(iframe_pages)}] Checking iframe: {page_url}")
-            try:
-                streams = await attempt_extract_from_iframe(context, page_url)
-                if streams:
-                    print(f"✅ Found {len(streams)} m3u8(s) for {page_url}")
-                    for s in streams:
-                        print("  →", s)
-                    found_map[page_url] = streams
-                else:
-                    print(f"⚠️ No m3u8 found for {page_url}")
-            except Exception as e:
-                print(f"⚠️ Error while processing {page_url}: {e}")
+            for i in range(count):
+                card = cards.nth(i)
+                try:
+                    href = await card.locator("a").first.get_attribute("href")
+                    title = await card.locator(".card-text").inner_text()
 
-        try:
-            await browser.close()
-        except Exception:
-            pass
+                    if href and title:
+                        href = href.replace("streambtw.com", "streambtw.live").strip()
+                        event_titles[href] = title.strip()
+                except:
+                    pass
 
-    # Flatten and write output playlist (VLC simple)
-    all_streams = []
-    for k, v in found_map.items():
-        for s in v:
-            all_streams.append((k, s))
+            await browser2.close()
+    except:
+        print("⚠️ Metadata extraction failed — continuing without titles")
 
-    if not all_streams:
-        print("❌ No streams captured from any iframe pages.")
-        return
-
-    # Write simple M3U: title = source page host/path
-    lines = ['#EXTM3U']
+    # ---- WRITE OUTPUT ----
+    lines = ["#EXTM3U"]
     for src_page, m3u in all_streams:
-        # create human readable title from src_page
-        title = src_page.rsplit("/", 1)[-1]
-        lines.append(f'#EXTINF:-1,{title}')
+        # Default fallback title (original behavior)
+        fallback_title = src_page.rsplit("/", 1)[-1]
+
+        # Try to find real event title
+        real_title = event_titles.get(src_page, fallback_title)
+
+        lines.append(f"#EXTINF:-1,{real_title}")
         lines.append(m3u)
 
     Path(OUTPUT_VLC).write_text("\n".join(lines), encoding="utf-8")
