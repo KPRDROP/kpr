@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from playwright.async_api import async_playwright
 
-HOME_URL = "https://streambtw.live"
+HOME_URL = "https://streambtw.com/"
 VLC_OUTPUT = "Streambtw_VLC.m3u8"
 TIVIMATE_OUTPUT = "Streambtw_TiviMate.m3u8"
 
@@ -15,7 +15,7 @@ USER_AGENT = (
 
 HEADERS = {
     "referer": HOME_URL,
-    "origin": "https://streambtw.com",
+    "origin": "https://streambtw.live",
     "user-agent": USER_AGENT,
 }
 
