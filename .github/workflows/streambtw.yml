@@ -2,7 +2,7 @@ name: StreamBTW Scraper
 
 on:
   schedule:
-    - cron: '0 * * * *'   # Every hour
+    - cron: "*/30 * * * *"   # every 30 minutes
   workflow_dispatch:
 
 jobs:
@@ -12,48 +12,59 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          persist-credentials: true  # required for pushing commits
-          fetch-depth: 0            # fetch full history
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: "3.11"
 
-      - name: Upgrade pip and install dependencies
+      - name: Install System Dependencies (Chromium + codecs)
         run: |
-          python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 urllib3 aiohttp
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 \
+            libatk1.0-0 \
+            libatk-bridge2.0-0 \
+            libcups2 \
+            libxkbcommon0 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxfixes3 \
+            libdrm2 \
+            libxrandr2 \
+            libgbm1 \
+            libasound2 \
+            libatspi2.0-0 \
+            libpango-1.0-0 \
+            libpangocairo-1.0-0 \
+            libgdk-pixbuf2.0-0 \
+            libgtk-3-0 \
+            ffmpeg
 
-      - name: Install Playwright browsers (optional)
+      - name: Install Python Requirements
         run: |
-          python -m pip install playwright
-          python -m playwright install chromium firefox webkit
+          pip install playwright
+          playwright install chromium
+          playwright install-deps chromium
 
-      - name: Run StreamBTW scraper
+      - name: Run StreamBTW Scraper
+        run: python streambtw.py
+
+      - name: Show outputs
         run: |
-          python streambtw.py
+          echo "----- Streambtw_VLC.m3u8 -----"
+          cat Streambtw_VLC.m3u8 || true
+          echo "----- Streambtw_TiviMate.m3u8 -----"
+          cat Streambtw_TiviMate.m3u8 || true
 
-      - name: Commit and push updated M3U playlists
+      - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          git add Streambtw_VLC.m3u8 Streambtw_TiviMate.m3u8
-          
-          # Only commit if there are changes
-          if ! git diff-index --quiet HEAD; then
-            git commit -m "Update StreamBTW M3U playlists [skip ci]"
-            git push origin HEAD
+          git add Streambtw_VLC.m3u8 Streambtw_TiviMate.m3u8 || true
+          if ! git diff --cached --quiet; then
+            git commit -m "Updated StreamBTW playlists"
+            git push
           else
-            echo "No changes to commit"
+            echo "No changes to commit."
           fi
-
-      - name: Upload M3U playlists as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: streambtw-playlists
-          path: |
-            Streambtw_VLC.m3u8
-            Streambtw_TiviMate.m3u8
