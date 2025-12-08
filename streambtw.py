@@ -4,12 +4,16 @@ import asyncio
 import re
 import base64
 from pathlib import Path
+from urllib.parse import quote
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 HOMEPAGE = "https://streambtw.com/"
 OUTPUT_VLC = "Streambtw_VLC.m3u8"
+OUTPUT_TIVIMATE = "Streambtw_TiviMate.m3u8"
 TIMEOUT = 25000  # ms for navigations
 CLICK_WAIT = 2.0  # seconds after clicks to allow requests
+
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 
 def is_m3u8_url(url: str) -> bool:
     if not url:
@@ -260,7 +264,7 @@ async def main():
         print("❌ No streams captured from any iframe pages.")
         return
 
-    # ---- NEW PATCH: Extract event names for metadata ----
+    # ---- Extract event titles for metadata ----
     print("📌 Extracting event names from homepage for metadata...")
     event_titles = {}
     try:
@@ -272,7 +276,6 @@ async def main():
 
             cards = pg2.locator(".card")
             count = await cards.count()
-
             for i in range(count):
                 card = cards.nth(i)
                 try:
@@ -288,17 +291,29 @@ async def main():
     except:
         print("⚠️ Metadata extraction failed — continuing without titles")
 
-    # ---- WRITE OUTPUT WITH EVENT NAMES ----
-    lines = ["#EXTM3U"]
+    # ---- WRITE VLC OUTPUT ----
+    lines_vlc = ["#EXTM3U"]
     for src_page, m3u in all_streams:
         fallback_title = src_page.rsplit("/", 1)[-1]
         real_title = event_titles.get(src_page, fallback_title)
-        lines.append(f"#EXTINF:-1,{real_title}")
-        lines.append(m3u)
+        lines_vlc.append(f"#EXTINF:-1,{real_title}")
+        lines_vlc.append(m3u)
 
-    Path(OUTPUT_VLC).write_text("\n".join(lines), encoding="utf-8")
+    Path(OUTPUT_VLC).write_text("\n".join(lines_vlc), encoding="utf-8")
     print(f"✅ Captured {len(all_streams)} streams — saved to {OUTPUT_VLC}")
 
+    # ---- WRITE TIVIMATE OUTPUT ----
+    ua_encoded = quote(USER_AGENT)
+    lines_tivimate = ["#EXTM3U"]
+    for src_page, m3u in all_streams:
+        fallback_title = src_page.rsplit("/", 1)[-1]
+        real_title = event_titles.get(src_page, fallback_title)
+        url_tivimate = f"{m3u}|referer=https://streambtw.live/|origin=https://streambtw.live|user-agent={ua_encoded}"
+        lines_tivimate.append(f"#EXTINF:-1,{real_title}")
+        lines_tivimate.append(url_tivimate)
+
+    Path(OUTPUT_TIVIMATE).write_text("\n".join(lines_tivimate), encoding="utf-8")
+    print(f"✅ Captured {len(all_streams)} streams — saved to {OUTPUT_TIVIMATE}")
 
 if __name__ == "__main__":
     asyncio.run(main())
