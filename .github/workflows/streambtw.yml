@@ -43,6 +43,7 @@ jobs:
       - name: Install Python Requirements
         run: |
           pip install requests beautifulsoup4 playwright aiohttp
+          pip install async-timeout yarl
           playwright install chromium
           playwright install-deps chromium
 
