@@ -86,6 +86,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes detected — nothing to commit."
           else
-            git commit -m "Update webcast.m3u [Automated]"
+            git commit -m "Update mls_webcast.m3u [Automated]"
             git push
           fi
