@@ -1,20 +1,4 @@
 #!/usr/bin/env python3
-"""
-Rebuilt webcast.py
-
-Goal:
-- Crawl MLS Webcast (and similar pages), find event pages (URLs + human names + logos)
-- For each event page: attempt to extract a playable .m3u8 URL by:
-  * scanning HTML for direct .m3u8 strings
-  * decoding common obfuscation patterns (reversed base64, plain base64)
-  * using Playwright to load the page and capture network requests for .m3u8
-  * attempting to click the player / "play" controls to trigger requests
-- Verify discovered .m3u8s with aiohttp (HEAD/GET)
-- Produce a TiviMate-compatible M3U playlist with metadata
-Notes:
-- Requires: playwright, aiohttp, beautifulsoup4
-- Example: python3 webcast.py
-"""
 
 import asyncio
 import re
