@@ -1,379 +1,337 @@
 #!/usr/bin/env python3
-"""
-streambtw.py — resilient scraper for StreamBTW iframe pages & m3u8 extraction
+# streambtw.py
+# Revised deep-fix: uses Playwright (Chromium) to open homepage, normalize .com -> .live,
+# open each iframe page, click player, remove/adblock overlays by attempting common selectors,
+# capture network responses with .m3u8, and also attempt to extract obfuscated/base64 m3u8 strings
+# from inline scripts if present.
+#
+# Requirements:
+#   pip install playwright
+#   playwright install chromium
+#
+# Designed for GitHub Actions: uses headless Chromium, no extra heavy deps.
 
-Goal:
- - Crawl StreamBTW homepage (https://streambtw.live/)
- - Discover iframe pages (regular <iframe src="...">, JS-written base64 URLs,
-   data:text/html;base64, and common obfuscation patterns)
- - Visit each iframe page (HTTP only — no Playwright) and heuristically extract
-   playable .m3u8 URLs (direct, base64-encoded, reversed base64, data:...).
- - Validate m3u8 candidates and produce two output playlists:
-     - Streambtw_VLC.m3u8  (VLC-style)
-     - Streambtw_TiviMate.m3u8 (pipe header style)
- - Designed to run inside GitHub Actions without browsers.
-
-Notes:
- - This is a heuristic scraper; streaming sites change often. If you see
-   "No m3u8 found..." for many items, the site likely changed obfuscation.
- - Uses only aiohttp + built-ins (no Playwright) to avoid heavy system deps.
-"""
-
-from __future__ import annotations
 import asyncio
-import aiohttp
 import re
 import base64
-import html
-from urllib.parse import urljoin, urlparse
-from typing import List, Set, Tuple, Optional
+import sys
 from pathlib import Path
 from datetime import datetime
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
-ROOT = "https://streambtw.com"
-HOMEPAGE = ROOT + "/"
-OUT_VLC = "Streambtw_VLC.m3u8"
-OUT_TIVIMATE = "Streambtw_TiviMate.m3u8"
+HOMEPAGE = "https://streambtw.com/"
+OUTPUT_VLC = "Streambtw_VLC.m3u8"
+TIMEOUT = 25000  # ms for navigations
+CLICK_WAIT = 2.0  # seconds after clicks to allow requests
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
-CONCURRENT_IFRAMES = 8
-REQUEST_TIMEOUT = 15  # seconds
+# Helper: collect m3u8s from a Playwright page by listening to responses and scanning HTML
+def is_m3u8_url(url: str) -> bool:
+    if not url:
+        return False
+    u = url.lower()
+    return ".m3u8" in u or "playlist" in u and u.endswith("m3u8") or u.endswith(".m3u8")
 
-# Helper regexes
-RE_IFRAME_SRC = re.compile(r'<iframe[^>]+src=["\']([^"\']+)["\']', re.I)
-RE_PHP_IFRAME_PATH = re.compile(r'(\/iframe\/[^\s"\'<>]+\.php)', re.I)
-RE_M3U8 = re.compile(r'https?://[^\s"\'<>]+?\.m3u8[^\s"\'<>]*', re.I)
-RE_ATOB = re.compile(r'atob\(\s*[\'"]([A-Za-z0-9+/=]+)[\'"]\s*\)', re.I)
-RE_BASE64_LITERAL = re.compile(r'["\']([A-Za-z0-9+/=]{20,})["\']')  # long base64-like strings
-RE_DATA_BASE64 = re.compile(r'data:text\/html;base64,([A-Za-z0-9+/=]+)', re.I)
-RE_VAR_ENCODED = re.compile(r'\b(encoded|enc|e|x|s|server)\b\s*[:=]\s*[\'"]([A-Za-z0-9+/=]{10,})[\'"]', re.I)
-RE_REVERSED_STR = re.compile(r'["\']([A-Za-z0-9+/=]{10,})["\']\s*\.split\(\s*[\'\"]\s*[\'\"]\s*\)\s*\.reverse\(\)\s*\.join\(\s*[\'\"]\s*[\'\"]\s*\)', re.I)
-# Patterns like: encoded.split("").reverse().join("") or encoded.split("").reverse().join('')
-RE_SPLIT_REVERSE = re.compile(r'([A-Za-z0-9+/=]{8,})\s*\.split\(\s*[\'\"]\s*[\'\"]\s*\)\s*\.reverse\(\)\s*\.join\(\s*[\'\"]\s*[\'\"]\s*\)', re.I)
+async def extract_encoded_from_html(html: str):
+    """
+    Try to find base64-like encoded strings used to build the m3u8 URL in obfuscated scripts.
+    Looks for patterns like:
+      var encoded = "aGVsbG8=";
+    or reversed strings etc.
+    Returns a list of candidate decoded URLs.
+    """
+    candidates = set()
+    # Pattern: var encoded = "...."
+    for m in re.finditer(r'var\s+encoded\s*=\s*"([^"]+)"', html, re.IGNORECASE):
+        raw = m.group(1)
+        # Try various decode attempts:
+        for attempt in (raw, raw[::-1]):
+            try:
+                dec = base64.b64decode(attempt).decode(errors="ignore")
+                # if still looks reversed in JS they might reverse again before atob, try reverse result
+                if is_m3u8_url(dec):
+                    candidates.add(dec)
+                # maybe the JS reversed then atob on reversed(string) -> atob(reversed(raw)),
+                # so reverse twice: attempt[::-1] etc
+                r2 = dec[::-1]
+                if is_m3u8_url(r2):
+                    candidates.add(r2)
+            except Exception:
+                # ignore decode failures
+                pass
 
-HEADERS = {"User-Agent": USER_AGENT, "Accept": "*/*", "Referer": ROOT}
-
-
-async def fetch_text(session: aiohttp.ClientSession, url: str, timeout: int = REQUEST_TIMEOUT) -> Optional[str]:
-    try:
-        async with session.get(url, headers=HEADERS, timeout=timeout) as resp:
-            # Some pages block non-browser clients; return text on 200
-            text = await resp.text(errors="ignore")
-            return text
-    except Exception as e:
-        # print minimal debug info
-        print(f"⚠️ Fetch failed: {url} -> {e}")
-        return None
-
-
-def try_base64_decode(s: str) -> Optional[str]:
-    """Try decoding a base64 string and return decoded text (utf-8) if successful."""
-    if not s or len(s) < 8:
-        return None
-    # ensure proper padding
-    pad = (-len(s)) % 4
-    s_padded = s + ("=" * pad)
-    try:
-        raw = base64.b64decode(s_padded, validate=True)
+    # Another pattern: atob("...") or atob(r.split("").reverse().join(""))
+    for m in re.finditer(r'atob\(\s*"([^"]+)"\s*\)', html, re.IGNORECASE):
+        raw = m.group(1)
         try:
-            return raw.decode("utf-8", errors="ignore")
+            dec = base64.b64decode(raw).decode(errors="ignore")
+            if is_m3u8_url(dec):
+                candidates.add(dec)
         except Exception:
-            return raw.decode("latin-1", errors="ignore")
-    except Exception:
-        return None
+            pass
 
-
-def reversed_and_decode(s: str) -> Optional[str]:
-    """Reverse the string and try base64 decode (handles patterns like reversed base64)."""
-    try:
-        rev = s[::-1]
-        return try_base64_decode(rev)
-    except Exception:
-        return None
-
-
-def extract_m3u8_candidates_from_text(text: str) -> Set[str]:
-    """Search text for obvious .m3u8 entries."""
-    found = set(m.group(0) for m in RE_M3U8.finditer(text))
-    return found
-
-
-def extract_base64_candidates(text: str) -> Set[str]:
-    """Extract base64-like literals and candidate vars from page HTML/JS."""
-    candidates: Set[str] = set()
-
-    # explicit atob("...") usage
-    for m in RE_ATOB.finditer(text):
-        candidates.add(m.group(1))
-
-    # data:text/html;base64,...
-    for m in RE_DATA_BASE64.finditer(text):
-        candidates.add(m.group(1))
-
-    # look for var encoded = "..."
-    for m in RE_VAR_ENCODED.finditer(text):
-        candidates.add(m.group(2))
-
-    # long quoted literals that look like base64
-    for m in RE_BASE64_LITERAL.finditer(text):
-        val = m.group(1)
-        # heuristics: contains only base64 chars and length divisible-ish by 4 (or close)
-        if re.fullmatch(r'[A-Za-z0-9+/=]+', val):
-            candidates.add(val)
-
-    # reversed patterns: "...".split("").reverse().join("")
-    # Try to pull the literal preceding split()
-    for m in RE_REVERSED_STR.finditer(text):
-        candidates.add(m.group(1))
-    for m in RE_SPLIT_REVERSE.finditer(text):
-        candidates.add(m.group(1))
-
-    return candidates
-
-
-def extract_iframe_urls_from_homepage(html_text: str, base: str = ROOT) -> List[str]:
-    """Find iframe URLs from homepage using multiple heuristics."""
-    urls: Set[str] = set()
-
-    text = html.unescape(html_text or "")
-
-    # direct <iframe src="...">
-    for m in RE_IFRAME_SRC.finditer(text):
-        src = m.group(1).strip()
-        # skip about:blank
-        if not src or src.startswith("about:"):
-            continue
-        full = urljoin(base, src)
-        urls.add(full)
-
-    # plain php pattern /iframe/*.php
-    for m in RE_PHP_IFRAME_PATH.finditer(text):
-        p = m.group(1)
-        urls.add(urljoin(base, p))
-
-    # Inline JS base64 usage — decode candidate base64s and search for iframe-like url results
-    base64_candidates = extract_base64_candidates(text)
-    for cand in base64_candidates:
-        # try decode normally
-        dec = try_base64_decode(cand)
-        if dec:
-            # find iframe links inside decoded snippet
-            for m in RE_IFRAME_SRC.finditer(dec):
-                urls.add(urljoin(base, m.group(1)))
-            for m in RE_PHP_IFRAME_PATH.finditer(dec):
-                urls.add(urljoin(base, m.group(1)))
-            # sometimes decoded string is a URL
-            if dec.startswith("http"):
-                urls.add(dec)
-        # try reversed decode
-        dec2 = reversed_and_decode(cand)
-        if dec2:
-            for m in RE_IFRAME_SRC.finditer(dec2):
-                urls.add(urljoin(base, m.group(1)))
-            for m in RE_PHP_IFRAME_PATH.finditer(dec2):
-                urls.add(urljoin(base, m.group(1)))
-            if dec2.startswith("http"):
-                urls.add(dec2)
-
-    # also look for data:text/html;base64, embedded pages (already captured above)
-    for m in RE_DATA_BASE64.finditer(text):
-        b = m.group(1)
-        dec = try_base64_decode(b)
-        if dec:
-            # decoded content may include iframe URLs
-            for mm in RE_IFRAME_SRC.finditer(dec):
-                urls.add(urljoin(base, mm.group(1)))
-            for mm in RE_PHP_IFRAME_PATH.finditer(dec):
-                urls.add(urljoin(base, mm.group(1)))
-            for mm in RE_M3U8.finditer(dec):
-                # if decoded content already includes m3u8, we can treat decoded as a "page" source:
-                # create a pseudo-url marker that we will process specially (data:decoded)
-                urls.add("data:decoded-base64:" + b)
-
-    return sorted(urls)
-
-
-async def gather_iframe_pages(session: aiohttp.ClientSession, iframe_urls: List[str]) -> List[Tuple[str, Optional[str]]]:
-    """
-    Visit each iframe URL and extract m3u8 candidates:
-      Returns list of tuples: (iframe_url, found_m3u8_or_None)
-    """
-    sem = asyncio.Semaphore(CONCURRENT_IFRAMES)
-    results: List[Tuple[str, Optional[str]]] = []
-
-    async def worker(url: str):
-        async with sem:
-            # special-case pseudo-data decoded items
-            if url.startswith("data:decoded-base64:"):
-                b64 = url.split(":", 2)[2]
-                decoded = try_base64_decode(b64)
-                if not decoded:
-                    results.append((url, None))
-                    return
-                # search decoded for m3u8
-                found = extract_m3u8_candidates_from_text(decoded)
-                if found:
-                    # return best candidate (first)
-                    results.append((url, sorted(found)[0]))
-                    return
-                results.append((url, None))
-                return
-
-            text = await fetch_text(session, url)
-            if not text:
-                results.append((url, None))
-                return
-
-            # First look for direct m3u8 strings in the iframe page
-            found = extract_m3u8_candidates_from_text(text)
-            if found:
-                results.append((url, sorted(found)[0]))
-                return
-
-            # Look for base64 obfuscation candidates in the iframe page
-            b64_cands = extract_base64_candidates(text)
-            for cand in b64_cands:
-                dec = try_base64_decode(cand)
-                if dec:
-                    f = extract_m3u8_candidates_from_text(dec)
-                    if f:
-                        results.append((url, sorted(f)[0]))
-                        return
-                # reversed
-                dec2 = reversed_and_decode(cand)
-                if dec2:
-                    f = extract_m3u8_candidates_from_text(dec2)
-                    if f:
-                        results.append((url, sorted(f)[0]))
-                        return
-
-            # Also search for encoded = "..." then .split("").reverse().join("") patterns where literal may be visible
-            # fallback: search for any quoted long string, reverse, decode, then look
-            for m in re.finditer(r'["\']([A-Za-z0-9+/=]{12,})["\']', text):
-                lit = m.group(1)
-                dec = try_base64_decode(lit)
-                if dec and RE_M3U8.search(dec):
-                    results.append((url, RE_M3U8.search(dec).group(0)))
-                    return
-                dec2 = reversed_and_decode(lit)
-                if dec2 and RE_M3U8.search(dec2):
-                    results.append((url, RE_M3U8.search(dec2).group(0)))
-                    return
-
-            # last attempt: sometimes the page constructs a JS var which is reversed at runtime -
-            # look for sequences like var s="..."; var server = atob(s.split("").reverse().join(""));
-            # We'll search for a quoted token then reverse+decode:
-            for m in re.finditer(r'["\']([A-Za-z0-9+/=]{8,})["\']\s*\.split\(\)\s*\.reverse\(\)\s*\.join\(\)', text):
-                token = m.group(1)
-                dec = reversed_and_decode(token)
-                if dec and RE_M3U8.search(dec):
-                    results.append((url, RE_M3U8.search(dec).group(0)))
-                    return
-
-            # No m3u8 found
-            results.append((url, None))
-
-    await asyncio.gather(*(worker(u) for u in iframe_urls))
-    return results
-
-
-async def validate_m3u8(session: aiohttp.ClientSession, url: str) -> bool:
-    """Quick validation: attempt HEAD then GET small amount to see if URL is accessible."""
-    try:
-        # prefer HEAD
-        async with session.head(url, headers=HEADERS, timeout=10) as resp:
-            if resp.status in (200, 206, 403):
-                return True
-    except Exception:
-        # try GET
+    # look for obvious base64 strings (long, only base64 chars) and try decode
+    for m in re.finditer(r'["\']([A-Za-z0-9+/=]{32,200})["\']', html):
+        raw = m.group(1)
         try:
-            async with session.get(url, headers=HEADERS, timeout=10) as resp:
-                if resp.status in (200, 206, 403):
-                    return True
+            dec = base64.b64decode(raw).decode(errors="ignore")
+            if is_m3u8_url(dec):
+                candidates.add(dec)
         except Exception:
-            return False
-    return False
+            pass
+
+    return list(candidates)
 
 
-def build_playlists(entries: List[Tuple[str, str]]) -> Tuple[str, str]:
-    """
-    entries: list of (title, url)
-    returns: (vlc_text, tivimate_text)
-    """
-    # VLC: standard EXTINF with minimal metadata
-    vlc_lines = ['#EXTM3U']
-    tiv_lines = ['#EXTM3U']
+async def normalize_href(href: str) -> str:
+    if not href:
+        return ""
+    # The site lists .com links but the working host is .live
+    href = href.strip()
+    href = href.replace("streambtw.com", "streambtw.live")
+    # accept trailing relative links
+    if href.startswith("/"):
+        return "https://streambtw.live" + href
+    return href
 
-    for title, url in entries:
-        safe_title = title.replace(",", " -").strip()
-        vlc_lines.append(f'#EXTINF:-1,{safe_title}')
-        vlc_lines.append(url)
 
-        # TiviMate style pipe headers (simple referer/origin)
+async def fetch_iframe_pages():
+    """Open homepage with Playwright and collect iframe links (the Watch Stream buttons)."""
+    pages = []
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
+        context = await browser.new_context()
+        page = await context.new_page()
+        print("🔍 Fetching StreamBTW homepage...")
         try:
-            parsed = urlparse(url)
-            origin = f"{parsed.scheme}://{parsed.netloc}"
-        except Exception:
-            origin = ROOT
-        # include referer to iframe root to help servers that require origin/referrer
-        tiv_lines.append(f'#EXTINF:-1,{safe_title}')
-        tiv_lines.append(f'{url}|Referer={ROOT}|Origin={origin}|User-Agent={USER_AGENT}')
+            await page.goto(HOMEPAGE, wait_until="domcontentloaded", timeout=TIMEOUT)
+        except PlaywrightTimeoutError:
+            print("⚠️ Homepage load timeout; continuing with available content.")
+        except Exception as e:
+            print("❌ Failed to open homepage:", e)
+            await browser.close()
+            return pages
 
-    return ("\n".join(vlc_lines) + "\n", "\n".join(tiv_lines) + "\n")
+        # gather anchors for Watch Stream buttons - common selectors
+        anchors = []
+        try:
+            # try button links
+            anchors += [await a.get_attribute("href") for a in await page.locator('a.btn, a.btn-primary, .card a.btn-primary, .card .btn').all() if await a.get_attribute("href")]
+        except Exception:
+            pass
+
+        # fallback: any card link href
+        try:
+            anchors += [await a.get_attribute("href") for a in await page.locator('a').all() if await a.get_attribute("href") and "iframe" in (await a.get_attribute("href"))]
+        except Exception:
+            pass
+
+        # dedupe and normalize
+        seen = set()
+        for h in anchors:
+            if not h:
+                continue
+            norm = await normalize_href(h)
+            if norm and norm not in seen:
+                seen.add(norm)
+                pages.append(norm)
+
+        await browser.close()
+    return pages
+
+
+async def attempt_extract_from_iframe(context, url: str):
+    """
+    Open an iframe page, try to remove overlays, click play, intercept network responses, and
+    extract m3u8 URL(s). Returns list of found m3u8s.
+    """
+    found = set()
+    try:
+        page = await context.new_page()
+    except Exception:
+        return []
+
+    stream_urls = set()
+
+    # response handler
+    async def on_response(response):
+        try:
+            rurl = response.url
+            if is_m3u8_url(rurl):
+                stream_urls.add(rurl)
+        except Exception:
+            pass
+
+    page.on("response", on_response)
+
+    try:
+        await page.goto(url, wait_until="domcontentloaded", timeout=TIMEOUT)
+    except PlaywrightTimeoutError:
+        # try waiting for load slowly (some pages block DOMContent)
+        try:
+            await page.goto(url, wait_until="load", timeout=TIMEOUT)
+        except Exception:
+            pass
+    except Exception:
+        pass
+
+    # small delay to allow initial requests
+    await asyncio.sleep(1.2)
+
+    # Try to remove common overlays/adblock overlays by hiding elements
+    try:
+        await page.add_style_tag(content="""
+            #adblock-overlay, .overlay, .ads, .ad, .modal, .popup { display:none !important; pointer-events:none !important; }
+            .play-button, .big-play-button { pointer-events: auto !important; }
+        """)
+    except Exception:
+        pass
+
+    # Try clicking typical play targets: '#player', '.play', 'video', '.big-play', etc.
+    click_selectors = [
+        "#player", "video", ".play-button", ".big-play-button", ".big-play", ".play", ".jw-icon-play",
+        ".vjs-big-play-button", ".plyr__control--play", ".clappr-container", ".playback", "body"
+    ]
+    for sel in click_selectors:
+        try:
+            el = page.locator(sel)
+            if await el.count() > 0:
+                try:
+                    await el.first.click(timeout=1500)
+                except Exception:
+                    # fallback: evaluate click via JS
+                    try:
+                        await page.evaluate("""(s)=>{const e=document.querySelector(s); if(e){ e.click(); return true } return false }""", sel)
+                    except Exception:
+                        pass
+                # wait some time to allow network requests triggered by play
+                await asyncio.sleep(0.8)
+        except Exception:
+            pass
+
+    # After clicking, wait a bit to capture network responses
+    await asyncio.sleep(CLICK_WAIT)
+
+    # If no m3u8 in network, try to scan inline HTML/JS for encoded strings
+    if not stream_urls:
+        try:
+            html = await page.content()
+            candidates = await extract_encoded_from_html(html)
+            for cand in candidates:
+                stream_urls.add(cand)
+        except Exception:
+            pass
+
+    # Some pages embed a nested iframe pointing to real player - try to find iframe src and visit it
+    if not stream_urls:
+        try:
+            iframes = await page.locator("iframe").all()
+            for i in iframes:
+                try:
+                    src = await i.get_attribute("src")
+                    if not src:
+                        continue
+                    src = src.strip()
+                    # normalize relative -> absolute
+                    if src.startswith("//"):
+                        src = "https:" + src
+                    elif src.startswith("/"):
+                        src = "https://streambtw.live" + src
+                    # visit nested iframe and attempt to capture m3u8
+                    sub = await context.new_page()
+                    sub.on("response", on_response)
+                    try:
+                        await sub.goto(src, wait_until="domcontentloaded", timeout=TIMEOUT)
+                    except Exception:
+                        pass
+                    # try clicking inside nested
+                    try:
+                        await sub.locator("body").click(timeout=700, force=True)
+                    except Exception:
+                        pass
+                    await asyncio.sleep(CLICK_WAIT)
+                    # inspect html of nested
+                    try:
+                        nested_html = await sub.content()
+                        cands = await extract_encoded_from_html(nested_html)
+                        for c in cands:
+                            stream_urls.add(c)
+                    except Exception:
+                        pass
+                    try:
+                        await sub.close()
+                    except Exception:
+                        pass
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+    try:
+        await page.close()
+    except Exception:
+        pass
+
+    return list(stream_urls)
 
 
 async def main():
-    print("🔍 Fetching StreamBTW homepage...")
-    timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
-    connector = aiohttp.TCPConnector(limit_per_host=CONCURRENT_IFRAMES)
-    async with aiohttp.ClientSession(timeout=timeout, headers=HEADERS, connector=connector) as session:
-        homepage = await fetch_text(session, HOMEPAGE)
-        if not homepage:
-            print("❌ Failed to fetch homepage.")
-            return
+    iframe_pages = await fetch_iframe_pages()
+    if not iframe_pages:
+        print("📌 Found 0 iframe pages")
+        print("❌ No streams captured.")
+        return
 
-        iframe_urls = extract_iframe_urls_from_homepage(homepage, base=HOMEPAGE)
-        if not iframe_urls:
-            print("📌 Found 0 iframe pages")
-            print("❌ No streams captured.")
-            return
+    print(f"📌 Found {len(iframe_pages)} iframe pages")
+    # unique preserve order
+    seen = set()
+    iframe_pages = [p for p in iframe_pages if not (p in seen or seen.add(p))]
 
-        print(f"📌 Found {len(iframe_urls)} iframe pages")
-        # de-duplicate
-        iframe_urls = sorted(dict.fromkeys(iframe_urls))
+    found_map = {}  # page -> [streams]
 
-        # fetch each iframe page and extract m3u8 candidates
-        print("🔎 Checking iframe pages (HTTP-only heuristics)...")
-        pairs = await gather_iframe_pages(session, iframe_urls)
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
+        context = await browser.new_context()
 
-        # Validate each candidate and assemble list of (title, url)
-        found_entries: List[Tuple[str, str]] = []
-        for iframe_url, candidate in pairs:
-            if candidate:
-                ok = await validate_m3u8(session, candidate)
-                if ok:
-                    # Try to derive a friendly title from iframe url path
-                    parsed = urlparse(iframe_url)
-                    title = parsed.path.strip("/").split("/")[-1] or iframe_url
-                    # prettify
-                    title = title.replace(".php", "").replace("-", " ").replace("_", " ").title()
-                    found_entries.append((title, candidate))
-                    print(f"✅ Found m3u8 for {iframe_url} -> {candidate}")
+        # iterate and attempt extraction
+        for idx, page_url in enumerate(iframe_pages, start=1):
+            print(f"🔎 [{idx}/{len(iframe_pages)}] Checking iframe: {page_url}")
+            try:
+                streams = await attempt_extract_from_iframe(context, page_url)
+                if streams:
+                    print(f"✅ Found {len(streams)} m3u8(s) for {page_url}")
+                    for s in streams:
+                        print("  →", s)
+                    found_map[page_url] = streams
                 else:
-                    print(f"⚠️ Candidate found but not validated: {candidate} (from {iframe_url})")
-            else:
-                print(f"⚠️ No m3u8 found for {iframe_url}")
+                    print(f"⚠️ No m3u8 found for {page_url}")
+            except Exception as e:
+                print(f"⚠️ Error while processing {page_url}: {e}")
 
-        if not found_entries:
-            print("❌ No streams captured from any iframe pages.")
-            return
+        try:
+            await browser.close()
+        except Exception:
+            pass
 
-        # Build playlists
-        vlc_text, tiv_text = build_playlists(found_entries)
-        Path(OUT_VLC).write_text(vlc_text, encoding="utf-8")
-        Path(OUT_TIVIMATE).write_text(tiv_text, encoding="utf-8")
-        print(f"✅ VLC playlist generated: {OUT_VLC}")
-        print(f"✅ TiviMate playlist generated: {OUT_TIVIMATE}")
+    # Flatten and write output playlist (VLC simple)
+    all_streams = []
+    for k, v in found_map.items():
+        for s in v:
+            all_streams.append((k, s))
+
+    if not all_streams:
+        print("❌ No streams captured from any iframe pages.")
+        return
+
+    # Write simple M3U: title = source page host/path
+    lines = ['#EXTM3U']
+    for src_page, m3u in all_streams:
+        # create human readable title from src_page
+        title = src_page.rsplit("/", 1)[-1]
+        lines.append(f'#EXTINF:-1,{title}')
+        lines.append(m3u)
+
+    Path(OUTPUT_VLC).write_text("\n".join(lines), encoding="utf-8")
+    print(f"✅ Captured {len(all_streams)} streams — saved to {OUTPUT_VLC}")
 
 
 if __name__ == "__main__":
