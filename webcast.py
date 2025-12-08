@@ -26,7 +26,9 @@ NFL_CHANNEL_URLS = [
 
 MLB_CHANNEL_URLS = []
 NHL_CHANNEL_URLS = []
-MLS_CHANNEL_URLS = []
+MLS_CHANNEL_URLS = [
+    "https://mlswebcast.com/",
+]
 
 CHANNEL_METADATA = {
     "nflnetwork": {
