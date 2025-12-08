@@ -40,7 +40,7 @@ BACKUP_LOGOS = {
     "Combat Sports": "https://i.postimg.cc/J4whBq3M/Combat-Sports2.png",
     "Darts": "https://i.postimg.cc/L6z8k1v9/Darts.png",
     "Motorsports": "https://i.postimg.cc/jStdMSkQ/Motorsports2.png",
-    "Live Now": "https://i.postimg.cc/3JHKww7N/live-now-logo-icon-for-tv-news-entertaining-show-vector-28535279.jpg",
+    "Live Now": "https://i.postimg.cc/50wRKbrT/live-now-streaming-banner-1151108-104880.jpg",
     "Ice Hockey": "https://i.postimg.cc/Qt9XF9HW/Hockey.png",
     "Cricket": "https://i.postimg.cc/2Skr4X1k/Cricket.png",
 }
