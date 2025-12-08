@@ -148,20 +148,45 @@ async def main():
     # --------------------------------------------------------
     #   WRITE M3U FILE
     # --------------------------------------------------------
-    if not results:
-        print("❌ No streams captured.")
+    def clean_title(title: str) -> str:
+    """
+    Remove SEO garbage like:
+    | MLS Live Stream Free Online No Sign-up | MLSStreams - MLS WebCast
+    """
+    if "|" in title:
+        title = title.split("|")[0].strip()
+    return title
+
+
+def write_playlists(streams):
+    if not streams:
+        print("❌ No streams captured, skipping playlist write.")
         return
 
-    print(f"\n💾 Writing {len(results)} stream(s) to {OUTPUT_FILE}")
+    UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0"
 
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+    # ========== VLC FORMAT ==========
+    with open("Webcast_VLC.m3u8", "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
-        for name, url in results:
-            f.write(f"#EXTINF:-1,{name}\n")
-            f.write(f"{url}\n")
+        for s in streams:
+            title = clean_title(s["title"])
+            f.write(f"#EXTINF:-1,{title}\n{s['url']}\n")
 
-    print(f"🎉 Done! Playlist generated: {OUTPUT_FILE}")
+    # ========== TIVIMATE FORMAT ==========
+    with open("Webcast_TiviMate.m3u8", "w", encoding="utf-8") as f:
+        f.write("#EXTM3U\n")
+        for s in streams:
+            title = clean_title(s["title"])
+            headers = (
+                f"|referer=https://mlswebcast.com/"
+                f"|origin=https://mlswebcast.com"
+                f"|user-agent={UA.replace(' ', '%20')}"
+            )
+            f.write(f"#EXTINF:-1,{title}\n{s['url']}{headers}\n")
 
+    print("✅ Playlist files written:")
+    print("   - Webcast_VLC.m3u8")
+    print("   - Webcast_TiviMate.m3u8")
 
 # --------------------------------------------------------
 #   RUN
