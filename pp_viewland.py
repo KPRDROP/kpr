@@ -26,13 +26,14 @@ API_URL = "https://api.ppv.to/api/streams"
 PLAYLIST_FILE = "pp_viewland.m3u8"
 
 STREAM_HEADERS = [
-    '#EXTVLCOPT:http-referrer=https://ppv.to/',
-    '#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0'
+    '#EXTVLCOPT:http-referrer=https://playembed.top/',
+    '#EXTVLCOPT:http-origin=https://playembed.top',
+    '#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36'
 ]
 
 BACKUP_LOGOS = {
     "24/7 Streams": "https://i.postimg.cc/pd0ThMCK/247.png",
-    "Wrestling": "http://drewlive2423.duckdns.org:9000/Logos/Wrestling.png",
+    "Wrestling": "https://i.postimg.cc/sxt4PnFw/Wrestling.png",
     "Football": "https://i.postimg.cc/5tP0YWpV/Wrestling.png",
     "Basketball": "https://i.postimg.cc/XJmYLKTd/Basketball.png",
     "Baseball": "https://i.postimg.cc/prjX6hHg/Baseball.png",
