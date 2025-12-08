@@ -77,15 +77,17 @@ jobs:
       # COMMIT + PUSH PLAYLIST
       # ----------------------------------------------------
       - name: Commit and push changes
+        if: success()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           git add Webcast_VLC.m3u8 Webcast_TiviMate.m3u8 || exit 0
-          
+
           if git diff --cached --quiet; then
-            echo "No changes detected — nothing to commit."
-          else
-            git commit -m "Update mls_webcast.m3u [Automated]"
-            git push
+            echo "No changes to commit."
+            exit 0
           fi
+
+          git commit -m "Auto-update MLS Webcast playlists"
+          git push
