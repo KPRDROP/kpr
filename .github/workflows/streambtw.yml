@@ -2,7 +2,7 @@ name: StreamBTW Scraper
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -18,12 +18,11 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install System Dependencies (Chromium + codecs)
+      - name: Install System Dependencies (Chromium)
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             libnss3 \
-            libatk1.0-0 \
             libatk-bridge2.0-0 \
             libcups2 \
             libxkbcommon0 \
@@ -33,11 +32,11 @@ jobs:
             libdrm2 \
             libxrandr2 \
             libgbm1 \
-            libasound2 \
+            libasound2t64 \
             libatspi2.0-0 \
             libpango-1.0-0 \
             libpangocairo-1.0-0 \
-            libgdk-pixbuf2.0-0 \
+            libgdk-pixbuf-2.0-0 \
             libgtk-3-0 \
             ffmpeg
 
