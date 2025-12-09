@@ -261,7 +261,7 @@ def write_playlists(entries):
     # VLC
     with open("MLSWebcast_VLC.m3u8", "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
-        for title, url in results:
+        for title, url in entries:
             f.write(
                 f'#EXTINF:-1 tvg-id="MLS.Soccer.Dummy.us" '
                 f'tvg-name="MLS" tvg-logo="{VLC_LOGO}" '
