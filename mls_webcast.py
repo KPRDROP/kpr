@@ -18,38 +18,38 @@ VLC_LOGO = "https://i.postimg.cc/nrPfn86k/Football.png"
 
 
 def clean_event_title(title: str) -> str:
-    """Clean only the event title (NOT VLC metadata)."""
+    """Clean only the event title (NOT metadata)."""
     if not title:
         return "MLS Game"
 
     t = title.strip()
 
-    # Replace @ with vs ONLY IN TITLE
+    # Replace '@' → 'vs'
     t = t.replace("@", "vs")
 
-    # Remove ONLY commas inside title
+    # Remove commas ONLY INSIDE TITLE
     t = t.replace(",", "")
+
+    # Clean double spaces
+    t = re.sub(r"\s{2,}", " ", t).strip()
 
     return t
 
 
 async def extract_m3u8_with_playwright(url: str, browser):
-    """Load event page in Playwright and capture streaming .m3u8 URLs."""
+    """Load event page and capture m3u8 request URLs."""
     page = await browser.new_page()
-
     m3u8_links = []
 
-    try:
-        await page.route("**/*", lambda route: route.continue_())
-
-        page.on("response", lambda response: (
+    def handle_response(response):
+        if ".m3u8" in response.url:
             m3u8_links.append(response.url)
-            if ".m3u8" in response.url else None
-        ))
 
+    page.on("response", handle_response)
+
+    try:
         await page.goto(url, timeout=45000)
         await page.wait_for_timeout(6000)
-
     except Exception:
         pass
     finally:
@@ -65,12 +65,11 @@ async def main():
         browser = await pw.firefox.launch(headless=True)
         page = await browser.new_page()
 
-        # GET HOMEPAGE HTML
         await page.goto(BASE_URL)
         html = await page.content()
         soup = BeautifulSoup(html, "html.parser")
 
-        # Extract event links
+        # Extract event page links
         event_links = []
         for a in soup.find_all("a", href=True):
             href = a["href"]
@@ -82,26 +81,27 @@ async def main():
 
         results = []
 
+        # Process each event page
         for link in event_links:
             try:
-                # Extract event title using BeautifulSoup
-                title = None
-                card = soup.find("a", href=link)
-                if card:
-                    parent = card.find_parent("div")
-                    if parent:
-                        p = parent.find("p")
-                        if p:
-                            title = p.get_text(strip=True)
+                print(f"🔎 Processing event page: {link}")
 
-                if not title:
-                    title = "MLS Game"
+                # Request event page HTML
+                await page.goto(link)
+                event_html = await page.content()
+                event_soup = BeautifulSoup(event_html, "html.parser")
 
-                clean_title = clean_event_title(title)
+                # Extract title from og:title
+                meta = event_soup.find("meta", property="og:title")
+                if meta and meta.get("content"):
+                    raw_title = meta["content"].strip()
+                else:
+                    # fallback to <title>
+                    raw_title = event_soup.title.string.strip() if event_soup.title else "MLS Game"
 
-                print(f"🔎 Processing event: {clean_title} -> {link}")
+                clean_title = clean_event_title(raw_title)
 
-                # Capture .m3u8 via Playwright
+                # Capture the stream
                 m3u8_candidates = await extract_m3u8_with_playwright(link, browser)
 
                 if not m3u8_candidates:
@@ -122,12 +122,11 @@ async def main():
         print("❌ No streams captured.")
         return
 
-    # ------------------------------------------------------------
-    #  WRITE PLAYLISTS
-    # ------------------------------------------------------------
     print("💾 Writing playlists...")
 
-    # VLC playlist
+    # -----------------------------
+    # VLC PLAYLIST
+    # -----------------------------
     with open("MLSWebcast_VLC.m3u8", "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for title, url in results:
@@ -146,7 +145,9 @@ async def main():
             )
             f.write(f"{url}\n\n")
 
-    # TiviMate playlist
+    # -----------------------------
+    # TIVIMATE PLAYLIST
+    # -----------------------------
     with open("MLSWebcast_TiviMate.m3u8", "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for title, url in results:
@@ -160,7 +161,7 @@ async def main():
                 f"%20Chrome%2F142.0.0.0%20Safari%2F537.36\n\n"
             )
 
-    print("✅ Playlists created: MLSWebcast_VLC.m3u8 & MLSWebcast_TiviMate.m3u8")
+    print("✅ Playlists created successfully!")
 
 
 if __name__ == "__main__":
