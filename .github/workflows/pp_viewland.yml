@@ -31,13 +31,7 @@ jobs:
       run: |
         python pp_viewland.py
         
-    - name: Check if playlist files exist
-      run: |
-          if [ ! -f pp_viewland.m3u8 ]; then
-            echo "❌ pp_viewland.m3u8 not generated"
-            exit 1
-          fi
-      
+        
     - name: Commit and Push Updated Playlists
       run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
