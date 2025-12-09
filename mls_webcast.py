@@ -11,11 +11,9 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
-
-referer = 
-    "https://mlswebcast.com/",
-origin = 
-    "https://mlswebcast.com"
+    
+referer = HEADERS["referer"]
+origin = HEADERS["origin"]
 
 (
     
@@ -280,16 +278,16 @@ def write_playlists(entries):
             f.write(f"{url}\n\n")
 
     # TiviMate
-    ua_enc = quote_plus(USER_AGENT)
-    with open(OUTPUT_TIVI, "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-        for title, url in entries:
-            t = title or ""
-            f.write(f'#EXTINF:-1,{t}\n')
-            # Append headers for TiviMate (pipe-separated)
-            # note: double-equals in user-agent value used previously in your examples; keep single '=' before UA per common format
-            f.write(f"{url}|referer={referer}|origin={origin}|user-agent={ua_enc}\n")
-    log(f"✅ TiviMate playlist generated: {OUTPUT_TIVI}")
+ua_enc = quote_plus(USER_AGENT)
+referer = HEADERS["referer"]
+origin = HEADERS["origin"]
+
+with open(OUTPUT_TIVI, "w", encoding="utf-8") as f:
+    f.write("#EXTM3U\n")
+    for title, url in entries:
+        t = title or ""
+        f.write(f'#EXTINF:-1,{t}\n')
+        f.write(f"{url}|referer={referer}|origin={origin}|user-agent={ua_enc}\n")
 
 
 async def main():
