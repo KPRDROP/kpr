@@ -32,18 +32,14 @@ jobs:
         python pp_viewland.py
         
     - name: Check if playlist files exist
-        run: |
-          if [ ! -f MLSWebcast_VLC.m3u8 ]; then
-            echo "❌ MLSWebcast_VLC.m3u8 not generated"
+      run: |
+          if [ ! -f pp_viewland.m3u8 ]; then
+            echo "❌ pp_viewland.m3u8 not generated"
             exit 1
           fi
-          if [ ! -f MLSWebcast_TiviMate.m3u8 ]; then
-            echo "❌ MLSWebcast_TiviMate.m3u8 not generated"
-            exit 1
-          fi
-
-      - name: Commit and Push Updated Playlists
-        run: |
+      
+    - name: Commit and Push Updated Playlists
+      run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
