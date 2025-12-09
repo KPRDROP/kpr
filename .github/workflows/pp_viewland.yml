@@ -29,8 +29,7 @@ jobs:
         
     - name: Run PPV script
       run: |
-        python pp_viewland.py
-        
+        python pp_viewland.py        
         
     - name: Commit changes
       if: success()
