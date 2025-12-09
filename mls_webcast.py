@@ -10,8 +10,8 @@ from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 BASE = "https://mlswebcast.com"
-OUTPUT_VLC = "Webcast_VLC.m3u8"
-OUTPUT_TIVI = "Webcast_TiviMate.m3u8"
+OUTPUT_VLC = "MLSWebcast_VLC.m3u8"
+OUTPUT_TIVI = "MLSWebcast_TiviMate.m3u8"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 REFERER = BASE
 ORIGIN = BASE
