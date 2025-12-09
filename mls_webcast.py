@@ -282,7 +282,7 @@ def write_playlists(entries):
             f.write(f'#EXTINF:-1,{t}\n')
             # Append headers for TiviMate (pipe-separated)
             # note: double-equals in user-agent value used previously in your examples; keep single '=' before UA per common format
-            f.write(f"{url}|referer={REFERER}|origin={ORIGIN}|user-agent={ua_enc}\n")
+            f.write(f"{url}|referer={referer}|origin={origin}|user-agent={ua_enc}\n")
     log(f"✅ TiviMate playlist generated: {OUTPUT_TIVI}")
 
 
