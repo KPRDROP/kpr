@@ -31,12 +31,18 @@ def clean_event_title(title: str) -> str:
         return "MLS Game"
 
     t = title.strip()
+
+    # Replace '@' → 'vs'
     t = t.replace("@", "vs")
+
+    # Remove commas ONLY INSIDE TITLE
     t = t.replace(",", "")
+
+    # Clean double spaces
     t = re.sub(r"\s{2,}", " ", t).strip()
+
     return t
-
-
+    
 # ------ Helpers ------
 
 def log(*a, **kw):
