@@ -17,8 +17,8 @@ BASE = "https://mlswebcast.com/"
 OUTPUT_VLC = "MLSWebcast_VLC.m3u8"
 OUTPUT_TIVI = "MLSWebcast_TiviMate.m3u8"
 HEADERS = {
-    "referer": BASE,
-    "origin": BASE,
+    "referer": https://mlswebcast.com/,
+    "origin": https://mlswebcast.com,
     "user-agent": USER_AGENT
 }
 
