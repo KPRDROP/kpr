@@ -31,7 +31,7 @@ jobs:
       - name: Run Webcast Scraper
         run: |
           echo "🚀 Starting Sports Webcast Scraper..."
-          python mls_webcast.py
+          python nhl_webcast.py
 
       - name: Check if playlist files exist
         run: |
