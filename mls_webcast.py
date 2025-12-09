@@ -24,7 +24,7 @@ HEADERS = {
 
 VLC_LOGO = "https://i.postimg.cc/nrPfn86k/Football.png"
 
-
+# ---- PATCHED FUNCTION ----
 def clean_event_title(title: str) -> str:
     """Clean only the event title: replace '@' with 'vs' and remove commas."""
     if not title:
@@ -42,8 +42,8 @@ def clean_event_title(title: str) -> str:
     t = re.sub(r"\s{2,}", " ", t).strip()
 
     return t
+# --------------------------
 
-    
 # ------ Helpers ------
 
 def log(*a, **kw):
@@ -287,7 +287,7 @@ async def main():
                 title = text_hint.strip() if text_hint else ""
                 if not title and page_html:
                     title = guess_title_from_html(page_html)
-                title = clean_title(title)
+                title = clean_event_title(title)  # <-- PATCHED FUNCTION USED HERE
                 if not m3u8.lower().startswith("http"):
                     m3u8 = urljoin(url, m3u8)
                 log(f"✅ Captured m3u8 for {url}: {m3u8}")
