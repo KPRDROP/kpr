@@ -26,7 +26,7 @@ VLC_LOGO = "https://i.postimg.cc/nrPfn86k/Football.png"
 
 
 def clean_event_title(title: str) -> str:
-    """Clean only the event title (NOT metadata)."""
+    """Clean only the event title: replace '@' with 'vs' and remove commas."""
     if not title:
         return "MLS Game"
 
@@ -35,13 +35,14 @@ def clean_event_title(title: str) -> str:
     # Replace '@' → 'vs'
     t = t.replace("@", "vs")
 
-    # Remove commas ONLY INSIDE TITLE
+    # Remove all commas
     t = t.replace(",", "")
 
     # Clean double spaces
     t = re.sub(r"\s{2,}", " ", t).strip()
 
     return t
+
     
 # ------ Helpers ------
 
