@@ -34,7 +34,7 @@ STREAM_HEADERS = [
 BACKUP_LOGOS = {
     "24/7 Streams": "https://i.postimg.cc/pd0ThMCK/247.png",
     "Wrestling": "https://i.postimg.cc/sxt4PnFw/Wrestling.png",
-    "Football": "https://i.postimg.cc/5tP0YWpV/Wrestling.png",
+    "Football": "https://i.postimg.cc/nrPfn86k/Football.png",
     "Basketball": "https://i.postimg.cc/XJmYLKTd/Basketball.png",
     "Baseball": "https://i.postimg.cc/prjX6hHg/Baseball.png",
     "American Football": "https://i.postimg.cc/bYSJJMtC/NFL3.png",
