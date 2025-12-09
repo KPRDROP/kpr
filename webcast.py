@@ -3,10 +3,8 @@
 import asyncio
 import re
 import sys
-import requests
 from pathlib import Path
-from urllib.parse import urljoin, quote_plus
-
+from urllib.parse import urljoin, quote_plus requests
 import requests
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
