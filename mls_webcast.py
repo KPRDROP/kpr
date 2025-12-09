@@ -305,8 +305,7 @@ async def main():
     event_links = find_event_links_from_homepage(homepage_html, base=BASE)
     log(f"🔍 Found {len(event_links)} event page(s) from homepage.")
 
-    results = []
-
+    
     if not event_links:
         # Try to find event-candidate URLs by searching for typical path segments (fallback)
         fallback = set(re.findall(r'https?://mlswebcast\.com/[-\w/]+', homepage_html))
