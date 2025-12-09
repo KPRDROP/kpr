@@ -2,7 +2,7 @@ name: MLS Webcast Scraper
 
 on:
   schedule:
-    - cron: "*/30 * * * *"     # every 30 minutes
+    - cron: "0 * * * *"   # Runs every hour
   workflow_dispatch:
 
 jobs:
@@ -10,84 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-      # ----------------------------------------------------
-      # CHECKOUT REPO
-      # ----------------------------------------------------
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # ----------------------------------------------------
-      # PYTHON SETUP
-      # ----------------------------------------------------
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      # ----------------------------------------------------
-      # UBUNTU DEPS REQUIRED FOR PLAYWRIGHT FIREFOX
-      # ----------------------------------------------------
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libatk1.0-0 \
-            libatk-bridge2.0-0 \
-            libcups2 \
-            libdrm2 \
-            libxkbcommon0 \
-            libdbus-1-3 \
-            libatspi2.0-0 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2 \
-            libgbm1 \
-            libpango-1.0-0 \
-            libcairo2 \
-            libasound2t64 \
-            libnss3 \
-            libxshmfence1 \
-            ffmpeg
-
-      # ----------------------------------------------------
-      # PYTHON PACKAGES
-      # ----------------------------------------------------
       - name: Install Python dependencies
         run: |
-          pip install --upgrade pip
-          pip install requests playwright aiohttp beautifulsoup4
+          pip install requests beautifulsoup4 lxml playwright
 
-      # ----------------------------------------------------
-      # INSTALL PLAYWRIGHT BROWSERS (FIREFOX)
-      # ----------------------------------------------------
-      - name: Install Playwright browsers
+      - name: Install Playwright Browsers (Firefox)
         run: |
-          python -m playwright install --with-deps firefox
+          python -m playwright install firefox
 
-      # ----------------------------------------------------
-      # RUN SCRAPER
-      # ----------------------------------------------------
-      - name: Run MLS Webcast Scraper
+      - name: Run Webcast Scraper
         run: |
           echo "🚀 Starting Sports Webcast Scraper..."
           python webcast.py
 
-      # ----------------------------------------------------
-      # COMMIT + PUSH PLAYLIST
-      # ----------------------------------------------------
-      - name: Commit and push changes
-        if: success()
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add Webcast_VLC.m3u8 Webcast_TiviMate.m3u8 || exit 0
-
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-            exit 0
-          fi
-
-          git commit -m "Auto-update MLS Webcast playlists"
-          git push
+      - name: Upload Playlists
+        uses: actions/upload-artifact@v4
+        with:
+          name: webcast-playlists
+          path: |
+            Webcast_VLC.m3u8
+            Webcast_TiviMate.m3u8
