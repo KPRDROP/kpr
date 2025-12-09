@@ -29,7 +29,7 @@ jobs:
       - name: Run Webcast Scraper
         run: |
           echo "🚀 Starting Sports Webcast Scraper..."
-          python webcast.py
+          python mls_webcast.py
 
       - name: Upload Playlists
         uses: actions/upload-artifact@v4
