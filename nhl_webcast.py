@@ -28,7 +28,7 @@ VLC_LOGO = "https://i.postimg.cc/L6NhD0Z9/Hockey.png"
 def clean_event_title(title: str) -> str:
     """Clean only the event title: replace '@' with 'vs' and remove commas."""
     if not title:
-        return "MLS Game"
+        return "NHL Game"
 
     t = title.strip()
 
@@ -86,7 +86,7 @@ def find_event_links_from_homepage(html: str, base: str = BASE) -> list:
                 links.append((href, text))
 
     if not links:
-        for m in re.finditer(r'https?://mlswebcast\.com/[-\w/]+', html):
+        for m in re.finditer(r'https?://slapstreams\.com/[-\w/]+', html):
             href = m.group(0)
             links.append((href, ""))
 
@@ -228,8 +228,8 @@ def write_playlists(entries):
         for title, url in entries:
             f.write(
                 f'#EXTINF:-1 tvg-id="NHL.Hockey.Dummy.us" '
-                f'tvg-name="MLS" tvg-logo="{VLC_LOGO}" '
-                f'group-title="MLS GAME",{title}\n'
+                f'tvg-name="NHL" tvg-logo="{VLC_LOGO}" '
+                f'group-title="NHL GAME",{title}\n'
             )
             f.write(f"#EXTVLCOPT:http-referrer={HEADERS['referer']}\n")
             f.write(f"#EXTVLCOPT:http-origin={HEADERS['origin']}\n")
