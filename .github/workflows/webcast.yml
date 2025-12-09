@@ -56,7 +56,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip
-          pip install playwright aiohttp beautifulsoup4
+          pip install requests playwright aiohttp beautifulsoup4
 
       # ----------------------------------------------------
       # INSTALL PLAYWRIGHT BROWSERS (FIREFOX)
