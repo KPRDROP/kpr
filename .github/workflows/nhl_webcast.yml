@@ -1,0 +1,60 @@
+name: MLS Webcast Scraper
+
+on:
+  schedule:
+    # Run every 2 hours
+    - cron: "0 */2 * * *"
+  workflow_dispatch:
+    # Allow manual run from GitHub UI
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          pip install requests beautifulsoup4 lxml playwright
+
+      - name: Install Playwright Browsers (Firefox)
+        run: |
+          python -m playwright install firefox
+
+      - name: Run Webcast Scraper
+        run: |
+          echo "🚀 Starting Sports Webcast Scraper..."
+          python mls_webcast.py
+
+      - name: Check if playlist files exist
+        run: |
+          if [ ! -f NHLWebcast_VLC.m3u8 ]; then
+            echo "❌ NHLWebcast_VLC.m3u8 not generated"
+            exit 1
+          fi
+          if [ ! -f NHLWebcast_TiviMate.m3u8 ]; then
+            echo "❌ NHLWebcast_TiviMate.m3u8 not generated"
+            exit 1
+          fi
+
+      - name: Commit and Push Updated Playlists
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git add NHLWebcast_VLC.m3u8 NHLWebcast_TiviMate.m3u8
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            echo "Committing updated playlist files..."
+            git commit -m "Update MLS Webcast Playlists $(date +'%Y-%m-%d %H:%M:%S')"
+            git push
+          fi
