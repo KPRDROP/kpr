@@ -1,21 +1,9 @@
 #!/usr/bin/env python3
-"""
-webcast.py — rebuilt & patched
-
-Purpose:
- - Scrape https://mlswebcast.com/ for event pages
- - Visit each event page with Playwright (Firefox)
- - Capture any .m3u8 network responses (and simple in-page obfuscated links)
- - Produce two playlists:
-    * Webcast_VLC.m3u8       (simple m3u8 entries)
-    * Webcast_TiviMate.m3u8  (same entries + TiviMate pipe headers: referer|origin|user-agent)
- - Keeps prior behavior: do not break scraping logic if some pages fail
- - Robust link discovery: tries several selectors and fallbacks when homepage structure changes
-"""
 
 import asyncio
 import re
 import sys
+import requests
 from pathlib import Path
 from urllib.parse import urljoin, quote_plus
 
