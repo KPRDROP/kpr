@@ -13,7 +13,7 @@ USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 )
 
-BASE = "https://nflwebcast.com/sbl/"
+BASE = "https://nflwebcast.com/"
 OUTPUT_VLC = "NFLWebcast_VLC.m3u8"
 OUTPUT_TIVI = "NFLWebcast_TiviMate.m3u8"
 HEADERS = {
@@ -22,7 +22,7 @@ HEADERS = {
     "user-agent": USER_AGENT
 }
 
-VLC_LOGO = "https://i.postimg.cc/L6NhD0Z9/Hockey.png"
+VLC_LOGO = "https://i.postimg.cc/5t5PgRdg/1000-F-431743763-in9BVVz-CI36X304St-R89pnxy-UYzj1dwa-1.jpg"
 
 # ---- PATCHED FUNCTION ----
 def clean_event_title(title: str) -> str:
