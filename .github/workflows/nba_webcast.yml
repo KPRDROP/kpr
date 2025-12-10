@@ -21,7 +21,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install requests beautifulsoup4 lxml playwright
+          pip install aiohttp requests beautifulsoup4 lxml playwright
 
       # --- Playwright Dependencies + Browsers ---
       - name: Install system dependencies for Playwright
