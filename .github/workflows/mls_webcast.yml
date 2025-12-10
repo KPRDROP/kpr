@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Python dependencies
+      - name: 📦 Install Python dependencies
         run: |
           pip install requests beautifulsoup4 lxml playwright
 
