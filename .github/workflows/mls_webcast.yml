@@ -44,7 +44,7 @@ jobs:
             exit 1
           fi
 
-      - name: Commit and Push Updated Playlists
+      - name: 💾 Commit and Push Updated Playlists
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
