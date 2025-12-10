@@ -6,8 +6,8 @@ nba_webcast.py — Option B replacement (no Playwright).
 - Builds stream URLs using pattern: https://gg.poocloud.in/{team_name}/index.m3u8
 - Verifies availability of the m3u8 (small GET & lightweight checks).
 - Writes two playlist files:
-    - nba_webcast.m3u8
-    - nba_webcast_tivimate.m3u8  (Tivimate headers format)
+    - NBAWebcast_VLC.m3u8
+    - NBAWebcast_TiviMate.m3u8  (Tivimate headers format)
 """
 
 import asyncio
@@ -31,8 +31,8 @@ NBA_CUSTOM_HEADERS = {
     "User-Agent": USER_AGENT,
 }
 
-OUTPUT_NORMAL = "nba_webcast.m3u8"
-OUTPUT_TIVIMATE = "nba_webcast_tivimate.m3u8"
+OUTPUT_NORMAL = "NBAWebcast_VLC.m3u8"
+OUTPUT_TIVIMATE = "NBAWebcast_TiviMate.m3u8"
 
 # Verification params
 VERIFY_TIMEOUT = 12
