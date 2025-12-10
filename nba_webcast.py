@@ -1,25 +1,15 @@
 #!/usr/bin/env python3
 """
-nba_webcast.py
-Option A - pattern-based NBA scraper (user chose Option A).
+nba_webcast.py - patched to probe boxingstreams.proxy pages when pattern URL fails.
 
 Behavior:
- - Scrapes https://nbawebcast.top/ for a table of games (server-side HTML).
- - For each game row that contains a data-team key, builds a stream URL using:
-       https://gg.poocloud.in/{team_key}/index.m3u8
- - Verifies each candidate stream by issuing a lightweight GET request and
-   checking for a m3u8-like response (status 200 and content-type or body).
- - Produces two output playlists:
-     1) nba_webcast.m3u8                (plain m3u8 entries)
-     2) nba_webcast_tivimate.m3u8      (TiviMate-style entries with pipe headers)
- - All network requests use aiohttp and a configurable USER_AGENT.
- - Safe, concurrent, and verbose logging for debugging.
-
-Requirements:
-  pip install aiohttp beautifulsoup4 lxml
-
-Run:
-  python3 nba_webcast.py
+ - Scrapes https://nbawebcast.top/ for game rows and builds candidate streams using
+   https://gg.poocloud.in/{team_key}/index.m3u8 (Option A pattern).
+ - Verifies pattern URL; if unreachable, attempts to extract real m3u8 via:
+     https://boxingstreams.space/proxy/{team_key}3.php
+   by parsing iframe src, direct .m3u8 links, or base64-encoded strings in the page
+   and nested iframe pages.
+ - Produces two playlists: nba_webcast.m3u8 and nba_webcast_tivimate.m3u8
 """
 
 from __future__ import annotations
@@ -27,39 +17,34 @@ import asyncio
 import aiohttp
 import sys
 import time
-import html
+import re
+import base64
 from typing import List, Dict, Optional
 from bs4 import BeautifulSoup
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urljoin
 
 # --- Config ---
 NBA_BASE_URL = "https://nbawebcast.top/"
-# Option A pattern chosen by user
 NBA_STREAM_URL_PATTERN = "https://gg.poocloud.in/{team_key}/index.m3u8"
 
-# Headers for the poocloud host (kept conservative)
 NBA_CUSTOM_HEADERS = {
     "Origin": "https://embednow.top",
     "Referer": "https://embednow.top/",
-    # Real UA provided below via USER_AGENT constant
 }
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 
-# Output files
 OUT_PLAIN = "nba_webcast.m3u8"
 OUT_TIVIMATE = "nba_webcast_tivimate.m3u8"
 
-# Concurrency / timeouts
-REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=18)  # overall timeout
+REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=18)
 CONCURRENT_TASKS = 8
 
-# --- Utility functions ---
+# --- Helpers ---
 
 
 def build_stream_url(team_key: str) -> str:
-    """Return the pattern-based stream URL for a given team key."""
     return NBA_STREAM_URL_PATTERN.format(team_key=team_key)
 
 
@@ -68,75 +53,162 @@ async def verify_stream_url(
     url: str,
     headers: Optional[Dict[str, str]] = None,
 ) -> bool:
-    """
-    Verify the candidate m3u8 is reachable and looks like an HLS playlist.
-
-    Strategy:
-      - Do a GET (stream) request but only read a small chunk of the body (<= 64KB)
-      - Consider valid if:
-          * HTTP 200, and
-          * 'm3u8' appears in content-type or
-          * response body contains '#EXTM3U' or '.m3u8'
-    """
     headers = headers or {}
     try:
         async with session.get(url, headers=headers, timeout=REQUEST_TIMEOUT) as resp:
             if resp.status != 200:
-                # not OK
                 return False
             ctype = resp.headers.get("Content-Type", "").lower()
-            # Accept typical HLS content-type hints
-            if "application/vnd.apple.mpegurl" in ctype or "vnd.apple.mpegurl" in ctype or "application/x-mpegurl" in ctype:
+            if "application/vnd.apple.mpegurl" in ctype or "application/x-mpegurl" in ctype or "vnd.apple.mpegurl" in ctype:
                 return True
-            # Read a small portion of the body and inspect
-            chunk = await resp.content.read(65536)  # 64 KB
+            chunk = await resp.content.read(65536)
             if not chunk:
                 return False
             txt = chunk.decode(errors="ignore").lower()
             if "#extm3u" in txt or ".m3u8" in txt:
                 return True
-            # Some domains redirect or return TS segments; still accept if URL itself contains .m3u8
             if ".m3u8" in url:
-                # last resort — treat as valid if we got 200 and a non-empty body
                 return True
             return False
-    except asyncio.TimeoutError:
-        return False
-    except aiohttp.ClientError:
-        return False
     except Exception:
-        # tolerate unexpected exceptions as "not verified"
         return False
 
 
 def make_tivimate_url(m3u8_url: str, referrer: str, origin: Optional[str], user_agent: str) -> str:
-    """
-    Compose a TiviMate-compatible URL with pipe headers.
-    Note: user_agent must be URL-encoded when appended.
-    """
-    # Encode user-agent
     ua_enc = quote(user_agent, safe="")
     parts = [m3u8_url, f"referer={referrer}"]
     if origin:
         parts.append(f"origin={origin}")
-    parts.append(f"user-agent=={ua_enc}")  # double-equals preserved intentionally (user requested)
+    parts.append(f"user-agent=={ua_enc}")
     return "|".join(parts)
+
+
+def _try_base64_decode(candidate: str) -> Optional[str]:
+    """Try to decode a base64-like candidate (add padding) and assert it's a URL."""
+    # strip non-base64 chars
+    s = re.sub(r'[^A-Za-z0-9+/=]', '', candidate)
+    # pad
+    rem = len(s) % 4
+    if rem:
+        s += "=" * (4 - rem)
+    try:
+        data = base64.b64decode(s)
+        txt = data.decode(errors="ignore")
+        if txt.startswith("http"):
+            return txt
+    except Exception:
+        return None
+    return None
+
+
+async def extract_m3u8_from_html(text: str, base: Optional[str] = None) -> Optional[str]:
+    """
+    Attempt multiple heuristics to find an m3u8 URL in HTML:
+      - direct .m3u8 links
+      - base64 payloads (aHR0... etc)
+      - reversed base64 (string reversed then decode)
+    """
+    # 1) direct .m3u8 regex
+    m = re.search(r"https?://[^\s'\"<>]+\.m3u8[^\s'\"<>]*", text)
+    if m:
+        return m.group(0)
+
+    # 2) common base64 patterns: aHR0... (base64 for http)
+    for b64 in re.findall(r"(?:[A-Za-z0-9+/]{10,}={0,2})", text):
+        if "http" in b64:
+            # skip obvious (rare)
+            pass
+        decoded = _try_base64_decode(b64)
+        if decoded and ".m3u8" in decoded:
+            return decoded
+
+    # 3) look for atob("...") or atob('...') patterns
+    for m_atob in re.findall(r"atob\(['\"]([^'\"]{8,})['\"]\)", text):
+        # try direct
+        dec = _try_base64_decode(m_atob)
+        if dec and ".m3u8" in dec:
+            return dec
+        # try reversed (some obfuscation do reverse then atob)
+        rev = m_atob[::-1]
+        dec2 = _try_base64_decode(rev)
+        if dec2 and ".m3u8" in dec2:
+            return dec2
+
+    # 4) sometimes source string is reversed then base64 encoded in JS var (e.g. encoded.split("").reverse().join(""))
+    # find strings with '=' near the end and try reverse+decode
+    for s in re.findall(r"['\"]([A-Za-z0-9+/=]{12,})['\"]", text):
+        rev = s[::-1]
+        dec = _try_base64_decode(rev)
+        if dec and ".m3u8" in dec:
+            return dec
+
+    # 5) if base provided, attempt to resolve relative m3u8 occurrences
+    if base:
+        rel = re.search(r"['\"](/[^'\"]+\.m3u8[^'\"]*)['\"]", text)
+        if rel:
+            return urljoin(base, rel.group(1))
+
+    return None
+
+
+async def fetch_page_text(session: aiohttp.ClientSession, url: str) -> Optional[str]:
+    try:
+        async with session.get(url, headers={"User-Agent": USER_AGENT}, timeout=REQUEST_TIMEOUT) as r:
+            if r.status != 200:
+                return None
+            return await r.text()
+    except Exception:
+        return None
+
+
+async def fetch_m3u8_from_proxy(session: aiohttp.ClientSession, team_key: str) -> Optional[str]:
+    """
+    Try to fetch an m3u8 by probing boxingstreams proxy pages:
+      https://boxingstreams.space/proxy/{team_key}3.php
+    Steps:
+      - GET proxy page, search for .m3u8 or iframe src
+      - If iframe found, GET iframe URL and search for .m3u8 or base64 encoded url
+    """
+    proxy_url = f"https://boxingstreams.space/proxy/{team_key}3.php"
+    text = await fetch_page_text(session, proxy_url)
+    if not text:
+        return None
+
+    # first attempt: direct in proxy page
+    m3u8 = await extract_m3u8_from_html(text, base=proxy_url)
+    if m3u8:
+        return m3u8
+
+    # look for iframe src
+    iframe_match = re.search(r"<iframe[^>]+src=['\"]([^'\"]+)['\"]", text, re.IGNORECASE)
+    if iframe_match:
+        iframe_src = iframe_match.group(1)
+        # make absolute if needed
+        if iframe_src.startswith("//"):
+            iframe_src = "https:" + iframe_src
+        elif iframe_src.startswith("/"):
+            iframe_src = urljoin(proxy_url, iframe_src)
+        iframe_text = await fetch_page_text(session, iframe_src)
+        if iframe_text:
+            m3u8 = await extract_m3u8_from_html(iframe_text, base=iframe_src)
+            if m3u8:
+                return m3u8
+
+    # fallback: search proxy page for base64-like payloads and try decodes
+    # (extract_m3u8_from_html already tried many base64 patterns; try a broader regex for 'aHR0' pieces)
+    for maybe in re.findall(r"(aHR0[^\s'\"<>{}\)]+)", text):
+        dec = _try_base64_decode(maybe)
+        if dec and ".m3u8" in dec:
+            return dec
+
+    # nothing found
+    return None
 
 
 # --- Scraping logic ---
 
 
 async def scrape_nba_page() -> List[Dict]:
-    """
-    Fetch NBA_BASE_URL, parse the table of games, and build candidate stream dicts.
-
-    Expected HTML pattern:
-      <table class="NBA_schedule_container"> ... <tbody> <tr> ... 
-    The function extracts:
-      - away / home team names from td.teamvs (two per row)
-      - optional logo from td.teamlogo img (fallback to a default)
-      - a watch button with data-team attribute providing the key used by the pattern
-    """
     results: List[Dict] = []
     headers = {"User-Agent": USER_AGENT}
     async with aiohttp.ClientSession(headers=headers, timeout=REQUEST_TIMEOUT) as session:
@@ -148,14 +220,11 @@ async def scrape_nba_page() -> List[Dict]:
             return []
 
     soup = BeautifulSoup(html_text, "lxml")
-
-    # Attempt to find schedule table
     schedule_table = soup.find("table", class_="NBA_schedule_container")
     if not schedule_table:
-        # Fallback: try searching for rows that look like games
         possible_rows = soup.find_all("tr")
-        print("  ⚠️ Could not find 'NBA_schedule_container' table. Falling back to scanning <tr> elements.")
         rows = possible_rows
+        print("  ⚠️ Could not find 'NBA_schedule_container' table. Falling back to scanning <tr> elements.")
     else:
         tbody = schedule_table.find("tbody") or schedule_table
         rows = tbody.find_all("tr")
@@ -164,52 +233,45 @@ async def scrape_nba_page() -> List[Dict]:
 
     for row in rows:
         try:
-            # Teams: look for tds with class teamvs (may be two)
             team_tds = row.find_all("td", class_="teamvs")
             if len(team_tds) >= 2:
                 away_team = team_tds[0].get_text(strip=True)
                 home_team = team_tds[1].get_text(strip=True)
             else:
-                # fallback: maybe the row contains spans or text like "Away vs Home"
                 txt = row.get_text(" ", strip=True)
                 if "vs" in txt:
                     parts = txt.split("vs", 1)
                     away_team = parts[0].strip()
                     home_team = parts[1].strip().split()[0] if parts[1].strip() else ""
                 else:
-                    continue  # cannot parse
-            # logos: prefer second logo cell if available
-            logo_url = None
+                    continue
+
+            logo_url = ""
             logos = row.find_all("td", class_="teamlogo")
             if logos and len(logos) >= 2:
                 img = logos[1].find("img")
                 if img and img.get("src"):
                     logo_url = img["src"]
             if not logo_url:
-                # fallback to any image in the row
                 img = row.find("img")
-                logo_url = img["src"] if img and img.get("src") else ""
+                if img and img.get("src"):
+                    logo_url = img["src"]
 
-            # watch button / data-team
             button = row.find("button", class_="watch_btn")
             team_key = None
             if button and button.has_attr("data-team"):
                 team_key = button["data-team"]
             else:
-                # attempt to find data-team in any element attributes
                 any_el = row.find(attrs={"data-team": True})
                 if any_el:
                     team_key = any_el["data-team"]
 
             if not team_key:
-                # Try to infer team_key from team names: common slug style
-                # e.g., "san-antonio-spurs" or "spurs" — user provided mapping unknown,
-                # we avoid guessing too aggressively; skip if not explicit.
+                # skip rows without explicit team_key
                 continue
 
             title = f"{away_team} vs {home_team}"
             stream_url = build_stream_url(team_key)
-
             results.append(
                 {
                     "name": title,
@@ -219,10 +281,10 @@ async def scrape_nba_page() -> List[Dict]:
                     "group": "NBAWebcast - Live Games",
                     "ref": NBA_BASE_URL,
                     "custom_headers": {**NBA_CUSTOM_HEADERS, "User-Agent": USER_AGENT},
+                    "team_key": team_key,
                 }
             )
         except Exception:
-            # be resilient to unexpected markup per-row
             continue
 
     print(f"  Built {len(results)} candidate streams from the page.")
@@ -230,7 +292,6 @@ async def scrape_nba_page() -> List[Dict]:
 
 
 async def verify_candidates(candidates: List[Dict]) -> List[Dict]:
-    """Verify candidate stream URLs concurrently and return only verified ones."""
     verified: List[Dict] = []
     sem = asyncio.Semaphore(CONCURRENT_TASKS)
 
@@ -238,15 +299,24 @@ async def verify_candidates(candidates: List[Dict]) -> List[Dict]:
         async with sem:
             url = item["url"]
             headers = item.get("custom_headers", {})
-            # ensure a User-Agent is present
             headers.setdefault("User-Agent", USER_AGENT)
             async with aiohttp.ClientSession(headers={"User-Agent": USER_AGENT}, timeout=REQUEST_TIMEOUT) as session:
                 ok = await verify_stream_url(session, url, headers=headers)
-            if ok:
-                print(f"✅ Verified: {item['name']} → {url}")
-                verified.append(item)
-            else:
-                print(f"⚠️ Skipping (no m3u8 / unreachable): {item['name']}")
+                if not ok:
+                    # Try boxingstreams proxy fallback
+                    team_key = item.get("team_key")
+                    if team_key:
+                        proxy_candidate = await fetch_m3u8_from_proxy(session, team_key)
+                        if proxy_candidate:
+                            # attempt verify proxy candidate
+                            if await verify_stream_url(session, proxy_candidate, headers=headers):
+                                item["url"] = proxy_candidate
+                                ok = True
+                if ok:
+                    print(f"✅ Verified: {item['name']} → {item['url']}")
+                    verified.append(item)
+                else:
+                    print(f"⚠️ Skipping (no m3u8 / unreachable): {item['name']}")
 
     tasks = [asyncio.create_task(worker(c)) for c in candidates]
     await asyncio.gather(*tasks)
@@ -254,23 +324,17 @@ async def verify_candidates(candidates: List[Dict]) -> List[Dict]:
 
 
 def write_playlists(verified: List[Dict], out_plain: str = OUT_PLAIN, out_tiv: str = OUT_TIVIMATE):
-    """Write two output playlists based on verified streams."""
     lines_plain: List[str] = ["#EXTM3U"]
     lines_tiv: List[str] = ["#EXTM3U"]
 
     for item in verified:
         name = item.get("name", "").strip()
-        # sanitize name: remove additional site suffixes if present
-        # e.g., remove " | MLS ..." style suffix — general approach: keep leftmost segment if ' | ' occurs
         if " | " in name:
             name = name.split(" | ", 1)[0].strip()
-
         url = item["url"]
-        # plain entry
         lines_plain.append(f"#EXTINF:-1,{name}")
         lines_plain.append(url)
 
-        # tivimate entry: append headers
         ref = item.get("ref") or NBA_BASE_URL
         origin = item.get("ref") or None
         ua = item.get("custom_headers", {}).get("User-Agent", USER_AGENT)
@@ -283,13 +347,9 @@ def write_playlists(verified: List[Dict], out_plain: str = OUT_PLAIN, out_tiv: s
     print(f"\n✅ Playlists written: {out_plain} and {out_tiv}")
 
 
-# --- Main ---
-
-
 async def main():
     start = time.time()
-    print("🚀 Starting NBA Webcast Scraper (Option A - pattern-based)...")
-
+    print("🚀 Starting NBA Webcast Scraper (pattern + boxingstreams fallback)...")
     candidates = await scrape_nba_page()
     if not candidates:
         print("❌ No candidate streams built. Exiting.")
