@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 import time
 import html
+import urllib.parse   # <-- needed for Tivimate UA encode
 
 # --- 🎨 VISUALS ---
 class Col:
@@ -24,12 +25,20 @@ def print_banner():
 # --- CONFIG ---
 API_URL = "https://api.ppv.to/api/streams"
 PLAYLIST_FILE = "pp_viewland.m3u8"
+PLAYLIST_TIVIMATE = "pp_viewland_tivimate.m3u8"   # <-- NEW FILE
 
 STREAM_HEADERS = [
     '#EXTVLCOPT:http-referrer=https://playembed.top/',
     '#EXTVLCOPT:http-origin=https://playembed.top',
     '#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36'
 ]
+
+TIVI_REFERER = "https://playembed.top/"
+TIVI_ORIGIN = "https://playembed.top/"
+TIVI_UA = urllib.parse.quote(
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+    safe=""
+)
 
 BACKUP_LOGOS = {
     "24/7 Streams": "https://i.postimg.cc/pd0ThMCK/247.png",
@@ -207,7 +216,9 @@ async def main():
 
         await browser.close()
 
-    # SAVE PLAYLIST
+    # --------------------------------------------------
+    # SAVE ORIGINAL PLAYLIST
+    # --------------------------------------------------
     print(f"\n{Col.YELLOW}💾 Saving playlist to {PLAYLIST_FILE}...{Col.RESET}")
     with open(PLAYLIST_FILE, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
@@ -229,13 +240,34 @@ async def main():
 
             f.write(item["url"] + "\n")
 
+    # --------------------------------------------------
+    # SAVE TIVIMATE PLAYLIST
+    # --------------------------------------------------
+    print(f"{Col.YELLOW}💾 Saving Tivimate playlist to {PLAYLIST_TIVIMATE}...{Col.RESET}")
+    with open(PLAYLIST_TIVIMATE, "w", encoding="utf-8") as f:
+        f.write("#EXTM3U\n")
+        for item in valid_streams:
+            clean_title = item["name"]
+            if item["time"]:
+                clean_title += f" - {item['time']}"
+
+            f.write(f'#EXTINF:-1,{clean_title}\n')
+
+            full_url = (
+                item["url"]
+                + f"|referer={TIVI_REFERER}"
+                + f"|origin={TIVI_ORIGIN}"
+                + f"|user-agent={TIVI_UA}"
+            )
+
+            f.write(full_url + "\n")
+
     print(f"\n{Col.CYAN}{'='*60}{Col.RESET}")
     print(f"✅ {Col.BOLD}MISSION COMPLETE{Col.RESET}")
     print(f"📊 {Col.BOLD}WORKING STREAMS:{Col.RESET} {len(valid_streams)} / {total}")
-    print(f"⏱️ {Col.BOLD}TIME:{Col.RESET} {time.time()-start_time:.2f}s")
-    print(f"📺 Playlist: {PLAYLIST_FILE}")
+    print(f"📁 Playlist:  {PLAYLIST_FILE}")
+    print(f"📁 Playlist:  {PLAYLIST_TIVIMATE}")
     print(f"{Col.CYAN}{'='*60}{Col.RESET}")
-
 
 if __name__ == "__main__":
     asyncio.run(main())
