@@ -14,9 +14,8 @@ USER_AGENT = (
 )
 
 BASE = "https://nflwebcast.com/"
-LISTING_URL = "https://nflwebcast.com/sbl/"
-OUTPUT_VLC = "NFLWebcast_VLC.m3u8"
-OUTPUT_TIVI = "NFLWebcast_TiviMate.m3u8"
+OUTPUT_VLC = "NHLWebcast_VLC.m3u8"
+OUTPUT_TIVI = "NHLWebcast_TiviMate.m3u8"
 HEADERS = {
     "referer": BASE,
     "origin": BASE,
@@ -254,18 +253,18 @@ async def main():
     log("🚀 Starting NFL Webcast scraper (rebuilt)...")
 
     try:
-    resp = requests.get(BASE, headers={"User-Agent": USER_AGENT}, timeout=15)
-    resp.raise_for_status()
-    homepage_html = resp.text
-except Exception as e:
-    log(f"❌ Failed to fetch homepage {BASE}: {e}")
-    homepage_html = ""
+        resp = requests.get(BASE, headers={"User-Agent": USER_AGENT}, timeout=15)
+        resp.raise_for_status()
+        homepage_html = resp.text
+    except Exception as e:
+        log(f"❌ Failed to fetch homepage {BASE}: {e}")
+        homepage_html = ""
 
     event_links = find_event_links_from_homepage(homepage_html, base=BASE)
     log(f"🔍 Found {len(event_links)} event page(s) from homepage.")
 
     if not event_links:
-        fallback = set(re.findall(r'https?://nflwebcast\.com/[-\w/]+', homepage_html))
+        fallback = set(re.findall(r'https?://slapstreams\.com/[-\w/]+', homepage_html))
         if fallback:
             event_links = [(u, "") for u in fallback]
             log(f"ℹ️ Found {len(event_links)} fallback links via regex.")
