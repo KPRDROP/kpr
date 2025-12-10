@@ -18,13 +18,7 @@ NBA_STREAM_URL_PATTERN = "https://gg.poocloud.in/{team_name}/index.m3u8"
 NBA_CUSTOM_HEADERS = {
     "Origin": "https://embednow.top",
     "Referer": "https://embednow.top/",
-    "User-Agent": USER_AGENT,
-    "Accept": "*/*",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Connection": "keep-alive",
-    "Sec-Fetch-Site": "cross-site",
-    "Sec-Fetch-Mode": "cors",
-    "Sec-Fetch-Dest": "empty"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 }
 
 OUTPUT_NORMAL = "NBAWebcast_VLC.m3u8"
@@ -37,12 +31,16 @@ MAX_CONCURRENT = 6
 
 
 # === Helpers ===
-async def verify_stream_url(session: aiohttp.ClientSession, url: str, headers: Dict[str, str]) -> bool:
+async def verify_stream_url(session, url, headers):
     try:
-        async with session.get(url, headers=headers, timeout=VERIFY_TIMEOUT, allow_redirects=True) as resp:
-            status = resp.status
-            if status != 200:
-                return False
+        async with session.get(url, headers=headers, timeout=10) as r:
+            # m3u8 files ALWAYS start with #EXTM3U
+            if r.status == 200:
+                text = await r.text()
+                return "#EXTM3U" in text or ".ts" in text
+    except Exception:
+        return False
+    return False
 
             # If server responds with m3u8 content-type, accept
             ctype = resp.headers.get("Content-Type", "").lower()
