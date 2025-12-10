@@ -28,7 +28,7 @@ VLC_LOGO = "https://i.postimg.cc/5t5PgRdg/1000-F-431743763-in9BVVz-CI36X304St-R8
 def clean_event_title(title: str) -> str:
     """Clean only the event title: replace '@' with 'vs' and remove commas."""
     if not title:
-        return "NHL Game"
+        return "NFL Game"
 
     t = title.strip()
 
