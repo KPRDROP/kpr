@@ -1,67 +1,69 @@
-name: 🏀 NBA Webcast Scraper
+name: NBA Webcast Scraper
 
 on:
   schedule:
-    # Every 2 hours
-    - cron: "0 */2 * * *"
-  workflow_dispatch:
+    - cron: "*/30 * * * *"   # Every 30 minutes (adjust as needed)
+  workflow_dispatch:        # Allow manual runs
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    # --- Checkout repository ---
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    # --- Install Python 3.11 ---
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
 
-      - name: Install Python dependencies
-        run: |
-          pip install aiohttp requests beautifulsoup4 lxml playwright
+    # --- Install Dependencies ---
+    - name: Install requirements
+      run: |
+        pip install --upgrade pip
+        pip install aiohttp beautifulsoup4 lxml
 
-      # --- Playwright Dependencies + Browsers ---
-      - name: Install system dependencies for Playwright
-        run: |
-          sudo npx playwright install-deps
+    # --- Run Script ---
+    - name: Run NBA Webcast scraper
+      run: |
+        echo "🚀 Starting NBA Webcast Scraper..."
+        python nba_webcast.py
 
-      - name: Install Playwright Browsers (Chromium + Firefox fallback)
-        run: |
-          python -m playwright install chromium firefox
+    # --- Upload Build Artifacts (optional) ---
+    - name: Upload nba_webcast.m3u8 Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: nba_webcast
+        path: nba_webcast.m3u8
 
-      - name: Run Webcast Scraper
-        run: |
-          echo "🏀 Starting NBA Webcast Scraper..."
-          python nba_webcast.py
+    - name: Upload nba_webcast_tivimate.m3u8 Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: nba_webcast_tivimate
+        path: nba_webcast_tivimate.m3u8
 
-      - name: Verify output files exist
-        run: |
-          if [ ! -f NBAWebcast_VLC.m3u8 ]; then
-            echo "❌ NBAWebcast_VLC.m3u8 missing!"
-            exit 1
-          fi
-          if [ ! -f NBAWebcast_TiviMate.m3u8 ]; then
-            echo "❌ NBAWebcast_TiviMate.m3u8 missing!"
-            exit 1
-          fi
-          echo "✅ Output playlists found."
+    # --- Commit & Push to Repo ---
+    - name: Configure git user
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
 
-      - name: Commit and Push Updated Playlists
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
+    - name: Commit updated playlists
+      run: |
+        git add nba_webcast.m3u8 nba_webcast_tivimate.m3u8
+        if git commit -m "Auto-update NBA playlists $(date)" ; then
+          echo "✔ Commit created."
+        else
+          echo "✔ No changes detected, skipping commit."
+        fi
 
-          git add NBAWebcast_VLC.m3u8 NBAWebcast_TiviMate.m3u8
-
-          if git diff --cached --quiet; then
-            echo "No changes detected. Skip commit."
-          else
-            echo "Changes detected → committing..."
-            git commit -m "Auto-update NBA Webcast playlists $(date +'%Y-%m-%d %H:%M:%S')"
-            git push
-          fi
+    - name: Push changes
+      uses: ad-m/github-push-action@v0.8.0
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: main
