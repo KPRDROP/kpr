@@ -14,6 +14,7 @@ USER_AGENT = (
 )
 
 BASE = "https://nflwebcast.com/"
+LISTING_URL = "https://nflwebcast.com/sbl/"
 OUTPUT_VLC = "NFLWebcast_VLC.m3u8"
 OUTPUT_TIVI = "NFLWebcast_TiviMate.m3u8"
 HEADERS = {
