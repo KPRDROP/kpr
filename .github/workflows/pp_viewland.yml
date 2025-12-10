@@ -31,26 +31,32 @@ jobs:
       run: |
         python pp_viewland.py        
         
-    # Upload both playlists as artifacts
-    - name: Upload playlist artifacts
-      uses: actions/upload-artifact@v4
-      with:
-          name: pp_viewland_playlists
-          path: |
-            pp_viewland.m3u8
-            pp_viewland_tivimate.m3u8
-
-      # Commit back to repo
-    - name: Commit playlists to repository
+    - name: 💾 Commit & Safely Push if Playlist Changed
+      env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add pp_viewland.m3u8 || true
-          git add pp_viewland_tivimate.m3u8 || true
+          # ⬇⬇⬇ UPDATED — Now commits TWO PLAYLIST FILES ⬇⬇⬇
+          git add pp_viewland.m3u8 pp_viewland_tivimate.m3u8
 
-          if git commit -m "Updated PP Viewland Playlists $(date -u +"%Y-%m-%d %H:%M:%S")" ; then
-            git push
-          else
-            echo "No changes to commit."
+          if git diff --cached --quiet; then
+            echo "✅ No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "🔁 Update PP Viewland playlist $(date -u +'%a %b %d %T UTC %Y')"
+          sleep $((RANDOM % 10 + 5))
+
+          if ! git push origin main; then
+            echo "⚠️ Push rejected. Trying safe fetch + merge..."
+            git pull origin main --rebase || {
+              echo "❌ Rebase failed. Exiting."
+              exit 1
+            }
+            git push origin main || {
+              echo "❌ Second push failed."
+              exit 1
+            }
           fi
