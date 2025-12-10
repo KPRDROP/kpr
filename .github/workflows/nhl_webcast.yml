@@ -55,6 +55,6 @@ jobs:
             echo "No changes to commit."
           else
             echo "Committing updated playlist files..."
-            git commit -m "Update MLS Webcast Playlists $(date +'%Y-%m-%d %H:%M:%S')"
+            git commit -m "Update NHL Webcast Playlists $(date +'%Y-%m-%d %H:%M:%S')"
             git push
           fi
