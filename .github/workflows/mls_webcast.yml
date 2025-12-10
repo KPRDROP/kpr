@@ -28,7 +28,7 @@ jobs:
         run: |
           python -m playwright install firefox
 
-      - name: Run Webcast Scraper
+      - name: 🎯 Run Webcast Scraper
         run: |
           echo "🚀 Starting Sports Webcast Scraper..."
           python mls_webcast.py
