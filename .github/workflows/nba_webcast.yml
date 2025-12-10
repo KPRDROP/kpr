@@ -35,16 +35,16 @@ jobs:
         python nba_webcast.py
 
     # --- Upload Build Artifacts (optional) ---
-    - name: Upload nba_webcast.m3u8 Artifact
+    - name: Upload NBAWebcast_VLC.m3u8 Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: nba_webcast
+        name: NBAWebcast_VLC
         path: NBAWebcast_VLC.m3u8
 
-    - name: Upload nba_webcast_tivimate.m3u8 Artifact
+    - name: Upload NBAWebcast_TiviMate.m3u8 Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: nba_webcast_tivimate
+        name: NBAWebcast_TiviMate
         path: NBAWebcast_TiviMate.m3u8
 
     # --- Commit & Push to Repo ---
@@ -55,7 +55,7 @@ jobs:
 
     - name: Commit updated playlists
       run: |
-        git add nba_webcast.m3u8 nba_webcast_tivimate.m3u8
+        git add NBAWebcast_VLC.m3u8 NBAWebcast_TiviMate.m3u8
         if git commit -m "Auto-update NBA playlists $(date)" ; then
           echo "✔ Commit created."
         else
