@@ -22,13 +22,13 @@ HEADERS = {
     "user-agent": USER_AGENT
 }
 
-VLC_LOGO = "https://i.postimg.cc/7hKFn1QW/Basketball.png"
+VLC_LOGO = "https://i.postimg.cc/5t5PgRdg/1000-F-431743763-in9BVVz-CI36X304St-R89pnxy-UYzj1dwa-1.jpg"
 
 # ---- PATCHED FUNCTION ----
 def clean_event_title(title: str) -> str:
     """Clean only the event title: replace '@' with 'vs' and remove commas."""
     if not title:
-        return "NHL Game"
+        return "NFL Game"
 
     t = title.strip()
 
@@ -86,6 +86,7 @@ def find_event_links_from_homepage(html: str, base: str = BASE) -> list:
                 links.append((href, text))
 
     if not links:
+        # fallback: look for any mlswebcast-like paths (domain corrected to nflwebcast)
         for m in re.finditer(r'https?://nbawebcast\.com/[-\w/]+', html):
             href = m.group(0)
             links.append((href, ""))
@@ -228,8 +229,8 @@ def write_playlists(entries):
         for title, url in entries:
             f.write(
                 f'#EXTINF:-1 tvg-id="NBA.Basketball.Dummy.us" '
-                f'tvg-name="NHL" tvg-logo="{VLC_LOGO}" '
-                f'group-title="NHL GAME",{title}\n'
+                f'tvg-name="NFL" tvg-logo="{VLC_LOGO}" '
+                f'group-title="NFL GAME",{title}\n'
             )
             f.write(f"#EXTVLCOPT:http-referrer={HEADERS['referer']}\n")
             f.write(f"#EXTVLCOPT:http-origin={HEADERS['origin']}\n")
@@ -252,13 +253,37 @@ def write_playlists(entries):
 async def main():
     log("🚀 Starting NBA Webcast scraper (rebuilt)...")
 
+    homepage_html = ""
+    # first try: lightweight requests fetch
     try:
         resp = requests.get(BASE, headers={"User-Agent": USER_AGENT}, timeout=15)
         resp.raise_for_status()
         homepage_html = resp.text
     except Exception as e:
-        log(f"❌ Failed to fetch homepage {BASE}: {e}")
+        log(f"❌ Initial requests fetch failed for {BASE}: {e}")
         homepage_html = ""
+
+    # fallback: use Playwright to fetch page HTML if requests failed or returned no usable HTML
+    if not homepage_html:
+        try:
+            log("ℹ️ Falling back to Playwright to fetch homepage HTML (helps with Cloudflare/JS sites)...")
+            async with async_playwright() as p2:
+                browser2 = await p2.firefox.launch(headless=True, args=["--no-sandbox"])
+                ctx2 = await browser2.new_context(user_agent=USER_AGENT)
+                pg2 = await ctx2.new_page()
+                try:
+                    await pg2.goto(BASE, wait_until="domcontentloaded", timeout=25000)
+                    homepage_html = await pg2.content()
+                except Exception as e:
+                    log(f"⚠️ Playwright fetch of homepage failed: {e}")
+                    homepage_html = ""
+                try:
+                    await browser2.close()
+                except Exception:
+                    pass
+        except Exception as e:
+            log(f"⚠️ Playwright fallback failed entirely: {e}")
+            homepage_html = ""
 
     event_links = find_event_links_from_homepage(homepage_html, base=BASE)
     log(f"🔍 Found {len(event_links)} event page(s) from homepage.")
