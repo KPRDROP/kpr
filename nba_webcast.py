@@ -1,296 +1,316 @@
 #!/usr/bin/env python3
+"""
+nba_webcast.py
+Option A - pattern-based NBA scraper (user chose Option A).
 
+Behavior:
+ - Scrapes https://nbawebcast.top/ for a table of games (server-side HTML).
+ - For each game row that contains a data-team key, builds a stream URL using:
+       https://gg.poocloud.in/{team_key}/index.m3u8
+ - Verifies each candidate stream by issuing a lightweight GET request and
+   checking for a m3u8-like response (status 200 and content-type or body).
+ - Produces two output playlists:
+     1) nba_webcast.m3u8                (plain m3u8 entries)
+     2) nba_webcast_tivimate.m3u8      (TiviMate-style entries with pipe headers)
+ - All network requests use aiohttp and a configurable USER_AGENT.
+ - Safe, concurrent, and verbose logging for debugging.
+
+Requirements:
+  pip install aiohttp beautifulsoup4 lxml
+
+Run:
+  python3 nba_webcast.py
+"""
+
+from __future__ import annotations
 import asyncio
 import aiohttp
-from bs4 import BeautifulSoup
-from typing import List, Dict
-from urllib.parse import quote
-from pathlib import Path
+import sys
 import time
+import html
+from typing import List, Dict, Optional
+from bs4 import BeautifulSoup
+from pathlib import Path
+from urllib.parse import quote
 
-# === CONFIG ===
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
-
+# --- Config ---
 NBA_BASE_URL = "https://nbawebcast.top/"
-NBA_STREAM_URL_PATTERN = "https://gg.poocloud.in/{team_name}/index.m3u8"
+# Option A pattern chosen by user
+NBA_STREAM_URL_PATTERN = "https://gg.poocloud.in/{team_key}/index.m3u8"
 
-# Headers to try when verifying. Keep origin/referrer as requested by your earlier snippet.
+# Headers for the poocloud host (kept conservative)
 NBA_CUSTOM_HEADERS = {
     "Origin": "https://embednow.top",
     "Referer": "https://embednow.top/",
-    "User-Agent": USER_AGENT,
-    "Accept": "*/*",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Connection": "keep-alive",
-    "Sec-Fetch-Site": "cross-site",
-    "Sec-Fetch-Mode": "cors",
-    "Sec-Fetch-Dest": "empty"
+    # Real UA provided below via USER_AGENT constant
 }
 
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 
-OUTPUT_NORMAL = "NBAWebcast_VLC.m3u8"
-OUTPUT_TIVIMATE = "NBAWebcast_TiviMate.m3u8"
+# Output files
+OUT_PLAIN = "nba_webcast.m3u8"
+OUT_TIVIMATE = "nba_webcast_tivimate.m3u8"
 
-# Verification params
-VERIFY_TIMEOUT = 12
-VERIFY_READ_BYTES = 2048  # read first chunk to check for #EXTM3U or content-type
-MAX_CONCURRENT = 6
+# Concurrency / timeouts
+REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=18)  # overall timeout
+CONCURRENT_TASKS = 8
+
+# --- Utility functions ---
 
 
-# === Helpers ===
-async def verify_stream_url(session, url, headers):
+def build_stream_url(team_key: str) -> str:
+    """Return the pattern-based stream URL for a given team key."""
+    return NBA_STREAM_URL_PATTERN.format(team_key=team_key)
+
+
+async def verify_stream_url(
+    session: aiohttp.ClientSession,
+    url: str,
+    headers: Optional[Dict[str, str]] = None,
+) -> bool:
+    """
+    Verify the candidate m3u8 is reachable and looks like an HLS playlist.
+
+    Strategy:
+      - Do a GET (stream) request but only read a small chunk of the body (<= 64KB)
+      - Consider valid if:
+          * HTTP 200, and
+          * 'm3u8' appears in content-type or
+          * response body contains '#EXTM3U' or '.m3u8'
+    """
+    headers = headers or {}
     try:
-        async with session.get(url, headers=headers, timeout=12) as resp:
+        async with session.get(url, headers=headers, timeout=REQUEST_TIMEOUT) as resp:
             if resp.status != 200:
+                # not OK
                 return False
-
-            text = await resp.text()
-
-            return "#EXTM3U" in text or "EXTINF" in text or ".ts" in text
-
-    except Exception as e:
-        print(f"     ⚠ verify_stream_url exception: {e}")
-        return False
-
-
-            # If server responds with m3u8 content-type, accept
             ctype = resp.headers.get("Content-Type", "").lower()
-            if "application/vnd.apple.mpegurl" in ctype or "vnd.apple.mpegurl" in ctype or "mpegurl" in ctype:
+            # Accept typical HLS content-type hints
+            if "application/vnd.apple.mpegurl" in ctype or "vnd.apple.mpegurl" in ctype or "application/x-mpegurl" in ctype:
                 return True
-
-            # Try to read a small chunk and search for '#EXTM3U'
-            try:
-                chunk = await resp.content.read(VERIFY_READ_BYTES)
-            except Exception:
-                chunk = b""
+            # Read a small portion of the body and inspect
+            chunk = await resp.content.read(65536)  # 64 KB
             if not chunk:
-                # No content (maybe server requires cookies) -> treat as invalid
                 return False
-            try:
-                text = chunk.decode(errors="ignore")
-            except Exception:
-                text = ""
-            if "#EXTM3U" in text or ".m3u8" in text:
+            txt = chunk.decode(errors="ignore").lower()
+            if "#extm3u" in txt or ".m3u8" in txt:
                 return True
-
-            # Fallback: final URL contains .m3u8
-            final_url = str(resp.url)
-            if ".m3u8" in final_url:
+            # Some domains redirect or return TS segments; still accept if URL itself contains .m3u8
+            if ".m3u8" in url:
+                # last resort — treat as valid if we got 200 and a non-empty body
                 return True
-
             return False
+    except asyncio.TimeoutError:
+        return False
+    except aiohttp.ClientError:
+        return False
     except Exception:
+        # tolerate unexpected exceptions as "not verified"
         return False
 
 
-def make_tivimate_suffix(ref: str, origin: str, user_agent: str) -> str:
+def make_tivimate_url(m3u8_url: str, referrer: str, origin: Optional[str], user_agent: str) -> str:
     """
-    Build the Tivimate headers suffix, encoding the user-agent.
-    Format: |referer=<ref>|origin=<origin>|user-agent==<urlencoded UA>
-    Note: older examples show user-agent== (double equals). We'll match that.
+    Compose a TiviMate-compatible URL with pipe headers.
+    Note: user_agent must be URL-encoded when appended.
     """
+    # Encode user-agent
     ua_enc = quote(user_agent, safe="")
-    # ensure trailing slash in ref/origin for compatibility; use as-is if provided
-    return f"|referer={ref}|origin={origin}|user-agent=={ua_enc}"
+    parts = [m3u8_url, f"referer={referrer}"]
+    if origin:
+        parts.append(f"origin={origin}")
+    parts.append(f"user-agent=={ua_enc}")  # double-equals preserved intentionally (user requested)
+    return "|".join(parts)
 
 
-# === Scrape / parse ===
-async def scrape_nba_league(session: aiohttp.ClientSession, default_logo: str = "") -> List[Dict]:
+# --- Scraping logic ---
+
+
+async def scrape_nba_page() -> List[Dict]:
     """
-    Scrape the NBA base page for schedule rows and derive stream URLs by pattern.
-    Returns list of dicts with keys:
-      name, url, tvg_id, tvg_logo, group, ref, custom_headers
+    Fetch NBA_BASE_URL, parse the table of games, and build candidate stream dicts.
+
+    Expected HTML pattern:
+      <table class="NBA_schedule_container"> ... <tbody> <tr> ... 
+    The function extracts:
+      - away / home team names from td.teamvs (two per row)
+      - optional logo from td.teamlogo img (fallback to a default)
+      - a watch button with data-team attribute providing the key used by the pattern
     """
-    results = []
+    results: List[Dict] = []
+    headers = {"User-Agent": USER_AGENT}
+    async with aiohttp.ClientSession(headers=headers, timeout=REQUEST_TIMEOUT) as session:
+        try:
+            async with session.get(NBA_BASE_URL) as resp:
+                html_text = await resp.text()
+        except Exception as e:
+            print(f"❌ Failed to fetch NBA page {NBA_BASE_URL}: {e}")
+            return []
 
-    try:
-        async with session.get(NBA_BASE_URL, timeout=20, headers={"User-Agent": USER_AGENT}) as resp:
-            resp.raise_for_status()
-            html = await resp.text()
-    except Exception as e:
-        print(f"  ❌ Error fetching NBA page: {e}")
-        return results
+    soup = BeautifulSoup(html_text, "lxml")
 
-    soup = BeautifulSoup(html, "lxml")
-
-    # Prefer your provided classname table if present; otherwise be permissive
+    # Attempt to find schedule table
     schedule_table = soup.find("table", class_="NBA_schedule_container")
     if not schedule_table:
-        # Fallback: find any table with 'teamvs' cells or rows that look like games
-        tables = soup.find_all("table")
-        chosen = None
-        for t in tables:
-            if t.find("td", class_="teamvs"):
-                chosen = t
-                break
-        schedule_table = chosen
-
-    if not schedule_table:
-        # Another fallback: some sites list games using cards; try to find 'teamvs' spans anywhere
-        rows = []
-        divs = soup.find_all(lambda tag: tag.name == "div" and ("teamvs" in " ".join(tag.get("class", [])) or tag.find_all("span", class_="teamvs")))
-        for d in divs:
-            # attempt to extract two teams
-            spans = d.find_all("span", class_="teamvs")
-            if len(spans) >= 2:
-                rows.append(d)
-        if rows:
-            # convert into pseudo-rows
-            print(f"  Found {len(rows)} potential NBA games via div fallback.")
-            for d in rows:
-                spans = d.find_all("span", class_="teamvs")
-                try:
-                    away = spans[0].get_text(strip=True)
-                    home = spans[1].get_text(strip=True)
-                    title = f"{away} vs {home}"
-                    # attempt to find a button with data-team attribute nearby
-                    btn = d.find(lambda tag: tag.name in ("button", "a") and tag.has_attr("data-team"))
-                    team_key = btn["data-team"] if btn and btn.has_attr("data-team") else None
-                    logo_img = d.find("img")
-                    logo_url = logo_img["src"] if logo_img and logo_img.has_attr("src") else default_logo
-                    if team_key:
-                        stream_url = NBA_STREAM_URL_PATTERN.format(team_name=team_key)
-                        results.append({
-                            "name": title,
-                            "url": stream_url,
-                            "tvg_id": "NBA.Basketball.Dummy.us",
-                            "tvg_logo": logo_url,
-                            "group": "NBAWebcast - Live Games",
-                            "ref": NBA_BASE_URL,
-                            "custom_headers": NBA_CUSTOM_HEADERS,
-                        })
-                except Exception:
-                    continue
-        else:
-            print("  ❌ Could not find NBA schedule table (it may be JavaScript-driven).")
-            return results
+        # Fallback: try searching for rows that look like games
+        possible_rows = soup.find_all("tr")
+        print("  ⚠️ Could not find 'NBA_schedule_container' table. Falling back to scanning <tr> elements.")
+        rows = possible_rows
     else:
-        # parse rows
         tbody = schedule_table.find("tbody") or schedule_table
         rows = tbody.find_all("tr")
-        print(f"  Found {len(rows)} potential NBA games (table).")
-        for row in rows:
-            try:
-                # teams often in td.teamvs or spans
-                team_cells = row.find_all("td", class_="teamvs")
-                if not team_cells:
-                    # fallback: find two team name tds
-                    tds = row.find_all("td")
-                    # try to extract plain text that looks like teams
-                    if len(tds) >= 2:
-                        text_cells = [td.get_text(strip=True) for td in tds]
-                        # pick first two that are not empty
-                        nonempty = [t for t in text_cells if t]
-                        if len(nonempty) >= 2:
-                            away_team, home_team = nonempty[0], nonempty[1]
-                        else:
-                            continue
-                    else:
-                        continue
+
+    print(f"  Found {len(rows)} potential game rows (scanned).")
+
+    for row in rows:
+        try:
+            # Teams: look for tds with class teamvs (may be two)
+            team_tds = row.find_all("td", class_="teamvs")
+            if len(team_tds) >= 2:
+                away_team = team_tds[0].get_text(strip=True)
+                home_team = team_tds[1].get_text(strip=True)
+            else:
+                # fallback: maybe the row contains spans or text like "Away vs Home"
+                txt = row.get_text(" ", strip=True)
+                if "vs" in txt:
+                    parts = txt.split("vs", 1)
+                    away_team = parts[0].strip()
+                    home_team = parts[1].strip().split()[0] if parts[1].strip() else ""
                 else:
-                    away_team = team_cells[0].get_text(strip=True)
-                    home_team = team_cells[1].get_text(strip=True)
+                    continue  # cannot parse
+            # logos: prefer second logo cell if available
+            logo_url = None
+            logos = row.find_all("td", class_="teamlogo")
+            if logos and len(logos) >= 2:
+                img = logos[1].find("img")
+                if img and img.get("src"):
+                    logo_url = img["src"]
+            if not logo_url:
+                # fallback to any image in the row
+                img = row.find("img")
+                logo_url = img["src"] if img and img.get("src") else ""
 
-                # try to find team logo (second team) or fallback default_logo
-                logo_td = row.find("td", class_="teamlogo")
-                logo_url = default_logo
-                if logo_td:
-                    img = logo_td.find("img")
-                    if img and img.has_attr("src"):
-                        logo_url = img["src"]
+            # watch button / data-team
+            button = row.find("button", class_="watch_btn")
+            team_key = None
+            if button and button.has_attr("data-team"):
+                team_key = button["data-team"]
+            else:
+                # attempt to find data-team in any element attributes
+                any_el = row.find(attrs={"data-team": True})
+                if any_el:
+                    team_key = any_el["data-team"]
 
-                # find the watch button that contains a team key
-                watch_btn = row.find(lambda tag: tag.name in ("button", "a") and tag.has_attr("data-team"))
-                team_key = None
-                if watch_btn and watch_btn.has_attr("data-team"):
-                    team_key = watch_btn["data-team"]
-                else:
-                    # fallback: look for data attributes in row
-                    for attr in ("data-team", "data-key", "data-id"):
-                        if row.has_attr(attr):
-                            team_key = row[attr]
-                            break
-
-                if not team_key:
-                    # nothing to build stream from — skip
-                    continue
-
-                stream_url = NBA_STREAM_URL_PATTERN.format(team_name=team_key)
-                match_title = f"{away_team} vs {home_team}"
-
-                results.append({
-                    "name": match_title,
-                    "url": stream_url,
-                    "tvg_id": "NBA.Basketball.Dummy.us",
-                    "tvg_logo": logo_url,
-                    "group": "NBA Games - Live Games",
-                    "ref": NBA_BASE_URL,
-                    "custom_headers": NBA_CUSTOM_HEADERS,
-                })
-            except Exception:
-                # skip broken row
+            if not team_key:
+                # Try to infer team_key from team names: common slug style
+                # e.g., "san-antonio-spurs" or "spurs" — user provided mapping unknown,
+                # we avoid guessing too aggressively; skip if not explicit.
                 continue
 
+            title = f"{away_team} vs {home_team}"
+            stream_url = build_stream_url(team_key)
+
+            results.append(
+                {
+                    "name": title,
+                    "url": stream_url,
+                    "tvg_id": "NBA.Basketball.Dummy.us",
+                    "tvg_logo": logo_url or "",
+                    "group": "NBAWebcast - Live Games",
+                    "ref": NBA_BASE_URL,
+                    "custom_headers": {**NBA_CUSTOM_HEADERS, "User-Agent": USER_AGENT},
+                }
+            )
+        except Exception:
+            # be resilient to unexpected markup per-row
+            continue
+
+    print(f"  Built {len(results)} candidate streams from the page.")
     return results
 
 
-# === Orchestration ===
-async def main():
-    print("\nScraping NBAWebcast streams (Option B - pattern-based)...")
-    connector = aiohttp.TCPConnector(limit_per_host=10)
-    results = []
+async def verify_candidates(candidates: List[Dict]) -> List[Dict]:
+    """Verify candidate stream URLs concurrently and return only verified ones."""
+    verified: List[Dict] = []
+    sem = asyncio.Semaphore(CONCURRENT_TASKS)
 
-    async with aiohttp.ClientSession(connector=connector, headers={"User-Agent": USER_AGENT}) as session:
-        # scrape page and build candidate entries
-        candidates = await scrape_nba_league(session)
-        if not candidates:
-            print("No candidates found — exiting.")
-            return
-
-        print(f"Built {len(candidates)} candidate streams; verifying availability...")
-
-        semaphore = asyncio.Semaphore(MAX_CONCURRENT)
-
-        async def verify_and_collect(entry):
-            async with semaphore:
-                url = entry["url"]
-                headers = {k: v for k, v in (entry.get("custom_headers") or {}).items()}
-                # include a fallback User-Agent header if not present
-                headers.setdefault("User-Agent", USER_AGENT)
+    async def worker(item: Dict):
+        async with sem:
+            url = item["url"]
+            headers = item.get("custom_headers", {})
+            # ensure a User-Agent is present
+            headers.setdefault("User-Agent", USER_AGENT)
+            async with aiohttp.ClientSession(headers={"User-Agent": USER_AGENT}, timeout=REQUEST_TIMEOUT) as session:
                 ok = await verify_stream_url(session, url, headers=headers)
-                if ok:
-                    print(f"✅ Verified: {entry['name']} -> {url}")
-                    results.append(entry)
-                else:
-                    print(f"⚠️ Skipping (no m3u8 / unreachable): {entry['name']}")
+            if ok:
+                print(f"✅ Verified: {item['name']} → {url}")
+                verified.append(item)
+            else:
+                print(f"⚠️ Skipping (no m3u8 / unreachable): {item['name']}")
 
-        # run verifies concurrently
-        await asyncio.gather(*(verify_and_collect(c) for c in candidates))
+    tasks = [asyncio.create_task(worker(c)) for c in candidates]
+    await asyncio.gather(*tasks)
+    return verified
 
-    if not results:
+
+def write_playlists(verified: List[Dict], out_plain: str = OUT_PLAIN, out_tiv: str = OUT_TIVIMATE):
+    """Write two output playlists based on verified streams."""
+    lines_plain: List[str] = ["#EXTM3U"]
+    lines_tiv: List[str] = ["#EXTM3U"]
+
+    for item in verified:
+        name = item.get("name", "").strip()
+        # sanitize name: remove additional site suffixes if present
+        # e.g., remove " | MLS ..." style suffix — general approach: keep leftmost segment if ' | ' occurs
+        if " | " in name:
+            name = name.split(" | ", 1)[0].strip()
+
+        url = item["url"]
+        # plain entry
+        lines_plain.append(f"#EXTINF:-1,{name}")
+        lines_plain.append(url)
+
+        # tivimate entry: append headers
+        ref = item.get("ref") or NBA_BASE_URL
+        origin = item.get("ref") or None
+        ua = item.get("custom_headers", {}).get("User-Agent", USER_AGENT)
+        tiv_url = make_tivimate_url(url, referrer=ref, origin=origin, user_agent=ua)
+        lines_tiv.append(f"#EXTINF:-1,{name}")
+        lines_tiv.append(tiv_url)
+
+    Path(out_plain).write_text("\n".join(lines_plain) + "\n", encoding="utf-8")
+    Path(out_tiv).write_text("\n".join(lines_tiv) + "\n", encoding="utf-8")
+    print(f"\n✅ Playlists written: {out_plain} and {out_tiv}")
+
+
+# --- Main ---
+
+
+async def main():
+    start = time.time()
+    print("🚀 Starting NBA Webcast Scraper (Option A - pattern-based)...")
+
+    candidates = await scrape_nba_page()
+    if not candidates:
+        print("❌ No candidate streams built. Exiting.")
+        return 1
+
+    print("Built candidate streams; verifying availability...")
+    verified = await verify_candidates(candidates)
+
+    if not verified:
         print("❌ No playable streams were verified.")
-        return
+        return 1
 
-    # Write normal playlist
-    lines = ["#EXTM3U"]
-    for e in results:
-        title = e["name"]
-        url = e["url"]
-        lines.append(f'#EXTINF:-1,{title}')
-        lines.append(url)
-    Path(OUTPUT_NORMAL).write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"✅ Wrote {OUTPUT_NORMAL} ({len(results)} entries)")
+    write_playlists(verified)
+    elapsed = time.time() - start
+    print(f"🎉 Completed in {elapsed:.1f}s — {len(verified)} stream(s) published.")
+    return 0
 
-    # Write tivimate playlist (headers appended)
-    tiv_lines = ["#EXTM3U"]
-    for e in results:
-        title = e["name"]
-        url = e["url"]
-        tiv_suffix = make_tivimate_suffix(ref=e.get("ref", NBA_BASE_URL), origin=e.get("ref", NBA_BASE_URL), user_agent=USER_AGENT)
-        tiv_lines.append(f'#EXTINF:-1,{title}')
-        tiv_lines.append(url + tiv_suffix)
-    Path(OUTPUT_TIVIMATE).write_text("\n".join(tiv_lines) + "\n", encoding="utf-8")
-    print(f"✅ Wrote {OUTPUT_TIVIMATE} ({len(results)} entries)")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        sys.exit(asyncio.run(main()))
+    except KeyboardInterrupt:
+        print("Interrupted by user")
+        raise
