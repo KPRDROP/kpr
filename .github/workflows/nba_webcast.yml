@@ -39,13 +39,13 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: nba_webcast
-        path: nba_webcast.m3u8
+        path: NBAWebcast_VLC.m3u8
 
     - name: Upload nba_webcast_tivimate.m3u8 Artifact
       uses: actions/upload-artifact@v4
       with:
         name: nba_webcast_tivimate
-        path: nba_webcast_tivimate.m3u8
+        path: NBAWebcast_TiviMate.m3u8
 
     # --- Commit & Push to Repo ---
     - name: Configure git user
