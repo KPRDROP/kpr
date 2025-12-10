@@ -29,6 +29,12 @@ NBA_CUSTOM_HEADERS = {
     "Origin": "https://embednow.top",
     "Referer": "https://embednow.top/",
     "User-Agent": USER_AGENT,
+    "Accept": "*/*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Connection": "keep-alive",
+    "Sec-Fetch-Site": "cross-site",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Dest": "empty"
 }
 
 OUTPUT_NORMAL = "NBAWebcast_VLC.m3u8"
