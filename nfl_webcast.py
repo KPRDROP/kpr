@@ -86,6 +86,7 @@ def find_event_links_from_homepage(html: str, base: str = BASE) -> list:
                 links.append((href, text))
 
     if not links:
+        # fallback: look for any mlswebcast-like paths (domain corrected to nflwebcast)
         for m in re.finditer(r'https?://nflwebcast\.com/[-\w/]+', html):
             href = m.group(0)
             links.append((href, ""))
@@ -252,19 +253,43 @@ def write_playlists(entries):
 async def main():
     log("🚀 Starting NFL Webcast scraper (rebuilt)...")
 
+    homepage_html = ""
+    # first try: lightweight requests fetch
     try:
         resp = requests.get(BASE, headers={"User-Agent": USER_AGENT}, timeout=15)
         resp.raise_for_status()
         homepage_html = resp.text
     except Exception as e:
-        log(f"❌ Failed to fetch homepage {BASE}: {e}")
+        log(f"❌ Initial requests fetch failed for {BASE}: {e}")
         homepage_html = ""
+
+    # fallback: use Playwright to fetch page HTML if requests failed or returned no usable HTML
+    if not homepage_html:
+        try:
+            log("ℹ️ Falling back to Playwright to fetch homepage HTML (helps with Cloudflare/JS sites)...")
+            async with async_playwright() as p2:
+                browser2 = await p2.firefox.launch(headless=True, args=["--no-sandbox"])
+                ctx2 = await browser2.new_context(user_agent=USER_AGENT)
+                pg2 = await ctx2.new_page()
+                try:
+                    await pg2.goto(BASE, wait_until="domcontentloaded", timeout=25000)
+                    homepage_html = await pg2.content()
+                except Exception as e:
+                    log(f"⚠️ Playwright fetch of homepage failed: {e}")
+                    homepage_html = ""
+                try:
+                    await browser2.close()
+                except Exception:
+                    pass
+        except Exception as e:
+            log(f"⚠️ Playwright fallback failed entirely: {e}")
+            homepage_html = ""
 
     event_links = find_event_links_from_homepage(homepage_html, base=BASE)
     log(f"🔍 Found {len(event_links)} event page(s) from homepage.")
 
     if not event_links:
-        fallback = set(re.findall(r'https?://slapstreams\.com/[-\w/]+', homepage_html))
+        fallback = set(re.findall(r'https?://nflwebcast\.com/[-\w/]+', homepage_html))
         if fallback:
             event_links = [(u, "") for u in fallback]
             log(f"ℹ️ Found {len(event_links)} fallback links via regex.")
