@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 import time
 import html
-import urllib.parse   # <-- needed for Tivimate UA encode
+import urllib.parse
 
 # --- 🎨 VISUALS ---
 class Col:
@@ -25,7 +25,7 @@ def print_banner():
 # --- CONFIG ---
 API_URL = "https://api.ppv.to/api/streams"
 PLAYLIST_FILE = "pp_viewland.m3u8"
-PLAYLIST_TIVIMATE = "pp_viewland_tivimate.m3u8"   # <-- NEW FILE
+PLAYLIST_TIVIMATE = "pp_viewland_tivimate.m3u8"   
 
 STREAM_HEADERS = [
     '#EXTVLCOPT:http-referrer=https://playembed.top/',
@@ -34,7 +34,7 @@ STREAM_HEADERS = [
 ]
 
 TIVI_REFERER = "https://playembed.top/"
-TIVI_ORIGIN = "https://playembed.top/"
+TIVI_ORIGIN = "https://playembed.top"
 TIVI_UA = urllib.parse.quote(
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
     safe=""
