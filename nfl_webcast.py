@@ -14,8 +14,8 @@ USER_AGENT = (
 )
 
 BASE = "https://nflwebcast.com/"
-OUTPUT_VLC = "NHLWebcast_VLC.m3u8"
-OUTPUT_TIVI = "NHLWebcast_TiviMate.m3u8"
+OUTPUT_VLC = "NFLWebcast_VLC.m3u8"
+OUTPUT_TIVI = "NFLWebcast_TiviMate.m3u8"
 HEADERS = {
     "referer": BASE,
     "origin": BASE,
