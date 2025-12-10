@@ -31,17 +31,26 @@ jobs:
       run: |
         python pp_viewland.py        
         
-    - name: Commit and Push Updated Playlists
+    # Upload both playlists as artifacts
+    - name: Upload playlist artifacts
+      uses: actions/upload-artifact@v4
+      with:
+          name: pp_viewland_playlists
+          path: |
+            pp_viewland.m3u8
+            pp_viewland_tivimate.m3u8
+
+      # Commit back to repo
+    - name: Commit playlists to repository
       run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
 
-          git add pp_viewland.m3u8
+          git add pp_viewland.m3u8 || true
+          git add pp_viewland_tivimate.m3u8 || true
 
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            echo "Committing updated playlist files..."
-            git commit -m "Update PP Viewland Playlist $(date +'%Y-%m-%d %H:%M:%S')"
+          if git commit -m "Updated PP Viewland Playlists $(date -u +"%Y-%m-%d %H:%M:%S")" ; then
             git push
+          else
+            echo "No changes to commit."
           fi
