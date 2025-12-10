@@ -18,8 +18,15 @@ NBA_STREAM_URL_PATTERN = "https://gg.poocloud.in/{team_name}/index.m3u8"
 NBA_CUSTOM_HEADERS = {
     "Origin": "https://embednow.top",
     "Referer": "https://embednow.top/",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+    "User-Agent": USER_AGENT,
+    "Accept": "*/*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Connection": "keep-alive",
+    "Sec-Fetch-Site": "cross-site",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Dest": "empty"
 }
+
 
 OUTPUT_NORMAL = "NBAWebcast_VLC.m3u8"
 OUTPUT_TIVIMATE = "NBAWebcast_TiviMate.m3u8"
@@ -33,14 +40,18 @@ MAX_CONCURRENT = 6
 # === Helpers ===
 async def verify_stream_url(session, url, headers):
     try:
-        async with session.get(url, headers=headers, timeout=10) as r:
-            # m3u8 files ALWAYS start with #EXTM3U
-            if r.status == 200:
-                text = await r.text()
-                return "#EXTM3U" in text or ".ts" in text
-    except Exception:
+        async with session.get(url, headers=headers, timeout=12) as resp:
+            if resp.status != 200:
+                return False
+
+            text = await resp.text()
+
+            return "#EXTM3U" in text or "EXTINF" in text or ".ts" in text
+
+    except Exception as e:
+        print(f"     ⚠ verify_stream_url exception: {e}")
         return False
-    return False
+
 
             # If server responds with m3u8 content-type, accept
             ctype = resp.headers.get("Content-Type", "").lower()
