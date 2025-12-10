@@ -253,23 +253,13 @@ def write_playlists(entries):
 async def main():
     log("🚀 Starting NFL Webcast scraper (rebuilt)...")
 
-    # --- NEW: Cloudflare-safe homepage fetch ---
-log("🌐 Fetching homepage via Playwright (bypass Cloudflare)...")
-homepage_html = ""
-
-async with async_playwright() as p:
     try:
-        browser = await p.firefox.launch(headless=True, args=["--no-sandbox"])
-        context = await browser.new_context(user_agent=USER_AGENT)
-        page = await context.new_page()
-        await page.goto(BASE, wait_until="domcontentloaded", timeout=25000)
-        homepage_html = await page.content()
-        log("✅ Homepage fetched successfully via Playwright.")
-        await context.close()
-        await browser.close()
-    except Exception as e:
-        log(f"❌ Failed to fetch homepage {BASE} via Playwright: {e}")
-        homepage_html = ""
+    resp = requests.get(BASE, headers={"User-Agent": USER_AGENT}, timeout=15)
+    resp.raise_for_status()
+    homepage_html = resp.text
+except Exception as e:
+    log(f"❌ Failed to fetch homepage {BASE}: {e}")
+    homepage_html = ""
 
     event_links = find_event_links_from_homepage(homepage_html, base=BASE)
     log(f"🔍 Found {len(event_links)} event page(s) from homepage.")
