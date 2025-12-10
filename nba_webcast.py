@@ -1,14 +1,4 @@
 #!/usr/bin/env python3
-"""
-nba_webcast.py — Option B replacement (no Playwright).
-
-- Scrapes https://nbawebcast.top/ (or similar) for schedule table rows.
-- Builds stream URLs using pattern: https://gg.poocloud.in/{team_name}/index.m3u8
-- Verifies availability of the m3u8 (small GET & lightweight checks).
-- Writes two playlist files:
-    - NBAWebcast_VLC.m3u8
-    - NBAWebcast_TiviMate.m3u8  (Tivimate headers format)
-"""
 
 import asyncio
 import aiohttp
@@ -48,15 +38,6 @@ MAX_CONCURRENT = 6
 
 # === Helpers ===
 async def verify_stream_url(session: aiohttp.ClientSession, url: str, headers: Dict[str, str]) -> bool:
-    """
-    Try to verify a candidate m3u8 URL. Returns True if it looks valid.
-    Strategy:
-      - Do a GET with a short timeout
-      - Accept response.status == 200 and:
-         * content-type looks like m3u8, OR
-         * the first chunk contains '#EXTM3U', OR
-         * final redirected URL contains '.m3u8'
-    """
     try:
         async with session.get(url, headers=headers, timeout=VERIFY_TIMEOUT, allow_redirects=True) as resp:
             status = resp.status
