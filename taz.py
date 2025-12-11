@@ -4,7 +4,7 @@ import time
 import urllib.parse
 
 HOME_URL = "https://tazztv.io/"
-API_URL = "https://tazztv.io/api/leagues/streams?league_uuid=a68c1287&timestamp={ts}"
+API_URL = "https://tazztv.io/api/leagues/streams?league_uuid=a68c1287={ts}"
 
 # Output files
 OUT_VLC = "Taz.m3u8"
