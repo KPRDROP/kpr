@@ -2,68 +2,71 @@ name: NBA Webcast Scraper
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # Every 30 minutes (adjust as needed)
-  workflow_dispatch:        # Allow manual runs
+    - cron: "*/30 * * * *"   # runs every 30 minutes
+  workflow_dispatch:
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
     steps:
-    # --- Checkout repository ---
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        persist-credentials: false
+      # ---------------------------------------------------------
+      # Checkout repository
+      # ---------------------------------------------------------
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
-    # --- Install Python 3.11 ---
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
+      # ---------------------------------------------------------
+      # Setup Python
+      # ---------------------------------------------------------
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-    # --- Install Dependencies ---
-    - name: Install requirements
-      run: |
-        pip install --upgrade pip
-        pip install aiohttp beautifulsoup4 lxml
+      # ---------------------------------------------------------
+      # Install dependencies
+      # ---------------------------------------------------------
+      - name: Install Python requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install aiohttp bs4 lxml
 
-    # --- Run Script ---
-    - name: Run NBA Webcast scraper
-      run: |
-        echo "🚀 Starting NBA Webcast Scraper..."
-        python nba_webcast.py
+      # ---------------------------------------------------------
+      # Run NBA scraper
+      # ---------------------------------------------------------
+      - name: Run castweb_nba.py
+        run: |
+          echo "🏀 Running NBA-only scraper..."
+          python nba_webcast.py
 
-    # --- Upload Build Artifacts (optional) ---
-    - name: Upload NBAWebcast_VLC.m3u8 Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: NBAWebcast_VLC
-        path: NBAWebcast_VLC.m3u8
+      # ---------------------------------------------------------
+      # Upload playlists as artifacts
+      # ---------------------------------------------------------
+      - name: Upload NBA Playlists
+        uses: actions/upload-artifact@v4
+        with:
+          name: nba_playlists
+          path: |
+            nba_webcast.m3u8
+            nba_webcast_tivimate.m3u8
 
-    - name: Upload NBAWebcast_TiviMate.m3u8 Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: NBAWebcast_TiviMate
-        path: NBAWebcast_TiviMate.m3u8
+      # ---------------------------------------------------------
+      # Auto-commit and push updated playlists
+      # ---------------------------------------------------------
+      - name: Commit & Push playlist updates
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-    # --- Commit & Push to Repo ---
-    - name: Configure git user
-      run: |
-        git config --global user.email "actions@github.com"
-        git config --global user.name "GitHub Actions"
+          git add nba_webcast.m3u8
+          git add nba_webcast_tivimate.m3u8
 
-    - name: Commit updated playlists
-      run: |
-        git add NBAWebcast_VLC.m3u8 NBAWebcast_TiviMate.m3u8
-        if git commit -m "Auto-update NBA playlists $(date)" ; then
-          echo "✔ Commit created."
-        else
-          echo "✔ No changes detected, skipping commit."
-        fi
-
-    - name: Push changes
-      uses: ad-m/github-push-action@v0.8.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: main
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Auto-update NBA playlists"
+            git push
+          fi
