@@ -84,11 +84,21 @@ async def scrape_nba_games(default_logo: str) -> List[Dict]:
                 logo = logos[1].find("img")["src"] if len(logos) > 1 else default_logo
 
                 watch_btn = row.find("button", class_="watch_btn")
-                if not watch_btn:
-                    continue
 
-                team_key = watch_btn["data-team"]
-                m3u8_url = NBA_STREAM_URL_PATTERN.format(team_name=team_key)
+if not watch_btn:
+    print("⚠️ Parsing error: watch_btn missing")
+    continue
+
+# Safely extract data-team
+team_key = watch_btn.get("data-team")
+
+if not team_key or team_key.strip() == "":
+    # fallback: use home team lowercase
+    team_key = home_team.lower().replace(" ", "")
+    print(f"⚠️ Missing data-team → fallback to '{team_key}'")
+
+stream_url = NBA_STREAM_URL_PATTERN.format(team_name=team_key)
+
                 title = f"{away} vs {home}"
 
                 print(f"🔎 Testing: {title} -> {m3u8_url}")
