@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""
-castweb_nba.py
-Clean NBA-only scraper for https://nbawebcast.top/
-Generates BOTH:
- - castweb_nba.m3u8      (VLC format)
- - castweb_nba_tivimate.m3u8  (TiviMate pipe-format)
-"""
-
 import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
@@ -60,23 +52,24 @@ async def verify_stream_url(session: aiohttp.ClientSession, url: str) -> bool:
 # ----------------------------------------------------------
 #  SCRAPE NBA GAMES
 # ----------------------------------------------------------
-async def scrape_nba_games() -> List[Dict]:
+async def scrape_nba_games(default_logo: str) -> List[Dict]:
     print(f"\n🏀 Scraping NBAWebcast: {NBA_BASE_URL}")
-    results = []
+    results: List[Dict] = []
 
     async with aiohttp.ClientSession(headers={"User-Agent": USER_AGENT}) as session:
         try:
-            async with session.get(NBA_BASE_URL, timeout=20) as resp:
-                html = await resp.text()
+            async with session.get(NBA_BASE_URL, timeout=20) as response:
+                response.raise_for_status()
+                html = await response.text()
         except Exception as e:
-            print(f"❌ Failed to load NBA page: {e}")
+            print(f"❌ Could not load NBA site: {e}")
             return []
 
         soup = BeautifulSoup(html, "lxml")
         table = soup.find("table", class_="NBA_schedule_container")
 
         if not table:
-            print("❌ NBA schedule table not found.")
+            print("❌ NBA games table missing.")
             return []
 
         rows = table.find("tbody").find_all("tr")
@@ -84,47 +77,40 @@ async def scrape_nba_games() -> List[Dict]:
 
         for row in rows:
             try:
-                team_cells = row.find_all("td", class_="teamvs")
-                if len(team_cells) < 2:
-                    continue
-
-                away = team_cells[0].text.strip()
-                home = team_cells[1].text.strip()
-                title = f"{away} vs {home}"
+                teams = [t.text.strip() for t in row.find_all("td", class_="teamvs")]
+                away, home = teams[0], teams[1]
 
                 logos = row.find_all("td", class_="teamlogo")
-                logo = DEFAULT_LOGO
-                if logos and logos[1].find("img"):
-                    logo = logos[1].find("img")["src"]
+                logo = logos[1].find("img")["src"] if len(logos) > 1 else default_logo
 
                 watch_btn = row.find("button", class_="watch_btn")
-                if not (watch_btn and watch_btn.has_attr("data-team")):
+                if not watch_btn:
                     continue
 
                 team_key = watch_btn["data-team"]
-                stream_url = NBA_STREAM_URL_PATTERN.format(team=team_key)
+                m3u8_url = NBA_STREAM_URL_PATTERN.format(team_name=team_key)
+                title = f"{away} vs {home}"
 
-                print(f"🔎 Testing: {title} -> {stream_url}")
+                print(f"🔎 Testing: {title} -> {m3u8_url}")
 
-                ok = await verify_stream_url(session, stream_url)
-                if ok:
-                    print(f"✔️ VALID: {title}")
-                    results.append({
-                        "name": title,
-                        "url": stream_url,
-                        "tvg_id": "NBA.Game.us",
-                        "tvg_logo": logo,
-                        "group": "NBAWebcast - Live Games",
-                        "ref": NBA_BASE_URL,
-                    })
-                else:
-                    print(f"❌ Invalid stream: {title}")
+                # Verification (just logs, does NOT stop playlist)
+                _ = await verify_stream_url(session, m3u8_url, headers=NBA_CUSTOM_HEADERS)
+
+                # Always write stream even if invalid
+                results.append({
+                    "name": title,
+                    "url": m3u8_url,
+                    "tvg_id": "NBA.Basketball.Dummy.us",
+                    "tvg_logo": logo,
+                    "group": "NBA Games - Live Games",
+                    "ref": NBA_BASE_URL,
+                    "custom_headers": NBA_CUSTOM_HEADERS,
+                })
 
             except Exception as e:
-                print(f"⚠️ Row parsing error: {e}")
+                print(f"⚠️ Parsing error: {e}")
 
     return results
-
 
 # ----------------------------------------------------------
 #  WRITE NORMAL M3U (VLC)
