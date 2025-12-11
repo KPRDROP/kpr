@@ -166,15 +166,21 @@ def write_tivimate_playlist(streams: List[Dict]):
 #  MAIN
 # ----------------------------------------------------------
 async def main():
-    print("🚀 Starting NBA-only Webcast Scraper...\n")
-    streams = await scrape_nba_games()
+    print("🚀 Starting NBA-only Webcast Scraper...")
+
+    NBA_DEFAULT_LOGO = "https://i.postimg.cc/B6WMnCRT/basketball-sport-logo-minimalist-style-600nw-2484656797.jpg"
+
+    # Scrape NBA games
+    streams = await scrape_nba_games(NBA_DEFAULT_LOGO)
 
     if not streams:
-        print("❌ No working NBA streams found.")
-        return
+        print("❌ No NBA streams were extracted.")
+    else:
+        # Save main playlist
+        write_playlist(streams, "castweb_nba.m3u8")
 
-    write_vlc_playlist(streams)
-    write_tivimate_playlist(streams)
+        # Save TiviMate playlist
+        write_playlist_tivimate(streams, "castweb_nba_tivimate.m3u8")
 
     print(f"\n🎉 Done! Exported {len(streams)} NBA streams.")
 
