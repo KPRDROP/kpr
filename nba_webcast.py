@@ -25,7 +25,7 @@ NBA_HEADERS = {
 OUT_VLC = "nba_webcast.m3u8"
 OUT_TIVIMATE = "nba_webcast_tivimate.m3u8"
 
-DEFAULT_LOGO = "https://i.postimg.cc/B6WMnCRT/basketball-sport-logo-minimalist-style.jpg"
+NBA_DEFAULT_LOGO = "https://i.postimg.cc/B6WMnCRT/basketball-sport-logo-minimalist-style.jpg"
 
 HTTP_TIMEOUT = aiohttp.ClientTimeout(total=15)
 
@@ -101,7 +101,7 @@ async def scrape_nba_games(default_logo: str) -> List[Dict]:
                     "name": title,
                     "url": m3u8_url,
                     "tvg_id": "NBA.Basketball.Dummy.us",
-                    "tvg_logo": DEFAULT_LOGO,
+                    "tvg_logo": NBA_DEFAULT_LOGO,
                     "group": "NBA Games - Live Games",
                     "ref": NBA_BASE_URL,
                     "custom_headers": NBA_CUSTOM_HEADERS,
@@ -177,10 +177,10 @@ async def main():
         print("❌ No NBA streams were extracted.")
     else:
         # Save main playlist
-        write_playlist(streams, "castweb_nba.m3u8")
+        write_playlist(streams, "nba_webcast.m3u8")
 
         # Save TiviMate playlist
-        write_playlist_tivimate(streams, "castweb_nba_tivimate.m3u8")
+        write_playlist_tivimate(streams, "nba_webcast_tivimate.m3u8")
 
     print(f"\n🎉 Done! Exported {len(streams)} NBA streams.")
 
