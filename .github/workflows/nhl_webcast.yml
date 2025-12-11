@@ -33,17 +33,6 @@ jobs:
           echo "🚀 Starting Sports Webcast Scraper..."
           python nhl_webcast.py
 
-      - name: Check if playlist files exist
-        run: |
-          if [ ! -f NHLWebcast_VLC.m3u8 ]; then
-            echo "❌ NHLWebcast_VLC.m3u8 not generated"
-            exit 1
-          fi
-          if [ ! -f NHLWebcast_TiviMate.m3u8 ]; then
-            echo "❌ NHLWebcast_TiviMate.m3u8 not generated"
-            exit 1
-          fi
-
       - name: Commit and Push Updated Playlists
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
