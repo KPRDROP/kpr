@@ -101,7 +101,7 @@ async def scrape_nba_games(default_logo: str) -> List[Dict]:
                     "name": title,
                     "url": m3u8_url,
                     "tvg_id": "NBA.Basketball.Dummy.us",
-                    "tvg_logo": logo,
+                    "tvg_logo": DEFAULT_LOGO,
                     "group": "NBA Games - Live Games",
                     "ref": NBA_BASE_URL,
                     "custom_headers": NBA_CUSTOM_HEADERS,
