@@ -1,11 +1,13 @@
-name: NHL Webcast Scraper
+name: 🏒 NHL Webcast Scraper
 
 on:
   schedule:
-    # Run every 2 hours
     - cron: "0 */2 * * *"
   workflow_dispatch:
-    # Allow manual run from GitHub UI
+
+concurrency:
+  group: nhl-webcast-playlists
+  cancel-in-progress: true
 
 jobs:
   scrape:
@@ -14,36 +16,49 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install Python dependencies
+      - name: 🐍 Install Python dependencies
         run: |
+          pip install --upgrade pip
           pip install requests beautifulsoup4 lxml playwright
 
-      - name: Install Playwright Browsers (Firefox)
+      - name: 📦 Install Playwright Browsers (Firefox)
         run: |
           python -m playwright install firefox
+          python -m playwright install-deps firefox
 
-      - name: Run Webcast Scraper
+      - name: 🚀 Run Webcast Scraper
         run: |
-          echo "🚀 Starting Sports Webcast Scraper..."
+          echo "🏒 Starting NHL Webcast Scraper..."
           python nhl_webcast.py
 
-      - name: Commit and Push Updated Playlists
+      - name: Show outputs
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          echo "----- NHLWebcast_VLC.m3u8 -----"
+          cat NHLWebcast_VLC.m3u8 || true
+          echo "----- NHLWebcast_TiviMate.m3u8 -----"
+          cat NHLWebcast_TiviMate.m3u8 || true
 
-          git add NHLWebcast_VLC.m3u8 NHLWebcast_TiviMate.m3u8
+      - name: Commit and Push Updated Playlists (safe)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add NHLWebcast_VLC.m3u8 NHLWebcast_TiviMate.m3u8 || true
 
           if git diff --cached --quiet; then
             echo "No changes to commit."
-          else
-            echo "Committing updated playlist files..."
-            git commit -m "Update NHL Webcast Playlists $(date +'%Y-%m-%d %H:%M:%S')"
-            git push
+            exit 0
           fi
+
+          git commit -m "Update NHL Webcast playlists [auto]"
+
+          git pull --rebase origin main
+          git push origin main
