@@ -1,4 +1,4 @@
-name: NFL Webcast Scraper
+name: 🏈 NFL Webcast Scraper
 
 on:
   schedule:
@@ -19,22 +19,22 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Python dependencies
+      - name: 🐍 Install Python dependencies
         run: |
           pip install requests beautifulsoup4 lxml playwright
 
       # --- Playwright Dependencies + Browsers ---
-      - name: Install system dependencies for Playwright
+      - name: 📦 Install system dependencies for Playwright
         run: |
           sudo npx playwright install-deps
 
-      - name: Install Playwright Browsers (Chromium + Firefox fallback)
+      - name: 📦 Install Playwright Browsers (Chromium + Firefox fallback)
         run: |
           python -m playwright install chromium firefox
 
-      - name: Run Webcast Scraper
+      - name: 🚀 Run Webcast Scraper
         run: |
-          echo "🏈 Starting NFL Webcast Scraper..."
+          echo "Starting NFL Webcast Scraper..."
           python nfl_webcast.py
 
       - name: Verify output files exist
