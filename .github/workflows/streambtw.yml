@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v4
@@ -59,14 +61,19 @@ jobs:
           echo "----- Streambtw_TiviMate.m3u8 -----"
           cat Streambtw_TiviMate.m3u8 || true
 
-      - name: Commit and Push Changes
+      - name: Commit and Push Changes (safe)
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
           git add Streambtw_VLC.m3u8 Streambtw_TiviMate.m3u8 || true
-          if ! git diff --cached --quiet; then
-            git commit -m "Updated StreamBTW playlists"
-            git push
-          else
+
+          if git diff --cached --quiet; then
             echo "No changes to commit."
+            exit 0
           fi
+
+          git commit -m "Updated StreamBTW playlists [auto]"
+
+          git pull --rebase origin main
+          git push origin main
