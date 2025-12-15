@@ -2,7 +2,7 @@ name: 🏆 Generate RoxieStreams Playlists
 
 on:
   schedule:
-    - cron: '0 * * * *'  # ⏰ Run every hour
+    - cron: '0 * * * *'  # Run every hour
   workflow_dispatch:
     # Allow manual run from GitHub UI
 

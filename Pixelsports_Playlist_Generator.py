@@ -24,14 +24,14 @@ VLC_ICY = "1"
 TIVIMATE_USER_AGENT = quote(VLC_USER_AGENT, safe="")
 
 LEAGUE_INFO = {
-    "NFL": ("NFL.Dummy.us", "http://drewlive24.duckdns.org:9000/Logos/Maxx.png", "NFL"),
-    "MLB": ("MLB.Baseball.Dummy.us", "http://drewlive24.duckdns.org:9000/Logos/Baseball3.png", "MLB"),
-    "NHL": ("NHL.Hockey.Dummy.us", "http://drewlive24.duckdns.org:9000/Logos/Hockey2.png", "NHL"),
-    "NBA": ("NBA.Basketball.Dummy.us", "http://drewlive24.duckdns.org:9000/Logos/Basketball-2.png", "NBA"),
-    "NASCAR": ("Racing.Dummy.us", "http://drewlive24.duckdns.org:9000/Logos/Motorsports2.png", "NASCAR Cup Series"),
-    "UFC": ("UFC.Fight.Pass.Dummy.us", "http://drewlive24.duckdns.org:9000/Logos/CombatSports2.png", "UFC"),
-    "SOCCER": ("Soccer.Dummy.us", "http://drewlive24.duckdns.org:9000/Logos/Soccer.png", "Soccer"),
-    "BOXING": ("PPV.EVENTS.Dummy.us", "http://drewlive24.duckdns.org:9000/Logos/Combat-Sports.png", "Boxing"),
+    "NFL": ("NFL.Dummy.us", "https://i.postimg.cc/xdw8p64J/cfb.png", "NFL"),
+    "MLB": ("MLB.Baseball.Dummy.us", "https://i.postimg.cc/wBBdk9Bc/mlb-logo-png-seeklogo-250501.png", "MLB"),
+    "NHL": ("NHL.Hockey.Dummy.us", "https://i.postimg.cc/L4NRny3t/nhl-logo-png-seeklogo-534236.png", "NHL"),
+    "NBA": ("NBA.Basketball.Dummy.us", "https://i.postimg.cc/T1HZQ4tN/nba-logo-png-seeklogo-247736.png", "NBA"),
+    "NASCAR": ("Racing.Dummy.us", "https://i.postimg.cc/bwnKHLkg/motorsport-logo-png-seeklogo-222825.png", "NASCAR Cup Series"),
+    "UFC": ("UFC.Fight.Pass.Dummy.us", "https://i.postimg.cc/W17xHzYk/ufc-logo-png-seeklogo-272942.png", "UFC"),
+    "SOCCER": ("Soccer.Dummy.us", "https://i.postimg.cc/D0bgkp2C/bf653d0758ea419075bb5404a6e65912.jpg", "Soccer"),
+    "BOXING": ("PPV.EVENTS.Dummy.us", "https://i.postimg.cc/7L6ttVTs/boxing-zone-logo-png-seeklogo-244856.png", "Boxing"),
 }
 
 def utc_to_eastern(utc_str):
