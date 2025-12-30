@@ -13,7 +13,7 @@ USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 )
 
-BASE = "https://nflwebcast.com/"
+BASE = "https://nflwebcast.com/sig/"
 OUTPUT_VLC = "NFLWebcast_VLC.m3u8"
 OUTPUT_TIVI = "NFLWebcast_TiviMate.m3u8"
 HEADERS = {
