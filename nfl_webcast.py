@@ -2,7 +2,7 @@
 import asyncio
 import re
 import sys
-from urllib.parse import urljoin, quote_plus
+from urllib.parse import quote_plus
 from playwright.async_api import async_playwright
 
 BASE = "https://nflwebcast.com/"
@@ -15,11 +15,6 @@ USER_AGENT = (
     "Chrome/142.0.0.0 Safari/537.36"
 )
 
-HEADERS = {
-    "referer": BASE,
-    "origin": BASE,
-}
-
 LOGO = "https://i.postimg.cc/5t5PgRdg/1000-F-431743763-in9BVVz-CI36X304St-R89pnxy-UYzj1dwa-1.jpg"
 
 
@@ -28,35 +23,23 @@ def log(*args):
     sys.stdout.flush()
 
 
-def clean_title(title: str) -> str:
-    if not title:
-        return "NFL Game"
-    title = title.replace("@", "vs")
-    title = re.sub(r"\s+", " ", title)
-    return title.strip()
+def clean_title(text: str) -> str:
+    if not text:
+        return "NFL Live"
+    text = re.sub(r"\s+", " ", text)
+    return text.replace("@", "vs").strip()
 
 
-async def capture_m3u8(page):
+async def capture_m3u8(page, timeout=8):
     found = None
 
     def on_response(resp):
         nonlocal found
-        url = resp.url
-        if ".m3u8" in url and not found:
-            found = url
+        if ".m3u8" in resp.url and not found:
+            found = resp.url
 
     page.on("response", on_response)
-
-    # Try clicking common play elements
-    for sel in ["button", ".play", ".player", "video", "iframe"]:
-        try:
-            loc = page.locator(sel)
-            if await loc.count() > 0:
-                await loc.first.click(force=True, timeout=1000)
-        except Exception:
-            pass
-
-    await asyncio.sleep(6)
+    await asyncio.sleep(timeout)
     return found
 
 
@@ -72,32 +55,42 @@ async def scrape_nfl():
         await page.goto(BASE, wait_until="domcontentloaded", timeout=60000)
         await asyncio.sleep(4)
 
-        # Collect candidate event links
-        links = set()
-        for a in await page.locator("a").all():
-            href = await a.get_attribute("href")
-            if href and href.startswith("/"):
-                full = urljoin(BASE, href)
-                if "nfl" in full.lower():
-                    links.add(full)
+        # WATCH buttons (this is the key fix)
+        watch_buttons = page.locator("button:has-text('WATCH')")
+        count = await watch_buttons.count()
 
-        log(f"🔍 Found {len(links)} candidate event pages")
+        log(f"🔍 Found {count} WATCH buttons")
 
-        for idx, url in enumerate(sorted(links), 1):
-            log(f"➡️ [{idx}/{len(links)}] Visiting {url}")
+        if count == 0:
+            await browser.close()
+            return []
+
+        for i in range(count):
             try:
-                await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-                title = clean_title(await page.title())
+                log(f"➡️ Opening game {i + 1}/{count}")
+
+                # Extract visible game title
+                card = watch_buttons.nth(i).locator("xpath=ancestor::tr | ancestor::div")
+                title_text = await card.inner_text()
+                title = clean_title(title_text.split("\n")[0])
+
+                await watch_buttons.nth(i).click(force=True)
+                await asyncio.sleep(2)
+
                 m3u8 = await capture_m3u8(page)
 
                 if m3u8:
-                    log(f"✅ Found stream: {m3u8}")
+                    log(f"✅ Stream found: {m3u8}")
                     results.append((title, m3u8))
                 else:
-                    log("⚠️ No stream found")
+                    log("⚠️ No stream captured")
+
+                # Reset to homepage for next game
+                await page.goto(BASE, wait_until="domcontentloaded")
+                await asyncio.sleep(3)
 
             except Exception as e:
-                log(f"❌ Error: {e}")
+                log(f"❌ Error processing game: {e}")
 
         await browser.close()
 
@@ -109,7 +102,7 @@ def write_playlists(entries):
         log("❌ No streams captured.")
         return
 
-    # VLC
+    # VLC playlist
     with open(OUTPUT_VLC, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for title, url in entries:
@@ -117,12 +110,12 @@ def write_playlists(entries):
                 f'#EXTINF:-1 tvg-id="NFL.Dummy.us" '
                 f'tvg-logo="{LOGO}" group-title="NFL",{title}\n'
             )
-            f.write(f"#EXTVLCOPT:http-referrer={HEADERS['referer']}\n")
-            f.write(f"#EXTVLCOPT:http-origin={HEADERS['origin']}\n")
+            f.write(f"#EXTVLCOPT:http-referrer={BASE}\n")
+            f.write(f"#EXTVLCOPT:http-origin={BASE}\n")
             f.write(f"#EXTVLCOPT:http-user-agent={USER_AGENT}\n")
             f.write(url + "\n")
 
-    # TiviMate
+    # TiviMate playlist
     ua = quote_plus(USER_AGENT)
     with open(OUTPUT_TIVI, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
