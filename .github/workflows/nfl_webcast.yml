@@ -30,7 +30,7 @@ jobs:
 
       - name: 📦 Install Playwright Browsers (Chromium + Firefox fallback)
         run: |
-          python -m playwright install chromium firefox
+          python -m playwright install chromium
 
       - name: 🚀 Run Webcast Scraper
         run: |
