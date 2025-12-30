@@ -1,11 +1,13 @@
-#!/usr/bin/env python3
 import asyncio
 import re
-import sys
-from urllib.parse import quote_plus
+from typing import List, Dict
+from urllib.parse import quote
+
 from playwright.async_api import async_playwright
 
-BASE = "https://nflwebcast.com/"
+# ---------------- CONFIG ----------------
+
+BASE_URL = "https://nflwebcast.com/"
 OUTPUT_VLC = "NFLWebcast_VLC.m3u8"
 OUTPUT_TIVI = "NFLWebcast_TiviMate.m3u8"
 
@@ -15,136 +17,128 @@ USER_AGENT = (
     "Chrome/142.0.0.0 Safari/537.36"
 )
 
-LOGO = "https://i.postimg.cc/5t5PgRdg/1000-F-431743763-in9BVVz-CI36X304St-R89pnxy-UYzj1dwa-1.jpg"
+STREAM_REGEX = re.compile(r"\.m3u8", re.I)
 
+# ---------------- CORE SCRAPER ----------------
 
-def log(*args):
-    print(*args)
-    sys.stdout.flush()
-
-
-def clean_title(text: str) -> str:
-    text = re.sub(r"\s+", " ", text or "")
-    text = text.replace("@", "vs")
-    return text.strip() or "NFL Live"
-
-
-async def capture_m3u8(page, wait=10):
-    found = None
-
-    def on_response(resp):
-        nonlocal found
-        if ".m3u8" in resp.url and not found:
-            found = resp.url
-
-    page.on("response", on_response)
-    await asyncio.sleep(wait)
-    return found
-
-
-async def scrape_nfl():
-    streams = []
+async def scrape_nfl() -> List[Dict]:
+    streams: List[Dict] = []
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
-        ctx = await browser.new_context(user_agent=USER_AGENT)
-        page = await ctx.new_page()
+        context = await browser.new_context(user_agent=USER_AGENT)
+        page = await context.new_page()
 
-        log("🌐 Loading NFLWebcast homepage...")
-        await page.goto(BASE, wait_until="domcontentloaded", timeout=60000)
-        await page.wait_for_timeout(8000)  # allow JS / Cloudflare / ads
-        await asyncio.sleep(5)
+        print("🌐 Loading NFLWebcast homepage...")
+        await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=60000)
+        await page.wait_for_timeout(5000)
 
-        # 🔥 FIX: button selector fallback list
-        selectors = [
-            "button.watch_btn",
-            "a.watch_btn",
-            ".watch_btn",
-            "button[class*='watch']",
-            "a[class*='watch']",
-        ]
+        watch_links = await page.query_selector_all("a:has-text('Watch')")
+        print(f"🔍 Found {len(watch_links)} WATCH links")
 
-        buttons = None
-        for sel in selectors:
-            locator = page.locator(sel)
-            if await locator.count() > 0:
-                buttons = locator
-                break
+        event_urls = []
+        for a in watch_links:
+            href = await a.get_attribute("href")
+            if href and "live-stream" in href:
+                event_urls.append(href)
 
-        if not buttons:
-            log("⚠️ No clickable watch buttons found — trying auto-play capture...")
-            auto_stream = await capture_m3u8(page, wait=12)
-            if auto_stream:
-                streams.append(("NFL Live", auto_stream))
+        await page.close()
+
+        if not event_urls:
+            print("❌ No event pages found.")
             await browser.close()
-            return streams
+            return []
 
-        count = await buttons.count()
-        log(f"🔍 Found {count} clickable game entries")
+        print(f"📌 Processing {len(event_urls)} event pages")
 
-        for i in range(count):
+        for event_url in event_urls:
+            print(f"➡️ Opening event page: {event_url}")
+            page = await context.new_page()
+            captured = []
+
+            def handle_request(req):
+                if STREAM_REGEX.search(req.url) and "/sig/" in req.url:
+                    if req.url not in captured:
+                        print(f"✅ Captured stream: {req.url}")
+                        captured.append(req.url)
+
+            page.on("request", handle_request)
+
             try:
-                log(f"➡️ Opening game {i + 1}/{count}")
-
-                container = buttons.nth(i).locator("xpath=ancestor::tr | ancestor::div")
-                title = clean_title((await container.inner_text()).split("\n")[0])
-
-                await buttons.nth(i).click(force=True)
-                await asyncio.sleep(3)
-
-                m3u8 = await capture_m3u8(page)
-                if m3u8:
-                    log(f"✅ Stream found: {m3u8}")
-                    streams.append((title, m3u8))
-                else:
-                    log("⚠️ No stream captured")
-
-                await page.goto(BASE, wait_until="networkidle")
-                await asyncio.sleep(4)
-
+                await page.goto(event_url, wait_until="domcontentloaded", timeout=60000)
+                await page.wait_for_timeout(10000)
             except Exception as e:
-                log(f"❌ Error: {e}")
+                print(f"⚠️ Page load error: {e}")
+
+            if captured:
+                title = await page.title()
+                clean_title = title.replace("Live Stream Online Free", "").strip()
+
+                streams.append({
+                    "name": clean_title,
+                    "url": captured[-1],
+                    "ref": BASE_URL
+                })
+
+            page.remove_listener("request", handle_request)
+            await page.close()
 
         await browser.close()
 
     return streams
 
+# ---------------- PLAYLIST WRITERS ----------------
 
-def write_playlists(entries):
-    if not entries:
-        log("❌ No streams captured.")
+def write_vlc_playlist(streams: List[Dict]):
+    if not streams:
+        print("❌ No streams to write (VLC).")
         return
 
-    # VLC
     with open(OUTPUT_VLC, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
-        for title, url in entries:
-            f.write(
-                f'#EXTINF:-1 tvg-id="NFL.Dummy.us" '
-                f'tvg-logo="{LOGO}" group-title="NFL",{title}\n'
-            )
-            f.write(f"#EXTVLCOPT:http-referrer={BASE}\n")
-            f.write(f"#EXTVLCOPT:http-origin={BASE}\n")
+        for s in streams:
+            f.write(f"#EXTINF:-1,{s['name']}\n")
+            f.write(f"#EXTVLCOPT:http-referrer={s['ref']}\n")
+            f.write(f"#EXTVLCOPT:http-origin={s['ref']}\n")
             f.write(f"#EXTVLCOPT:http-user-agent={USER_AGENT}\n")
-            f.write(url + "\n")
+            f.write(s["url"] + "\n")
 
-    # TiviMate
-    ua = quote_plus(USER_AGENT)
+    print(f"✅ VLC playlist saved: {OUTPUT_VLC}")
+
+def write_tivimate_playlist(streams: List[Dict]):
+    if not streams:
+        print("❌ No streams to write (TiviMate).")
+        return
+
+    ua = quote(USER_AGENT, safe="")
+
     with open(OUTPUT_TIVI, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
-        for title, url in entries:
-            f.write(f"#EXTINF:-1,{title}\n")
-            f.write(f"{url}|referer={BASE}|origin={BASE}|user-agent={ua}\n")
+        for s in streams:
+            f.write(f"#EXTINF:-1,{s['name']}\n")
+            f.write(
+                f"{s['url']}"
+                f"|referer={s['ref']}"
+                f"|origin={s['ref']}"
+                f"|user-agent={ua}\n"
+            )
 
-    log(f"✅ Playlists written: {OUTPUT_VLC}, {OUTPUT_TIVI}")
+    print(f"✅ TiviMate playlist saved: {OUTPUT_TIVI}")
 
+# ---------------- MAIN ----------------
 
 async def main():
-    log("🚀 Starting NFL Webcast scraper (fixed)...")
+    print("🚀 Starting NFL Webcast scraper (final)...")
     streams = await scrape_nfl()
-    write_playlists(streams)
-    log("🎉 Done.")
 
+    if not streams:
+        print("❌ No streams captured.")
+        return
+
+    write_vlc_playlist(streams)
+    write_tivimate_playlist(streams)
+
+    print(f"🎉 Done. Exported {len(streams)} NFL streams.")
 
 if __name__ == "__main__":
     asyncio.run(main())
