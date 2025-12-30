@@ -6,31 +6,34 @@ BASE_URL = "https://nflwebcast.com/"
 OUTPUT_FILE = "NFLWebcast_VLC.m3u8"
 
 USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/142.0.0.0 Safari/537.36"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) "
+    "Gecko/20100101 Firefox/128.0"
 )
-
-# -------------------------------------------------
 
 async def scrape_nfl_subpages():
     subpages = set()
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(user_agent=USER_AGENT)
+        browser = await p.firefox.launch(
+            headless=True
+        )
+
+        context = await browser.new_context(
+            user_agent=USER_AGENT,
+            viewport={"width": 1280, "height": 800}
+        )
+
         page = await context.new_page()
 
         print("🌐 Loading NFLWebcast homepage...")
-        await page.goto(BASE_URL, wait_until="load", timeout=60000)
+        await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=60000)
 
-        # IMPORTANT: let Cloudflare + JS finish
-        await page.wait_for_selector("body", timeout=30000)
+        # Give Cloudflare + JS time
+        await page.wait_for_timeout(8000)
+
+        # Force scroll to trigger lazy content
+        await page.mouse.wheel(0, 8000)
         await page.wait_for_timeout(5000)
-
-        # Trigger lazy-loaded content
-        await page.mouse.wheel(0, 5000)
-        await page.wait_for_timeout(4000)
 
         links = await page.evaluate("""
             () => Array.from(document.querySelectorAll("a[href]"))
@@ -46,7 +49,7 @@ async def scrape_nfl_subpages():
                 continue
 
             if (
-                parsed.scheme in ("http", "https")
+                parsed.scheme.startswith("http")
                 and parsed.netloc == "nflwebcast.com"
                 and "live-stream" in parsed.path
             ):
@@ -56,7 +59,6 @@ async def scrape_nfl_subpages():
 
     return sorted(subpages)
 
-# -------------------------------------------------
 
 def write_playlist(urls):
     if not urls:
@@ -70,15 +72,15 @@ def write_playlist(urls):
             f.write(f"#EXTINF:-1,{name}\n")
             f.write(url + "\n")
 
-    print(f"✅ Saved {len(urls)} NFL subpages to {OUTPUT_FILE}")
+    print(f"✅ Saved {len(urls)} subpages → {OUTPUT_FILE}")
 
-# -------------------------------------------------
 
 async def main():
     print("🚀 Starting NFLWebcast subpage scraper...")
     urls = await scrape_nfl_subpages()
     write_playlist(urls)
     print("🎉 Done.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
