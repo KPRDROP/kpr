@@ -3,7 +3,7 @@ from playwright.async_api import async_playwright
 from urllib.parse import urlparse
 
 BASE_URL = "https://nflwebcast.com/"
-OUTPUT_FILE = "NFLWebcast_Subpages.m3u8"
+OUTPUT_FILE = "NFLWebcast_VLC.m3u8"
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -22,21 +22,28 @@ async def scrape_nfl_subpages():
         page = await context.new_page()
 
         print("🌐 Loading NFLWebcast homepage...")
-        await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=60000)
-        await page.wait_for_timeout(6000)
+        await page.goto(BASE_URL, wait_until="load", timeout=60000)
 
-        links = await page.query_selector_all("a[href]")
+        # IMPORTANT: let Cloudflare + JS finish
+        await page.wait_for_selector("body", timeout=30000)
+        await page.wait_for_timeout(5000)
+
+        # Trigger lazy-loaded content
+        await page.mouse.wheel(0, 5000)
+        await page.wait_for_timeout(4000)
+
+        links = await page.evaluate("""
+            () => Array.from(document.querySelectorAll("a[href]"))
+                .map(a => a.href)
+        """)
+
         print(f"🔍 Found {len(links)} total links")
 
-        for a in links:
-            href = await a.get_attribute("href")
-            if not href:
+        for href in links:
+            try:
+                parsed = urlparse(href)
+            except Exception:
                 continue
-
-            if href.startswith("/"):
-                href = BASE_URL.rstrip("/") + href
-
-            parsed = urlparse(href)
 
             if (
                 parsed.scheme in ("http", "https")
@@ -59,7 +66,7 @@ def write_playlist(urls):
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for url in urls:
-            name = url.split("/")[-2].replace("-", " ").title()
+            name = url.rstrip("/").split("/")[-1].replace("-", " ").title()
             f.write(f"#EXTINF:-1,{name}\n")
             f.write(url + "\n")
 
