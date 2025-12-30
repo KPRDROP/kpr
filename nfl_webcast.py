@@ -51,7 +51,8 @@ async def scrape_nfl():
         page = await ctx.new_page()
 
         log("🌐 Loading NFLWebcast homepage...")
-        await page.goto(BASE, wait_until="networkidle", timeout=60000)
+        await page.goto(BASE, wait_until="domcontentloaded", timeout=60000)
+        await page.wait_for_timeout(8000)  # allow JS / Cloudflare / ads
         await asyncio.sleep(5)
 
         # 🔥 FIX: button selector fallback list
