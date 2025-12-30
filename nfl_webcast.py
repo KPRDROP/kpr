@@ -31,15 +31,16 @@ async def scrape_nfl() -> List[Dict]:
 
         print("🌐 Loading NFLWebcast homepage...")
         await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=60000)
-        await page.wait_for_timeout(5000)
+        await page.wait_for_timeout(6000)
 
-        watch_links = await page.query_selector_all("a:has-text('Watch')")
+        # ✅ FIX: select by href pattern, not text
+        watch_links = await page.query_selector_all('a[href*="live-stream"]')
         print(f"🔍 Found {len(watch_links)} WATCH links")
 
         event_urls = []
         for a in watch_links:
             href = await a.get_attribute("href")
-            if href and "live-stream" in href:
+            if href and href.startswith("https://nflwebcast.com/"):
                 event_urls.append(href)
 
         await page.close()
@@ -66,13 +67,17 @@ async def scrape_nfl() -> List[Dict]:
 
             try:
                 await page.goto(event_url, wait_until="domcontentloaded", timeout=60000)
-                await page.wait_for_timeout(10000)
+                await page.wait_for_timeout(12000)
             except Exception as e:
                 print(f"⚠️ Page load error: {e}")
 
             if captured:
                 title = await page.title()
-                clean_title = title.replace("Live Stream Online Free", "").strip()
+                clean_title = (
+                    title.replace("Live Stream Online Free", "")
+                    .replace("NFL", "")
+                    .strip()
+                )
 
                 streams.append({
                     "name": clean_title,
@@ -128,7 +133,7 @@ def write_tivimate_playlist(streams: List[Dict]):
 # ---------------- MAIN ----------------
 
 async def main():
-    print("🚀 Starting NFL Webcast scraper (final)...")
+    print("🚀 Starting NFL Webcast scraper (fixed selector)...")
     streams = await scrape_nfl()
 
     if not streams:
