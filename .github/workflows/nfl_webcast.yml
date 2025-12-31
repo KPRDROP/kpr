@@ -1,67 +1,50 @@
-name: 🏈 NFL Webcast Scraper
+name: NFL Webcast Scraper
 
 on:
   schedule:
-    # Every 2 hours
+    # Cada 2 horas
     - cron: "0 */2 * * *"
   workflow_dispatch:
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.11
+      - name: 🐍 Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: 🐍 Install Python dependencies
+      - name: 📦 Install Python dependencies
         run: |
-          pip install requests beautifulsoup4 lxml playwright
+          python -m pip install --upgrade pip
+          pip install playwright beautifulsoup4 lxml
 
-      # --- Playwright Dependencies + Browsers ---
-      - name: 📦 Install system dependencies for Playwright
+      - name: 🌐 Install Playwright Browsers (Firefox)
         run: |
-          sudo npx playwright install-deps
+          python -m playwright install firefox
+          python -m playwright install-deps firefox
 
-      - name: 📦 Install Playwright Browsers (Chromium + Firefox fallback)
-        run: |
-          python -m playwright install chromium firefox
-
-      - name: 🚀 Run Webcast Scraper
+      - name: 🚀 Run NFL Webcast Scraper
         run: |
           echo "Starting NFL Webcast Scraper..."
           python nfl_webcast.py
 
-      - name: Verify output files exist
+      - name: 📤 Commit and Push Updated Playlists
         run: |
-          if [ ! -f NFLWebcast_VLC.m3u8 ]; then
-            echo "❌ NFLWebcast_VLC.m3u8 missing!"
-            exit 1
-          fi
-          if [ ! -f NFLWebcast_TiviMate.m3u8 ]; then
-            echo "❌ NFLWebcast_TiviMate.m3u8 missing!"
-            exit 1
-          fi
-          echo "✅ Output playlists found."
-
-      - name: Commit and Push Updated Playlists
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
 
           git add NFLWebcast_VLC.m3u8 NFLWebcast_TiviMate.m3u8
 
           if git diff --cached --quiet; then
-            echo "No changes detected. Skip commit."
+            echo "No changes to commit."
           else
-            echo "Changes detected → committing..."
-            git commit -m "Auto-update NFL Webcast playlists $(date +'%Y-%m-%d %H:%M:%S')"
+            git commit -m "Update NFL Webcast playlists $(date +'%Y-%m-%d %H:%M:%S')"
             git push
           fi
