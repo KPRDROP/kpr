@@ -2,7 +2,7 @@ name: NFLWebcast Scraper
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # Every 30 minutes
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -14,15 +14,14 @@ jobs:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: true
           fetch-depth: 0
 
-      - name: 🐍 Setup Python
+      - name: 🐍 Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: 📦 Install system deps (Playwright)
+      - name: 📦 Install system dependencies (Playwright)
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -36,14 +35,14 @@ jobs:
             libxcomposite1 \
             libxdamage1 \
             libxrandr2 \
+            libgbm1 \
             libasound2t64 \
-            libasound2 \
             libpangocairo-1.0-0 \
             libpango-1.0-0 \
             libgtk-3-0 \
             libx11-xcb1
 
-      - name: 📦 Install Python deps
+      - name: 📦 Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install playwright beautifulsoup4 lxml
@@ -54,7 +53,7 @@ jobs:
           echo "Starting NFL Webcast Scraper..."
           python nfl_webcast.py
 
-      - name: 📤 Commit & push playlists
+      - name: 📤 Commit & Push playlists
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
             git config user.name "github-actions"
@@ -63,5 +62,5 @@ jobs:
             git commit -m "Update NFLWebcast playlists"
             git push
           else
-            echo "No playlist changes detected"
+            echo "No changes detected"
           fi
