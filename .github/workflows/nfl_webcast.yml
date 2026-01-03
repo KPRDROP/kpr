@@ -27,8 +27,8 @@ jobs:
 
       - name: 🌐 Install Playwright Browsers (Firefox)
         run: |
-          python -m playwright install firefox
-          python -m playwright install-deps firefox
+          python -m playwright install firefox chromium
+          python -m playwright install-deps firefox chromium
 
       - name: 🚀 Run NFL Webcast Scraper
         run: |
