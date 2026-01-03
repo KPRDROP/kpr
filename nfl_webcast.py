@@ -1,118 +1,103 @@
 #!/usr/bin/env python3
-
 import asyncio
 import re
 import sys
 from urllib.parse import urljoin, quote_plus
+from pathlib import Path
 
-from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
-
-# ---------------- CONFIG ----------------
-
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) "
-    "Gecko/20100101 Firefox/146.0"
-)
+from playwright.async_api import async_playwright
 
 BASE = "https://nflwebcast.com/"
 OUTPUT_VLC = "NFLWebcast_VLC.m3u8"
 OUTPUT_TIVI = "NFLWebcast_TiviMate.m3u8"
 
-VLC_LOGO = "https://i.postimg.cc/5t5PgRdg/1000-F-431743763-in9BVVz-CI36X304St-R89pnxy-UYzj1dwa-1.jpg"
-
-EVENT_RE = re.compile(
-    r"^https://nflwebcast\.com/.+-live-stream-",
-    re.I
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
 )
 
-# ---------------- HELPERS ----------------
+VLC_LOGO = "https://i.postimg.cc/5t5PgRdg/1000-F-431743763-in9BVVz-CI36X304St-R89pnxy-UYzj1dwa-1.jpg"
+
 
 def log(*a):
     print(*a)
     sys.stdout.flush()
 
 
-def clean_event_title(title: str) -> str:
-    if not title:
-        return "NFL Game"
-    title = title.replace("@", "vs").replace(",", "")
-    title = re.sub(r"\s{2,}", " ", title)
-    return title.strip()
+# ----------------------------
+# EVENT REGEX (CRITICAL FIX)
+# ----------------------------
+EVENT_RE = re.compile(
+    r"^https://nflwebcast\.com/[a-z0-9-]+-live-stream-online-free/?$",
+    re.I
+)
 
 
-# ---------------- HOMEPAGE SCRAPER ----------------
+def title_from_url(url: str) -> str:
+    slug = url.rstrip("/").split("/")[-1]
+    slug = slug.replace("-live-stream-online-free", "")
+    parts = slug.split("-")
 
-async def get_event_links(playwright) -> list[str]:
-    log("🌐 Loading NFLWebcast homepage (Cloudflare protected)...")
+    if len(parts) >= 2:
+        mid = len(parts) // 2
+        return f"{parts[0].title()} vs {parts[-1].title()}"
 
+    return slug.replace("-", " ").title()
+
+
+# ----------------------------
+# PLAYWRIGHT SCRAPER
+# ----------------------------
+async def extract_event_pages(playwright):
     browser = await playwright.firefox.launch(headless=True)
     context = await browser.new_context(user_agent=USER_AGENT)
     page = await context.new_page()
 
-    try:
-        await page.goto(BASE, wait_until="domcontentloaded", timeout=60000)
-        await asyncio.sleep(6)  # allow CF to clear
+    log("🌐 Loading NFLWebcast homepage (Cloudflare bypass)…")
+    await page.goto(BASE, wait_until="networkidle", timeout=60000)
+    await asyncio.sleep(4)
 
-        html = await page.content()
-        soup = BeautifulSoup(html, "lxml")
+    links = await page.eval_on_selector_all(
+        "a[href]",
+        "els => els.map(e => e.href)"
+    )
 
-        links = set()
+    await browser.close()
 
-        for a in soup.find_all("a", href=True):
-            href = urljoin(BASE, a["href"].strip())
-            if EVENT_RE.match(href):
-                links.add(href)
+    events = []
+    for href in links:
+        if EVENT_RE.match(href):
+            events.append(href)
 
-        log(f"🔍 Found {len(links)} event pages")
-        return sorted(links)
-
-    finally:
-        await context.close()
-        await browser.close()
+    events = sorted(set(events))
+    log(f"🔍 Found {len(events)} event pages")
+    return events
 
 
-# ---------------- M3U8 CAPTURE ----------------
-
-async def capture_m3u8(playwright, url: str):
+async def capture_m3u8(playwright, url):
     browser = await playwright.firefox.launch(headless=True)
     context = await browser.new_context(user_agent=USER_AGENT)
     page = await context.new_page()
 
-    found = None
+    m3u8_url = None
 
     def on_response(resp):
-        nonlocal found
-        if ".m3u8" in resp.url and not found:
-            found = resp.url
+        nonlocal m3u8_url
+        if ".m3u8" in resp.url and not m3u8_url:
+            m3u8_url = resp.url
 
     page.on("response", on_response)
 
-    try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=60000)
-        await asyncio.sleep(8)
+    await page.goto(url, wait_until="networkidle", timeout=60000)
+    await asyncio.sleep(6)
 
-        if not found:
-            html = await page.content()
-            m = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\']*', html)
-            if m:
-                found = m.group(0)
-
-    except PlaywrightTimeoutError:
-        log(f"⚠️ Timeout loading {url}")
-
-    finally:
-        await context.close()
-        await browser.close()
-
-    return found
+    await browser.close()
+    return m3u8_url
 
 
-# ---------------- PLAYLIST WRITER ----------------
-
+# ----------------------------
+# PLAYLIST WRITER
+# ----------------------------
 def write_playlists(entries):
-    ua_enc = quote_plus(USER_AGENT)
-
     with open(OUTPUT_VLC, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for title, url in entries:
@@ -122,47 +107,46 @@ def write_playlists(entries):
             f.write(f"#EXTVLCOPT:http-user-agent={USER_AGENT}\n")
             f.write(f"{url}\n\n")
 
+    ua_enc = quote_plus(USER_AGENT)
     with open(OUTPUT_TIVI, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for title, url in entries:
             f.write(f"#EXTINF:-1,{title}\n")
             f.write(f"{url}|user-agent={ua_enc}\n")
 
-    log("✅ Playlists written successfully")
+    log("✅ Playlists written")
 
 
-# ---------------- MAIN ----------------
-
+# ----------------------------
+# MAIN
+# ----------------------------
 async def main():
-    log("🚀 Starting NFL Webcast scraper (STABLE FIX)...")
+    log("🚀 Starting NFL Webcast scraper (REAL FIX)")
 
     async with async_playwright() as p:
-        event_links = await get_event_links(p)
+        events = await extract_event_pages(p)
 
-        if not event_links:
+        if not events:
             log("❌ No event pages found")
             return
 
         results = []
-
-        for idx, url in enumerate(event_links, 1):
-            log(f"🔎 [{idx}/{len(event_links)}] Capturing: {url}")
+        for url in events:
+            log(f"▶ Capturing stream: {url}")
             m3u8 = await capture_m3u8(p, url)
             if m3u8:
-                title = clean_event_title(
-                    url.split("/")[-2].replace("-", " ")
-                )
+                title = title_from_url(url)
+                log(f"✅ Found m3u8: {m3u8}")
                 results.append((title, m3u8))
-                log(f"✅ Found m3u8")
             else:
                 log("⚠️ No m3u8 found")
 
-        if not results:
-            log("❌ No streams captured")
-            return
+    if not results:
+        log("❌ No streams captured")
+        return
 
-        write_playlists(results)
-        log("🎉 Done")
+    write_playlists(results)
+    log("🎉 Done")
 
 
 if __name__ == "__main__":
