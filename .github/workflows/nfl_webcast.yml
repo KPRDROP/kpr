@@ -2,8 +2,7 @@ name: NFLWebcast Scraper
 
 on:
   schedule:
-    # Every hour
-    - cron: "0 * * * *"
+    - cron: "0 */2 * * *"
   workflow_dispatch:
 
 jobs:
