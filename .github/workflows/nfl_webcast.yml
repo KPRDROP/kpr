@@ -1,10 +1,12 @@
-name: NFL Webcast Scraper
+name: NFLWebcast Scraper
 
 on:
   schedule:
-    # Cada 2 horas
     - cron: "0 */2 * * *"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   scrape:
@@ -14,8 +16,10 @@ jobs:
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: 🐍 Setup Python 3.11
+      - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -23,28 +27,33 @@ jobs:
       - name: 📦 Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install playwright beautifulsoup4 lxml
+          pip install playwright
 
-      - name: 🌐 Install Playwright Browsers (Firefox)
+      - name: 🌐 Install Playwright Firefox
         run: |
-          python -m playwright install firefox
-          python -m playwright install-deps firefox
+          playwright install firefox
+          playwright install-deps firefox
 
-      - name: 🚀 Run NFL Webcast Scraper
+      - name: ▶ Run NFLWebcast scraper
         run: |
           echo "Starting NFL Webcast Scraper..."
           python nfl_webcast.py
 
-      - name: 📤 Commit and Push Updated Playlists
+      - name: 📄 Check playlist files
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          ls -lh NFLWebcast_VLC.m3u8 || true
+          ls -lh NFLWebcast_TiviMate.m3u8 || true
+
+      - name: 📤 Commit & Push playlists
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
 
           git add NFLWebcast_VLC.m3u8 NFLWebcast_TiviMate.m3u8
 
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+            echo "No changes to commit"
           else
-            git commit -m "Update NFL Webcast playlists $(date +'%Y-%m-%d %H:%M:%S')"
+            git commit -m "🔄 Update NFLWebcast playlists"
             git push
           fi
