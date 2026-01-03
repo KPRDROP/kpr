@@ -13,16 +13,16 @@ USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
 )
 
-BASE = "https://mlswebcast.com/"
-OUTPUT_VLC = "MLSWebcast_VLC.m3u8"
-OUTPUT_TIVI = "MLSWebcast_TiviMate.m3u8"
+BASE = "https://nflwebcast.com/"
+OUTPUT_VLC = "NFLWebcast_VLC.m3u8"
+OUTPUT_TIVI = "NFLWebcast_TiviMate.m3u8"
 HEADERS = {
     "referer": BASE,
     "origin": BASE,
     "user-agent": USER_AGENT
 }
 
-VLC_LOGO = "https://i.postimg.cc/nrPfn86k/Football.png"
+VLC_LOGO = "https://i.postimg.cc/5t5PgRdg/1000-F-431743763-in9BVVz-CI36X304St-R89pnxy-UYzj1dwa-1.jpg"
 
 # ---- PATCHED FUNCTION ----
 def clean_event_title(title: str) -> str:
@@ -86,7 +86,7 @@ def find_event_links_from_homepage(html: str, base: str = BASE) -> list:
                 links.append((href, text))
 
     if not links:
-        for m in re.finditer(r'https?://mlswebcast\.com/[-\w/]+', html):
+        for m in re.finditer(r'https?://nflwebcast\.com/[-\w/]+', html):
             href = m.group(0)
             links.append((href, ""))
 
@@ -227,7 +227,7 @@ def write_playlists(entries):
         f.write("#EXTM3U\n")
         for title, url in entries:
             f.write(
-                f'#EXTINF:-1 tvg-id="MLS.Soccer.Dummy.us" '
+                f'#EXTINF:-1 tvg-id="NFL.Dummy.us" '
                 f'tvg-name="MLS" tvg-logo="{VLC_LOGO}" '
                 f'group-title="NFL GAME",{title}\n'
             )
