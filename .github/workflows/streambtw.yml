@@ -44,11 +44,15 @@ jobs:
             libgtk-3-0 \
             ffmpeg
 
+      - name: Install Playwright browsers
+        run: |
+          pip install playwright
+          playwright install chromium
+
       - name: Install Python Requirements
         run: |
-          pip install requests beautifulsoup4 playwright aiohttp
+          pip install requests beautifulsoup4 aiohttp
           pip install async-timeout yarl
-          playwright install chromium
           playwright install-deps chromium
 
       - name: Run StreamBTW Scraper
