@@ -1,59 +1,71 @@
-name: NFLWebcast Scraper
+name: NFL Webcast Scraper
 
 on:
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "0 */2 * * *"   # Every 2 hours
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: 🐍 Setup Python
+      - name: 🐍 Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # ---- System deps (NO libasound2 bug) ----
+      - name: 🧩 Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 \
+            libxss1 \
+            libatk1.0-0 \
+            libatk-bridge2.0-0 \
+            libcups2 \
+            libdrm2 \
+            libgbm1 \
+            libgtk-3-0 \
+            libxkbcommon0 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxrandr2 \
+            libasound2t64
+
+      # ---- Python deps ----
       - name: 📦 Install Python dependencies
         run: |
-          python -m pip install --upgrade pip
+          pip install --upgrade pip
           pip install playwright
 
-      - name: 🌐 Install Playwright Firefox
+      # ---- Playwright Chromium ----
+      - name: 🌐 Install Playwright Chromium
         run: |
-          playwright install firefox
-          playwright install-deps firefox
+          python -m playwright install chromium
 
-      - name: ▶ Run NFLWebcast scraper
+      # ---- Run scraper ----
+      - name: 🚀 Run NFL Webcast Scraper
         run: |
           echo "Starting NFL Webcast Scraper..."
           python nfl_webcast.py
 
-      - name: 📄 Check playlist files
-        run: |
-          ls -lh NFLWebcast_VLC.m3u8 || true
-          ls -lh NFLWebcast_TiviMate.m3u8 || true
-
+      # ---- Auto commit ----
       - name: 📤 Commit & Push playlists
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git add NFLWebcast_VLC.m3u8 NFLWebcast_TiviMate.m3u8
 
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "🔄 Update NFLWebcast playlists"
+            git commit -m "Update NFL Webcast playlists $(date -u +'%Y-%m-%d %H:%M UTC')"
             git push
           fi
