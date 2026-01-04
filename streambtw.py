@@ -94,24 +94,37 @@ async def extract_m3u8_from_event(page, url):
     streams = set()
 
     async def on_request(request):
-        if is_m3u8(request.url):
+        if is_m3u8_url(request.url):
             streams.add(request.url)
 
+    async def on_response(response):
+        try:
+            ct = response.headers.get("content-type", "")
+            if any(x in ct for x in ("json", "javascript", "text", "octet-stream")):
+                text = await response.text()
+                for m3u in extract_m3u8_from_text(text):
+                    streams.add(m3u)
+        except Exception:
+            pass
+
     page.on("request", on_request)
+    page.on("response", on_response)
 
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=45000)
     except Exception:
         page.remove_listener("request", on_request)
+        page.remove_listener("response", on_response)
         return []
 
-    # allow iframe/js bootstrap
-    await page.wait_for_timeout(3000)
+    # allow iframe + JS bootstrap
+    await page.wait_for_timeout(3500)
 
-    # iterate frames + click play
+    # click play everywhere (important for soccer)
     for frame in page.frames:
         try:
             for selector in (
+                "video",
                 "button",
                 ".play",
                 ".vjs-big-play-button",
@@ -119,21 +132,29 @@ async def extract_m3u8_from_event(page, url):
                 "[aria-label='Play']",
                 "div"
             ):
-                buttons = await frame.locator(selector).all()
-                for btn in buttons[:2]:
+                els = await frame.locator(selector).all()
+                for el in els[:3]:
                     try:
-                        await btn.click(force=True, timeout=1500)
-                        await page.wait_for_timeout(4000)
+                        await el.click(force=True, timeout=1500)
+                        await page.wait_for_timeout(2500)
                     except Exception:
                         pass
         except Exception:
             pass
 
     # final capture window
-    await page.wait_for_timeout(6000)
+    await page.wait_for_timeout(7000)
 
     page.remove_listener("request", on_request)
+    page.remove_listener("response", on_response)
+
     return list(streams)
+
+def extract_m3u8_from_text(text: str) -> set[str]:
+    found = set()
+    for m in re.finditer(r'https?://[^\s"\']+\.m3u8[^\s"\']*', text):
+        found.add(m.group(0))
+    return found
 
 # --------------------------------------------------
 # Main
