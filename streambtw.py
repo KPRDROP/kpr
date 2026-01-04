@@ -72,22 +72,25 @@ async def fetch_event_links():
             await browser.close()
             return events
 
-        matches = await page.locator(".schedule .match").all()
-        for m in matches:
+        # --- FIX: iterate over each match div ---
+        match_divs = await page.locator(".schedule .match").all()
+        for div in match_divs:
             try:
-                title_el = await m.locator(".match-title").first
-                a_el = await m.locator("a.watch-btn").first
-                if not title_el or not a_el:
+                title_el = div.locator(".match-title")
+                href_el = div.locator("a.watch-btn")
+                if await title_el.count() == 0 or await href_el.count() == 0:
                     continue
                 title = (await title_el.inner_text()).strip()
-                href = await a_el.get_attribute("href")
+                href = await href_el.get_attribute("href")
                 href = await normalize_href(href)
-                events.append({"title": title, "url": href})
+                if title and href:
+                    events.append({"title": title, "url": href})
             except Exception:
                 continue
+
         await browser.close()
     return events
-
+    
 async def resolve_pnp_to_m3u8(url: str, session: aiohttp.ClientSession) -> str | None:
     """If .pnp link, try to resolve final m3u8"""
     if url.endswith(".m3u8"):
