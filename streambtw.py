@@ -106,66 +106,51 @@ async def resolve_pnp_to_m3u8(url: str, session: aiohttp.ClientSession) -> str |
             return None
     return None
 
-async def extract_stream_from_embed(context, url: str):
-    """Visit embed page, extract m3u8 or .pnp streams"""
+async def extract_m3u8_from_event(page, url):
     streams = set()
-    async with aiohttp.ClientSession(headers={"User-Agent": USER_AGENT}) as session:
+
+    async def on_request(request):
+        req_url = request.url
+        if ".m3u8" in req_url:
+            streams.add(req_url)
+
+    page.on("request", on_request)
+
+    try:
+        await page.goto(url, wait_until="domcontentloaded", timeout=45000)
+    except Exception:
+        return []
+
+    # give JS time to build iframe
+    await page.wait_for_timeout(3000)
+
+    # --- HANDLE IFRAMES ---
+    frames = page.frames
+    for frame in frames:
         try:
-            page = await context.new_page()
-        except Exception:
-            return []
-
-        async def on_response(resp):
-            rurl = resp.url
-            if is_m3u8_url(rurl):
-                streams.add(rurl)
-
-        page.on("response", on_response)
-        try:
-            await page.goto(url, wait_until="domcontentloaded", timeout=TIMEOUT)
-        except Exception:
-            pass
-
-        await asyncio.sleep(1.5)
-
-        # try clicking common play buttons
-        click_selectors = [
-            "#player", "video", ".play-button", ".big-play-button", ".big-play", ".play",
-            ".jw-icon-play", ".vjs-big-play-button", ".plyr__control--play", ".clappr-container"
-        ]
-        for sel in click_selectors:
-            try:
-                el = page.locator(sel)
-                if await el.count() > 0:
+            # try clicking common play buttons
+            for selector in [
+                "button",
+                ".play",
+                ".vjs-big-play-button",
+                "#play",
+                "[aria-label='Play']",
+                "div"
+            ]:
+                btns = await frame.locator(selector).all()
+                for btn in btns[:2]:
                     try:
-                        await el.first.click(timeout=1500)
+                        await btn.click(force=True, timeout=2000)
+                        await page.wait_for_timeout(5000)
                     except Exception:
-                        await page.evaluate("""(s)=>{const e=document.querySelector(s); if(e){ e.click(); } }""", sel)
-                    await asyncio.sleep(0.6)
-            except Exception:
-                continue
-
-        await asyncio.sleep(CLICK_WAIT)
-
-        # try extract from HTML base64
-        html = await page.content()
-        candidates = await extract_encoded_from_html(html)
-        for c in candidates:
-            streams.add(c)
-
-        # resolve any .pnp links
-        final_streams = set()
-        for s in streams:
-            resolved = await resolve_pnp_to_m3u8(s, session)
-            if resolved:
-                final_streams.add(resolved)
-
-        try:
-            await page.close()
+                        pass
         except Exception:
-            pass
+            continue
 
-    return list(final_streams)
+    # final wait for stream
+    await page.wait_for_timeout(6000)
+
+    return list(streams)
 
 async def main():
     events = await fetch_event_links()
@@ -176,25 +161,36 @@ async def main():
 
     all_streams = []
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True, args=["--no-sandbox"])
-        context = await browser.new_context(user_agent=USER_AGENT)
-        for idx, e in enumerate(events, start=1):
-            print(f"🔎 [{idx}/{len(events)}] Checking: {e['title']} -> {e['url']}")
-            try:
-                streams = await extract_stream_from_embed(context, e["url"])
-                if streams:
-                    for s in streams:
-                        all_streams.append((e["title"], s))
-                        print(f"  ✅ Found stream: {s}")
-                else:
-                    print(f"  ⚠️ No streams found for {e['title']}")
-            except Exception as ex:
-                print(f"  ⚠️ Error: {ex}")
-        await browser.close()
+    browser = await p.chromium.launch(
+        headless=True,
+        args=[
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-blink-features=AutomationControlled"
+        ]
+    )
+    context = await browser.new_context(
+        user_agent=USER_AGENT,
+        viewport={"width": 1280, "height": 720}
+    )
+    page = await context.new_page()
 
-    if not all_streams:
-        print("❌ No streams captured.")
-        return
+    for idx, event in enumerate(events, 1):
+        print(f"🔎 [{idx}/{len(events)}] Checking: {event['title']} -> {event['url']}")
+
+        streams = await extract_m3u8_from_event(page, event["url"])
+
+        if streams:
+            for s in streams:
+                print(f"  ✅ STREAM FOUND: {s}")
+                playlist.append({
+                    "title": event["title"],
+                    "url": s
+                })
+        else:
+            print(f"  ⚠️ No streams found for {event['title']}")
+
+    await browser.close()
 
     # ---- WRITE VLC OUTPUT ----
     lines_vlc = ["#EXTM3U"]
