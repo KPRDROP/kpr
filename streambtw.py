@@ -102,7 +102,7 @@ async def extract_m3u8_from_event(page, url):
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=45000)
     except Exception:
-        page.off("request", on_request)
+        page.remove_listener("request", on_request)
         return []
 
     # allow iframe/js bootstrap
@@ -132,9 +132,8 @@ async def extract_m3u8_from_event(page, url):
     # final capture window
     await page.wait_for_timeout(6000)
 
-    page.off("request", on_request)
+    page.remove_listener("request", on_request)
     return list(streams)
-
 
 # --------------------------------------------------
 # Main
