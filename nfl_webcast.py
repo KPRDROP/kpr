@@ -1,14 +1,15 @@
+#!/usr/bin/env python3
 import asyncio
+import json
 import re
 from pathlib import Path
+from urllib.parse import urljoin
+
 from playwright.async_api import async_playwright
 
 EVENT_URLS = [
     "https://nflwebcast.com/pittsburgh-steelers-live-stream-online-free/",
 ]
-
-OUT_VLC = "NFLWebcast_VLC.m3u8"
-OUT_TIVI = "NFLWebcast_TiviMate.m3u8"
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -16,53 +17,62 @@ USER_AGENT = (
     "Chrome/122.0.0.0 Safari/537.36"
 )
 
+HAR_FILE = "nflwebcast.har"
+OUT_VLC = "NFLWebcast_VLC.m3u8"
+OUT_TIVI = "NFLWebcast_TiviMate.m3u8"
 
-async def extract_m3u8(page, url):
-    found = set()
 
-    def on_response(resp):
-        if ".m3u8" in resp.url:
-            found.add(resp.url)
+def extract_from_har(har_path: Path):
+    """Extract m3u8 URLs from HAR"""
+    m3u8s = set()
 
-    page.on("response", on_response)
+    data = json.loads(har_path.read_text(encoding="utf-8"))
+    for entry in data.get("log", {}).get("entries", []):
+        url = entry.get("request", {}).get("url", "")
+        if ".m3u8" in url:
+            m3u8s.add(url)
 
-    print(f"🔍 Visiting event: {url}")
-    await page.goto(url, wait_until="domcontentloaded", timeout=60000)
+    return list(m3u8s)
 
-    # --- CLICK EVERYTHING REASONABLE ---
-    selectors = [
-        "button",
-        "a",
-        "div",
-        "body",
-        "video",
-        "iframe",
-    ]
 
-    for sel in selectors:
-        try:
-            loc = page.locator(sel)
-            if await loc.count() > 0:
-                await loc.first.click(timeout=1500, force=True)
-                await page.wait_for_timeout(1000)
-        except Exception:
-            pass
+async def extract_iframe_sources(page):
+    """Extract iframe provider URLs"""
+    providers = set()
 
-    # --- CHECK IFRAMES ---
     for frame in page.frames:
+        if frame.url and "nflwebcast.com" not in frame.url:
+            providers.add(frame.url)
+
         try:
-            content = await frame.content()
-            for m in re.findall(
-                r"https?://[^\s\"'>]+\.m3u8[^\s\"'>]*", content
-            ):
-                found.add(m)
+            html = await frame.content()
+            for m in re.findall(r'<iframe[^>]+src=["\']([^"\']+)', html):
+                providers.add(urljoin(page.url, m))
         except Exception:
             pass
 
-    # --- FINAL WAIT (player delay) ---
+    return list(providers)
+
+
+async def visit_event(playwright, url):
+    browser = await playwright.chromium.launch(headless=True)
+    context = await browser.new_context(
+        user_agent=USER_AGENT,
+        record_har_path=HAR_FILE,
+        record_har_content="embed",
+    )
+
+    page = await context.new_page()
+    print(f"🔍 Visiting event: {url}")
+
+    await page.goto(url, wait_until="domcontentloaded", timeout=60000)
     await page.wait_for_timeout(15000)
 
-    return list(found)
+    iframe_providers = await extract_iframe_sources(page)
+
+    await context.close()
+    await browser.close()
+
+    return iframe_providers
 
 
 def write_playlists(streams):
@@ -82,35 +92,30 @@ def write_playlists(streams):
 
 
 async def main():
-    print("🚀 Starting NFL Webcast scraper (PLAYER-AWARE FIX)")
+    print("🚀 Starting NFL Webcast scraper (HAR + iframe mode)")
 
-    streams = []
+    all_streams = []
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(user_agent=USER_AGENT)
-        page = await context.new_page()
-
         for url in EVENT_URLS:
-            m3u8s = await extract_m3u8(page, url)
+            providers = await visit_event(p, url)
 
-            if not m3u8s:
-                print(f"⚠️ No m3u8 found: {url}")
-                continue
+            print(f"🔗 iframe providers:")
+            for purl in providers:
+                print(f"  → {purl}")
 
-            title = url.split("/")[-2].replace("-", " ").title()
+            if Path(HAR_FILE).exists():
+                m3u8s = extract_from_har(Path(HAR_FILE))
+                for m in m3u8s:
+                    print(f"✅ HAR stream found: {m}")
+                    title = url.split("/")[-2].replace("-", " ").title()
+                    all_streams.append((title, m))
 
-            for m in m3u8s:
-                streams.append((title, m))
-                print(f"✅ Found stream: {m}")
-
-        await browser.close()
-
-    if not streams:
+    if not all_streams:
         print("❌ No streams captured")
         return
 
-    write_playlists(streams)
+    write_playlists(all_streams)
     print("🎉 Playlists generated")
 
 
