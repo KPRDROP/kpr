@@ -142,19 +142,6 @@ async def main():
     event_links = find_event_links_from_homepage(homepage_html)
     log(f"🔍 Found {len(event_links)} event pages")
 
-        for url in events:
-            m3u8, title = await capture_m3u8(pw, url)
-            if m3u8:
-                log(f"✅ Stream found: {title}")
-                results.append((title, m3u8))
-            else:
-                log("⚠️ Stream not found")
-
-        if results:
-            write_playlists(results)
-        else:
-            log("❌ No streams captured")
-
 
 if __name__ == "__main__":
     asyncio.run(main())
