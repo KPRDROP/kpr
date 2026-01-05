@@ -34,55 +34,41 @@ def clean_title(text):
 # CLOUDflare SAFE HOMEPAGE LOADER
 # --------------------------------------------------
 
-async def load_homepage_and_get_events(pw):
-    browser = await pw.chromium.launch(
+async def load_homepage_with_cf(playwright):
+    browser = await playwright.chromium.launch(
         headless=True,
         args=[
             "--disable-blink-features=AutomationControlled",
             "--no-sandbox",
+            "--disable-dev-shm-usage"
         ],
     )
 
     context = await browser.new_context(
         user_agent=USER_AGENT,
-        viewport={"width": 1280, "height": 800},
+        viewport={"width": 1280, "height": 800}
     )
 
     page = await context.new_page()
 
     log("🌐 Loading NFLWebcast homepage (Cloudflare JS challenge)…")
-    await page.goto(BASE, wait_until="load", timeout=90000)
+    await page.goto(BASE, wait_until="domcontentloaded", timeout=60000)
 
-    # 🔑 WAIT UNTIL CLOUDFLARE SETS CLEARANCE COOKIE
-    for _ in range(60):
+    # --- WAIT FOR CLOUDFLARE ---
+    for i in range(30):
         cookies = await context.cookies()
         if any(c["name"] == "cf_clearance" for c in cookies):
             log("✅ Cloudflare clearance obtained")
-            break
+            await page.reload(wait_until="domcontentloaded")
+            html = await page.content()
+            await browser.close()
+            return html
+
         await asyncio.sleep(1)
-    else:
-        log("❌ Cloudflare clearance NOT obtained")
-        await browser.close()
-        return []
 
-    # 🔁 RELOAD REAL PAGE AFTER CLEARANCE
-    await page.goto(BASE, wait_until="networkidle", timeout=60000)
-
-    # NOW the Watch buttons exist
-    await page.wait_for_selector(
-        'a[href*="live-stream-online-free"]',
-        timeout=30000
-    )
-
-    links = await page.eval_on_selector_all(
-        'a[href*="live-stream-online-free"]',
-        "els => [...new Set(els.map(e => e.href))]"
-    )
-
+    log("❌ Cloudflare clearance NOT obtained")
     await browser.close()
-    log(f"🔍 Found {len(links)} event pages")
-    return links
-
+    return ""
 
 # --------------------------------------------------
 # CAPTURE STREAM
