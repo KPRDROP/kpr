@@ -132,12 +132,15 @@ def write_playlists(entries):
 async def main():
     log("🚀 Starting NFL Webcast scraper (REAL FIX)")
 
-    async with async_playwright() as pw:
-        events = await load_homepage_and_get_events(pw)
+    async with async_playwright() as p:
+        homepage_html = await load_homepage_with_cf(p)
 
-        if not events:
-            log("❌ No event pages found")
-            return
+    if not homepage_html:
+        log("❌ No event pages found")
+        return
+
+    event_links = find_event_links_from_homepage(homepage_html)
+    log(f"🔍 Found {len(event_links)} event pages")
 
         results = []
 
