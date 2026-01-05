@@ -7,7 +7,7 @@ from urllib.parse import quote
 from playwright.async_api import async_playwright
 
 HOMEPAGE = "https://streambtw.com/"
-BASE = "https://streambtw.live"
+BASE = "https://streambtw.com/"
 
 OUTPUT_VLC = "Streambtw_VLC.m3u8"
 OUTPUT_TIVIMATE = "Streambtw_TiviMate.m3u8"
