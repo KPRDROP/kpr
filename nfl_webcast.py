@@ -142,8 +142,6 @@ async def main():
     event_links = find_event_links_from_homepage(homepage_html)
     log(f"🔍 Found {len(event_links)} event pages")
 
-        results = []
-
         for url in events:
             m3u8, title = await capture_m3u8(pw, url)
             if m3u8:
