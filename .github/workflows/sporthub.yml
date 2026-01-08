@@ -1,0 +1,38 @@
+name: SportHub Scraper
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # cada hora
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install playwright requests
+          playwright install chromium
+
+      - name: Run scraper
+        run: |
+          echo "Starting SportHub Scraper..."
+          python sporthub.py
+
+      - name: Commit & Push playlists
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add *.m3u8
+          git commit -m "Update SportHub playlists" || exit 0
+          git push
