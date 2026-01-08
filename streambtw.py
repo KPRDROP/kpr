@@ -4,44 +4,45 @@ import re
 import base64
 from pathlib import Path
 from urllib.parse import quote
+
 from playwright.async_api import async_playwright
 
 HOMEPAGE = "https://streambtw.com/"
-BASE = "https://streambtw.com/"
+BASE = "https://streambtw.com"
 
 OUTPUT_VLC = "Streambtw_VLC.m3u8"
 OUTPUT_TIVIMATE = "Streambtw_TiviMate.m3u8"
 
-TIMEOUT = 60000
-
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/142.0.0.0 Safari/537.36"
+    "Chrome/122.0.0.0 Safari/537.36"
 )
 
-# -------------------------------------------------
+TIMEOUT = 60000
 
+# -------------------------------------------------
+# m3u8 extraction (robust)
+# -------------------------------------------------
 def extract_m3u8(text: str) -> set[str]:
     found = set()
 
-    # direct urls
-    for m in re.findall(r'https?://[^\s"\']+\.m3u8[^\s"\']*', text):
+    for m in re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', text):
         found.add(m)
 
-    # base64 encoded urls
     for b64 in re.findall(r'atob\(["\']([^"\']+)["\']\)', text):
         try:
             decoded = base64.b64decode(b64).decode("utf-8", "ignore")
-            for m in extract_m3u8(decoded):
-                found.add(m)
+            found |= extract_m3u8(decoded)
         except Exception:
             pass
 
     return found
 
-# -------------------------------------------------
 
+# -------------------------------------------------
+# Fetch events (THIS PART WAS ALREADY CORRECT)
+# -------------------------------------------------
 async def fetch_events():
     events = []
 
@@ -51,15 +52,13 @@ async def fetch_events():
         page = await ctx.new_page()
 
         await page.goto(HOMEPAGE, timeout=TIMEOUT)
-        await page.wait_for_timeout(3000)
+        await page.wait_for_timeout(2000)
 
-        for card in await page.locator(".schedule .match").all():
+        for match in await page.locator(".match").all():
             try:
-                title = (await card.locator(".match-title").inner_text()).strip()
-                href = await card.locator("a.watch-btn").get_attribute("href")
-                if href:
-                    if href.startswith("/"):
-                        href = BASE + href
+                title = (await match.locator(".match-title").inner_text()).strip()
+                href = await match.locator("a.watch-btn").get_attribute("href")
+                if title and href:
                     events.append({"title": title, "url": href})
             except Exception:
                 pass
@@ -68,27 +67,34 @@ async def fetch_events():
 
     return events
 
-# -------------------------------------------------
 
-async def extract_streams(page, url: str) -> list[str]:
+# -------------------------------------------------
+# STREAM EXTRACTION (REAL FIX)
+# -------------------------------------------------
+async def extract_streams_from_event(page, url: str) -> list[str]:
     streams = set()
 
-    async def on_response(res):
-        try:
-            if res.request.resource_type in ("xhr", "fetch", "document", "script"):
-                body = await res.text()
-                for s in extract_m3u8(body):
-                    streams.add(s)
-        except Exception:
-            pass
+    async def attach_listener(frame):
+        async def on_response(res):
+            try:
+                if res.request.resource_type in ("xhr", "fetch", "document", "script"):
+                    body = await res.text()
+                    streams.update(extract_m3u8(body))
+            except Exception:
+                pass
 
-    page.on("response", on_response)
+        frame.on("response", on_response)
 
+    # Load event page
     await page.goto(url, timeout=TIMEOUT)
     await page.wait_for_timeout(4000)
 
-    # CLICK ALL SERVER / PLAY BUTTONS
-    for _ in range(3):
+    # Attach listeners to all frames
+    for frame in page.frames:
+        await attach_listener(frame)
+
+    # CLICK PLAY BUTTONS INSIDE IFRAMES
+    for _ in range(4):
         for frame in page.frames:
             try:
                 for sel in (
@@ -96,26 +102,26 @@ async def extract_streams(page, url: str) -> list[str]:
                     ".play",
                     ".jw-icon-play",
                     ".vjs-big-play-button",
-                    "[onclick]",
-                    "div"
+                    "[onclick]"
                 ):
                     for el in await frame.locator(sel).all():
                         try:
-                            await el.click(force=True, timeout=1500)
+                            await el.click(force=True, timeout=1000)
                             await page.wait_for_timeout(2000)
                         except Exception:
                             pass
             except Exception:
                 pass
 
-    # WAIT FOR PLAYER JS TO EXECUTE
-    await page.wait_for_timeout(10000)
+    # WAIT FOR STREAM TO LOAD (IMPORTANT)
+    await page.wait_for_timeout(12000)
 
-    page.remove_listener("response", on_response)
     return list(streams)
 
-# -------------------------------------------------
 
+# -------------------------------------------------
+# MAIN
+# -------------------------------------------------
 async def main():
     events = await fetch_events()
     print(f"📌 Found {len(events)} events")
@@ -132,7 +138,7 @@ async def main():
 
         for i, ev in enumerate(events, 1):
             print(f"🔎 [{i}/{len(events)}] {ev['title']}")
-            streams = await extract_streams(page, ev["url"])
+            streams = await extract_streams_from_event(page, ev["url"])
 
             if streams:
                 for s in streams:
@@ -164,7 +170,6 @@ async def main():
 
     print("✅ Playlists saved")
 
-# -------------------------------------------------
 
 if __name__ == "__main__":
     asyncio.run(main())
