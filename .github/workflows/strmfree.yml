@@ -22,6 +22,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          pip install requests
           pip install httpx beautifulsoup4 lxml playwright
           python -m playwright install chromium
 
