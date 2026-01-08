@@ -7,7 +7,12 @@ from urllib.parse import quote_plus
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 
-from .utils import Cache, Time, get_logger, leagues, network
+try:
+    # When run as a package
+    from .utils import Cache, Time, get_logger, leagues, network
+except ImportError:
+    # When run as a standalone script (GitHub Actions)
+    from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
