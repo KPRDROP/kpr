@@ -29,10 +29,10 @@ jobs:
           pip install --upgrade pip
           pip install requests beautifulsoup4 lxml playwright
 
-      - name: 📦 Install Playwright Browsers (Firefox)
+      - name: 📦 Install Playwright Browsers (Firefox & Chromium)
         run: |
-          python -m playwright install firefox
-          python -m playwright install-deps firefox
+          python -m playwright install firefox chromium
+          python -m playwright install-deps firefox chromium
 
       - name: 🚀 Run Webcast Scraper
         run: |
