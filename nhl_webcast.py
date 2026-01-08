@@ -40,7 +40,7 @@ def log(*args):
 
 def clean_event_title(title: str) -> str:
     if not title:
-        return "NFL Game"
+        return "NHL Game"
     t = title.replace("@", "vs").replace(",", "")
     t = re.sub(r"\s{2,}", " ", t).strip()
     return t
@@ -65,7 +65,7 @@ async def load_homepage_with_cf(playwright):
 
     page = await context.new_page()
 
-    log("🌐 Loading NFLWebcast homepage (Cloudflare JS challenge)…")
+    log("🌐 Loading NHLWebcast homepage (Cloudflare JS challenge)…")
     await page.goto(BASE, wait_until="domcontentloaded", timeout=60000)
 
     # wait for cf_clearance
@@ -100,11 +100,11 @@ def find_event_links_from_homepage(html: str):
         url = urljoin(BASE, href)
         events.append((url, a.text.strip()))
 
-    # fallback: any nflwebcast.com/*-live-stream*
+    # fallback: any https://slapstreams.com//*-live-stream*
     if not events:
         for a in soup.find_all("a", href=True):
             href = a["href"]
-            if "nflwebcast.com" in href and "live-stream" in href:
+            if "slapstreams" in href and "live-stream" in href:
                 events.append((href, a.text.strip()))
 
     # deduplicate
