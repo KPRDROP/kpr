@@ -7,7 +7,7 @@ from urllib.parse import quote
 import requests
 from playwright.async_api import async_playwright
 
-API_EVENTS = "https://api.sporthub.tv/event"
+API_EVENTS = "http://api.sporthub.tv/event"
 BASE = "https://sporthub.tv"
 
 OUTPUT_VLC = "SportHub_VLC.m3u8"
