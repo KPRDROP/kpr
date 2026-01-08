@@ -9,7 +9,7 @@ from urllib.parse import quote
 ssl._create_default_https_context = ssl._create_unverified_context
 
 BASE = "https://pixelsport.tv"
-API_EVENTS = f"{BASE}/backend/liveTV/event.json"
+API_EVENTS = f"{BASE}/backend/liveTV/events.json"
 
 # File outputs
 OUTPUT_FILE_VLC = "Pixelsports_VLC.m3u8"
