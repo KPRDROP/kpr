@@ -8,7 +8,7 @@ from urllib.parse import quote
 # Disable SSL certificate verification globally
 ssl._create_default_https_context = ssl._create_unverified_context
 
-BASE = "https://pixelsport.tv/"
+BASE = "https://pixelsport.tv"
 API_EVENTS = f"{BASE}/backend/liveTV/event.json"
 
 # File outputs
