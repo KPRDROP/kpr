@@ -1,234 +1,186 @@
 #!/usr/bin/env python3
-
 import asyncio
-import httpx
 import re
+import base64
+import warnings
+from pathlib import Path
 from urllib.parse import quote_plus
-from bs4 import BeautifulSoup
+
+import requests
+from urllib3.exceptions import InsecureRequestWarning
 from playwright.async_api import async_playwright
 
-try:
-    # When run as a package
-    from .utils import Cache, Time, get_logger, leagues, network
-except ImportError:
-    # When run as a standalone script (GitHub Actions)
-    from utils import Cache, Time, get_logger, leagues, network
+# ---------------- CONFIG ----------------
 
-log = get_logger(__name__)
+API_EVENTS = "https://api.sporthub.tv/event"
+BASE = "https://sporthub.tv/"
 
-CACHE_FILE = Cache("streamfree.json", exp=19_800)
+OUTPUT_VLC = "SportHub_VLC.m3u8"
+OUTPUT_TIVI = "SportHub_TiviMate.m3u8"
 
-BASE_URL = "https://streamfree.to"
-TAG = "STRMFR"
-
-OUTPUT_VLC = "StreamFree_VLC.m3u8"
-OUTPUT_TIVI = "StreamFree_TiviMate.m3u8"
+TIMEOUT = 60000
 
 USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/142.0.0.0 Safari/537.36"
 )
 
-HEADERS = {
-    "referer": BASE_URL,
-    "origin": BASE_URL,
-    "user-agent": USER_AGENT,
-}
+# ----------------------------------------
 
-urls: dict[str, dict[str, str | float]] = {}
+def log(*a):
+    print(*a, flush=True)
 
+# ----------------------------------------
+# API FETCH (SSL BYPASS)
+# ----------------------------------------
 
-# ----------------------------------------------------------------------
-# PART 1 — API fetch
-# ----------------------------------------------------------------------
+def fetch_events():
+    warnings.simplefilter("ignore", InsecureRequestWarning)
 
-async def refresh_api_cache(client: httpx.AsyncClient, url: str):
-    try:
-        r = await client.get(url, timeout=15)
-        r.raise_for_status()
-    except Exception as e:
-        log.error(f'Failed to fetch "{url}": {e}')
-        return {}
-    return r.json()
+    r = requests.get(
+        API_EVENTS,
+        timeout=20,
+        verify=False,  # 🔥 SSL BYPASS
+        headers={"User-Agent": USER_AGENT}
+    )
+    r.raise_for_status()
+    data = r.json()
 
-
-async def get_events(client: httpx.AsyncClient):
-    api_url = f"{BASE_URL}/streams"
-    api_data = await refresh_api_cache(client, api_url)
-    events = {}
-
-    now = Time.now().timestamp()
-
-    for streams in api_data.get("streams", {}).values():
-        if not streams:
-            continue
-
-        for stream in streams:
-            sport = stream.get("league")
-            name = stream.get("name")
-            stream_key = stream.get("stream_key")
-
-            if not (sport and name and stream_key):
-                continue
-
-            key = f"[{sport}] {name} ({TAG})"
-
-            logo = (
-                stream.get("thumbnail_url")
-                and (BASE_URL + stream["thumbnail_url"])
-            ) or None
-
-            tvg_id, pic = leagues.get_tvg_info(sport, name)
-
-            # Placeholder URL until Playwright confirms real URL
-            proxy_url = network.build_proxy_url(
-                tag=TAG,
-                path=f"{stream_key}720p/index.m3u8",
-                query={"stream_name": name},
-            )
-
-            events[key] = {
-                "url": proxy_url,
-                "logo": logo or pic,
-                "base": BASE_URL,
-                "timestamp": now,
-                "id": tvg_id or "Live.Event.us",
-                "page_url": f"{BASE_URL}/stream/{stream_key}"
-            }
+    events = []
+    for ev in data:
+        title = ev.get("title") or ev.get("name") or "SportHub Event"
+        for s in ev.get("streams", []):
+            embed = s.get("embed")
+            if embed:
+                events.append({
+                    "title": title.strip(),
+                    "url": embed
+                })
 
     return events
 
+# ----------------------------------------
+# M3U8 EXTRACTION
+# ----------------------------------------
 
-# ----------------------------------------------------------------------
-# PART 2 — Extract real .m3u8 from stream page with Playwright
-# ----------------------------------------------------------------------
+def extract_m3u8(text: str) -> set[str]:
+    found = set()
 
-async def extract_m3u8_from_page(playwright, page_url: str):
-    """Open StreamFree player, capture the real m3u8 request."""
-    browser = await playwright.chromium.launch(headless=True, args=["--no-sandbox"])
-    context = await browser.new_context(user_agent=USER_AGENT)
-    page = await context.new_page()
+    for m in re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', text):
+        found.add(m)
 
-    captured = None
+    for b64 in re.findall(r'atob\(["\']([^"\']+)["\']\)', text):
+        try:
+            dec = base64.b64decode(b64).decode("utf-8", "ignore")
+            found |= extract_m3u8(dec)
+        except Exception:
+            pass
 
-    def handler(response):
-        nonlocal captured
-        url = response.url
-        if ".m3u8" in url and "master" in url.lower():
-            if not captured:
-                captured = url
+    return found
 
-    page.on("response", handler)
+# ----------------------------------------
+# PLAYWRIGHT CAPTURE
+# ----------------------------------------
 
+async def capture_stream(page, url: str) -> set[str]:
+    streams = set()
+
+    async def on_response(res):
+        try:
+            if res.request.resource_type in ("xhr", "fetch", "script", "document"):
+                body = await res.text()
+                streams.update(extract_m3u8(body))
+        except Exception:
+            pass
+
+    page.on("response", on_response)
+
+    await page.goto(url, timeout=TIMEOUT)
+    await page.wait_for_timeout(3000)
+
+    # 🔥 Momentum click (ads → player)
     try:
-        await page.goto(page_url, wait_until="domcontentloaded", timeout=20000)
+        pages_before = page.context.pages
+        await page.mouse.click(300, 300)
+        await asyncio.sleep(1)
+
+        for _ in range(10):
+            if len(page.context.pages) > len(pages_before):
+                ad = [p for p in page.context.pages if p not in pages_before][0]
+                await ad.close()
+                break
+            await asyncio.sleep(0.3)
+
+        await asyncio.sleep(1)
+        await page.mouse.click(300, 300)
     except Exception:
         pass
 
-    # Try clicking player elements
-    try:
-        for sel in ["video", ".player", "#player", "body"]:
-            loc = page.locator(sel)
-            if await loc.count() > 0:
-                try:
-                    await loc.first.click(timeout=1000, force=True)
-                except Exception:
-                    pass
-    except Exception:
-        pass
+    await page.wait_for_timeout(10000)
+    page.remove_listener("response", on_response)
 
-    # Wait for m3u8 capture
-    for _ in range(25):
-        if captured:
-            break
-        await asyncio.sleep(0.4)
+    return streams
 
-    # Search manually in page HTML
-    if not captured:
-        html = await page.content()
-        found = re.search(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', html)
-        if found:
-            captured = found.group(0)
+# ----------------------------------------
+# MAIN
+# ----------------------------------------
 
-    await page.close()
-    await context.close()
-    await browser.close()
+async def main():
+    log("🚀 Starting SportHub Scraper (SSL BYPASS)")
 
-    return captured
+    events = fetch_events()
+    log(f"📌 Found {len(events)} events")
 
-
-# ----------------------------------------------------------------------
-# PART 3 — Playlist writers
-# ----------------------------------------------------------------------
-
-def write_playlists(events: dict):
-    # VLC playlist
-    with open(OUTPUT_VLC, "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-        for title, data in events.items():
-            f.write(
-                f'#EXTINF:-1 tvg-id="{data["id"]}" tvg-logo="{data["logo"]}" '
-                f'group-title="StreamFree",{title}\n'
-            )
-            f.write(f"#EXTVLCOPT:http-referrer={HEADERS['referer']}\n")
-            f.write(f"#EXTVLCOPT:http-origin={HEADERS['origin']}\n")
-            f.write(f"#EXTVLCOPT:http-user-agent={USER_AGENT}\n")
-            f.write(f"{data['url']}\n\n")
-
-    # TiviMate playlist
-    ua_enc = quote_plus(USER_AGENT)
-    referer = HEADERS["referer"]
-    origin = HEADERS["origin"]
-
-    with open(OUTPUT_TIVI, "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-        for title, data in events.items():
-            f.write(f"#EXTINF:-1,{title}\n")
-            f.write(
-                f"{data['url']}|referer={referer}|origin={origin}|user-agent={ua_enc}\n"
-            )
-
-    log(f"✔ Playlists written: {OUTPUT_VLC}, {OUTPUT_TIVI}")
-
-
-# ----------------------------------------------------------------------
-# PART 4 — Main scraper logic
-# ----------------------------------------------------------------------
-
-async def scrape(client: httpx.AsyncClient):
-    if cached := CACHE_FILE.load():
-        urls.update(cached)
-        log.info(f"Loaded {len(urls)} event(s) from cache")
+    if not events:
+        log("❌ No events found")
         return
 
-    log.info(f'Scraping "{BASE_URL}" via API')
-    events = await get_events(client)
+    collected = []
 
-    # Extract real m3u8 URLs using Playwright
     async with async_playwright() as p:
-        for title, entry in events.items():
-            page_url = entry["page_url"]
-            log.info(f"🔍 Capturing .m3u8 for: {title}")
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-dev-shm-usage"]
+        )
+        ctx = await browser.new_context(user_agent=USER_AGENT)
+        page = await ctx.new_page()
 
-            real = await extract_m3u8_from_page(p, page_url)
+        for i, ev in enumerate(events, 1):
+            log(f"🔎 [{i}/{len(events)}] {ev['title']}")
+            streams = await capture_stream(page, ev["url"])
 
-            if real:
-                log.info(f"✔ Found m3u8: {real}")
-                entry["url"] = real
+            if streams:
+                for s in streams:
+                    log(f"  ✅ {s}")
+                    collected.append((ev["title"], s))
             else:
-                log.warning(f"⚠ No m3u8 found, using proxy fallback")
+                log("  ⚠️ No streams found")
 
-    urls.update(events)
-    CACHE_FILE.write(urls)
-    write_playlists(urls)
-    log.info(f"✔ Completed with {len(urls)} events")
+        await browser.close()
 
+    if not collected:
+        log("❌ No streams captured")
+        return
 
-# For manual testing
-async def main():
-    async with httpx.AsyncClient(follow_redirects=True) as client:
-        await scrape(client)
+    # VLC
+    vlc = ["#EXTM3U"]
+    for t, u in collected:
+        vlc.append(f"#EXTINF:-1,{t}")
+        vlc.append(u)
+    Path(OUTPUT_VLC).write_text("\n".join(vlc), encoding="utf-8")
 
+    # TiviMate
+    ua = quote_plus(USER_AGENT)
+    tm = ["#EXTM3U"]
+    for t, u in collected:
+        tm.append(f"#EXTINF:-1,{t}")
+        tm.append(f"{u}|referer={BASE}|origin={BASE}|user-agent={ua}")
+    Path(OUTPUT_TIVI).write_text("\n".join(tm), encoding="utf-8")
+
+    log("✅ Playlists generated")
+
+# ----------------------------------------
 
 if __name__ == "__main__":
     asyncio.run(main())
