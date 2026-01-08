@@ -9,7 +9,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 
 # ---------------- CONFIG ----------------
 
-BASE = "https://nflwebcast.com/"
+BASE = "https://slapstreams.com/"
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -17,8 +17,8 @@ USER_AGENT = (
     "Chrome/124.0.0.0 Safari/537.36"
 )
 
-OUTPUT_VLC = "NFLWebcast_VLC.m3u8"
-OUTPUT_TIVI = "NFLWebcast_TiviMate.m3u8"
+OUTPUT_VLC = "NHLWebcast_VLC.m3u8"
+OUTPUT_TIVI = "NHLWebcast_TiviMate.m3u8"
 
 HEADERS = {
     "referer": BASE,
@@ -26,7 +26,7 @@ HEADERS = {
     "user-agent": USER_AGENT,
 }
 
-VLC_LOGO = "https://i.postimg.cc/5t5PgRdg/1000-F-431743763-in9BVVz-CI36X304St-R89pnxy-UYzj1dwa-1.jpg"
+VLC_LOGO = "https://img.freepik.com/premium-vector/ice-hockey-vector-art-silhouette-logo-design-black-white_987423-1395.jpg"
 
 # ----------------------------------------
 
@@ -204,7 +204,7 @@ def write_playlists(entries):
 # ---------- MAIN ----------
 
 async def main():
-    log("🚀 Starting NFL Webcast scraper (FINAL REAL FIX)")
+    log("🚀 Starting NHL Webcast scraper")
 
     async with async_playwright() as p:
         homepage_html = await load_homepage_with_cf(p)
