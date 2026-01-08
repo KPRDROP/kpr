@@ -1,0 +1,57 @@
+name: StreamFree Scraper
+
+on:
+  schedule:
+    - cron: "*/45 * * * *"   # every 45 minutes
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install httpx beautifulsoup4 lxml playwright
+          python -m playwright install chromium
+
+      - name: Run StreamFree scraper
+        run: |
+          echo "🚀 Running StreamFree scraper..."
+          python strmfree.py
+
+      - name: Verify playlist output
+        run: |
+          test -f StreamFree_VLC.m3u8 || (echo "❌ StreamFree_VLC.m3u8 missing" && exit 1)
+          test -f StreamFree_TiviMate.m3u8 || (echo "❌ StreamFree_TiviMate.m3u8 missing" && exit 1)
+
+      - name: Commit & Push
+        env:
+          GIT_AUTHOR_NAME: github-actions
+          GIT_AUTHOR_EMAIL: github-actions@github.com
+          GIT_COMMITTER_NAME: github-actions
+          GIT_COMMITTER_EMAIL: github-actions@github.com
+        run: |
+          git add StreamFree_VLC.m3u8 StreamFree_TiviMate.m3u8
+          if git diff --cached --quiet; then
+            echo "No changes detected."
+            exit 0
+          fi
+
+          git commit -m "🔁 Update StreamFree playlists $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+
+          if ! git push origin main; then
+            echo "⚠️ Push rejected — attempting safe rebase..."
+            git pull --rebase origin main
+            git push origin main || exit 1
+          fi
