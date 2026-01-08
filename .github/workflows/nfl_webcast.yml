@@ -1,71 +1,64 @@
-name: NFL Webcast Scraper
+name: 🏈 NFL Webcast Scraper
 
 on:
   schedule:
-    - cron: "0 */2 * * *"   # Every 2 hours
+    - cron: "0 */2 * * *"
   workflow_dispatch:
+
+concurrency:
+  group: nfl-webcast-playlists
+  cancel-in-progress: true
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
 
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: 🐍 Setup Python 3.11
+      - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      # ---- System deps (NO libasound2 bug) ----
-      - name: 🧩 Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libnss3 \
-            libxss1 \
-            libatk1.0-0 \
-            libatk-bridge2.0-0 \
-            libcups2 \
-            libdrm2 \
-            libgbm1 \
-            libgtk-3-0 \
-            libxkbcommon0 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2 \
-            libasound2t64
-
-      # ---- Python deps ----
-      - name: 📦 Install Python dependencies
+      - name: 🐍 Install Python dependencies
         run: |
           pip install --upgrade pip
-          pip install playwright
+          pip install requests beautifulsoup4 lxml playwright
 
-      # ---- Playwright Chromium ----
-      - name: 🌐 Install Playwright Chromium
+      - name: 📦 Install Playwright Browsers (Firefox & Chromium)
         run: |
-          python -m playwright install chromium
+          python -m playwright install firefox chromium
+          python -m playwright install-deps firefox chromium
 
-      # ---- Run scraper ----
-      - name: 🚀 Run NFL Webcast Scraper
+      - name: 🚀 Run Webcast Scraper
         run: |
-          echo "Starting NFL Webcast Scraper..."
+          echo "🏒 Starting NFL Webcast Scraper..."
           python nfl_webcast.py
 
-      # ---- Auto commit ----
-      - name: 📤 Commit & Push playlists
+      - name: Show outputs
+        run: |
+          echo "----- NFLWebcast_VLC.m3u8 -----"
+          cat NFLWebcast_VLC.m3u8 || true
+          echo "----- NFLWebcast_TiviMate.m3u8 -----"
+          cat NFLWebcast_TiviMate.m3u8 || true
+
+      - name: Commit and Push Updated Playlists (safe)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add NFLWebcast_VLC.m3u8 NFLWebcast_TiviMate.m3u8
+          git add NFLWebcast_VLC.m3u8 NFLWebcast_TiviMate.m3u8 || true
 
           if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Update NFL Webcast playlists $(date -u +'%Y-%m-%d %H:%M UTC')"
-            git push
+            echo "No changes to commit."
+            exit 0
           fi
+
+          git commit -m "Update NFL Webcast playlists [auto]"
+
+          git pull --rebase origin main
+          git push origin main
