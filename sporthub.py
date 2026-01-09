@@ -7,6 +7,8 @@ from urllib.parse import quote
 import requests
 from playwright.async_api import async_playwright
 
+ssl._create_default_https_context = ssl._create_unverified_context
+
 API_EVENTS = "http://api.sporthub.tv/event"
 BASE = "https://sporthub.tv"
 
