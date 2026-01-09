@@ -4,7 +4,7 @@ import re
 import base64
 from pathlib import Path
 from urllib.parse import quote, urljoin
-from playwright.async_api import async_playwright, TimeoutError
+from playwright.async_api import async_playwright, TimeoutError, Error as PlaywrightError
 
 HOMEPAGE = "https://nflwebcast.com"
 BASE = "https://live.nflwebcast.com"
@@ -52,7 +52,6 @@ async def fetch_events():
             wait_until="domcontentloaded"
         )
 
-        # 🔥 IMPORTANT FIX: wait for DOM attachment, not visibility
         await page.wait_for_selector(
             "tr.singele_match_date",
             timeout=15000,
@@ -63,19 +62,10 @@ async def fetch_events():
 
         for row in rows:
             try:
-                title = (
-                    await row.locator("td.teamvs a").inner_text()
-                ).strip()
-
-                href = await row.locator(
-                    "td.lplay_button a"
-                ).get_attribute("href")
-
+                title = (await row.locator("td.teamvs a").inner_text()).strip()
+                href = await row.locator("td.lplay_button a").get_attribute("href")
                 if title and href:
-                    events.append({
-                        "title": title,
-                        "url": href
-                    })
+                    events.append({"title": title, "url": href})
             except Exception:
                 continue
 
@@ -84,8 +74,9 @@ async def fetch_events():
     return events
 
 # -------------------------------------------------
-async def extract_streams(page, context, url: str) -> list[str]:
+async def extract_streams(browser, context, url: str) -> list[str]:
     streams = set()
+    page = await context.new_page()
 
     def on_request_finished(req):
         try:
@@ -97,10 +88,13 @@ async def extract_streams(page, context, url: str) -> list[str]:
     context.on("requestfinished", on_request_finished)
 
     try:
-        await page.goto(url, timeout=TIMEOUT)
+        await page.goto(
+            url,
+            timeout=TIMEOUT,
+            wait_until="domcontentloaded"  # 🔥 critical
+        )
         await page.wait_for_timeout(4000)
 
-        # iframe detection
         iframe = None
         for f in page.frames:
             if f.url and ("hiteasport" in f.url or "stream" in f.url):
@@ -121,11 +115,9 @@ async def extract_streams(page, context, url: str) -> list[str]:
 
         pages_before = context.pages
 
-        # Momentum click
         await page.mouse.click(x, y)
         await asyncio.sleep(1)
 
-        # Close ad tab
         for _ in range(10):
             pages_now = context.pages
             if len(pages_now) > len(pages_before):
@@ -134,15 +126,18 @@ async def extract_streams(page, context, url: str) -> list[str]:
                 break
             await asyncio.sleep(0.3)
 
-        # Second click
         await page.mouse.click(x, y)
-
         await page.wait_for_timeout(15000)
 
-    except TimeoutError:
+    except (TimeoutError, PlaywrightError):
+        # 🔥 Page crash handled safely
         pass
     finally:
         context.remove_listener("requestfinished", on_request_finished)
+        try:
+            await page.close()
+        except Exception:
+            pass
 
     return list(streams)
 
@@ -152,7 +147,7 @@ async def main():
     print(f"📌 Found {len(events)} events")
 
     if not events:
-        print("❌ No events detected (site layout may have changed)")
+        print("❌ No events detected")
         return
 
     collected = []
@@ -167,11 +162,10 @@ async def main():
             ],
         )
         ctx = await browser.new_context(user_agent=USER_AGENT)
-        page = await ctx.new_page()
 
         for i, ev in enumerate(events, 1):
             print(f"🔎 [{i}/{len(events)}] {ev['title']}")
-            streams = await extract_streams(page, ctx, ev["url"])
+            streams = await extract_streams(browser, ctx, ev["url"])
             if streams:
                 for s in streams:
                     print(f"  ✅ STREAM FOUND: {s}")
@@ -185,14 +179,12 @@ async def main():
         print("❌ No streams captured.")
         return
 
-    # VLC
     vlc = ["#EXTM3U"]
     for t, u in collected:
         vlc.append(f"#EXTINF:-1,{t}")
         vlc.append(u)
     Path(OUTPUT_VLC).write_text("\n".join(vlc), encoding="utf-8")
 
-    # TiviMate
     ua = quote(USER_AGENT)
     tm = ["#EXTM3U"]
     for t, u in collected:
