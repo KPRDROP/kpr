@@ -43,33 +43,28 @@ async def fetch_events():
         page = await ctx.new_page()
 
         print("🌐 Loading homepage…")
-        await page.goto(HOMEPAGE, timeout=TIMEOUT, wait_until="networkidle")
+        await page.goto(HOMEPAGE, timeout=TIMEOUT, wait_until="domcontentloaded")
 
-        # Give JS time to render cards
-        await page.wait_for_timeout(3000)
+        # Wait for match table rows
+        await page.wait_for_selector("tr.singele_match_date", timeout=15000)
 
-        # 🔎 Robust selector: any watch link
-        links = await page.locator('a[href*="/watch"]').all()
+        rows = await page.locator("tr.singele_match_date").all()
 
-        for a in links:
+        for row in rows:
             try:
-                href = await a.get_attribute("href")
-                title = (await a.inner_text() or "").strip()
+                # Title text
+                title = (await row.locator("td.teamvs a").inner_text()).strip()
 
-                if not href:
-                    continue
+                # Watch link (this is the stream page)
+                href = await row.locator("td.lplay_button a").get_attribute("href")
 
-                url = urljoin(HOMEPAGE, href)
-
-                if not title:
-                    title = url.split("/")[-1].replace("-", " ").title()
-
-                events.append({
-                    "title": title,
-                    "url": url,
-                })
+                if title and href:
+                    events.append({
+                        "title": title,
+                        "url": href
+                    })
             except Exception:
-                pass
+                continue
 
         await browser.close()
 
