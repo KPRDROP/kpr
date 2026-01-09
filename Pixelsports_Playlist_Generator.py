@@ -36,28 +36,37 @@ async def fetch_events_via_browser():
         )
         page = await context.new_page()
 
-        await page.goto("https://pixelsport.tv", wait_until="domcontentloaded")
-        await page.wait_for_timeout(4000)
+        api_response_text = None
 
-        print("[*] Executing browser fetch() for API…")
+        async def on_response(resp):
+            nonlocal api_response_text
+            url = resp.url
+            if "/backend/liveTV/events" in url and resp.status == 200:
+                try:
+                    txt = await resp.text()
+                    if txt.strip().startswith("{"):
+                        api_response_text = txt
+                except:
+                    pass
 
-        raw = await page.evaluate(
-            """async () => {
-                const r = await fetch("/backend/liveTV/events.json", {
-                    credentials: "include",
-                    headers: { "accept": "application/json" }
-                });
-                return await r.text();
-            }"""
-        )
+        page.on("response", on_response)
+
+        # 🔥 IMPORTANT: let the site trigger the API itself
+        await page.goto("https://pixelsport.tv", wait_until="networkidle")
+        await page.wait_for_timeout(8000)
 
         await browser.close()
 
-    if not raw:
-        print("[!] Empty API response")
+    if not api_response_text:
+        print("[!] API response never captured")
         return {}
 
-    raw = raw.strip()
+    try:
+        return json.loads(api_response_text)
+    except Exception as e:
+        print("[!] JSON parse failed:", e)
+        print(api_response_text[:200])
+        return {}
 
     # 🔥 CRITICAL SAFETY CHECK
     if not raw.startswith("{") and not raw.startswith("["):
