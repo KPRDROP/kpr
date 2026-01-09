@@ -25,8 +25,8 @@ USER_AGENT = (
 )
 
 TIMEOUT = 60000
-
 # -------------------------------------------------
+
 async def fetch_events():
     events = []
 
@@ -45,12 +45,21 @@ async def fetch_events():
             wait_until="domcontentloaded"
         )
 
-        await page.wait_for_timeout(3000)
+        # 🔁 Poll for content (XHR injected)
+        found = False
+        for _ in range(10):
+            rows = await page.locator("tr.singele_match_date").count()
+            links = await page.locator("a[href*='live']").count()
+            if rows > 0 or links > 0:
+                found = True
+                break
+            await page.wait_for_timeout(1000)
 
+        if not found:
+            print("⚠️ No match rows yet, continuing with fallback scan")
+
+        # --- Primary: table rows ---
         rows = await page.locator("tr.singele_match_date").all()
-        if not rows:
-            rows = await page.locator("tr[class*='match']").all()
-
         for row in rows:
             try:
                 title = None
@@ -71,7 +80,28 @@ async def fetch_events():
                         "url": urljoin(HOMEPAGE, href)
                     })
             except Exception:
-                continue
+                pass
+
+        # --- Fallback: scan all live links ---
+        if not events:
+            print("🔁 Using fallback link scan")
+            links = await page.locator("a[href*='live']").all()
+            seen = set()
+            for a in links:
+                try:
+                    href = await a.get_attribute("href")
+                    if not href or href in seen:
+                        continue
+                    seen.add(href)
+
+                    text = (await a.inner_text()).strip()
+                    if "nfl" in href.lower():
+                        events.append({
+                            "title": text or "NFL Game",
+                            "url": urljoin(HOMEPAGE, href)
+                        })
+                except Exception:
+                    pass
 
         await browser.close()
 
@@ -81,27 +111,19 @@ async def fetch_events():
 async def extract_streams(page, context, url: str) -> list[str]:
     streams = set()
 
-    # 🔥 RESPONSE SNIFFER (THIS IS THE KEY)
     def on_response(resp):
         try:
-            rurl = resp.url
-            if ".m3u8" in rurl:
-                streams.add(rurl)
+            if ".m3u8" in resp.url:
+                streams.add(resp.url)
         except Exception:
             pass
 
     page.on("response", on_response)
 
     try:
-        await page.goto(
-            url,
-            timeout=TIMEOUT,
-            wait_until="domcontentloaded"
-        )
-
+        await page.goto(url, timeout=TIMEOUT, wait_until="domcontentloaded")
         await page.wait_for_timeout(4000)
 
-        # --- Try clicking inside iframe/player ---
         clicked = False
         for frame in page.frames:
             if frame.url and any(x in frame.url for x in ("stream", "player", "hiteasport")):
@@ -120,19 +142,16 @@ async def extract_streams(page, context, url: str) -> list[str]:
                 except Exception:
                     pass
 
-        # Fallback click
         if not clicked:
             await page.mouse.click(400, 300)
             await asyncio.sleep(1)
             await page.mouse.click(400, 300)
 
-        # --- WAIT FOR NETWORK ---
         waited = 0.0
         while waited < 12.0 and not streams:
             await asyncio.sleep(0.6)
             waited += 0.6
 
-        # --- HTML / BASE64 FALLBACK ---
         if not streams:
             html = await page.content()
             streams |= extract_m3u8(html)
@@ -187,14 +206,12 @@ async def main():
         print("❌ No streams captured.")
         return
 
-    # VLC
     vlc = ["#EXTM3U"]
     for t, u in collected:
         vlc.append(f"#EXTINF:-1,{t}")
         vlc.append(u)
     Path(OUTPUT_VLC).write_text("\n".join(vlc), encoding="utf-8")
 
-    # TiviMate
     ua = quote(USER_AGENT)
     tm = ["#EXTM3U"]
     for t, u in collected:
