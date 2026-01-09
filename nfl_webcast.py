@@ -4,8 +4,14 @@ import re
 import base64
 from pathlib import Path
 from urllib.parse import quote, urljoin
-from playwright.async_api import async_playwright, TimeoutError, Error as PlaywrightError
 
+from playwright.async_api import (
+    async_playwright,
+    TimeoutError,
+    Error as PlaywrightError,
+)
+
+# -------------------------------------------------
 HOMEPAGE = "https://nflwebcast.com"
 BASE = "https://live.nflwebcast.com"
 
@@ -23,14 +29,17 @@ TIMEOUT = 60000
 # -------------------------------------------------
 def extract_m3u8(text: str) -> set[str]:
     found = set()
+
     for m in re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', text):
         found.add(m)
+
     for b64 in re.findall(r'atob\(["\']([^"\']+)["\']\)', text):
         try:
             decoded = base64.b64decode(b64).decode("utf-8", "ignore")
             found |= extract_m3u8(decoded)
         except Exception:
             pass
+
     return found
 
 # -------------------------------------------------
@@ -52,35 +61,28 @@ async def fetch_events():
             wait_until="domcontentloaded"
         )
 
-        # 🔥 Give JS time to inject table rows
+        # Allow JS to inject rows
         await page.wait_for_timeout(3000)
 
-        # ✅ Primary selector
         rows = await page.locator("tr.singele_match_date").all()
 
-        # 🔁 Fallback selector (site sometimes changes class)
+        # Fallback if class changes
         if not rows:
             rows = await page.locator("tr[class*='match']").all()
 
         for row in rows:
             try:
-                # Title extraction (multiple fallbacks)
                 title = None
-                for sel in [
-                    "td.teamvs a",
-                    "td.teamvs",
-                    "a"
-                ]:
+                for sel in ("td.teamvs a", "td.teamvs", "a"):
                     el = row.locator(sel)
                     if await el.count() > 0:
                         title = (await el.first.inner_text()).strip()
                         break
 
-                # Link extraction
                 href = None
-                link_el = row.locator("a[href*='live']")
-                if await link_el.count() > 0:
-                    href = await link_el.first.get_attribute("href")
+                link = row.locator("a[href*='live']")
+                if await link.count() > 0:
+                    href = await link.first.get_attribute("href")
 
                 if title and href:
                     events.append({
@@ -90,7 +92,7 @@ async def fetch_events():
             except Exception:
                 continue
 
-        # 🧠 FINAL FALLBACK — scan page links
+        # Final fallback: scan links
         if not events:
             links = await page.locator("a[href*='live']").all()
             for a in links:
@@ -110,9 +112,8 @@ async def fetch_events():
     return events
 
 # -------------------------------------------------
-async def extract_streams(browser, context, url: str) -> list[str]:
+async def extract_streams(page, context, url: str) -> list[str]:
     streams = set()
-    page = await context.new_page()
 
     def on_request_finished(req):
         try:
@@ -127,13 +128,13 @@ async def extract_streams(browser, context, url: str) -> list[str]:
         await page.goto(
             url,
             timeout=TIMEOUT,
-            wait_until="domcontentloaded"  # 🔥 critical
+            wait_until="domcontentloaded"
         )
         await page.wait_for_timeout(4000)
 
         iframe = None
         for f in page.frames:
-            if f.url and ("hiteasport" in f.url or "stream" in f.url):
+            if f.url and ("stream" in f.url or "hiteasport" in f.url):
                 iframe = f
                 break
 
@@ -149,31 +150,29 @@ async def extract_streams(browser, context, url: str) -> list[str]:
         x = int(box["x"] + box["width"] / 2) if box else 300
         y = int(box["y"] + box["height"] / 2) if box else 300
 
-        pages_before = context.pages
+        pages_before = list(context.pages)
 
+        # Momentum click
         await page.mouse.click(x, y)
         await asyncio.sleep(1)
 
+        # Close ad tab
         for _ in range(10):
-            pages_now = context.pages
+            pages_now = list(context.pages)
             if len(pages_now) > len(pages_before):
                 ad = [p for p in pages_now if p not in pages_before][0]
                 await ad.close()
                 break
             await asyncio.sleep(0.3)
 
+        # Second click
         await page.mouse.click(x, y)
         await page.wait_for_timeout(15000)
 
     except (TimeoutError, PlaywrightError):
-        # 🔥 Page crash handled safely
         pass
     finally:
         context.remove_listener("requestfinished", on_request_finished)
-        try:
-            await page.close()
-        except Exception:
-            pass
 
     return list(streams)
 
@@ -198,10 +197,12 @@ async def main():
             ],
         )
         ctx = await browser.new_context(user_agent=USER_AGENT)
+        page = await ctx.new_page()
 
         for i, ev in enumerate(events, 1):
             print(f"🔎 [{i}/{len(events)}] {ev['title']}")
-            streams = await extract_streams(browser, ctx, ev["url"])
+            streams = await extract_streams(page, ctx, ev["url"])
+
             if streams:
                 for s in streams:
                     print(f"  ✅ STREAM FOUND: {s}")
@@ -215,12 +216,14 @@ async def main():
         print("❌ No streams captured.")
         return
 
+    # VLC playlist
     vlc = ["#EXTM3U"]
     for t, u in collected:
         vlc.append(f"#EXTINF:-1,{t}")
         vlc.append(u)
     Path(OUTPUT_VLC).write_text("\n".join(vlc), encoding="utf-8")
 
+    # TiviMate playlist
     ua = quote(USER_AGENT)
     tm = ["#EXTM3U"]
     for t, u in collected:
