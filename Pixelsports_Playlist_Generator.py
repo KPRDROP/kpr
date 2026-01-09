@@ -1,6 +1,7 @@
 import json
 import ssl
 import urllib.request
+import http.cookiejar
 from datetime import datetime, timezone, timedelta
 from urllib.parse import quote
 
@@ -12,39 +13,52 @@ ssl._create_default_https_context = ssl._create_unverified_context
 BASE = "https://pixelsport.tv"
 API_EVENTS = f"{BASE}/backend/liveTV/events"
 
-OUTPUT_FILE_VLC = "Pixelsports_VLC.m3u8"
-OUTPUT_FILE_TIVIMATE = "Pixelsports_TiviMate.m3u8"
+OUT_VLC = "Pixelsports_VLC.m3u8"
+OUT_TIVI = "Pixelsports_TiviMate.m3u8"
 
-USER_AGENT = (
+UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/122.0.0.0 Safari/537.36"
 )
 
-REFERER = f"{BASE}/"
-ENC_UA = quote(USER_AGENT, safe="")
+ENC_UA = quote(UA, safe="")
+
+# --------------------------------------------------
+# COOKIE JAR (CRITICAL)
+# --------------------------------------------------
+cj = http.cookiejar.CookieJar()
+opener = urllib.request.build_opener(
+    urllib.request.HTTPCookieProcessor(cj)
+)
+urllib.request.install_opener(opener)
 
 # --------------------------------------------------
 
+def cloudflare_warmup():
+    """Visit homepage once to obtain cf_clearance cookies"""
+    req = urllib.request.Request(
+        BASE,
+        headers={
+            "User-Agent": UA,
+            "Accept": "text/html",
+        },
+    )
+    opener.open(req, timeout=15)
+
 def fetch_events():
     headers = {
-        "User-Agent": USER_AGENT,
+        "User-Agent": UA,
         "Accept": "application/json, text/plain, */*",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Referer": REFERER,
+        "Referer": BASE + "/",
         "Origin": BASE,
-        "X-Requested-With": "XMLHttpRequest",  # 🔑 REQUIRED
-        "Connection": "close",
+        "X-Requested-With": "XMLHttpRequest",
     }
 
     req = urllib.request.Request(API_EVENTS, headers=headers)
 
-    try:
-        with urllib.request.urlopen(req, timeout=15) as r:
-            return json.loads(r.read().decode("utf-8"))
-    except Exception as e:
-        print(f"[!] API fetch failed: {e}")
-        return {}
+    with opener.open(req, timeout=15) as r:
+        return json.loads(r.read().decode("utf-8"))
 
 # --------------------------------------------------
 
@@ -52,66 +66,67 @@ def utc_to_et(utc):
     try:
         dt = datetime.fromisoformat(utc.replace("Z", "+00:00"))
         offset = -4 if 3 <= dt.month <= 11 else -5
-        return (dt + timedelta(hours=offset)).strftime("%I:%M %p ET - %m/%d/%Y")
-    except Exception:
+        return (dt + timedelta(hours=offset)).strftime("%I:%M %p ET %m/%d")
+    except:
         return ""
 
-def game_status(utc):
+def status(utc):
     try:
         dt = datetime.fromisoformat(utc.replace("Z", "+00:00")).astimezone(timezone.utc)
         now = datetime.now(timezone.utc)
         diff = (dt - now).total_seconds()
-        if diff < -10800:
+        if diff < -7200:
             return "Finished"
         if diff < 0:
             return "Live"
-        return f"In {int(diff // 3600)}h {int(diff % 3600 // 60)}m"
-    except Exception:
+        return f"In {int(diff // 3600)}h"
+    except:
         return ""
 
 # --------------------------------------------------
 
-def extract_streams(event):
-    streams = []
+def streams(ev):
+    out = []
     for i in (1, 2, 3):
-        url = event.get(f"server{i}URL")
-        if url and url.startswith("http"):
-            label = "Home" if i == 1 else "Away" if i == 2 else "Alt"
-            streams.append((url, label))
-    return streams
+        u = ev["channel"].get(f"server{i}URL")
+        if u and u.startswith("http"):
+            out.append((u, "Home" if i == 1 else "Away" if i == 2 else "Alt"))
+    return out
 
 # --------------------------------------------------
 
-def build_playlist(events, tivimate=False):
-    out = ["#EXTM3U"]
+def build(events, tivimate=False):
+    lines = ["#EXTM3U"]
 
     for ev in events:
-        title = ev.get("match_name", "Live Event")
-        date = ev.get("date", "")
-        title += f" - {utc_to_et(date)} - {game_status(date)}"
+        title = ev["match_name"]
+        title += f" - {utc_to_et(ev['date'])} - {status(ev['date'])}"
 
         logo = ev.get("competitors1_logo", "")
-        league = ev.get("channel", {}).get("TVCategory", {}).get("name", "SPORTS")
+        league = ev["channel"]["TVCategory"]["name"]
 
-        for url, label in extract_streams(ev):
-            out.append(
+        for url, label in streams(ev):
+            lines.append(
                 f'#EXTINF:-1 tvg-logo="{logo}" group-title="Pixelsports - {league} - {label}",{title}'
             )
 
             if tivimate:
-                out.append(
-                    f"{url}|referer={REFERER}|origin={REFERER}|user-agent={ENC_UA}|icy-metadata=1"
+                lines.append(
+                    f"{url}|referer={BASE}/|origin={BASE}|user-agent={ENC_UA}|icy-metadata=1"
                 )
             else:
-                out.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
-                out.append(f"#EXTVLCOPT:http-referrer={REFERER}")
-                out.append(url)
+                lines.append(f"#EXTVLCOPT:http-user-agent={UA}")
+                lines.append(f"#EXTVLCOPT:http-referrer={BASE}/")
+                lines.append(url)
 
-    return "\n".join(out)
+    return "\n".join(lines)
 
 # --------------------------------------------------
 
 def main():
+    print("[*] Cloudflare warm-up…")
+    cloudflare_warmup()
+
     print("[*] Fetching PixelSport live events…")
     data = fetch_events()
 
@@ -122,11 +137,11 @@ def main():
 
     print(f"[+] {len(events)} events loaded")
 
-    with open(OUTPUT_FILE_VLC, "w", encoding="utf-8") as f:
-        f.write(build_playlist(events, tivimate=False))
+    with open(OUT_VLC, "w", encoding="utf-8") as f:
+        f.write(build(events, False))
 
-    with open(OUTPUT_FILE_TIVIMATE, "w", encoding="utf-8") as f:
-        f.write(build_playlist(events, tivimate=True))
+    with open(OUT_TIVI, "w", encoding="utf-8") as f:
+        f.write(build(events, True))
 
     print("[✔] Playlists generated successfully")
 
