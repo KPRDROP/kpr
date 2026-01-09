@@ -38,25 +38,38 @@ async def fetch_events():
     events = []
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-dev-shm-usage"]
+        )
         ctx = await browser.new_context(user_agent=USER_AGENT)
         page = await ctx.new_page()
 
         print("🌐 Loading homepage…")
-        await page.goto(HOMEPAGE, timeout=TIMEOUT, wait_until="domcontentloaded")
+        await page.goto(
+            HOMEPAGE,
+            timeout=TIMEOUT,
+            wait_until="domcontentloaded"
+        )
 
-        # Wait for match table rows
-        await page.wait_for_selector("tr.singele_match_date", timeout=15000)
+        # 🔥 IMPORTANT FIX: wait for DOM attachment, not visibility
+        await page.wait_for_selector(
+            "tr.singele_match_date",
+            timeout=15000,
+            state="attached"
+        )
 
         rows = await page.locator("tr.singele_match_date").all()
 
         for row in rows:
             try:
-                # Title text
-                title = (await row.locator("td.teamvs a").inner_text()).strip()
+                title = (
+                    await row.locator("td.teamvs a").inner_text()
+                ).strip()
 
-                # Watch link (this is the stream page)
-                href = await row.locator("td.lplay_button a").get_attribute("href")
+                href = await row.locator(
+                    "td.lplay_button a"
+                ).get_attribute("href")
 
                 if title and href:
                     events.append({
