@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import asyncio
 import json
+import ssl
 import re
 from pathlib import Path
 from urllib.parse import quote
