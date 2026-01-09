@@ -27,22 +27,6 @@ USER_AGENT = (
 TIMEOUT = 60000
 
 # -------------------------------------------------
-def extract_m3u8(text: str) -> set[str]:
-    found = set()
-
-    for m in re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', text):
-        found.add(m)
-
-    for b64 in re.findall(r'atob\(["\']([^"\']+)["\']\)', text):
-        try:
-            decoded = base64.b64decode(b64).decode("utf-8", "ignore")
-            found |= extract_m3u8(decoded)
-        except Exception:
-            pass
-
-    return found
-
-# -------------------------------------------------
 async def fetch_events():
     events = []
 
