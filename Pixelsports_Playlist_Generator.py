@@ -27,25 +27,51 @@ def utc_to_et(utc):
 # ---------------- PLAYWRIGHT FETCH ---------------- #
 
 async def fetch_events_via_browser():
+    print("[*] Opening PixelSport homepage (Cloudflare)…")
+
     async with async_playwright() as p:
         browser = await p.firefox.launch(headless=True)
-        ctx = await browser.new_context(user_agent=UA)
-        page = await ctx.new_page()
+        context = await browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"
+        )
+        page = await context.new_page()
 
-        print("[*] Opening PixelSport homepage (Cloudflare)…")
-        await page.goto(BASE, wait_until="networkidle", timeout=60000)
+        await page.goto("https://pixelsport.tv", wait_until="domcontentloaded")
+        await page.wait_for_timeout(4000)
 
         print("[*] Executing browser fetch() for API…")
-        data = await page.evaluate(
-            """async (url) => {
-                const r = await fetch(url, { credentials: "include" });
-                return await r.json();
-            }""",
-            API_EVENTS,
+
+        raw = await page.evaluate(
+            """async () => {
+                const r = await fetch("/backend/liveTV/events.json", {
+                    credentials: "include",
+                    headers: { "accept": "application/json" }
+                });
+                return await r.text();
+            }"""
         )
 
         await browser.close()
-        return data
+
+    if not raw:
+        print("[!] Empty API response")
+        return {}
+
+    raw = raw.strip()
+
+    # 🔥 CRITICAL SAFETY CHECK
+    if not raw.startswith("{") and not raw.startswith("["):
+        print("[!] API did NOT return JSON")
+        print("[!] First 200 chars:")
+        print(raw[:200])
+        return {}
+
+    try:
+        return json.loads(raw)
+    except Exception as e:
+        print("[!] JSON parse failed:", e)
+        print(raw[:200])
+        return {}
 
 # ---------------- PLAYLIST BUILD ---------------- #
 
