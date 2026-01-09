@@ -5,12 +5,12 @@ from datetime import datetime, timezone, timedelta
 from urllib.parse import quote
 
 # --------------------------------------------------
-# SSL BYPASS (API CERT IS OFTEN MISCONFIGURED)
+# SSL BYPASS
 # --------------------------------------------------
 ssl._create_default_https_context = ssl._create_unverified_context
 
 BASE = "https://pixelsport.tv"
-API_EVENTS = f"{BASE}/backend/liveTV/events.json"
+API_EVENTS = f"{BASE}/backend/liveTV/events"
 
 OUTPUT_FILE_VLC = "Pixelsports_VLC.m3u8"
 OUTPUT_FILE_TIVIMATE = "Pixelsports_TiviMate.m3u8"
@@ -30,8 +30,10 @@ def fetch_events():
     headers = {
         "User-Agent": USER_AGENT,
         "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.9",
         "Referer": REFERER,
         "Origin": BASE,
+        "X-Requested-With": "XMLHttpRequest",  # 🔑 REQUIRED
         "Connection": "close",
     }
 
@@ -73,7 +75,7 @@ def extract_streams(event):
     streams = []
     for i in (1, 2, 3):
         url = event.get(f"server{i}URL")
-        if url and url.lower().startswith("http"):
+        if url and url.startswith("http"):
             label = "Home" if i == 1 else "Away" if i == 2 else "Alt"
             streams.append((url, label))
     return streams
