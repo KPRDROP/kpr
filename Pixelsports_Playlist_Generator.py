@@ -36,15 +36,26 @@ urllib.request.install_opener(opener)
 # --------------------------------------------------
 
 def cloudflare_warmup():
-    """Visit homepage once to obtain cf_clearance cookies"""
+    """Trigger Cloudflare and accept 403 as success"""
     req = urllib.request.Request(
         BASE,
         headers={
             "User-Agent": UA,
-            "Accept": "text/html",
+            "Accept": "text/html,application/xhtml+xml",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
         },
     )
-    opener.open(req, timeout=15)
+
+    try:
+        opener.open(req, timeout=15)
+    except urllib.error.HTTPError as e:
+        if e.code == 403:
+            # Cloudflare often responds 403 but still sets cookies
+            print("[!] Cloudflare returned 403 during warm-up (expected)")
+        else:
+            raise
 
 def fetch_events():
     headers = {
@@ -53,12 +64,19 @@ def fetch_events():
         "Referer": BASE + "/",
         "Origin": BASE,
         "X-Requested-With": "XMLHttpRequest",
+        "Sec-Fetch-Site": "same-origin",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Dest": "empty",
     }
 
     req = urllib.request.Request(API_EVENTS, headers=headers)
 
-    with opener.open(req, timeout=15) as r:
-        return json.loads(r.read().decode("utf-8"))
+    try:
+        with opener.open(req, timeout=15) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        print(f"[!] API fetch failed: {e}")
+        return {}
 
 # --------------------------------------------------
 
