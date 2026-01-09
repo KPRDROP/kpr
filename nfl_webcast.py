@@ -3,11 +3,11 @@ import asyncio
 import re
 import base64
 from pathlib import Path
-from urllib.parse import quote
-from playwright.async_api import async_playwright
+from urllib.parse import quote, urljoin
+from playwright.async_api import async_playwright, TimeoutError
 
 HOMEPAGE = "https://nflwebcast.com"
-BASE = "https://live.nflwebcast.com/"
+BASE = "https://live.nflwebcast.com"
 
 OUTPUT_VLC = "NFLWebcast_VLC.m3u8"
 OUTPUT_TIVIMATE = "NFLWebcast_TiviMate.m3u8"
@@ -36,67 +36,84 @@ def extract_m3u8(text: str) -> set[str]:
 # -------------------------------------------------
 async def fetch_events():
     events = []
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         ctx = await browser.new_context(user_agent=USER_AGENT)
         page = await ctx.new_page()
-        await page.goto(HOMEPAGE, timeout=TIMEOUT)
-        await page.wait_for_timeout(2000)
 
-        for match in await page.locator(".match").all():
+        print("🌐 Loading homepage…")
+        await page.goto(HOMEPAGE, timeout=TIMEOUT, wait_until="networkidle")
+
+        # Give JS time to render cards
+        await page.wait_for_timeout(3000)
+
+        # 🔎 Robust selector: any watch link
+        links = await page.locator('a[href*="/watch"]').all()
+
+        for a in links:
             try:
-                title = (await match.locator(".match-title").inner_text()).strip()
-                href = await match.locator("a.watch-btn").get_attribute("href")
-                if title and href:
-                    events.append({"title": title, "url": href})
-            except:
+                href = await a.get_attribute("href")
+                title = (await a.inner_text() or "").strip()
+
+                if not href:
+                    continue
+
+                url = urljoin(HOMEPAGE, href)
+
+                if not title:
+                    title = url.split("/")[-1].replace("-", " ").title()
+
+                events.append({
+                    "title": title,
+                    "url": url,
+                })
+            except Exception:
                 pass
 
         await browser.close()
+
     return events
 
 # -------------------------------------------------
 async def extract_streams(page, context, url: str) -> list[str]:
     streams = set()
 
-    # 🔥 CONTEXT LEVEL NETWORK CAPTURE (ALL FRAMES)
     def on_request_finished(req):
         try:
-            u = req.url
-            if ".m3u8" in u:
-                streams.add(u)
-        except:
+            if ".m3u8" in req.url:
+                streams.add(req.url)
+        except Exception:
             pass
 
     context.on("requestfinished", on_request_finished)
 
-    await page.goto(url, timeout=TIMEOUT)
-    await page.wait_for_timeout(4000)
-
-    # Locate iframe viewport
-    iframe = None
-    for f in page.frames:
-        if f.url and "hiteasport" in f.url:
-            iframe = f
-            break
-
-    box = None
-    if iframe:
-        try:
-            el = await iframe.query_selector("video, iframe, body")
-            if el:
-                box = await el.bounding_box()
-        except:
-            pass
-
-    # fallback click position
-    x = int(box["x"] + box["width"] / 2) if box else 200
-    y = int(box["y"] + box["height"] / 2) if box else 200
-
-    # 👆 MOMENTUM CLICK SEQUENCE
-    pages_before = context.pages
-
     try:
+        await page.goto(url, timeout=TIMEOUT)
+        await page.wait_for_timeout(4000)
+
+        # iframe detection
+        iframe = None
+        for f in page.frames:
+            if f.url and ("hiteasport" in f.url or "stream" in f.url):
+                iframe = f
+                break
+
+        box = None
+        if iframe:
+            try:
+                el = await iframe.query_selector("video, iframe, body")
+                if el:
+                    box = await el.bounding_box()
+            except Exception:
+                pass
+
+        x = int(box["x"] + box["width"] / 2) if box else 300
+        y = int(box["y"] + box["height"] / 2) if box else 300
+
+        pages_before = context.pages
+
+        # Momentum click
         await page.mouse.click(x, y)
         await asyncio.sleep(1)
 
@@ -109,15 +126,16 @@ async def extract_streams(page, context, url: str) -> list[str]:
                 break
             await asyncio.sleep(0.3)
 
-        # Second click starts stream
+        # Second click
         await page.mouse.click(x, y)
-    except:
+
+        await page.wait_for_timeout(15000)
+
+    except TimeoutError:
         pass
+    finally:
+        context.remove_listener("requestfinished", on_request_finished)
 
-    # ⏳ WAIT FOR PLAYER TO LOAD STREAM
-    await page.wait_for_timeout(15000)
-
-    context.remove_listener("requestfinished", on_request_finished)
     return list(streams)
 
 # -------------------------------------------------
@@ -125,17 +143,22 @@ async def main():
     events = await fetch_events()
     print(f"📌 Found {len(events)} events")
 
+    if not events:
+        print("❌ No events detected (site layout may have changed)")
+        return
+
     collected = []
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage", "--autoplay-policy=no-user-gesture-required"]
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--autoplay-policy=no-user-gesture-required",
+            ],
         )
-        ctx = await browser.new_context(
-            user_agent=USER_AGENT,
-            java_script_enabled=True
-        )
+        ctx = await browser.new_context(user_agent=USER_AGENT)
         page = await ctx.new_page()
 
         for i, ev in enumerate(events, 1):
@@ -154,12 +177,14 @@ async def main():
         print("❌ No streams captured.")
         return
 
+    # VLC
     vlc = ["#EXTM3U"]
     for t, u in collected:
         vlc.append(f"#EXTINF:-1,{t}")
         vlc.append(u)
     Path(OUTPUT_VLC).write_text("\n".join(vlc), encoding="utf-8")
 
+    # TiviMate
     ua = quote(USER_AGENT)
     tm = ["#EXTM3U"]
     for t, u in collected:
