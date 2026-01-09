@@ -114,21 +114,15 @@ async def fetch_events():
 # -------------------------------------------------
 async def extract_streams(page, context, url: str) -> list[str]:
     streams = set()
-    captured = None
 
-    # --- RESPONSE SNIFFER (MOST IMPORTANT) ---
-    def on_response(resp):
-        nonlocal captured
+    def on_request_finished(req):
         try:
-            rurl = resp.url
-            if ".m3u8" in rurl:
-                streams.add(rurl)
-                if not captured:
-                    captured = rurl
+            if ".m3u8" in req.url:
+                streams.add(req.url)
         except Exception:
             pass
 
-    page.on("response", on_response)
+    context.on("requestfinished", on_request_finished)
 
     try:
         await page.goto(
@@ -136,64 +130,49 @@ async def extract_streams(page, context, url: str) -> list[str]:
             timeout=TIMEOUT,
             wait_until="domcontentloaded"
         )
+        await page.wait_for_timeout(4000)
 
-        # Let JS + ads initialize
-        await page.wait_for_timeout(5000)
+        iframe = None
+        for f in page.frames:
+            if f.url and ("stream" in f.url or "hiteasport" in f.url):
+                iframe = f
+                break
 
-        # --- CLICK PLAYER (momentum click) ---
-        try:
-            for frame in page.frames:
-                if frame.url and ("stream" in frame.url or "player" in frame.url):
-                    try:
-                        el = await frame.query_selector("video, iframe, body")
-                        if el:
-                            box = await el.bounding_box()
-                            if box:
-                                x = int(box["x"] + box["width"] / 2)
-                                y = int(box["y"] + box["height"] / 2)
-                                await page.mouse.click(x, y)
-                                await asyncio.sleep(1)
-                                await page.mouse.click(x, y)
-                                break
-                    except Exception:
-                        continue
-        except Exception:
-            pass
+        box = None
+        if iframe:
+            try:
+                el = await iframe.query_selector("video, iframe, body")
+                if el:
+                    box = await el.bounding_box()
+            except Exception:
+                pass
 
-        # --- WAIT FOR NETWORK ---
-        total = 0
-        while total < 12 and not streams:
-            await asyncio.sleep(0.6)
-            total += 0.6
+        x = int(box["x"] + box["width"] / 2) if box else 300
+        y = int(box["y"] + box["height"] / 2) if box else 300
 
-        # --- FALLBACK: HTML + BASE64 SCAN ---
-        if not streams:
-            html = await page.content()
+        pages_before = list(context.pages)
 
-            for m in re.findall(
-                r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*',
-                html
-            ):
-                streams.add(m)
+        # Momentum click
+        await page.mouse.click(x, y)
+        await asyncio.sleep(1)
 
-            for b64 in re.findall(r'atob\(["\']([^"\']+)["\']\)', html):
-                try:
-                    decoded = base64.b64decode(b64).decode("utf-8", "ignore")
-                    for m in re.findall(
-                        r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*',
-                        decoded
-                    ):
-                        streams.add(m)
-                except Exception:
-                    pass
+        # Close ad tab
+        for _ in range(10):
+            pages_now = list(context.pages)
+            if len(pages_now) > len(pages_before):
+                ad = [p for p in pages_now if p not in pages_before][0]
+                await ad.close()
+                break
+            await asyncio.sleep(0.3)
+
+        # Second click
+        await page.mouse.click(x, y)
+        await page.wait_for_timeout(15000)
 
     except (TimeoutError, PlaywrightError):
         pass
     finally:
-        try:
-            page.off("response", on_response)
-        except Exception:
-            pass
+        context.remove_listener("requestfinished", on_request_finished)
 
     return list(streams)
 
