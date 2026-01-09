@@ -52,22 +52,58 @@ async def fetch_events():
             wait_until="domcontentloaded"
         )
 
-        await page.wait_for_selector(
-            "tr.singele_match_date",
-            timeout=15000,
-            state="attached"
-        )
+        # 🔥 Give JS time to inject table rows
+        await page.wait_for_timeout(3000)
 
+        # ✅ Primary selector
         rows = await page.locator("tr.singele_match_date").all()
+
+        # 🔁 Fallback selector (site sometimes changes class)
+        if not rows:
+            rows = await page.locator("tr[class*='match']").all()
 
         for row in rows:
             try:
-                title = (await row.locator("td.teamvs a").inner_text()).strip()
-                href = await row.locator("td.lplay_button a").get_attribute("href")
+                # Title extraction (multiple fallbacks)
+                title = None
+                for sel in [
+                    "td.teamvs a",
+                    "td.teamvs",
+                    "a"
+                ]:
+                    el = row.locator(sel)
+                    if await el.count() > 0:
+                        title = (await el.first.inner_text()).strip()
+                        break
+
+                # Link extraction
+                href = None
+                link_el = row.locator("a[href*='live']")
+                if await link_el.count() > 0:
+                    href = await link_el.first.get_attribute("href")
+
                 if title and href:
-                    events.append({"title": title, "url": href})
+                    events.append({
+                        "title": title,
+                        "url": urljoin(HOMEPAGE, href)
+                    })
             except Exception:
                 continue
+
+        # 🧠 FINAL FALLBACK — scan page links
+        if not events:
+            links = await page.locator("a[href*='live']").all()
+            for a in links:
+                try:
+                    href = await a.get_attribute("href")
+                    text = (await a.inner_text()).strip()
+                    if href and "nfl" in href.lower():
+                        events.append({
+                            "title": text or "NFL Game",
+                            "url": urljoin(HOMEPAGE, href)
+                        })
+                except Exception:
+                    pass
 
         await browser.close()
 
