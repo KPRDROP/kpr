@@ -6,7 +6,7 @@ from urllib.parse import quote
 from playwright.async_api import async_playwright
 
 BASE = "https://pixelsport.tv"
-API_EVENTS = "https://pixelsport.tv/backend/liveTV/events"
+API_EVENTS = "http://204.12.231.10/service/scripts/pixelsports/events.json"
 
 OUT_VLC = "Pixelsports_VLC.m3u8"
 OUT_TIVI = "Pixelsports_TiviMate.m3u8"
