@@ -23,14 +23,17 @@ TIMEOUT = 60000
 # -------------------------------------------------
 def extract_m3u8(text: str) -> set[str]:
     found = set()
+
     for m in re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', text):
         found.add(m)
+
     for b64 in re.findall(r'atob\(["\']([^"\']+)["\']\)', text):
         try:
             decoded = base64.b64decode(b64).decode("utf-8", "ignore")
             found |= extract_m3u8(decoded)
         except Exception:
             pass
+
     return found
 
 # -------------------------------------------------
@@ -68,27 +71,27 @@ async def fetch_events():
 async def extract_streams(page, context, url: str) -> list[str]:
     streams = set()
 
-    # 🔥 CONTEXT LEVEL NETWORK CAPTURE (ALL FRAMES)
+    # 🔒 Safety guard (never allow relative navigation)
+    if not url.startswith("http"):
+        url = urljoin(BASE, url)
+
+    # 🔥 CONTEXT-LEVEL NETWORK CAPTURE
     def on_request_finished(req):
         try:
-            u = req.url
-            if ".m3u8" in u:
-                streams.add(u)
-        except:
+            if ".m3u8" in req.url:
+                streams.add(req.url)
+        except Exception:
             pass
 
     context.on("requestfinished", on_request_finished)
 
-  if not url.startswith("http"):
-    url = urljoin(BASE, url)
-
     await page.goto(url, timeout=TIMEOUT)
     await page.wait_for_timeout(4000)
 
-    # Locate iframe viewport
+    # Locate iframe provider
     iframe = None
     for f in page.frames:
-        if f.url and "hiteasport" in f.url:
+        if f.url and ("hiteasport" in f.url or "embed" in f.url):
             iframe = f
             break
 
@@ -98,21 +101,21 @@ async def extract_streams(page, context, url: str) -> list[str]:
             el = await iframe.query_selector("video, iframe, body")
             if el:
                 box = await el.bounding_box()
-        except:
+        except Exception:
             pass
 
-    # fallback click position
+    # fallback click coords
     x = int(box["x"] + box["width"] / 2) if box else 200
     y = int(box["y"] + box["height"] / 2) if box else 200
 
     # 👆 MOMENTUM CLICK SEQUENCE
-    pages_before = context.pages
+    pages_before = context.pages.copy()
 
     try:
         await page.mouse.click(x, y)
         await asyncio.sleep(1)
 
-        # Close ad tab
+        # Close ad popup
         for _ in range(10):
             pages_now = context.pages
             if len(pages_now) > len(pages_before):
@@ -123,10 +126,10 @@ async def extract_streams(page, context, url: str) -> list[str]:
 
         # Second click starts stream
         await page.mouse.click(x, y)
-    except:
+    except Exception:
         pass
 
-    # ⏳ WAIT FOR PLAYER TO LOAD STREAM
+    # ⏳ Wait for stream requests
     await page.wait_for_timeout(15000)
 
     context.remove_listener("requestfinished", on_request_finished)
@@ -137,12 +140,20 @@ async def main():
     events = await fetch_events()
     print(f"📌 Found {len(events)} events")
 
+    if not events:
+        print("❌ No events found.")
+        return
+
     collected = []
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage", "--autoplay-policy=no-user-gesture-required"]
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--autoplay-policy=no-user-gesture-required"
+            ]
         )
         ctx = await browser.new_context(
             user_agent=USER_AGENT,
@@ -153,6 +164,7 @@ async def main():
         for i, ev in enumerate(events, 1):
             print(f"🔎 [{i}/{len(events)}] {ev['title']}")
             streams = await extract_streams(page, ctx, ev["url"])
+
             if streams:
                 for s in streams:
                     print(f"  ✅ STREAM FOUND: {s}")
@@ -166,6 +178,7 @@ async def main():
         print("❌ No streams captured.")
         return
 
+    # ---------------- PLAYLISTS ----------------
     vlc = ["#EXTM3U"]
     for t, u in collected:
         vlc.append(f"#EXTINF:-1,{t}")
