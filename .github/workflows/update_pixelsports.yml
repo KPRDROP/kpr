@@ -41,6 +41,8 @@ jobs:
           playwright install firefox
 
       - name: Run PixelSport scraper
+        env:
+          PIXELSPORTS_API_URL: ${{ secrets.PIXELSPORTS_API_URL }}
         run: |
           echo "🚀 Running PixelSport scraper..."
           python Pixelsports_Playlist_Generator.py
