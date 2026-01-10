@@ -3,7 +3,7 @@ import asyncio
 import re
 import base64
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urljoin
 from playwright.async_api import async_playwright
 
 HOMEPAGE = "https://streambtw.com/"
@@ -47,8 +47,15 @@ async def fetch_events():
             try:
                 title = (await match.locator(".match-title").inner_text()).strip()
                 href = await match.locator("a.watch-btn").get_attribute("href")
-                if title and href:
-                    events.append({"title": title, "url": href})
+
+if title and href:
+    # 🔧 FIX: normalize relative URLs
+    full_url = urljoin(BASE, href)
+    events.append({
+        "title": title,
+        "url": full_url
+    })
+
             except:
                 pass
 
@@ -69,6 +76,9 @@ async def extract_streams(page, context, url: str) -> list[str]:
             pass
 
     context.on("requestfinished", on_request_finished)
+
+  if not url.startswith("http"):
+    url = urljoin(BASE, url)
 
     await page.goto(url, timeout=TIMEOUT)
     await page.wait_for_timeout(4000)
