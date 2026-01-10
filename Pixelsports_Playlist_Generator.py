@@ -7,6 +7,7 @@ import sys
 import urllib.request
 from datetime import datetime, timedelta
 from urllib.parse import quote
+from urllib.error import URLError, HTTPError
 import requests
 
 # ---------------- CONFIG ---------------- #
