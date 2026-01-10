@@ -36,10 +36,12 @@ def extract_m3u8(text: str) -> set[str]:
 # -------------------------------------------------
 async def fetch_events():
     events = []
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         ctx = await browser.new_context(user_agent=USER_AGENT)
         page = await ctx.new_page()
+
         await page.goto(HOMEPAGE, timeout=TIMEOUT)
         await page.wait_for_timeout(2000)
 
@@ -48,18 +50,18 @@ async def fetch_events():
                 title = (await match.locator(".match-title").inner_text()).strip()
                 href = await match.locator("a.watch-btn").get_attribute("href")
 
-if title and href:
-    # 🔧 FIX: normalize relative URLs
-    full_url = urljoin(BASE, href)
-    events.append({
-        "title": title,
-        "url": full_url
-    })
-
-            except:
+                if title and href:
+                    # 🔥 CRITICAL FIX: normalize relative URLs
+                    full_url = urljoin(BASE, href)
+                    events.append({
+                        "title": title,
+                        "url": full_url
+                    })
+            except Exception:
                 pass
 
         await browser.close()
+
     return events
 
 # -------------------------------------------------
