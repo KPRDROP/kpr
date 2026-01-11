@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 import asyncio
-import json
 import re
+import json
+import base64
 from pathlib import Path
 from urllib.parse import quote
 from playwright.async_api import async_playwright
 
 BASE = "https://streamfree.to"
-STREAMS_URL = f"{BASE}/streams"
+STREAMS_PAGE = f"{BASE}/streams"
 
 OUTPUT_VLC = "Strmfree_VLC.m3u8"
 OUTPUT_TIVIMATE = "Strmfree_TiviMate.m3u8"
@@ -21,11 +22,24 @@ USER_AGENT = (
 )
 
 # ---------------------------------------------------------
-def log(*a):
-    print(*a, flush=True)
+def extract_m3u8(text: str) -> set[str]:
+    found = set()
+
+    for m in re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', text):
+        found.add(m)
+
+    for b64 in re.findall(r'atob\(["\']([^"\']+)["\']\)', text):
+        try:
+            decoded = base64.b64decode(b64).decode("utf-8", "ignore")
+            found |= extract_m3u8(decoded)
+        except:
+            pass
+
+    return found
 
 # ---------------------------------------------------------
 async def fetch_events():
+    print("🌐 Loading streams page…")
     events = []
 
     async with async_playwright() as p:
@@ -33,16 +47,13 @@ async def fetch_events():
         ctx = await browser.new_context(user_agent=USER_AGENT)
         page = await ctx.new_page()
 
-        print("🌐 Loading streams page…")
-        await page.goto(STREAMS_URL, wait_until="domcontentloaded", timeout=TIMEOUT)
+        await page.goto(STREAMS_PAGE, wait_until="domcontentloaded", timeout=TIMEOUT)
         await page.wait_for_timeout(4000)
 
         html = await page.content()
         await browser.close()
 
-    # -------------------------------------------------
     # 🔥 Extract Nuxt embedded JSON (robust)
-    # -------------------------------------------------
     nuxt_match = re.search(
         r'(?:window\.)?__NUXT__\s*=\s*({.*?})\s*;',
         html,
@@ -50,42 +61,36 @@ async def fetch_events():
     )
 
     if not nuxt_match:
-        print("❌ __NUXT__ state not found in page")
+        print("❌ __NUXT__ state not found")
         return []
 
     try:
         nuxt = json.loads(nuxt_match.group(1))
     except Exception as e:
-        print("❌ Failed to parse Nuxt JSON:", e)
+        print("❌ Failed parsing Nuxt JSON:", e)
         return []
 
-    # -------------------------------------------------
-    # 🔍 Locate streams inside Nuxt state
-    # -------------------------------------------------
     state = nuxt.get("state", {})
     streams = None
 
-    # try all known layouts (StreamFree changes often)
-    for path in (
+    # StreamFree moves this often — try all known paths
+    for getter in (
         lambda s: s.get("streams"),
         lambda s: s.get("events"),
         lambda s: s.get("data", {}).get("streams"),
         lambda s: s.get("streamfree", {}).get("streams"),
     ):
         try:
-            streams = path(state)
+            streams = getter(state)
             if streams:
                 break
         except:
             pass
 
     if not streams:
-        print("❌ Streams array not found in Nuxt state")
+        print("❌ Streams not found in Nuxt state")
         return []
 
-    # -------------------------------------------------
-    # ✅ Build events
-    # -------------------------------------------------
     for ev in streams:
         try:
             name = ev.get("name")
@@ -97,69 +102,78 @@ async def fetch_events():
 
             events.append({
                 "title": name.replace("-", " ").title(),
-                "category": category,
-                "logo": logo,
-                "url": f"{BASE}/player/{category}/{name}"
+                "url": f"{BASE}/player/{category}/{name}",
+                "logo": logo
             })
         except:
             pass
 
-    # dedupe
     uniq = {e["url"]: e for e in events}
     return list(uniq.values())
 
 # ---------------------------------------------------------
-async def extract_m3u8(page, context, url):
+async def extract_streams(page, context, url: str) -> list[str]:
     streams = set()
+
+    async def on_response(res):
+        try:
+            if res.request.resource_type in ("xhr", "fetch", "script", "document"):
+                body = await res.text()
+                streams |= extract_m3u8(body)
+        except:
+            pass
 
     def on_request_finished(req):
         try:
             if ".m3u8" in req.url:
                 streams.add(req.url)
-        except Exception:
+        except:
             pass
 
+    page.on("response", on_response)
     context.on("requestfinished", on_request_finished)
 
-    await page.goto(url, timeout=TIMEOUT)
+    await page.goto(url, wait_until="domcontentloaded", timeout=TIMEOUT)
     await page.wait_for_timeout(3000)
 
-    # Click play buttons aggressively
+    # 👆 Click play buttons in all frames
     for _ in range(3):
         for frame in page.frames:
-            try:
-                for sel in (
-                    "button",
-                    ".play",
-                    ".jw-icon-play",
-                    ".vjs-big-play-button",
-                    "[onclick]",
-                    "video",
-                    "div"
-                ):
+            for sel in (
+                "button",
+                ".play",
+                ".jw-icon-play",
+                ".vjs-big-play-button",
+                "[onclick]",
+                "video",
+                "div"
+            ):
+                try:
                     for el in await frame.locator(sel).all():
                         try:
                             await el.click(force=True, timeout=1200)
-                            await page.wait_for_timeout(1500)
-                        except Exception:
+                            await page.wait_for_timeout(2000)
+                        except:
                             pass
-            except Exception:
-                pass
+                except:
+                    pass
 
     await page.wait_for_timeout(12000)
 
+    page.remove_listener("response", on_response)
     context.remove_listener("requestfinished", on_request_finished)
+
     return list(streams)
 
 # ---------------------------------------------------------
 async def main():
-    log("🚀 Starting StreamFree scraper (API → Player → m3u8)")
+    print("🚀 Starting StreamFree scraper (API → Player → m3u8)")
 
     events = await fetch_events()
-    log(f"📌 Found {len(events)} events")
+    print(f"📌 Found {len(events)} events")
 
     if not events:
-        log("❌ No events found")
+        print("❌ No events found")
         return
 
     collected = []
@@ -171,50 +185,43 @@ async def main():
         )
         ctx = await browser.new_context(
             user_agent=USER_AGENT,
-            java_script_enabled=True,
-            referer=BASE + "/"
+            java_script_enabled=True
         )
         page = await ctx.new_page()
 
         for i, ev in enumerate(events, 1):
-            log(f"🔎 [{i}/{len(events)}] {ev['title']} ({ev['category']})")
-            streams = await extract_m3u8(page, ctx, ev["url"])
+            print(f"🔎 [{i}/{len(events)}] {ev['title']}")
+            streams = await extract_streams(page, ctx, ev["url"])
 
-            for s in streams:
-                if s.endswith(".m3u8"):
-                    log(f"  ✅ STREAM FOUND: {s}")
-                    collected.append((ev, s))
+            if streams:
+                for s in streams:
+                    print(f"  ✅ STREAM FOUND: {s}")
+                    collected.append((ev["title"], s))
+            else:
+                print("  ⚠️ No streams found")
 
         await browser.close()
 
     if not collected:
-        log("❌ No streams captured")
+        print("❌ No streams captured")
         return
 
-    # VLC playlist
+    # VLC
     vlc = ["#EXTM3U"]
-    for ev, u in collected:
-        vlc.append(
-            f'#EXTINF:-1 group-title="{ev["category"].upper()}",{ev["title"]}'
-        )
-        vlc.append(f"#EXTVLCOPT:http-referrer={BASE}/")
-        vlc.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
+    for t, u in collected:
+        vlc.append(f"#EXTINF:-1,{t}")
         vlc.append(u)
-
     Path(OUTPUT_VLC).write_text("\n".join(vlc), encoding="utf-8")
 
-    # TiviMate playlist
+    # TiviMate
     ua = quote(USER_AGENT)
     tm = ["#EXTM3U"]
-    for ev, u in collected:
-        tm.append(
-            f'#EXTINF:-1 group-title="{ev["category"].upper()}",{ev["title"]}'
-        )
+    for t, u in collected:
+        tm.append(f"#EXTINF:-1,{t}")
         tm.append(f"{u}|referer={BASE}/|origin={BASE}|user-agent={ua}")
-
     Path(OUTPUT_TIVIMATE).write_text("\n".join(tm), encoding="utf-8")
 
-    log("✅ Playlists saved")
+    print("✅ Playlists saved")
 
 # ---------------------------------------------------------
 if __name__ == "__main__":
