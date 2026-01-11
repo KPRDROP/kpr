@@ -10,14 +10,6 @@ BASE = "https://streamfree.to"
 STREAMS_PAGE = f"{BASE}/streams"
 
 FIXTURES = [
-    "/fixtures/soccer",
-    "/fixtures/basketball",
-    "/fixtures/football",
-    "/fixtures/hockey",
-    "/fixtures/baseball",
-    "/fixtures/combat",
-    "/fixtures/racing",
-    "/fixtures/tennis",
 ]
 
 OUTPUT_VLC = "Strmfree_VLC.m3u8"
