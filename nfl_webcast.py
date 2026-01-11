@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
 import asyncio
-import json
 import re
+import base64
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import quote, urljoin
 
-from playwright.async_api import async_playwright
+from playwright.async_api import (
+    async_playwright,
+    TimeoutError,
+    Error as PlaywrightError,
+)
 
-EVENT_URLS = [
-    "https://nflwebcast.com/pittsburgh-steelers-live-stream-online-free/",
-]
+# -------------------------------------------------
+HOMEPAGE = "https://nflwebcast.com"
+BASE = "https://live.nflwebcast.com"
+
+OUTPUT_VLC = "NFLWebcast_VLC.m3u8"
+OUTPUT_TIVIMATE = "NFLWebcast_TiviMate.m3u8"
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -17,107 +24,216 @@ USER_AGENT = (
     "Chrome/122.0.0.0 Safari/537.36"
 )
 
-HAR_FILE = "nflwebcast.har"
-OUT_VLC = "NFLWebcast_VLC.m3u8"
-OUT_TIVI = "NFLWebcast_TiviMate.m3u8"
+TIMEOUT = 60000
 
-
-def extract_from_har(har_path: Path):
-    """Extract m3u8 URLs from HAR"""
-    m3u8s = set()
-
-    data = json.loads(har_path.read_text(encoding="utf-8"))
-    for entry in data.get("log", {}).get("entries", []):
-        url = entry.get("request", {}).get("url", "")
-        if ".m3u8" in url:
-            m3u8s.add(url)
-
-    return list(m3u8s)
-
-
-async def extract_iframe_sources(page):
-    """Extract iframe provider URLs"""
-    providers = set()
-
-    for frame in page.frames:
-        if frame.url and "nflwebcast.com" not in frame.url:
-            providers.add(frame.url)
-
+# -------------------------------------------------
+def extract_m3u8(text: str) -> set[str]:
+    found = set()
+    for m in re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', text):
+        found.add(m)
+    for b64 in re.findall(r'atob\(["\']([^"\']+)["\']\)', text):
         try:
-            html = await frame.content()
-            for m in re.findall(r'<iframe[^>]+src=["\']([^"\']+)', html):
-                providers.add(urljoin(page.url, m))
+            decoded = base64.b64decode(b64).decode("utf-8", "ignore")
+            found |= extract_m3u8(decoded)
+        except Exception:
+            pass
+    return found
+
+# -------------------------------------------------
+async def fetch_events():
+    events = []
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-dev-shm-usage"]
+        )
+        ctx = await browser.new_context(user_agent=USER_AGENT)
+        page = await ctx.new_page()
+
+        print("🌐 Loading homepage…")
+        await page.goto(
+            HOMEPAGE,
+            timeout=TIMEOUT,
+            wait_until="domcontentloaded"
+        )
+
+        # 🔁 Poll for content (XHR injected)
+        found = False
+        for _ in range(10):
+            rows = await page.locator("tr.singele_match_date").count()
+            links = await page.locator("a[href*='live']").count()
+            if rows > 0 or links > 0:
+                found = True
+                break
+            await page.wait_for_timeout(1000)
+
+        if not found:
+            print("⚠️ No match rows yet, continuing with fallback scan")
+
+        # --- Primary: table rows ---
+        rows = await page.locator("tr.singele_match_date").all()
+        for row in rows:
+            try:
+                title = None
+                for sel in ("td.teamvs a", "td.teamvs", "a"):
+                    el = row.locator(sel)
+                    if await el.count() > 0:
+                        title = (await el.first.inner_text()).strip()
+                        break
+
+                href = None
+                link = row.locator("a[href*='live']")
+                if await link.count() > 0:
+                    href = await link.first.get_attribute("href")
+
+                if title and href:
+                    events.append({
+                        "title": title,
+                        "url": urljoin(HOMEPAGE, href)
+                    })
+            except Exception:
+                pass
+
+        # --- Fallback: scan all live links ---
+        if not events:
+            print("🔁 Using fallback link scan")
+            links = await page.locator("a[href*='live']").all()
+            seen = set()
+            for a in links:
+                try:
+                    href = await a.get_attribute("href")
+                    if not href or href in seen:
+                        continue
+                    seen.add(href)
+
+                    text = (await a.inner_text()).strip()
+                    if "nfl" in href.lower():
+                        events.append({
+                            "title": text or "NFL Game",
+                            "url": urljoin(HOMEPAGE, href)
+                        })
+                except Exception:
+                    pass
+
+        await browser.close()
+
+    return events
+
+# -------------------------------------------------
+async def extract_streams(page, context, url: str) -> list[str]:
+    streams = set()
+
+    def on_response(resp):
+        try:
+            if ".m3u8" in resp.url:
+                streams.add(resp.url)
         except Exception:
             pass
 
-    return list(providers)
+    page.on("response", on_response)
 
+    try:
+        await page.goto(url, timeout=TIMEOUT, wait_until="domcontentloaded")
+        await page.wait_for_timeout(4000)
 
-async def visit_event(playwright, url):
-    browser = await playwright.chromium.launch(headless=True)
-    context = await browser.new_context(
-        user_agent=USER_AGENT,
-        record_har_path=HAR_FILE,
-        record_har_content="embed",
-    )
+        clicked = False
+        for frame in page.frames:
+            if frame.url and any(x in frame.url for x in ("stream", "player", "hiteasport")):
+                try:
+                    el = await frame.query_selector("video, iframe, body")
+                    if el:
+                        box = await el.bounding_box()
+                        if box:
+                            x = int(box["x"] + box["width"] / 2)
+                            y = int(box["y"] + box["height"] / 2)
+                            await page.mouse.click(x, y)
+                            await asyncio.sleep(1)
+                            await page.mouse.click(x, y)
+                            clicked = True
+                            break
+                except Exception:
+                    pass
 
-    page = await context.new_page()
-    print(f"🔍 Visiting event: {url}")
+        if not clicked:
+            await page.mouse.click(400, 300)
+            await asyncio.sleep(1)
+            await page.mouse.click(400, 300)
 
-    await page.goto(url, wait_until="domcontentloaded", timeout=60000)
-    await page.wait_for_timeout(15000)
+        waited = 0.0
+        while waited < 12.0 and not streams:
+            await asyncio.sleep(0.6)
+            waited += 0.6
 
-    iframe_providers = await extract_iframe_sources(page)
+        if not streams:
+            html = await page.content()
+            streams |= extract_m3u8(html)
 
-    await context.close()
-    await browser.close()
+    except (TimeoutError, PlaywrightError):
+        pass
+    finally:
+        try:
+            page.off("response", on_response)
+        except Exception:
+            pass
 
-    return iframe_providers
+    return list(streams)
 
-
-def write_playlists(streams):
-    vlc = ["#EXTM3U"]
-    tivi = ["#EXTM3U"]
-
-    for title, url in streams:
-        vlc.append(f"#EXTINF:-1,{title}")
-        vlc.append(url)
-
-        ua = USER_AGENT.replace(" ", "%20")
-        tivi.append(f"#EXTINF:-1,{title}")
-        tivi.append(f"{url}|user-agent={ua}")
-
-    Path(OUT_VLC).write_text("\n".join(vlc), encoding="utf-8")
-    Path(OUT_TIVI).write_text("\n".join(tivi), encoding="utf-8")
-
-
+# -------------------------------------------------
 async def main():
-    print("🚀 Starting NFL Webcast scraper (HAR + iframe mode)")
+    events = await fetch_events()
+    print(f"📌 Found {len(events)} events")
 
-    all_streams = []
-
-    async with async_playwright() as p:
-        for url in EVENT_URLS:
-            providers = await visit_event(p, url)
-
-            print(f"🔗 iframe providers:")
-            for purl in providers:
-                print(f"  → {purl}")
-
-            if Path(HAR_FILE).exists():
-                m3u8s = extract_from_har(Path(HAR_FILE))
-                for m in m3u8s:
-                    print(f"✅ HAR stream found: {m}")
-                    title = url.split("/")[-2].replace("-", " ").title()
-                    all_streams.append((title, m))
-
-    if not all_streams:
-        print("❌ No streams captured")
+    if not events:
+        print("❌ No events detected")
         return
 
-    write_playlists(all_streams)
-    print("🎉 Playlists generated")
+    collected = []
 
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--autoplay-policy=no-user-gesture-required",
+            ],
+        )
+        ctx = await browser.new_context(user_agent=USER_AGENT)
+        page = await ctx.new_page()
 
+        for i, ev in enumerate(events, 1):
+            print(f"🔎 [{i}/{len(events)}] {ev['title']}")
+            streams = await extract_streams(page, ctx, ev["url"])
+
+            if streams:
+                for s in streams:
+                    print(f"  ✅ STREAM FOUND: {s}")
+                    collected.append((ev["title"], s))
+            else:
+                print("  ⚠️ No streams found")
+
+        await browser.close()
+
+    if not collected:
+        print("❌ No streams captured.")
+        return
+
+    vlc = ["#EXTM3U"]
+    for t, u in collected:
+        vlc.append(f"#EXTINF:-1,{t}")
+        vlc.append(u)
+    Path(OUTPUT_VLC).write_text("\n".join(vlc), encoding="utf-8")
+
+    ua = quote(USER_AGENT)
+    tm = ["#EXTM3U"]
+    for t, u in collected:
+        tm.append(f"#EXTINF:-1,{t}")
+        tm.append(f"{u}|referer={BASE}/|origin={BASE}|user-agent={ua}")
+    Path(OUTPUT_TIVIMATE).write_text("\n".join(tm), encoding="utf-8")
+
+    print("✅ Playlists saved")
+
+# -------------------------------------------------
 if __name__ == "__main__":
     asyncio.run(main())

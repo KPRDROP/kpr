@@ -3,45 +3,40 @@ import asyncio
 import re
 import base64
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urljoin
 from playwright.async_api import async_playwright
 
 HOMEPAGE = "https://streambtw.com/"
-BASE = "https://streambtw.com/"
+BASE = "https://streambtw.com"
 
 OUTPUT_VLC = "Streambtw_VLC.m3u8"
 OUTPUT_TIVIMATE = "Streambtw_TiviMate.m3u8"
 
-TIMEOUT = 60000
-
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/142.0.0.0 Safari/537.36"
+    "Chrome/122.0.0.0 Safari/537.36"
 )
 
-# -------------------------------------------------
+TIMEOUT = 60000
 
+# -------------------------------------------------
 def extract_m3u8(text: str) -> set[str]:
     found = set()
 
-    # direct urls
-    for m in re.findall(r'https?://[^\s"\']+\.m3u8[^\s"\']*', text):
+    for m in re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', text):
         found.add(m)
 
-    # base64 encoded urls
     for b64 in re.findall(r'atob\(["\']([^"\']+)["\']\)', text):
         try:
             decoded = base64.b64decode(b64).decode("utf-8", "ignore")
-            for m in extract_m3u8(decoded):
-                found.add(m)
+            found |= extract_m3u8(decoded)
         except Exception:
             pass
 
     return found
 
 # -------------------------------------------------
-
 async def fetch_events():
     events = []
 
@@ -51,16 +46,20 @@ async def fetch_events():
         page = await ctx.new_page()
 
         await page.goto(HOMEPAGE, timeout=TIMEOUT)
-        await page.wait_for_timeout(3000)
+        await page.wait_for_timeout(2000)
 
-        for card in await page.locator(".schedule .match").all():
+        for match in await page.locator(".match").all():
             try:
-                title = (await card.locator(".match-title").inner_text()).strip()
-                href = await card.locator("a.watch-btn").get_attribute("href")
-                if href:
-                    if href.startswith("/"):
-                        href = BASE + href
-                    events.append({"title": title, "url": href})
+                title = (await match.locator(".match-title").inner_text()).strip()
+                href = await match.locator("a.watch-btn").get_attribute("href")
+
+                if title and href:
+                    # 🔥 CRITICAL FIX: normalize relative URLs
+                    full_url = urljoin(BASE, href)
+                    events.append({
+                        "title": title,
+                        "url": full_url
+                    })
             except Exception:
                 pass
 
@@ -69,70 +68,102 @@ async def fetch_events():
     return events
 
 # -------------------------------------------------
-
-async def extract_streams(page, url: str) -> list[str]:
+async def extract_streams(page, context, url: str) -> list[str]:
     streams = set()
 
-    async def on_response(res):
+    # 🔒 Safety guard (never allow relative navigation)
+    if not url.startswith("http"):
+        url = urljoin(BASE, url)
+
+    # 🔥 CONTEXT-LEVEL NETWORK CAPTURE
+    def on_request_finished(req):
         try:
-            if res.request.resource_type in ("xhr", "fetch", "document", "script"):
-                body = await res.text()
-                for s in extract_m3u8(body):
-                    streams.add(s)
+            if ".m3u8" in req.url:
+                streams.add(req.url)
         except Exception:
             pass
 
-    page.on("response", on_response)
+    context.on("requestfinished", on_request_finished)
 
     await page.goto(url, timeout=TIMEOUT)
     await page.wait_for_timeout(4000)
 
-    # CLICK ALL SERVER / PLAY BUTTONS
-    for _ in range(3):
-        for frame in page.frames:
-            try:
-                for sel in (
-                    "button",
-                    ".play",
-                    ".jw-icon-play",
-                    ".vjs-big-play-button",
-                    "[onclick]",
-                    "div"
-                ):
-                    for el in await frame.locator(sel).all():
-                        try:
-                            await el.click(force=True, timeout=1500)
-                            await page.wait_for_timeout(2000)
-                        except Exception:
-                            pass
-            except Exception:
-                pass
+    # Locate iframe provider
+    iframe = None
+    for f in page.frames:
+        if f.url and ("hiteasport" in f.url or "embed" in f.url):
+            iframe = f
+            break
 
-    # WAIT FOR PLAYER JS TO EXECUTE
-    await page.wait_for_timeout(10000)
+    box = None
+    if iframe:
+        try:
+            el = await iframe.query_selector("video, iframe, body")
+            if el:
+                box = await el.bounding_box()
+        except Exception:
+            pass
 
-    page.remove_listener("response", on_response)
+    # fallback click coords
+    x = int(box["x"] + box["width"] / 2) if box else 200
+    y = int(box["y"] + box["height"] / 2) if box else 200
+
+    # 👆 MOMENTUM CLICK SEQUENCE
+    pages_before = context.pages.copy()
+
+    try:
+        await page.mouse.click(x, y)
+        await asyncio.sleep(1)
+
+        # Close ad popup
+        for _ in range(10):
+            pages_now = context.pages
+            if len(pages_now) > len(pages_before):
+                ad = [p for p in pages_now if p not in pages_before][0]
+                await ad.close()
+                break
+            await asyncio.sleep(0.3)
+
+        # Second click starts stream
+        await page.mouse.click(x, y)
+    except Exception:
+        pass
+
+    # ⏳ Wait for stream requests
+    await page.wait_for_timeout(15000)
+
+    context.remove_listener("requestfinished", on_request_finished)
     return list(streams)
 
 # -------------------------------------------------
-
 async def main():
     events = await fetch_events()
     print(f"📌 Found {len(events)} events")
+
+    if not events:
+        print("❌ No events found.")
+        return
 
     collected = []
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage"]
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--autoplay-policy=no-user-gesture-required"
+            ]
         )
-        ctx = await browser.new_context(user_agent=USER_AGENT)
+        ctx = await browser.new_context(
+            user_agent=USER_AGENT,
+            java_script_enabled=True
+        )
         page = await ctx.new_page()
 
         for i, ev in enumerate(events, 1):
             print(f"🔎 [{i}/{len(events)}] {ev['title']}")
-            streams = await extract_streams(page, ev["url"])
+            streams = await extract_streams(page, ctx, ev["url"])
 
             if streams:
                 for s in streams:
@@ -147,14 +178,13 @@ async def main():
         print("❌ No streams captured.")
         return
 
-    # VLC
+    # ---------------- PLAYLISTS ----------------
     vlc = ["#EXTM3U"]
     for t, u in collected:
         vlc.append(f"#EXTINF:-1,{t}")
         vlc.append(u)
     Path(OUTPUT_VLC).write_text("\n".join(vlc), encoding="utf-8")
 
-    # TiviMate
     ua = quote(USER_AGENT)
     tm = ["#EXTM3U"]
     for t, u in collected:
@@ -165,6 +195,5 @@ async def main():
     print("✅ Playlists saved")
 
 # -------------------------------------------------
-
 if __name__ == "__main__":
     asyncio.run(main())

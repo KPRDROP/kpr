@@ -1,40 +1,62 @@
-name: Update Pixelsports Playlist
+name: PixelSport Playlist Generator
 
 on:
   schedule:
-    # Run every 3 hours
-    - cron: '0 */3 * * *'
+    - cron: "*/30 * * * *"   # every 30 minutes
   workflow_dispatch:
 
 jobs:
-  update-playlist:
-    name: Generate and Commit Playlists
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: Install dependencies (if any)
+      - name: Install system dependencies (Playwright)
         run: |
-          python -m pip install --upgrade pip
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 \
+            libxss1 \
+            libatk-bridge2.0-0 \
+            libgtk-3-0 \
+            libdrm2 \
+            libgbm1 \
+            libasound2t64 \
+            libxshmfence1
 
-      - name: Run Pixelsports playlist generator
-        run: python Pixelsports_Playlist_Generator.py
-
-      - name: Commit and push changes
+      - name: Install Python dependencies
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add -A
-          if ! git diff --staged --quiet; then
-            git commit -m "Auto-update Pixelsports playlists ($(date -u '+%Y-%m-%d %H:%M UTC'))"
-            git push
-          else
+          pip install --upgrade pip
+          pip install requests
+          pip install playwright
+          playwright install firefox
+
+      - name: Run PixelSport scraper
+        env:
+          PIXELSPORTS_API_URL: ${{ secrets.PIXELSPORTS_API_URL }}
+        run: |
+          echo "🚀 Running PixelSport scraper..."
+          python Pixelsports_Playlist_Generator.py
+
+      - name: Commit and push playlists
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add Pixelsports_VLC.m3u8 Pixelsports_TiviMate.m3u8 || true
+
+          if git diff --cached --quiet; then
             echo "No changes to commit"
+          else
+            git commit -m "🔄 Update PixelSport playlists"
+            git push
           fi
