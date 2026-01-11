@@ -27,7 +27,7 @@ def log(*a):
 # ---------------------------------------------------------
 async def fetch_events():
     """
-    Extract events metadata directly from https://streamfree.to/streams
+    Extract events metadata from embedded JS on https://streamfree.to/streams
     """
     events = []
 
@@ -36,38 +36,48 @@ async def fetch_events():
         ctx = await browser.new_context(user_agent=USER_AGENT)
         page = await ctx.new_page()
 
-        api_json = None
+        log("🌐 Loading streams page…")
+        await page.goto(STREAMS_URL, wait_until="domcontentloaded", timeout=TIMEOUT)
+        await page.wait_for_timeout(3000)
 
-        async def on_response(resp):
-            nonlocal api_json
-            try:
-                if resp.url.endswith("/streams") and resp.status == 200:
-                    txt = await resp.text()
-                    if txt.strip().startswith("{") or txt.strip().startswith("["):
-                        api_json = json.loads(txt)
-            except Exception:
-                pass
-
-        page.on("response", on_response)
-
-        log("🌐 Loading streams API page…")
-        await page.goto(STREAMS_URL, wait_until="networkidle", timeout=TIMEOUT)
-        await page.wait_for_timeout(4000)
-
+        html = await page.content()
         await browser.close()
 
-    if not api_json:
-        log("❌ Failed to capture streams API")
+    # ------------------------------
+    # 🔥 Extract embedded JSON
+    # ------------------------------
+    m = re.search(
+        r'__NUXT__\s*=\s*({.*?});</script>',
+        html,
+        re.DOTALL
+    )
+
+    if not m:
+        log("❌ Failed to locate embedded __NUXT__ data")
         return []
 
-    # API STRUCTURE HANDLING
-    raw_events = []
-    if isinstance(api_json, dict):
-        raw_events = api_json.get("streams", []) or api_json.get("events", [])
-    elif isinstance(api_json, list):
-        raw_events = api_json
+    try:
+        data = json.loads(m.group(1))
+    except Exception as e:
+        log("❌ Failed to parse embedded JSON:", e)
+        return []
 
-    for ev in raw_events:
+    # ------------------------------
+    # Navigate Nuxt state
+    # ------------------------------
+    state = data.get("state", {})
+    streams = (
+        state.get("streams")
+        or state.get("events")
+        or state.get("data", {}).get("streams")
+        or []
+    )
+
+    if not streams:
+        log("❌ No streams found in Nuxt state")
+        return []
+
+    for ev in streams:
         try:
             name = ev.get("name")
             category = ev.get("category")
@@ -76,22 +86,17 @@ async def fetch_events():
             if not name or not category:
                 continue
 
-            player_url = f"{BASE}/player/{category}/{name}"
-
             events.append({
                 "title": name.replace("-", " ").title(),
                 "category": category,
                 "logo": thumb,
-                "url": player_url
+                "url": f"{BASE}/player/{category}/{name}"
             })
         except Exception:
             pass
 
     # dedupe
-    uniq = {}
-    for e in events:
-        uniq[e["url"]] = e
-
+    uniq = {e["url"]: e for e in events}
     return list(uniq.values())
 
 # ---------------------------------------------------------
