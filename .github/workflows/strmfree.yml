@@ -37,7 +37,7 @@ jobs:
       - name: Run StrmFree scraper
         run: |
           echo "🚀 Running StrmFree scraper..."
-          python stmfree.py
+          python strmfree.py
 
       - name: Commit & push updated playlists
         run: |
