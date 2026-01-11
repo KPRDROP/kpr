@@ -26,9 +26,6 @@ def log(*a):
 
 # ---------------------------------------------------------
 async def fetch_events():
-    """
-    Extract events metadata from embedded JS on https://streamfree.to/streams
-    """
     events = []
 
     async with async_playwright() as p:
@@ -36,52 +33,64 @@ async def fetch_events():
         ctx = await browser.new_context(user_agent=USER_AGENT)
         page = await ctx.new_page()
 
-        log("🌐 Loading streams page…")
-        await page.goto(STREAMS_URL, wait_until="domcontentloaded", timeout=TIMEOUT)
-        await page.wait_for_timeout(3000)
+        print("🌐 Loading streams page…")
+        await page.goto(STREAMS_PAGE, wait_until="domcontentloaded", timeout=TIMEOUT)
+        await page.wait_for_timeout(4000)
 
         html = await page.content()
         await browser.close()
 
-    # ------------------------------
-    # 🔥 Extract embedded JSON
-    # ------------------------------
-    m = re.search(
-        r'__NUXT__\s*=\s*({.*?});</script>',
+    # -------------------------------------------------
+    # 🔥 Extract Nuxt embedded JSON (robust)
+    # -------------------------------------------------
+    nuxt_match = re.search(
+        r'(?:window\.)?__NUXT__\s*=\s*({.*?})\s*;',
         html,
         re.DOTALL
     )
 
-    if not m:
-        log("❌ Failed to locate embedded __NUXT__ data")
+    if not nuxt_match:
+        print("❌ __NUXT__ state not found in page")
         return []
 
     try:
-        data = json.loads(m.group(1))
+        nuxt = json.loads(nuxt_match.group(1))
     except Exception as e:
-        log("❌ Failed to parse embedded JSON:", e)
+        print("❌ Failed to parse Nuxt JSON:", e)
         return []
 
-    # ------------------------------
-    # Navigate Nuxt state
-    # ------------------------------
-    state = data.get("state", {})
-    streams = (
-        state.get("streams")
-        or state.get("events")
-        or state.get("data", {}).get("streams")
-        or []
-    )
+    # -------------------------------------------------
+    # 🔍 Locate streams inside Nuxt state
+    # -------------------------------------------------
+    state = nuxt.get("state", {})
+    streams = None
+
+    # try all known layouts (StreamFree changes often)
+    for path in (
+        lambda s: s.get("streams"),
+        lambda s: s.get("events"),
+        lambda s: s.get("data", {}).get("streams"),
+        lambda s: s.get("streamfree", {}).get("streams"),
+    ):
+        try:
+            streams = path(state)
+            if streams:
+                break
+        except:
+            pass
 
     if not streams:
-        log("❌ No streams found in Nuxt state")
+        print("❌ Streams array not found in Nuxt state")
         return []
 
+    # -------------------------------------------------
+    # ✅ Build events
+    # -------------------------------------------------
     for ev in streams:
         try:
             name = ev.get("name")
             category = ev.get("category")
-            thumb = ev.get("thumbnail_url")
+            logo = ev.get("thumbnail_url")
 
             if not name or not category:
                 continue
@@ -89,10 +98,10 @@ async def fetch_events():
             events.append({
                 "title": name.replace("-", " ").title(),
                 "category": category,
-                "logo": thumb,
+                "logo": logo,
                 "url": f"{BASE}/player/{category}/{name}"
             })
-        except Exception:
+        except:
             pass
 
     # dedupe
