@@ -1,4 +1,4 @@
-name: StreamFree Scraper
+name: StrmFree Scraper
 
 on:
   schedule:
@@ -53,7 +53,7 @@ jobs:
           playwright install chromium
           playwright install-deps chromium
 
-      - name: Run StreamFree scraper
+      - name: Run StrmFree scraper
         run: |
           python stmfree.py
 
@@ -63,5 +63,5 @@ jobs:
           git config user.email "github-actions@github.com"
 
           git add *.m3u8 || true
-          git commit -m "🔄 Auto-update StreamFree playlists" || echo "No changes"
+          git commit -m "🔄 Auto-update StrmFree playlists" || echo "No changes"
           git push
