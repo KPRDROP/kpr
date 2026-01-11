@@ -34,7 +34,7 @@ async def fetch_events():
         page = await ctx.new_page()
 
         print("🌐 Loading streams page…")
-        await page.goto(STREAMS_PAGE, wait_until="domcontentloaded", timeout=TIMEOUT)
+        await page.goto(STREAMS_URL, wait_until="domcontentloaded", timeout=TIMEOUT)
         await page.wait_for_timeout(4000)
 
         html = await page.content()
