@@ -20,8 +20,8 @@ FIXTURES = [
     "/fixtures/tennis",
 ]
 
-OUTPUT_VLC = "Streamfree_VLC.m3u8"
-OUTPUT_TIVIMATE = "Streamfree_TiviMate.m3u8"
+OUTPUT_VLC = "Strmfree_VLC.m3u8"
+OUTPUT_TIVIMATE = "Strmfree_TiviMate.m3u8"
 
 TIMEOUT = 60000
 
