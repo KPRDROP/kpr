@@ -6,7 +6,6 @@ import sys
 from pathlib import Path
 from urllib.parse import urljoin, quote_plus
 
-import requests
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
@@ -21,12 +20,6 @@ BASE = "https://live.nflwebcast.com/"
 
 OUTPUT_VLC = "NFLWebcast_VLC.m3u8"
 OUTPUT_TIVI = "NFLWebcast_TiviMate.m3u8"
-
-HEADERS = {
-    "user-agent": USER_AGENT,
-    "referer": HOMEPAGE,
-    "origin": HOMEPAGE,
-}
 
 NFL_LOGO = "https://i.postimg.cc/5t5PgRdg/1000-F-431743763-in9BVVz-CI36X304St-R89pnxy-UYzj1dwa-1.jpg"
 
@@ -45,7 +38,26 @@ def clean_event_title(title: str) -> str:
     return title
 
 # -------------------------------------------------
-def find_events_from_homepage(html: str) -> list:
+async def fetch_events_via_playwright(playwright):
+    """
+    Load homepage using Firefox (Cloudflare-safe),
+    then extract event links via BeautifulSoup
+    """
+    browser = await playwright.firefox.launch(headless=True)
+    context = await browser.new_context(user_agent=USER_AGENT)
+    page = await context.new_page()
+
+    log("🌐 Loading homepage…")
+
+    try:
+        await page.goto(HOMEPAGE, wait_until="domcontentloaded", timeout=30000)
+        await page.wait_for_timeout(4000)
+        html = await page.content()
+    finally:
+        await page.close()
+        await context.close()
+        await browser.close()
+
     soup = BeautifulSoup(html, "lxml")
     events = []
 
@@ -78,10 +90,7 @@ def find_events_from_homepage(html: str) -> list:
 
 # -------------------------------------------------
 async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
-    browser = await playwright.firefox.launch(
-        headless=True,
-        args=["--no-sandbox"]
-    )
+    browser = await playwright.firefox.launch(headless=True)
     context = await browser.new_context(user_agent=USER_AGENT)
     page = await context.new_page()
 
@@ -103,7 +112,7 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
         except PlaywrightTimeoutError:
             log(f"⚠️ Timeout loading {url}")
 
-        # Trigger player
+        # Click to start player (ads first, stream second)
         for _ in range(2):
             try:
                 await page.mouse.click(400, 300)
@@ -112,7 +121,7 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
                 pass
 
         waited = 0.0
-        while waited < 12.0 and not captured:
+        while waited < 15.0 and not captured:
             await asyncio.sleep(0.6)
             waited += 0.6
 
@@ -153,9 +162,7 @@ def write_playlists(entries):
         f.write("#EXTM3U\n")
         for title, url in entries:
             f.write(f"#EXTINF:-1,{title}\n")
-            f.write(
-                f"{url}|referer={HOMEPAGE}|origin={HOMEPAGE}|user-agent={ua}\n"
-            )
+            f.write(f"{url}|referer={HOMEPAGE}|origin={HOMEPAGE}|user-agent={ua}\n")
 
     log("✅ Playlists saved")
 
@@ -163,24 +170,17 @@ def write_playlists(entries):
 async def main():
     log("🏈 Starting NFL Webcast Scraper...")
 
-    try:
-        r = requests.get(HOMEPAGE, headers=HEADERS, timeout=15)
-        r.raise_for_status()
-        homepage_html = r.text
-    except Exception as e:
-        log(f"❌ Failed to load homepage: {e}")
-        return
-
-    events = find_events_from_homepage(homepage_html)
-    log(f"📌 Found {len(events)} events")
-
-    if not events:
-        log("❌ No events detected")
-        return
-
-    collected = []
-
     async with async_playwright() as p:
+        events = await fetch_events_via_playwright(p)
+
+        log(f"📌 Found {len(events)} events")
+
+        if not events:
+            log("❌ No events detected")
+            return
+
+        collected = []
+
         for i, (url, title_hint) in enumerate(events, 1):
             log(f"🔎 [{i}/{len(events)}] {title_hint or 'NFL Game'}")
             m3u8 = await capture_m3u8_from_page(p, url)
