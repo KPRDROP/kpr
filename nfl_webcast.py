@@ -29,14 +29,17 @@ TIMEOUT = 60000
 # -------------------------------------------------
 def extract_m3u8(text: str) -> set[str]:
     found = set()
+
     for m in re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', text):
         found.add(m)
+
     for b64 in re.findall(r'atob\(["\']([^"\']+)["\']\)', text):
         try:
             decoded = base64.b64decode(b64).decode("utf-8", "ignore")
             found |= extract_m3u8(decoded)
         except Exception:
             pass
+
     return found
 
 # -------------------------------------------------
@@ -58,12 +61,10 @@ async def fetch_events():
             wait_until="domcontentloaded"
         )
 
-        # 🔁 Poll for content (XHR injected)
+        # Poll for injected content
         found = False
         for _ in range(10):
-            rows = await page.locator("tr.singele_match_date").count()
-            links = await page.locator("a[href*='live']").count()
-            if rows > 0 or links > 0:
+            if await page.locator("tr.singele_match_date").count() > 0:
                 found = True
                 break
             await page.wait_for_timeout(1000)
@@ -71,7 +72,7 @@ async def fetch_events():
         if not found:
             print("⚠️ No match rows yet, continuing with fallback scan")
 
-        # --- Primary: table rows ---
+        # Primary detection
         rows = await page.locator("tr.singele_match_date").all()
         for row in rows:
             try:
@@ -82,10 +83,8 @@ async def fetch_events():
                         title = (await el.first.inner_text()).strip()
                         break
 
-                href = None
                 link = row.locator("a[href*='live']")
-                if await link.count() > 0:
-                    href = await link.first.get_attribute("href")
+                href = await link.first.get_attribute("href") if await link.count() else None
 
                 if title and href:
                     events.append({
@@ -95,11 +94,12 @@ async def fetch_events():
             except Exception:
                 pass
 
-        # --- Fallback: scan all live links ---
+        # Fallback
         if not events:
             print("🔁 Using fallback link scan")
             links = await page.locator("a[href*='live']").all()
             seen = set()
+
             for a in links:
                 try:
                     href = await a.get_attribute("href")
@@ -108,11 +108,10 @@ async def fetch_events():
                     seen.add(href)
 
                     text = (await a.inner_text()).strip()
-                    if "nfl" in href.lower():
-                        events.append({
-                            "title": text or "NFL Game",
-                            "url": urljoin(HOMEPAGE, href)
-                        })
+                    events.append({
+                        "title": text or "NFL Game",
+                        "url": urljoin(HOMEPAGE, href)
+                    })
                 except Exception:
                     pass
 
@@ -121,98 +120,56 @@ async def fetch_events():
     return events
 
 # -------------------------------------------------
-async def extract_streams(page, context, url: str) -> list[str]:
+async def extract_streams(page, url: str) -> list[str]:
     streams = set()
-    player_urls = set()
+    captured = None
 
-    # --- Capture ALL m3u8 at context level ---
-    def on_request_finished(req):
+    # 🔥 NETWORK RESPONSE SNIFFER (KEY FIX)
+    def on_response(resp):
+        nonlocal captured
         try:
-            if ".m3u8" in req.url:
-                streams.add(req.url)
+            if ".m3u8" in resp.url and "webcastserver" in resp.url:
+                if not captured:
+                    captured = resp.url
+                    streams.add(resp.url)
         except Exception:
             pass
 
-    context.on("requestfinished", on_request_finished)
+    page.on("response", on_response)
 
     try:
-        # --------------------------------------------------
-        # 1️⃣ Load event page
-        # --------------------------------------------------
-        await page.goto(url, timeout=TIMEOUT, wait_until="domcontentloaded")
-        await page.wait_for_timeout(3000)
-
-        html = await page.content()
-
-        # --------------------------------------------------
-        # 2️⃣ Extract embedded player iframe URLs
-        # --------------------------------------------------
-        iframe_urls = re.findall(
-            r'<iframe[^>]+src=["\']([^"\']+)["\']',
-            html,
-            re.I
+        # Load event page
+        await page.goto(
+            url,
+            timeout=TIMEOUT,
+            wait_until="domcontentloaded"
         )
 
-        for src in iframe_urls:
-            if any(x in src for x in ("webcast", "player", "embed", "stream")):
-                player_urls.add(src)
+        # Allow iframe + JS bootstrap
+        await page.wait_for_timeout(6000)
 
-        # Absolute URLs
-        player_urls = {
-            urljoin(url, p) for p in player_urls
-        }
+        # Soft interaction fallback
+        try:
+            await page.mouse.click(400, 300)
+            await asyncio.sleep(1)
+            await page.mouse.click(400, 300)
+        except Exception:
+            pass
 
-        # --------------------------------------------------
-        # 3️⃣ Visit each player iframe directly
-        # --------------------------------------------------
-        for purl in player_urls:
-            if streams:
-                break
+        waited = 0.0
+        while waited < 15.0 and not captured:
+            await asyncio.sleep(0.6)
+            waited += 0.6
 
-            try:
-                await page.goto(
-                    purl,
-                    timeout=TIMEOUT,
-                    wait_until="domcontentloaded"
-                )
-
-                # Let network requests fire
-                waited = 0.0
-                while waited < 12.0 and not streams:
-                    await asyncio.sleep(0.6)
-                    waited += 0.6
-
-                # --------------------------------------------------
-                # 4️⃣ Fallback click inside player
-                # --------------------------------------------------
-                if not streams:
-                    try:
-                        await page.mouse.click(400, 300)
-                        await asyncio.sleep(1)
-                        await page.mouse.click(400, 300)
-                    except Exception:
-                        pass
-
-                    waited = 0.0
-                    while waited < 8.0 and not streams:
-                        await asyncio.sleep(0.6)
-                        waited += 0.6
-
-                # --------------------------------------------------
-                # 5️⃣ Final HTML scan fallback
-                # --------------------------------------------------
-                if not streams:
-                    html = await page.content()
-                    streams |= extract_m3u8(html)
-
-            except Exception:
-                continue
+        if not captured:
+            html = await page.content()
+            streams |= extract_m3u8(html)
 
     except (TimeoutError, PlaywrightError):
         pass
     finally:
         try:
-            context.remove_listener("requestfinished", on_request_finished)
+            page.off("response", on_response)
         except Exception:
             pass
 
@@ -239,11 +196,12 @@ async def main():
             ],
         )
         ctx = await browser.new_context(user_agent=USER_AGENT)
-        page = await ctx.new_page()
 
         for i, ev in enumerate(events, 1):
             print(f"🔎 [{i}/{len(events)}] {ev['title']}")
-            streams = await extract_streams(page, ctx, ev["url"])
+            page = await ctx.new_page()
+
+            streams = await extract_streams(page, ev["url"])
 
             if streams:
                 for s in streams:
@@ -252,18 +210,22 @@ async def main():
             else:
                 print("  ⚠️ No streams found")
 
+            await page.close()
+
         await browser.close()
 
     if not collected:
         print("❌ No streams captured.")
         return
 
+    # VLC playlist
     vlc = ["#EXTM3U"]
     for t, u in collected:
         vlc.append(f"#EXTINF:-1,{t}")
         vlc.append(u)
     Path(OUTPUT_VLC).write_text("\n".join(vlc), encoding="utf-8")
 
+    # TiviMate playlist
     ua = quote(USER_AGENT)
     tm = ["#EXTM3U"]
     for t, u in collected:
