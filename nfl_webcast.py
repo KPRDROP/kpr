@@ -123,74 +123,90 @@ async def fetch_events():
 # -------------------------------------------------
 async def extract_streams(page, context, url: str) -> list[str]:
     streams = set()
+    player_urls = set()
 
-    # --- Network sniff (context-level is CRITICAL) ---
+    # --- Capture ALL m3u8 at context level ---
     def on_request_finished(req):
         try:
-            rurl = req.url
-            if ".m3u8" in rurl:
-                streams.add(rurl)
+            if ".m3u8" in req.url:
+                streams.add(req.url)
         except Exception:
             pass
 
     context.on("requestfinished", on_request_finished)
 
     try:
+        # --------------------------------------------------
+        # 1️⃣ Load event page
+        # --------------------------------------------------
         await page.goto(url, timeout=TIMEOUT, wait_until="domcontentloaded")
         await page.wait_for_timeout(3000)
 
-        pages_before = list(context.pages)
+        html = await page.content()
 
-        # ---- Find player iframe (very important) ----
-        player_frame = None
-        for _ in range(10):
-            for f in page.frames:
-                if f.url and any(x in f.url for x in ("player", "stream", "embed", "hiteasport")):
-                    player_frame = f
-                    break
-            if player_frame:
+        # --------------------------------------------------
+        # 2️⃣ Extract embedded player iframe URLs
+        # --------------------------------------------------
+        iframe_urls = re.findall(
+            r'<iframe[^>]+src=["\']([^"\']+)["\']',
+            html,
+            re.I
+        )
+
+        for src in iframe_urls:
+            if any(x in src for x in ("webcast", "player", "embed", "stream")):
+                player_urls.add(src)
+
+        # Absolute URLs
+        player_urls = {
+            urljoin(url, p) for p in player_urls
+        }
+
+        # --------------------------------------------------
+        # 3️⃣ Visit each player iframe directly
+        # --------------------------------------------------
+        for purl in player_urls:
+            if streams:
                 break
-            await page.wait_for_timeout(500)
 
-        # ---- Determine click target ----
-        click_x, click_y = 400, 300
-        try:
-            if player_frame:
-                el = await player_frame.query_selector("video, iframe, body")
-                if el:
-                    box = await el.bounding_box()
-                    if box:
-                        click_x = int(box["x"] + box["width"] / 2)
-                        click_y = int(box["y"] + box["height"] / 2)
-        except Exception:
-            pass
+            try:
+                await page.goto(
+                    purl,
+                    timeout=TIMEOUT,
+                    wait_until="domcontentloaded"
+                )
 
-        # ---- First click (opens ad) ----
-        await page.mouse.click(click_x, click_y)
-        await asyncio.sleep(1)
+                # Let network requests fire
+                waited = 0.0
+                while waited < 12.0 and not streams:
+                    await asyncio.sleep(0.6)
+                    waited += 0.6
 
-        # ---- Close popup ad tab ----
-        for _ in range(10):
-            pages_now = list(context.pages)
-            if len(pages_now) > len(pages_before):
-                ad = [p for p in pages_now if p not in pages_before][0]
-                await ad.close()
-                break
-            await asyncio.sleep(0.3)
+                # --------------------------------------------------
+                # 4️⃣ Fallback click inside player
+                # --------------------------------------------------
+                if not streams:
+                    try:
+                        await page.mouse.click(400, 300)
+                        await asyncio.sleep(1)
+                        await page.mouse.click(400, 300)
+                    except Exception:
+                        pass
 
-        # ---- Second click (starts player) ----
-        await page.mouse.click(click_x, click_y)
+                    waited = 0.0
+                    while waited < 8.0 and not streams:
+                        await asyncio.sleep(0.6)
+                        waited += 0.6
 
-        # ---- Wait for network traffic ----
-        waited = 0.0
-        while waited < 15.0 and not streams:
-            await asyncio.sleep(0.6)
-            waited += 0.6
+                # --------------------------------------------------
+                # 5️⃣ Final HTML scan fallback
+                # --------------------------------------------------
+                if not streams:
+                    html = await page.content()
+                    streams |= extract_m3u8(html)
 
-        # ---- Last resort: parse HTML ----
-        if not streams:
-            html = await page.content()
-            streams |= extract_m3u8(html)
+            except Exception:
+                continue
 
     except (TimeoutError, PlaywrightError):
         pass
