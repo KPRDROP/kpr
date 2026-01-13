@@ -5,11 +5,7 @@ import base64
 from pathlib import Path
 from urllib.parse import quote, urljoin
 
-from playwright.async_api import (
-    async_playwright,
-    TimeoutError,
-    Error as PlaywrightError,
-)
+from playwright.async_api import async_playwright, TimeoutError, Error as PlaywrightError
 
 # -------------------------------------------------
 HOMEPAGE = "https://nflwebcast.com"
@@ -25,8 +21,8 @@ USER_AGENT = (
 )
 
 TIMEOUT = 60000
-# -------------------------------------------------
 
+# -------------------------------------------------
 async def fetch_events():
     events = []
 
@@ -39,100 +35,68 @@ async def fetch_events():
         page = await ctx.new_page()
 
         print("🌐 Loading homepage…")
-        await page.goto(
-            HOMEPAGE,
-            timeout=TIMEOUT,
-            wait_until="domcontentloaded"
-        )
+        await page.goto(HOMEPAGE, wait_until="domcontentloaded", timeout=TIMEOUT)
 
-        # Poll for injected content
+        # 🔥 IMPORTANT: wait for JS-rendered links
         found = False
-        for _ in range(10):
-            if await page.locator("tr.singele_match_date").count() > 0:
+        for _ in range(15):
+            count = await page.locator(
+                "a[href*='live-stream'], a[href*='live-stream-online']"
+            ).count()
+            if count > 0:
                 found = True
                 break
             await page.wait_for_timeout(1000)
 
         if not found:
-            print("⚠️ No match rows yet, continuing with fallback scan")
+            print("⚠️ No events injected by JS")
+        else:
+            print("✅ Events detected via JS render")
 
-        # Primary detection
-        rows = await page.locator("tr.singele_match_date").all()
-        for row in rows:
+        links = await page.locator(
+            "a[href*='live-stream'], a[href*='live-stream-online']"
+        ).all()
+
+        seen = set()
+        for a in links:
             try:
-                title = None
-                for sel in ("td.teamvs a", "td.teamvs", "a"):
-                    el = row.locator(sel)
-                    if await el.count() > 0:
-                        title = (await el.first.inner_text()).strip()
-                        break
+                href = await a.get_attribute("href")
+                if not href or href in seen:
+                    continue
+                seen.add(href)
 
-                link = row.locator("a[href*='live']")
-                href = await link.first.get_attribute("href") if await link.count() else None
+                title = (await a.inner_text()).strip()
+                title = re.sub(r"\s+", " ", title)
 
-                if title and href:
-                    events.append({
-                        "title": title,
-                        "url": urljoin(HOMEPAGE, href)
-                    })
+                events.append({
+                    "title": title or "NFL Game",
+                    "url": urljoin(HOMEPAGE, href)
+                })
             except Exception:
                 pass
-
-        # Fallback
-        if not events:
-            print("🔁 Using fallback link scan")
-            links = await page.locator("a[href*='live']").all()
-            seen = set()
-
-            for a in links:
-                try:
-                    href = await a.get_attribute("href")
-                    if not href or href in seen:
-                        continue
-                    seen.add(href)
-
-                    text = (await a.inner_text()).strip()
-                    events.append({
-                        "title": text or "NFL Game",
-                        "url": urljoin(HOMEPAGE, href)
-                    })
-                except Exception:
-                    pass
 
         await browser.close()
 
     return events
 
 # -------------------------------------------------
-async def extract_streams(page, url: str) -> list[str]:
+async def extract_streams(page, url: str):
     streams = set()
-    captured = None
 
-    # 🔥 NETWORK RESPONSE SNIFFER (KEY FIX)
     def on_response(resp):
-        nonlocal captured
         try:
             if ".m3u8" in resp.url and "webcastserver" in resp.url:
-                if not captured:
-                    captured = resp.url
-                    streams.add(resp.url)
+                streams.add(resp.url)
         except Exception:
             pass
 
     page.on("response", on_response)
 
     try:
-        # Load event page
-        await page.goto(
-            url,
-            timeout=TIMEOUT,
-            wait_until="domcontentloaded"
-        )
-
-        # Allow iframe + JS bootstrap
+        await page.goto(url, wait_until="domcontentloaded", timeout=TIMEOUT)
         await page.wait_for_timeout(6000)
 
-        # Soft interaction fallback
+        # trigger player
         try:
             await page.mouse.click(400, 300)
             await asyncio.sleep(1)
@@ -140,22 +104,20 @@ async def extract_streams(page, url: str) -> list[str]:
         except Exception:
             pass
 
-        waited = 0.0
-        while waited < 15.0 and not captured:
+        waited = 0
+        while waited < 15 and not streams:
             await asyncio.sleep(0.6)
             waited += 0.6
 
-        if not captured:
+        if not streams:
             html = await page.content()
-            streams |= extract_m3u8(html)
+            for m in re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', html):
+                streams.add(m)
 
     except (TimeoutError, PlaywrightError):
         pass
     finally:
-        try:
-            page.off("response", on_response)
-        except Exception:
-            pass
+        page.off("response", on_response)
 
     return list(streams)
 
@@ -173,11 +135,7 @@ async def main():
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-                "--autoplay-policy=no-user-gesture-required",
-            ],
+            args=["--no-sandbox", "--disable-dev-shm-usage"]
         )
         ctx = await browser.new_context(user_agent=USER_AGENT)
 
@@ -186,7 +144,6 @@ async def main():
             page = await ctx.new_page()
 
             streams = await extract_streams(page, ev["url"])
-
             if streams:
                 for s in streams:
                     print(f"  ✅ STREAM FOUND: {s}")
@@ -202,14 +159,12 @@ async def main():
         print("❌ No streams captured.")
         return
 
-    # VLC playlist
     vlc = ["#EXTM3U"]
     for t, u in collected:
         vlc.append(f"#EXTINF:-1,{t}")
         vlc.append(u)
     Path(OUTPUT_VLC).write_text("\n".join(vlc), encoding="utf-8")
 
-    # TiviMate playlist
     ua = quote(USER_AGENT)
     tm = ["#EXTM3U"]
     for t, u in collected:
