@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import asyncio
 import re
-import base64
 from pathlib import Path
 from urllib.parse import quote, urljoin
 
@@ -37,21 +36,21 @@ async def fetch_events():
         print("🌐 Loading homepage…")
         await page.goto(HOMEPAGE, wait_until="domcontentloaded", timeout=TIMEOUT)
 
-        # 🔥 IMPORTANT: wait for JS-rendered links
+        # wait for JS injected links
         found = False
         for _ in range(15):
-            count = await page.locator(
+            cnt = await page.locator(
                 "a[href*='live-stream'], a[href*='live-stream-online']"
             ).count()
-            if count > 0:
+            if cnt > 0:
                 found = True
                 break
             await page.wait_for_timeout(1000)
 
-        if not found:
-            print("⚠️ No events injected by JS")
-        else:
+        if found:
             print("✅ Events detected via JS render")
+        else:
+            print("⚠️ No events injected by JS")
 
         links = await page.locator(
             "a[href*='live-stream'], a[href*='live-stream-online']"
@@ -66,8 +65,6 @@ async def fetch_events():
                 seen.add(href)
 
                 title = (await a.inner_text()).strip()
-                title = re.sub(r"\s+", " ", title)
-
                 events.append({
                     "title": title or "NFL Game",
                     "url": urljoin(HOMEPAGE, href)
@@ -104,8 +101,8 @@ async def extract_streams(page, url: str):
         except Exception:
             pass
 
-        waited = 0
-        while waited < 15 and not streams:
+        waited = 0.0
+        while waited < 15.0 and not streams:
             await asyncio.sleep(0.6)
             waited += 0.6
 
@@ -117,7 +114,10 @@ async def extract_streams(page, url: str):
     except (TimeoutError, PlaywrightError):
         pass
     finally:
-        page.off("response", on_response)
+        try:
+            page.remove_listener("response", on_response)
+        except Exception:
+            pass
 
     return list(streams)
 
