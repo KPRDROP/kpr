@@ -127,20 +127,29 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
 
     captured = None
 
-    def resp_handler(resp):
+    # 🔥 CRITICAL: capture from ALL frames
+    def on_request(req):
         nonlocal captured
-        if ".m3u8" in resp.url and not captured:
-            captured = resp.url
+        try:
+            if ".m3u8" in req.url and not captured:
+                captured = req.url
+        except Exception:
+            pass
+
+    context.on("requestfinished", on_request)
 
     try:
-        page.on("response", resp_handler)
-
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
         except PlaywrightTimeoutError:
             pass
 
-        # click to trigger player
+        # ⏳ Allow iframe + delayed JS
+        await page.wait_for_timeout(5000)
+
+        # -------------------------------
+        # 1️⃣ CLICK MAIN PAGE
+        # -------------------------------
         for _ in range(2):
             try:
                 await page.mouse.click(400, 300)
@@ -148,18 +157,64 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
             except Exception:
                 pass
 
-        waited = 0.0
-        while waited < 15 and not captured:
-            await asyncio.sleep(0.6)
-            waited += 0.6
+        # -------------------------------
+        # 2️⃣ CLICK INSIDE IFRAMES
+        # -------------------------------
+        for frame in page.frames:
+            try:
+                await frame.click("body", timeout=1500)
+                await asyncio.sleep(1)
+            except Exception:
+                pass
 
+        # -------------------------------
+        # 3️⃣ WAIT FOR STREAM (LONGER)
+        # -------------------------------
+        waited = 0.0
+        while waited < 25 and not captured:
+            await asyncio.sleep(0.8)
+            waited += 0.8
+
+        # -------------------------------
+        # 4️⃣ HTML FALLBACK (PAGE + IFRAMES)
+        # -------------------------------
         if not captured:
             html = await page.content()
             m = re.search(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', html)
             if m:
                 captured = m.group(0)
 
+        if not captured:
+            for frame in page.frames:
+                try:
+                    fhtml = await frame.content()
+                    m = re.search(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', fhtml)
+                    if m:
+                        captured = m.group(0)
+                        break
+                except Exception:
+                    pass
+
+        # -------------------------------
+        # 5️⃣ BASE64 FALLBACK (NFLWebcast uses this)
+        # -------------------------------
+        if not captured:
+            blobs = re.findall(r'["\']([A-Za-z0-9+/=]{40,200})["\']', html)
+            for b in blobs:
+                try:
+                    import base64
+                    dec = base64.b64decode(b).decode("utf-8", "ignore")
+                    if ".m3u8" in dec:
+                        captured = dec.strip()
+                        break
+                except Exception:
+                    pass
+
     finally:
+        try:
+            context.remove_listener("requestfinished", on_request)
+        except Exception:
+            pass
         try:
             await page.close()
             await context.close()
