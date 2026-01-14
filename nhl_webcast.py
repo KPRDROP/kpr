@@ -228,8 +228,8 @@ def write_playlists(entries):
         for title, url in entries:
             f.write(
                 f'#EXTINF:-1 tvg-id="NHL.Hockey.Dummy.us" '
-                f'tvg-name="MLS" tvg-logo="{VLC_LOGO}" '
-                f'group-title="MLS GAME",{title}\n'
+                f'tvg-name="NHL" tvg-logo="{VLC_LOGO}" '
+                f'group-title="NHL GAME",{title}\n'
             )
             f.write(f"#EXTVLCOPT:http-referrer={HEADERS['referer']}\n")
             f.write(f"#EXTVLCOPT:http-origin={HEADERS['origin']}\n")
