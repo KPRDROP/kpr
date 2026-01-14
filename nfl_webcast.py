@@ -33,7 +33,7 @@ def log(*a):
 def normalize_vs(text: str) -> str:
     text = re.sub(r"\s*@\s*", " vs ", text, flags=re.I)
     text = re.sub(r"\s+", " ", text)
-    return text.strip().upper()
+    return text.strip()
 
 # -------------------------------------------------
 async def fetch_events_via_playwright(playwright):
@@ -45,8 +45,16 @@ async def fetch_events_via_playwright(playwright):
 
     try:
         await page.goto(HOMEPAGE, wait_until="domcontentloaded", timeout=30000)
-        await page.wait_for_timeout(4000)
+
+        # ⏳ allow JS to inject content
+        for _ in range(6):
+            await page.wait_for_timeout(1000)
+            anchors = await page.locator("a[href]").count()
+            if anchors > 20:
+                break
+
         html = await page.content()
+
     finally:
         await page.close()
         await context.close()
@@ -55,37 +63,61 @@ async def fetch_events_via_playwright(playwright):
     soup = BeautifulSoup(html, "lxml")
     events = []
 
-    for a in soup.select("a[href*='live-stream']"):
-        href = a.get("href")
+    # -------------------------------------------------
+    # PRIMARY SELECTORS (robust)
+    selectors = [
+        "a[href*='nflwebcast.com'][href*='live']",
+        "a[href*='-live-']",
+        "a.dracula-style-link",
+        "a[href*='online-free']",
+    ]
+
+    anchors = []
+    for sel in selectors:
+        anchors.extend(soup.select(sel))
+
+    # -------------------------------------------------
+    # FALLBACK: regex scan (last resort)
+    if not anchors:
+        for m in re.finditer(r'https://live\.nflwebcast\.com/[^"\']+', html):
+            anchors.append({"href": m.group(0)})
+
+    seen = set()
+
+    for a in anchors:
+        href = a.get("href") if hasattr(a, "get") else a["href"]
         if not href:
             continue
 
         url = urljoin(HOMEPAGE, href)
+        if url in seen:
+            continue
+        seen.add(url)
 
-        raw_text = a.get_text(" ", strip=True)
-        vs_name = normalize_vs(raw_text)
+        # ---- TITLE ----
+        title_attr = a.get("title") if hasattr(a, "get") else None
+        raw_text = ""
+        if hasattr(a, "get_text"):
+            raw_text = a.get_text(" ", strip=True)
 
-        title_attr = a.get("title")
-        final_title = title_attr.strip() if title_attr else vs_name
+        event_name = title_attr.strip() if title_attr else normalize_vs(raw_text)
+        if not event_name:
+            event_name = "NFL Game"
 
-        img = a.find("img")
-        logo = img["src"] if img and img.get("src") else DEFAULT_LOGO
+        # ---- LOGO ----
+        logo = DEFAULT_LOGO
+        if hasattr(a, "find"):
+            img = a.find("img")
+            if img and img.get("src"):
+                logo = img["src"]
 
         events.append({
             "url": url,
-            "event": final_title,
+            "event": event_name,
             "logo": logo
         })
 
-    # Deduplicate by URL
-    seen = set()
-    final = []
-    for ev in events:
-        if ev["url"] not in seen:
-            seen.add(ev["url"])
-            final.append(ev)
-
-    return final
+    return events
 
 # -------------------------------------------------
 async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
@@ -108,6 +140,7 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
         except PlaywrightTimeoutError:
             pass
 
+        # click to trigger player
         for _ in range(2):
             try:
                 await page.mouse.click(400, 300)
