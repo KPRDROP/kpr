@@ -9,7 +9,7 @@ import html
 import sys
 
 BASE_URL = "https://roxiestreams.live/"
-CATEGORIES = ["", "soccer", "nba", "mlb", "nfl", "fighting", "motorsports", "motogp",
+CATEGORIES = ["", "soccer", "mlb", "nba", "nfl", "nhl", "fighting", "motorsports", "motogp",
               "ufc", "ppv", "wwe", "f1-streams", "nascar"]
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"
