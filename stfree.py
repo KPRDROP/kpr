@@ -1,116 +1,142 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+StreamFree scraper
+- Outputs stfree.m3u (TiviMate-compatible)
+- Fixes pytz import issue in CI
+"""
+
+# -------------------------------------------------
+# pytz FULL COMPATIBILITY SHIM (DO NOT REMOVE)
+# -------------------------------------------------
 import sys
 import types
-from datetime import timezone
-from urllib.parse import urljoin, quote
+from datetime import timezone as _timezone
+from zoneinfo import ZoneInfo
 
-# -------------------------------------------------
-# ✅ pytz fallback (GitHub Actions safe)
-# -------------------------------------------------
 if "pytz" not in sys.modules:
-    pytz_stub = types.ModuleType("pytz")
-    pytz_stub.UTC = timezone.utc
-    pytz_stub.utc = timezone.utc
-    sys.modules["pytz"] = pytz_stub
+    pytz = types.ModuleType("pytz")
+
+    class _PytzZone:
+        def __init__(self, name: str):
+            self._tz = ZoneInfo(name)
+
+        def localize(self, dt):
+            return dt.replace(tzinfo=self._tz)
+
+        def astimezone(self, tz):
+            return tz.localize(self._tz.fromutc(self._tz.utcoffset(None)))
+
+        def utcoffset(self, dt):
+            return self._tz.utcoffset(dt)
+
+        def dst(self, dt):
+            return self._tz.dst(dt)
+
+        def tzname(self, dt):
+            return self._tz.tzname(dt)
+
+    def timezone(name: str):
+        return _PytzZone(name)
+
+    pytz.timezone = timezone
+    pytz.UTC = _timezone.utc
+
+    sys.modules["pytz"] = pytz
 
 # -------------------------------------------------
-# ✅ Helpers import (works now)
+# NORMAL IMPORTS (SAFE NOW)
 # -------------------------------------------------
+from urllib.parse import urljoin, quote_plus
+
 from utils import Cache, Time, get_logger, leagues, network
 
+# -------------------------------------------------
 log = get_logger(__name__)
 
-urls: dict[str, dict[str, str | float]] = {}
-
 TAG = "STRMFREE"
-
-CACHE_FILE = Cache(f"{TAG.lower()}.json", exp=19_800)
-
-BASE_URL = "https://streamfree.to"
+BASE_URL = "https://streamfree.to/"
 OUTPUT_FILE = "stfree.m3u"
 
-USER_AGENT_RAW = (
+USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/142.0.0.0 Safari/537.36"
 )
 
-USER_AGENT_ENCODED = quote(USER_AGENT_RAW, safe="")
+ENCODED_UA = quote_plus(USER_AGENT)
+
+CACHE_FILE = Cache(f"{TAG.lower()}.json", exp=19_800)
+
+urls: dict[str, dict[str, str | float]] = {}
 
 # -------------------------------------------------
 async def get_events() -> dict[str, dict[str, str | float]]:
     events = {}
 
-    r = await network.request(
-        urljoin(BASE_URL, "streams"),
-        log=log,
-    )
-
+    r = await network.request(urljoin(BASE_URL, "streams"), log=log)
     if not r:
         return events
 
-    api_data: dict = r.json()
-    now = Time.clean(Time.now())
+    data = r.json()
+    now = Time.clean(Time.now()).timestamp()
 
-    for streams in api_data.get("streams", {}).values():
-        if not streams:
-            continue
+    for streams in data.get("streams", {}).values():
+        for s in streams or []:
+            sport = s.get("league")
+            name = s.get("name")
+            key = s.get("stream_key")
 
-        for stream in streams:
-            sport = stream.get("league")
-            name = stream.get("name")
-            stream_key = stream.get("stream_key")
-
-            if not (sport and name and stream_key):
+            if not (sport and name and key):
                 continue
-
-            key = f"[{sport}] {name} ({TAG})"
 
             tvg_id, logo = leagues.get_tvg_info(sport, name)
 
-            events[key] = {
+            event_key = f"[{sport}] {name} ({TAG})"
+
+            events[event_key] = {
                 "url": network.build_proxy_url(
                     tag=TAG,
-                    path=f"{stream_key}/index.m3u8",
+                    path=f"{key}/index.m3u8",
                     query={"stream_name": name},
                 ),
                 "logo": logo,
-                "base": BASE_URL,
-                "timestamp": now.timestamp(),
                 "id": tvg_id or "Live.Event.us",
-                "sport": sport,
-                "event": name,
+                "group": sport,
+                "name": name,
+                "timestamp": now,
             }
 
     return events
 
 # -------------------------------------------------
-def write_playlist(data: dict[str, dict]):
+def write_playlist(entries: dict[str, dict]) -> None:
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
 
-        for title, e in data.items():
+        for e in entries.values():
             f.write(
                 f'#EXTINF:-1 tvg-id="{e["id"]}" '
-                f'tvg-name="{title}" '
-                f'group-title="{e["sport"]}",{title}\n'
+                f'tvg-name="{e["name"]}" '
+                f'tvg-logo="{e["logo"]}" '
+                f'group-title="{e["group"]}",{e["name"]}\n'
             )
             f.write(
                 f'{e["url"]}'
                 f'|referer={BASE_URL}'
                 f'|origin={BASE_URL}'
-                f'|user-agent={USER_AGENT_ENCODED}\n'
+                f'|user-agent={ENCODED_UA}\n'
             )
+
+    log.info(f"✅ Playlist written: {OUTPUT_FILE}")
 
 # -------------------------------------------------
 async def scrape() -> None:
-    if cached := CACHE_FILE.load():
-        urls.update(cached)
-        log.info(f"Loaded {len(urls)} event(s) from cache")
-        write_playlist(urls)
-        return
+    cached = CACHE_FILE.load() or {}
+    urls.update(cached)
 
-    log.info(f'Scraping from "{BASE_URL}"')
+    log.info(f"Loaded {len(cached)} cached events")
 
     events = await network.safe_process(
         get_events,
@@ -122,11 +148,14 @@ async def scrape() -> None:
     if events:
         urls.update(events)
         CACHE_FILE.write(urls)
-        write_playlist(urls)
 
-    log.info(f"Collected and cached {len(urls)} event(s)")
+    write_playlist(urls)
+
+    log.info(f"🎉 Done — total events: {len(urls)}")
 
 # -------------------------------------------------
 if __name__ == "__main__":
     import asyncio
+
+    log.info("🚀 Starting StreamFree scraper...")
     asyncio.run(scrape())
