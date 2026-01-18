@@ -1,78 +1,54 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import sys
-import types
-from datetime import tzinfo, timedelta
-from zoneinfo import ZoneInfo
-
-if "pytz" not in sys.modules:
-    pytz = types.ModuleType("pytz")
-
-    class PytzZone(tzinfo):
-        def __init__(self, name: str):
-            self._zone = ZoneInfo(name)
-            self.zone = name
-
-        def utcoffset(self, dt):
-            return self._zone.utcoffset(dt)
-
-        def dst(self, dt):
-            return self._zone.dst(dt)
-
-        def tzname(self, dt):
-            return self._zone.tzname(dt)
-
-        def fromutc(self, dt):
-            
-            
-            if dt.tzinfo is not self:
-                raise ValueError("fromutc: dt.tzinfo is not self")
-
-            # Convert via UTC, then reattach self
-            utc_dt = dt.replace(tzinfo=None)
-            converted = utc_dt.replace(tzinfo=self._zone).astimezone(self._zone)
-            return converted.replace(tzinfo=self)
-
-        def localize(self, dt, is_dst=False):
-            if dt.tzinfo is not None:
-                raise ValueError("Not naive datetime (tzinfo already set)")
-            return dt.replace(tzinfo=self)
-
-    def timezone(name: str):
-        return PytzZone(name)
-
-    pytz.timezone = timezone
-    pytz.UTC = timezone("UTC")
-
-    sys.modules["pytz"] = pytz
-
-# -------------------------------------------------
-# SAFE IMPORTS (utils works unchanged)
-# -------------------------------------------------
-from urllib.parse import urljoin, quote_plus
+import asyncio
+import re
+from urllib.parse import quote_plus, urljoin
 
 from utils import Cache, Time, get_logger, leagues, network
 
-# -------------------------------------------------
 log = get_logger(__name__)
 
 TAG = "STRMFREE"
-BASE_URL = "https://streamfree.to/"
-OUTPUT_FILE = "stfree.m3u"
+BASE_URL = "https://streamfree.to"
 
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/142.0.0.0 Safari/537.36"
-)
-
-ENCODED_UA = quote_plus(USER_AGENT)
-
-CACHE_FILE = Cache(f"{TAG.lower()}.json", exp=19_800)
+CACHE_FILE = Cache("stfree.json", exp=19_800)
 
 urls: dict[str, dict[str, str | float]] = {}
 
-# -------------------------------------------------
+SPORT_MAP = {
+    "NHL": "hockey",
+    "Hockey": "hockey",
+    "NBA": "basketball",
+    "Basketball": "basketball",
+    "NFL": "football",
+    "American Football": "football",
+    "MLB": "baseball",
+    "Baseball": "baseball",
+    "Soccer": "soccer",
+}
+
+UA_ENCODED = (
+    "Mozilla%2F5.0%20%28Windows%20NT%2010.0%3B%20Win64%3B%20x64%29%20"
+    "AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20"
+    "Chrome%2F142.0.0.0%20Safari%2F537.36"
+)
+
+
+def slugify(text: str) -> str:
+    text = text.lower()
+    text = re.sub(r"[^\w\s-]", "", text)
+    text = re.sub(r"\s+", "-", text)
+    return text.strip("-")
+
+
+def build_embed_referer(sport: str, name: str) -> str:
+    category = SPORT_MAP.get(sport, "sports")
+    slug = slugify(name)
+
+    return (
+        f"{BASE_URL}/embed/{category}/{slug}"
+        f"?server=origin&quality=720p&category={category}"
+    )
+
+
 async def get_events() -> dict[str, dict[str, str | float]]:
     events = {}
 
@@ -81,63 +57,57 @@ async def get_events() -> dict[str, dict[str, str | float]]:
         return events
 
     data = r.json()
-    now = Time.clean(Time.now()).timestamp()
+    now = Time.now().clean()
 
     for streams in data.get("streams", {}).values():
-        for s in streams or []:
-            sport = s.get("league")
-            name = s.get("name")
-            key = s.get("stream_key")
+        if not streams:
+            continue
 
-            if not (sport and name and key):
+        for stream in streams:
+            sport = stream.get("league")
+            name = stream.get("name")
+            stream_key = stream.get("stream_key")
+
+            if not (sport and name and stream_key):
                 continue
+
+            title = f"[{sport}] {name} ({TAG})"
 
             tvg_id, logo = leagues.get_tvg_info(sport, name)
 
-            event_key = f"[{sport}] {name} ({TAG})"
+            referer = build_embed_referer(sport, name)
 
-            events[event_key] = {
-                "url": network.build_proxy_url(
-                    tag=TAG,
-                    path=f"{key}/index.m3u8",
-                    query={"stream_name": name},
-                ),
+            m3u8 = network.build_proxy_url(
+                tag=TAG,
+                path=f"{stream_key}/index.m3u8",
+                query={"stream_name": name},
+            )
+
+            # Tivimate pipe headers
+            m3u8 += (
+                f"|referer={referer}"
+                f"|origin={BASE_URL}"
+                f"|user-agent={UA_ENCODED}"
+            )
+
+            events[title] = {
+                "url": m3u8,
                 "logo": logo,
                 "id": tvg_id or "Live.Event.us",
                 "group": sport,
-                "name": name,
-                "timestamp": now,
+                "timestamp": now.timestamp(),
             }
 
     return events
 
-# -------------------------------------------------
-def write_playlist(entries: dict[str, dict]) -> None:
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
 
-        for e in entries.values():
-            f.write(
-                f'#EXTINF:-1 tvg-id="{e["id"]}" '
-                f'tvg-name="{e["name"]}" '
-                f'tvg-logo="{e["logo"]}" '
-                f'group-title="{e["group"]}",{e["name"]}\n'
-            )
-            f.write(
-                f'{e["url"]}'
-                f'|referer={BASE_URL}'
-                f'|origin={BASE_URL}'
-                f'|user-agent={ENCODED_UA}\n'
-            )
-
-    log.info(f"✅ Playlist written: {OUTPUT_FILE}")
-
-# -------------------------------------------------
 async def scrape() -> None:
-    cached = CACHE_FILE.load() or {}
-    urls.update(cached)
+    if cached := CACHE_FILE.load():
+        urls.update(cached)
+        log.info(f"Loaded {len(urls)} events from cache")
+        return
 
-    log.info(f"Loaded {len(cached)} cached events")
+    log.info("Scraping StreamFree events")
 
     events = await network.safe_process(
         get_events,
@@ -150,13 +120,26 @@ async def scrape() -> None:
         urls.update(events)
         CACHE_FILE.write(urls)
 
-    write_playlist(urls)
+    log.info(f"Collected {len(urls)} events")
 
-    log.info(f"🎉 Done — total events: {len(urls)}")
 
-# -------------------------------------------------
+def write_m3u(path="stfree.m3u") -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("#EXTM3U\n")
+
+        for title, e in urls.items():
+            f.write(
+                f'#EXTINF:-1 tvg-id="{e["id"]}" '
+                f'tvg-name="{title}" '
+                f'tvg-logo="{e["logo"]}" '
+                f'group-title="{e["group"]}",'
+                f'{title}\n'
+            )
+            f.write(f'{e["url"]}\n')
+
+    log.info(f"Wrote playlist: {path}")
+
+
 if __name__ == "__main__":
-    import asyncio
-
-    log.info("🚀 Starting StreamFree scraper...")
     asyncio.run(scrape())
+    write_m3u()
