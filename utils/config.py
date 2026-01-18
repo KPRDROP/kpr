@@ -12,7 +12,7 @@ class Time(datetime):
         "ET": pytz.timezone("America/New_York"),
         "PST": pytz.timezone("America/Los_Angeles"),
         "UTC": timezone.utc,
-        "tz.localize(dt)
+        "tz.localize(dt),
     }
 
     ZONES["EDT"] = ZONES["EST"] = ZONES["ET"]
