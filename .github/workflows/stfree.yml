@@ -1,8 +1,8 @@
-name: ▶️ Update StreamFree Playlist
+name: ▶️ StreamFree Scraper
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes
+    - cron: "0 * * * *"   # every hour
   workflow_dispatch:
 
 permissions:
@@ -21,19 +21,21 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: 📦 Install deps
+      - name: 📦 Install dependencies
         run: |
-          pip install aiohttp selectolax httpx
+          python -m pip install --upgrade pip
+          pip install httpx playwright
+          playwright install firefox
 
       - name: 🚀 Run StreamFree scraper
         run: |
           echo "🚀 Starting StreamFree scraper..."
           python stfree.py
 
-      - name: 📤 Commit & push playlist
+      - name: 📤 Commit & push changes
         run: |
           git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add stfree.m3u stfree_cache.json || true
+          git config user.email "actions@github.com"
+          git add stfree.m3u *.json || true
           git commit -m "🔄 Update StreamFree playlist" || exit 0
           git push
