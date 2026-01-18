@@ -3,50 +3,50 @@
 
 """
 StreamFree scraper
-- Outputs stfree.m3u (TiviMate-compatible)
-- Fixes pytz import issue in CI
+- Outputs stfree.m3u (TiviMate format)
+- Fully fixes pytz compatibility for GitHub Actions
 """
 
 # -------------------------------------------------
-# pytz FULL COMPATIBILITY SHIM (DO NOT REMOVE)
+# REAL pytz COMPATIBILITY SHIM (tzinfo SAFE)
 # -------------------------------------------------
 import sys
 import types
-from datetime import timezone as _timezone
 from zoneinfo import ZoneInfo
+from datetime import tzinfo
 
 if "pytz" not in sys.modules:
     pytz = types.ModuleType("pytz")
 
-    class _PytzZone:
+    class PytzZone(tzinfo):
         def __init__(self, name: str):
-            self._tz = ZoneInfo(name)
-
-        def localize(self, dt):
-            return dt.replace(tzinfo=self._tz)
-
-        def astimezone(self, tz):
-            return tz.localize(self._tz.fromutc(self._tz.utcoffset(None)))
+            self._zone = ZoneInfo(name)
 
         def utcoffset(self, dt):
-            return self._tz.utcoffset(dt)
+            return self._zone.utcoffset(dt)
 
         def dst(self, dt):
-            return self._tz.dst(dt)
+            return self._zone.dst(dt)
 
         def tzname(self, dt):
-            return self._tz.tzname(dt)
+            return self._zone.tzname(dt)
+
+        def fromutc(self, dt):
+            return self._zone.fromutc(dt)
+
+        def localize(self, dt):
+            return dt.replace(tzinfo=self)
 
     def timezone(name: str):
-        return _PytzZone(name)
+        return PytzZone(name)
 
     pytz.timezone = timezone
-    pytz.UTC = _timezone.utc
+    pytz.UTC = timezone("UTC")
 
     sys.modules["pytz"] = pytz
 
 # -------------------------------------------------
-# NORMAL IMPORTS (SAFE NOW)
+# SAFE IMPORTS (utils now works)
 # -------------------------------------------------
 from urllib.parse import urljoin, quote_plus
 
