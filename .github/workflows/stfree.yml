@@ -24,7 +24,7 @@ jobs:
       - name: 📦 Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install httpx playwright
+          pip install httpx[http2] playwright
           playwright install firefox
 
       - name: 🚀 Run StreamFree scraper
