@@ -1,8 +1,60 @@
 import asyncio
 import re
+import sys
+import types
+from datetime import tzinfo, timedelta
+from zoneinfo import ZoneInfo
 from urllib.parse import quote_plus, urljoin
 
+if "pytz" not in sys.modules:
+    pytz = types.ModuleType("pytz")
+
+    class PytzZone(tzinfo):
+        def __init__(self, name: str):
+            self._zone = ZoneInfo(name)
+            self.zone = name
+
+        def utcoffset(self, dt):
+            return self._zone.utcoffset(dt)
+
+        def dst(self, dt):
+            return self._zone.dst(dt)
+
+        def tzname(self, dt):
+            return self._zone.tzname(dt)
+
+        def fromutc(self, dt):
+            
+            
+            if dt.tzinfo is not self:
+                raise ValueError("fromutc: dt.tzinfo is not self")
+
+            # Convert via UTC, then reattach self
+            utc_dt = dt.replace(tzinfo=None)
+            converted = utc_dt.replace(tzinfo=self._zone).astimezone(self._zone)
+            return converted.replace(tzinfo=self)
+
+        def localize(self, dt, is_dst=False):
+            if dt.tzinfo is not None:
+                raise ValueError("Not naive datetime (tzinfo already set)")
+            return dt.replace(tzinfo=self)
+
+    def timezone(name: str):
+        return PytzZone(name)
+
+    pytz.timezone = timezone
+    pytz.UTC = timezone("UTC")
+
+    sys.modules["pytz"] = pytz
+
+# -------------------------------------------------
+# SAFE IMPORTS (utils works unchanged)
+# -------------------------------------------------
+from urllib.parse import urljoin, quote_plus
+
 from utils import Cache, Time, get_logger, leagues, network
+
+# -------------------------------------------------
 
 log = get_logger(__name__)
 
