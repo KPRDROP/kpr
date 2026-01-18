@@ -1,8 +1,21 @@
 #!/usr/bin/env python3
-from urllib.parse import urljoin
-import urllib.parse
+import sys
+import types
+from datetime import timezone
+from urllib.parse import urljoin, quote
 
-# ✅ ABSOLUTE IMPORTS (GitHub Actions safe)
+# -------------------------------------------------
+# ✅ pytz fallback (GitHub Actions safe)
+# -------------------------------------------------
+if "pytz" not in sys.modules:
+    pytz_stub = types.ModuleType("pytz")
+    pytz_stub.UTC = timezone.utc
+    pytz_stub.utc = timezone.utc
+    sys.modules["pytz"] = pytz_stub
+
+# -------------------------------------------------
+# ✅ Helpers import (works now)
+# -------------------------------------------------
 from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
@@ -22,9 +35,9 @@ USER_AGENT_RAW = (
     "Chrome/142.0.0.0 Safari/537.36"
 )
 
-USER_AGENT_ENCODED = urllib.parse.quote(USER_AGENT_RAW, safe="")
+USER_AGENT_ENCODED = quote(USER_AGENT_RAW, safe="")
 
-
+# -------------------------------------------------
 async def get_events() -> dict[str, dict[str, str | float]]:
     events = {}
 
@@ -71,7 +84,7 @@ async def get_events() -> dict[str, dict[str, str | float]]:
 
     return events
 
-
+# -------------------------------------------------
 def write_playlist(data: dict[str, dict]):
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
@@ -89,7 +102,7 @@ def write_playlist(data: dict[str, dict]):
                 f'|user-agent={USER_AGENT_ENCODED}\n'
             )
 
-
+# -------------------------------------------------
 async def scrape() -> None:
     if cached := CACHE_FILE.load():
         urls.update(cached)
@@ -113,7 +126,7 @@ async def scrape() -> None:
 
     log.info(f"Collected and cached {len(urls)} event(s)")
 
-
+# -------------------------------------------------
 if __name__ == "__main__":
     import asyncio
     asyncio.run(scrape())
