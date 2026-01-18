@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-"""
-StreamFree scraper
-- Outputs stfree.m3u (TiviMate format)
-- Fully fixes pytz compatibility (tzinfo-safe)
-"""
-
-# -------------------------------------------------
-# PYTZ COMPATIBILITY SHIM (100% SAFE)
-# -------------------------------------------------
 import sys
 import types
 from datetime import tzinfo, timedelta
@@ -33,8 +23,8 @@ if "pytz" not in sys.modules:
             return self._zone.tzname(dt)
 
         def fromutc(self, dt):
-            # Correct pytz behavior:
-            # dt.tzinfo MUST be self
+            
+            
             if dt.tzinfo is not self:
                 raise ValueError("fromutc: dt.tzinfo is not self")
 
