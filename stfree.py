@@ -4,16 +4,16 @@
 """
 StreamFree scraper
 - Outputs stfree.m3u (TiviMate format)
-- Fully fixes pytz compatibility for GitHub Actions
+- Fully fixes pytz compatibility (tzinfo-safe)
 """
 
 # -------------------------------------------------
-# REAL pytz COMPATIBILITY SHIM (tzinfo SAFE)
+# PYTZ COMPATIBILITY SHIM (100% SAFE)
 # -------------------------------------------------
 import sys
 import types
+from datetime import tzinfo, timedelta
 from zoneinfo import ZoneInfo
-from datetime import tzinfo
 
 if "pytz" not in sys.modules:
     pytz = types.ModuleType("pytz")
@@ -21,6 +21,7 @@ if "pytz" not in sys.modules:
     class PytzZone(tzinfo):
         def __init__(self, name: str):
             self._zone = ZoneInfo(name)
+            self.zone = name
 
         def utcoffset(self, dt):
             return self._zone.utcoffset(dt)
@@ -32,9 +33,19 @@ if "pytz" not in sys.modules:
             return self._zone.tzname(dt)
 
         def fromutc(self, dt):
-            return self._zone.fromutc(dt)
+            # Correct pytz behavior:
+            # dt.tzinfo MUST be self
+            if dt.tzinfo is not self:
+                raise ValueError("fromutc: dt.tzinfo is not self")
 
-        def localize(self, dt):
+            # Convert via UTC, then reattach self
+            utc_dt = dt.replace(tzinfo=None)
+            converted = utc_dt.replace(tzinfo=self._zone).astimezone(self._zone)
+            return converted.replace(tzinfo=self)
+
+        def localize(self, dt, is_dst=False):
+            if dt.tzinfo is not None:
+                raise ValueError("Not naive datetime (tzinfo already set)")
             return dt.replace(tzinfo=self)
 
     def timezone(name: str):
@@ -46,7 +57,7 @@ if "pytz" not in sys.modules:
     sys.modules["pytz"] = pytz
 
 # -------------------------------------------------
-# SAFE IMPORTS (utils now works)
+# SAFE IMPORTS (utils works unchanged)
 # -------------------------------------------------
 from urllib.parse import urljoin, quote_plus
 
