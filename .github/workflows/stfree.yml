@@ -29,7 +29,7 @@ jobs:
 
       - name: 🚀 Run StreamFree scraper
         run: |
-          echo "🚀 Starting StreamFree scraper..."
+          echo "🚀 Starting StrmFree scraper..."
           python stfree.py
 
       - name: 📤 Commit & push changes
