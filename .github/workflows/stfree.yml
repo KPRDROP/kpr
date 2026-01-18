@@ -23,7 +23,7 @@ jobs:
 
       - name: 📦 Install deps
         run: |
-          pip install aiohttp selectolax
+          pip install aiohttp selectolax httpx
 
       - name: 🚀 Run StreamFree scraper
         run: |
