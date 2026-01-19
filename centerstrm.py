@@ -53,8 +53,8 @@ def build_playlist(data: dict) -> str:
 
         lines.append(
             f'{e["url"]}'
-            f'|referer=https://streamcenter.xyz'
-            f'|origin=https://streamcenter.xyz'
+            f'|referer=https://streams.center/'
+            f'|origin=https://streams.center'
             f'|user-agent={UA_ENC}'
         )
 
@@ -154,7 +154,7 @@ async def scrape() -> None:
                 urls[key] = cached_urls[key] = {
                     "url": url,
                     "logo": logo,
-                    "base": "https://streamcenter.xyz",
+                    "base": "https://streams.center",
                     "timestamp": ev["timestamp"],
                     "id": tvg_id or "Live.Event.us",
                 }
