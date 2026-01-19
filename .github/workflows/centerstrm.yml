@@ -2,8 +2,8 @@ name: 📡 CenterStrm Scraper
 
 on:
   schedule:
-    # Run every 2 hours
-    - cron: "0 */2 * * *"
+    # Run every 30 minutes
+    - cron: "*/30 * * * *"
   workflow_dispatch:
     # Allow manual run from GitHub UI
 
