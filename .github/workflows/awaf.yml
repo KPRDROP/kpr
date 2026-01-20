@@ -26,7 +26,7 @@ jobs:
           pip install playwright httpx[http2] pytz
 
       - name: ▶️ Run scraper
-        run: python -m awaf.py
+        run: python -m awaf
 
       - name: 📤 Commit and push if changed
         run: |
