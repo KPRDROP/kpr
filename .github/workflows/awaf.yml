@@ -22,7 +22,8 @@ jobs:
           python-version: "3.11"
 
       - name: 📦 Install deps
-        run: pip install httpx[http2] pytz
+        run: 
+          pip install playwright httpx[http2] pytz
 
       - name: ▶️ Run scraper
         run: python -m awaf
