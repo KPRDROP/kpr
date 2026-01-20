@@ -3,8 +3,6 @@ from functools import partial
 from pathlib import Path
 from urllib.parse import quote, urljoin
 
-from selectolax.parser import HTMLParser
-
 from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
@@ -49,53 +47,50 @@ def build_playlist(data: dict) -> str:
 
 
 async def process_event(url: str, url_num: int) -> str | None:
-    if not (html_data := await network.request(url, log=log)):
-        log.info(f"URL {url_num}) Failed to load url.")
+    if not (html := await network.request(url, log=log)):
+        log.info(f"URL {url_num}) Failed to load page")
         return
 
-    valid_m3u8 = re.compile(
-        r'(https?:\/\/[^"\'\s>]+\.m3u8(?:\?[^"\'\s>]*)?)',
-        re.IGNORECASE,
-    )
+    m3u8_re = re.compile(r'(https?:\/\/[^\s"\'<>]+\.m3u8[^\s"\'<>]*)', re.I)
 
-    if not (match := valid_m3u8.search(html_data.text)):
-        log.info(f"URL {url_num}) No M3U8 found")
+    match = m3u8_re.search(html.text)
+    if not match:
+        log.info(f"URL {url_num}) No m3u8 found")
         return
 
-    log.info(f"URL {url_num}) Captured M3U8")
-    return match[1]
+    log.info(f"URL {url_num}) Captured m3u8")
+    return match.group(1)
 
 
 async def get_events(cached_hrefs: set[str]) -> list[dict[str, str]]:
     events = []
 
-    if not (html_data := await network.request(BASE_URL, log=log)):
+    if not (html := await network.request(BASE_URL, log=log)):
         return events
 
-    soup = HTMLParser(html_data.content)
+    page = html.text
 
-    valid_event = re.compile(r"\d{1,2}:\d{1,2}")
-    clean_event = re.compile(r"\s+-+\s+\w{1,4}")
+    item_re = re.compile(
+        r'<a[^>]+href="([^"]+)"[^>]*>.*?'
+        r'<div class="user-item__name">(.*?)</div>.*?'
+        r'<div class="user-item__playing">(.*?)</div>',
+        re.S | re.I,
+    )
 
-    for item in soup.css(".user-item"):
-        text = item.css_first(".user-item__name")
-        subtext = item.css_first(".user-item__playing")
-        link = item.css_first("a[href]")
+    time_re = re.compile(r"\d{1,2}:\d{2}")
+    clean_re = re.compile(r"\s+-+\s+\w{1,4}")
 
-        if not (text and subtext and link):
+    for href, name, playing in item_re.findall(page):
+        href = quote(href)
+
+        if href in cached_hrefs:
             continue
 
-        href = quote(link.attributes.get("href", ""))
-
-        if not href or href in cached_hrefs:
+        if not time_re.search(playing):
             continue
 
-        details = subtext.text(strip=True)
-        if not valid_event.search(details):
-            continue
-
-        sport = valid_event.split(details)[0].strip()
-        event = clean_event.sub("", text.text(strip=True))
+        sport = time_re.split(playing)[0].strip()
+        event = clean_re.sub("", re.sub(r"<.*?>", "", name)).strip()
 
         events.append(
             {
@@ -130,21 +125,21 @@ async def scrape() -> None:
     for i, ev in enumerate(events, 1):
         handler = partial(process_event, url=ev["link"], url_num=i)
 
-        url = await network.safe_process(
+        stream = await network.safe_process(
             handler,
             url_num=i,
             semaphore=network.HTTP_S,
             log=log,
         )
 
-        if not url:
+        if not stream:
             continue
 
         key = f"[{ev['sport']}] {ev['event']} ({TAG})"
         tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
         cached_urls[key] = {
-            "url": url,
+            "url": stream,
             "logo": logo,
             "base": BASE_URL,
             "timestamp": now,
@@ -154,7 +149,6 @@ async def scrape() -> None:
 
     CACHE_FILE.write(cached_urls)
 
-    playlist = build_playlist(cached_urls)
-    OUTPUT_FILE.write_text(playlist, encoding="utf-8")
+    OUTPUT_FILE.write_text(build_playlist(cached_urls), encoding="utf-8")
 
-    log.info(f"Updated awaf.m3u with {len(cached_urls) - cached_count} new event(s)")
+    log.info(f"Updated awaf.m3u (+{len(cached_urls) - cached_count})")
