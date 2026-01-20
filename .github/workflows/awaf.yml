@@ -1,0 +1,36 @@
+name: 📡 Update AWAF Playlist
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 📦 Install deps
+        run: pip install -r requirements.txt
+
+      - name: ▶️ Run scraper
+        run: python -m awaf
+
+      - name: 🚀 Commit & Push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add awaf.m3u awaf.json
+          git commit -m "📡 Update AWAF playlist" || exit 0
+          git push
