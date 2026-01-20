@@ -26,12 +26,16 @@ jobs:
           pip install playwright httpx[http2] pytz
 
       - name: ▶️ Run scraper
-        run: python -m awaf
+        run: python -m awaf.py
 
-      - name: 🚀 Commit & Push
+      - name: 📤 Commit and push if changed
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add awaf.m3u awaf.json
-          git commit -m "📡 Update AWAF playlist" || exit 0
-          git push
+          if [[ -n "$(git status --porcelain awaf.m3u)" ]]; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add awaf.m3u
+            git commit -m "📡 Update FAWA playlist"
+            git push
+          else
+            echo "ℹ️ No changes to awaf.m3u"
+          fi
