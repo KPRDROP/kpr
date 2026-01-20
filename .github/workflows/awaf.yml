@@ -24,6 +24,7 @@ jobs:
       - name: 📦 Install deps
         run: 
           pip install playwright httpx[http2] pytz
+          playwright install firefox
 
       - name: ▶️ Run scraper
         run: python -m awaf.py
