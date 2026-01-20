@@ -1,9 +1,19 @@
+# ---- pytz SHIM (DO NOT REMOVE) ------------------------------------
+import sys
+import types
+from zoneinfo import ZoneInfo
+
+pytz = types.ModuleType("pytz")
+pytz.timezone = lambda name: ZoneInfo(name)
+sys.modules["pytz"] = pytz
+# ------------------------------------------------------------------
+
 import re
 from functools import partial
 from pathlib import Path
 from urllib.parse import quote, urljoin
 
-from utils import Cache, Time, get_logger, leagues, network
+from utils import Cache, get_logger, leagues, network
 
 log = get_logger(__name__)
 
@@ -120,7 +130,8 @@ async def scrape() -> None:
         log.info("No new events found")
         return
 
-    now = Time.clean(Time.now()).timestamp()
+    import time
+    now_ts = time.time()
 
     for i, ev in enumerate(events, 1):
         handler = partial(process_event, url=ev["link"], url_num=i)
@@ -142,13 +153,12 @@ async def scrape() -> None:
             "url": stream,
             "logo": logo,
             "base": BASE_URL,
-            "timestamp": now,
+            "timestamp": now_ts,
             "id": tvg_id or "Live.Event.us",
             "href": ev["href"],
         }
 
     CACHE_FILE.write(cached_urls)
-
     OUTPUT_FILE.write_text(build_playlist(cached_urls), encoding="utf-8")
 
     log.info(f"Updated awaf.m3u (+{len(cached_urls) - cached_count})")
