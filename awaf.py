@@ -1,111 +1,90 @@
-# ---- pytz SHIM (DO NOT REMOVE) ------------------------------------
-import sys
-import types
-from zoneinfo import ZoneInfo
-
-pytz = types.ModuleType("pytz")
-pytz.timezone = lambda name: ZoneInfo(name)
-sys.modules["pytz"] = pytz
-# ------------------------------------------------------------------
-
+import asyncio
 import re
 from functools import partial
 from pathlib import Path
-from urllib.parse import quote, urljoin
+from urllib.parse import quote, urljoin, quote_plus
 
-from utils import Cache, get_logger, leagues, network
+from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
-urls: dict[str, dict[str, str | float]] = {}
-
 TAG = "FAWA"
-
-CACHE_FILE = Cache(f"{TAG.lower()}.json", exp=10_800)
+OUT_FILE = Path("awaf.m3u")
 
 BASE_URL = "http://www.fawanews.sc/"
 
-OUTPUT_FILE = Path("awaf.m3u")
+CACHE_FILE = Cache("awaf.json", exp=10_800)
 
-UA_ENC = (
-    "Mozilla%2F5.0%20(Windows%20NT%2010.0%3B%20Win64%3B%20x64%3B%20rv%3A146.0)"
-    "%20Gecko%2F20100101%20Firefox%2F146.0"
+UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) "
+    "Gecko/20100101 Firefox/146.0"
 )
+UA_ENC = quote_plus(UA)
+
+urls: dict[str, dict] = {}
 
 
-def build_playlist(data: dict) -> str:
-    lines = ["#EXTM3U"]
-    chno = 1
-
-    for name, e in data.items():
-        lines.append(
-            f'#EXTINF:-1 tvg-chno="{chno}" '
-            f'tvg-id="{e["id"]}" '
-            f'tvg-name="{name}" '
-            f'tvg-logo="{e["logo"]}" '
-            f'group-title="Live Events",{name}'
-        )
-        lines.append(
-            f'{e["url"]}'
-            f'|referer={BASE_URL}'
-            f'|origin={BASE_URL}'
-            f'|user-agent={UA_ENC}'
-        )
-        chno += 1
-
-    return "\n".join(lines) + "\n"
-
-
+# -------------------------------------------------
+# Extract m3u8 from FAWA event page (JS-based)
+# -------------------------------------------------
 async def process_event(url: str, url_num: int) -> str | None:
-    if not (html := await network.request(url, log=log)):
-        log.info(f"URL {url_num}) Failed to load page")
-        return
+    r = await network.request(url, log=log)
+    if not r:
+        log.warning(f"URL {url_num}) failed to load")
+        return None
 
-    m3u8_re = re.compile(r'(https?:\/\/[^\s"\'<>]+\.m3u8[^\s"\'<>]*)', re.I)
+    patterns = [
+        r'https?:\/\/[^"\']+\.m3u8[^"\']*',
+        r'var\s+\w+\s*=\s*\[\s*"([^"]+\.m3u8[^"]*)"',
+    ]
 
-    match = m3u8_re.search(html.text)
-    if not match:
-        log.info(f"URL {url_num}) No m3u8 found")
-        return
+    for p in patterns:
+        m = re.search(p, r.text, re.IGNORECASE)
+        if m:
+            stream = m.group(1) if m.groups() else m.group(0)
+            log.info(f"URL {url_num}) captured M3U8")
+            return stream
 
-    log.info(f"URL {url_num}) Captured m3u8")
-    return match.group(1)
+    log.warning(f"URL {url_num}) no M3U8 found")
+    return None
 
 
-async def get_events(cached_hrefs: set[str]) -> list[dict[str, str]]:
+# -------------------------------------------------
+# Get events from FAWA homepage (regex based)
+# -------------------------------------------------
+async def get_events(cached_hrefs: set[str]) -> list[dict]:
+    r = await network.request(BASE_URL, log=log)
+    if not r:
+        return []
+
+    html = r.text
+
     events = []
 
-    if not (html := await network.request(BASE_URL, log=log)):
-        return events
-
-    page = html.text
-
-    item_re = re.compile(
+    card_re = re.compile(
         r'<a[^>]+href="([^"]+)"[^>]*>.*?'
-        r'<div class="user-item__name">(.*?)</div>.*?'
-        r'<div class="user-item__playing">(.*?)</div>',
+        r'<div class="user-item__name">([^<]+)</div>.*?'
+        r'<div class="user-item__playing">([^<]+)</div>',
         re.S | re.I,
     )
 
     time_re = re.compile(r"\d{1,2}:\d{2}")
-    clean_re = re.compile(r"\s+-+\s+\w{1,4}")
 
-    for href, name, playing in item_re.findall(page):
+    for href, name, meta in card_re.findall(html):
         href = quote(href)
 
         if href in cached_hrefs:
             continue
 
-        if not time_re.search(playing):
+        if not time_re.search(meta):
             continue
 
-        sport = time_re.split(playing)[0].strip()
-        event = clean_re.sub("", re.sub(r"<.*?>", "", name)).strip()
+        sport = meta.split(time_re.search(meta).group())[0].strip()
 
         events.append(
             {
                 "sport": sport,
-                "event": event,
+                "event": name.strip(),
                 "link": urljoin(BASE_URL, href),
                 "href": href,
             }
@@ -114,27 +93,50 @@ async def get_events(cached_hrefs: set[str]) -> list[dict[str, str]]:
     return events
 
 
+# -------------------------------------------------
+# Write TiViMate playlist
+# -------------------------------------------------
+def write_playlist(data: dict[str, dict]) -> None:
+    lines = ["#EXTM3U"]
+
+    for name, e in data.items():
+        lines.append(
+            f'#EXTINF:-1 tvg-id="{e["id"]}" '
+            f'tvg-name="{name}" '
+            f'tvg-logo="{e["logo"]}" '
+            f'group-title="Live Events",{name}'
+        )
+
+        lines.append(
+            f'{e["url"]}'
+            f'|referer={BASE_URL}'
+            f'|origin={BASE_URL}'
+            f'|user-agent={UA_ENC}'
+        )
+
+    OUT_FILE.write_text("\n".join(lines), encoding="utf-8")
+    log.info(f"Wrote {len(data)} entries to awaf.m3u")
+
+
+# -------------------------------------------------
+# Main scrape
+# -------------------------------------------------
 async def scrape() -> None:
-    cached_urls = CACHE_FILE.load()
-    cached_hrefs = {v["href"] for v in cached_urls.values()}
-    cached_count = len(cached_urls)
+    cached = CACHE_FILE.load()
+    urls.update(cached)
 
-    urls.update(cached_urls)
+    cached_hrefs = {v["href"] for v in cached.values()}
 
-    log.info(f"Loaded {cached_count} cached events")
+    log.info(f"Loaded {len(cached)} cached events")
+    log.info(f'Scraping "{BASE_URL}"')
 
     events = await get_events(cached_hrefs)
-    log.info(f"Found {len(events)} new event(s)")
+    log.info(f"Processing {len(events)} new events")
 
-    if not events:
-        log.info("No new events found")
-        return
+    now = Time.clean(Time.now()).timestamp()
 
-    import time
-    now_ts = time.time()
-
-    for i, ev in enumerate(events, 1):
-        handler = partial(process_event, url=ev["link"], url_num=i)
+    for i, ev in enumerate(events, start=1):
+        handler = partial(process_event, ev["link"], i)
 
         stream = await network.safe_process(
             handler,
@@ -146,19 +148,25 @@ async def scrape() -> None:
         if not stream:
             continue
 
-        key = f"[{ev['sport']}] {ev['event']} ({TAG})"
+        key = f'[{ev["sport"]}] {ev["event"]} ({TAG})'
+
         tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
-        cached_urls[key] = {
+        urls[key] = {
             "url": stream,
             "logo": logo,
             "base": BASE_URL,
-            "timestamp": now_ts,
+            "timestamp": now,
             "id": tvg_id or "Live.Event.us",
             "href": ev["href"],
         }
 
-    CACHE_FILE.write(cached_urls)
-    OUTPUT_FILE.write_text(build_playlist(cached_urls), encoding="utf-8")
+    CACHE_FILE.write(urls)
+    write_playlist(urls)
 
-    log.info(f"Updated awaf.m3u (+{len(cached_urls) - cached_count})")
+
+# -------------------------------------------------
+# Entrypoint
+# -------------------------------------------------
+if __name__ == "__main__":
+    asyncio.run(scrape())
