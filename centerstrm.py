@@ -1,8 +1,7 @@
 import asyncio
-import re
 from functools import partial
 from pathlib import Path
-from urllib.parse import urljoin, quote_plus
+from urllib.parse import quote_plus
 
 from playwright.async_api import async_playwright
 
@@ -11,12 +10,26 @@ from utils import Cache, Time, get_logger, leagues, network
 log = get_logger(__name__)
 
 TAG = "STRMCNTR"
-BASE_SITE = "https://streamcenter.live"
-BASE_ORIGIN = "https://streamcenter.xyz"
 
-OUT_FILE = Path("centerstrm.m3u")
+API_URL = "https://backend.streamcenter.live/api/Parties"
+BASE_ORIGIN = "https://streams.center"
 
+OUTPUT_FILE = Path("centerstrm.m3u")
 CACHE_FILE = Cache("centerstrm.json", exp=10_800)
+
+CATEGORIES = {
+    4: "Basketball",
+    9: "Football",
+    13: "Baseball",
+    14: "American Football",
+    15: "Motor Sport",
+    16: "Hockey",
+    17: "MMA",
+    18: "Boxing",
+    19: "NCAA",
+    20: "WWE",
+    21: "Tennis",
+}
 
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -29,43 +42,7 @@ urls: dict[str, dict] = {}
 
 
 # -------------------------------------------------
-# Extract frontend events
-# -------------------------------------------------
-async def get_events(cached_keys: set[str]) -> list[dict]:
-    r = await network.request(BASE_SITE, log=log)
-    if not r:
-        return []
-
-    html = r.text
-    events = []
-
-    card_re = re.compile(
-        r'<a[^>]+href="(/stream/\d+)"[^>]*>.*?'
-        r'<h3[^>]*>([^<]+)</h3>.*?'
-        r'<p[^>]*>([^|]+)\|([^<]+)</p>.*?'
-        r'<img[^>]+src="([^"]+)"',
-        re.S | re.I,
-    )
-
-    for href, name, sport, _, logo in card_re.findall(html):
-        key = f"[{sport.strip()}] {name.strip()} ({TAG})"
-        if key in cached_keys:
-            continue
-
-        events.append(
-            {
-                "sport": sport.strip(),
-                "event": name.strip(),
-                "url": urljoin(BASE_SITE, href),
-                "logo": logo,
-            }
-        )
-
-    return events
-
-
-# -------------------------------------------------
-# Write playlist
+# Build playlist
 # -------------------------------------------------
 def write_playlist(data: dict) -> None:
     lines = ["#EXTM3U"]
@@ -79,7 +56,6 @@ def write_playlist(data: dict) -> None:
             f'tvg-logo="{e["logo"]}" '
             f'group-title="Live Events",{name}'
         )
-
         lines.append(
             f'{e["url"]}'
             f'|referer={BASE_ORIGIN}/'
@@ -88,8 +64,56 @@ def write_playlist(data: dict) -> None:
         )
         ch += 1
 
-    OUT_FILE.write_text("\n".join(lines), encoding="utf-8")
+    OUTPUT_FILE.write_text("\n".join(lines), encoding="utf-8")
     log.info(f"Wrote {len(data)} entries to centerstrm.m3u")
+
+
+# -------------------------------------------------
+# Load events from API
+# -------------------------------------------------
+async def get_events(cached_keys: set[str]) -> list[dict]:
+    r = await network.request(API_URL, log=log)
+    if not r:
+        return []
+
+    api_data = r.json()
+    events = []
+
+    now = Time.now()
+
+    for row in api_data:
+        category_id = row.get("categoryId")
+        sport = CATEGORIES.get(category_id)
+        name = row.get("gameName")
+        video_url = row.get("videoUrl")
+        begin = row.get("beginPartie")
+        end = row.get("endPartie")
+
+        if not all([sport, name, video_url, begin, end]):
+            continue
+
+        start = Time.from_str(begin, timezone="CET")
+        stop = Time.from_str(end, timezone="CET")
+
+        if not (start <= now <= stop):
+            continue
+
+        key = f"[{sport}] {name} ({TAG})"
+        if key in cached_keys:
+            continue
+
+        logo = row.get("logoTeam1") or row.get("logoTeam2")
+
+        events.append(
+            {
+                "sport": sport,
+                "event": name,
+                "video": video_url.split("<")[0].strip(),
+                "logo": logo,
+            }
+        )
+
+    return events
 
 
 # -------------------------------------------------
@@ -102,7 +126,7 @@ async def scrape() -> None:
     log.info(f"Loaded {len(cached)} cached events")
 
     events = await get_events(set(cached.keys()))
-    log.info(f"Found {len(events)} frontend events")
+    log.info(f"Found {len(events)} live API events")
 
     if not events:
         write_playlist(urls)
@@ -115,7 +139,7 @@ async def scrape() -> None:
             for i, ev in enumerate(events, 1):
                 handler = partial(
                     network.process_event,
-                    url=ev["url"],
+                    url=ev["video"],
                     url_num=i,
                     context=context,
                     timeout=20,
