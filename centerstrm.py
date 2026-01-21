@@ -1,7 +1,6 @@
-import asyncio
 from functools import partial
 from pathlib import Path
-from urllib.parse import quote_plus
+from urllib.parse import urljoin
 
 from playwright.async_api import async_playwright
 
@@ -11,11 +10,13 @@ log = get_logger(__name__)
 
 TAG = "STRMCNTR"
 
-API_URL = "https://backend.streamcenter.live/api/Parties"
-BASE_ORIGIN = "https://streams.center"
+CACHE_FILE = Cache(f"{TAG.lower()}.json", exp=10_800)
+API_FILE = Cache(f"{TAG.lower()}-api.json", exp=7_200)
 
 OUTPUT_FILE = Path("centerstrm.m3u")
-CACHE_FILE = Cache("centerstrm.json", exp=10_800)
+
+BASE_URL = "https://backend.streamcenter.live/api/Parties"
+EMBED_BASE = "https://streams.center/"
 
 CATEGORIES = {
     4: "Basketball",
@@ -24,115 +25,134 @@ CATEGORIES = {
     14: "American Football",
     15: "Motor Sport",
     16: "Hockey",
-    17: "MMA",
+    17: "Fight MMA",
     18: "Boxing",
-    19: "NCAA",
+    19: "NCAA Sports",
     20: "WWE",
     21: "Tennis",
 }
 
-UA = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/144.0.0.0 Safari/537.36"
+UA_ENC = (
+    "Mozilla%2F5.0%20(Windows%20NT%2010.0%3B%20Win64%3B%20x64)"
+    "%20AppleWebKit%2F537.36%20(KHTML%2C%20like%20Gecko)"
+    "%20Chrome%2F144.0.0.0%20Safari%2F537.36"
 )
-UA_ENC = quote_plus(UA)
-
-urls: dict[str, dict] = {}
 
 
 # -------------------------------------------------
-# Build playlist
+# PLAYLIST BUILDER (TIVIMATE FORMAT)
 # -------------------------------------------------
-def write_playlist(data: dict) -> None:
+def build_playlist(data: dict) -> str:
     lines = ["#EXTM3U"]
     ch = 1
 
-    for name, e in data.items():
-        display = e["name"]
-        
+    for entry in data.values():
+        name = entry["name"]
+
         lines.append(
             f'#EXTINF:-1 tvg-chno="{ch}" '
-            f'tvg-id="{e["id"]}" '
+            f'tvg-id="{entry["id"]}" '
             f'tvg-name="{name}" '
-            f'tvg-logo="{e["logo"]}" '
+            f'tvg-logo="{entry["logo"]}" '
             f'group-title="Live Events",{name}'
         )
+
         lines.append(
-            f'{e["url"]}'
-            f'|referer={BASE_ORIGIN}/'
-            f'|origin={BASE_ORIGIN}'
+            f'{entry["url"]}'
+            f'|referer=https://streamcenter.xyz/'
+            f'|origin=https://streamcenter.xyz'
             f'|user-agent={UA_ENC}'
         )
         ch += 1
 
-    OUTPUT_FILE.write_text("\n".join(lines), encoding="utf-8")
-    log.info(f"Wrote {len(data)} entries to centerstrm.m3u")
+    return "\n".join(lines) + "\n"
 
 
 # -------------------------------------------------
-# Load events from API
+# EVENT DISCOVERY (API)
 # -------------------------------------------------
-async def get_events(cached_keys: set[str]) -> list[dict]:
-    r = await network.request(API_URL, log=log)
-    if not r:
-        return []
+async def get_events(cached_ids: set[str]) -> list[dict]:
+    now = Time.clean(Time.now())
 
-    api_data = r.json()
+    api_data = API_FILE.load(per_entry=False, index=-1)
+    if not api_data:
+        log.info("Refreshing API cache")
+        if r := await network.request(
+            BASE_URL,
+            log=log,
+            params={"pageNumber": 1, "pageSize": 500},
+        ):
+            api_data = r.json()
+            API_FILE.write(api_data)
+        else:
+            return []
+
     events = []
 
-    now = Time.now()
+    PRE_START = 6   # hours before kickoff
+    POST_END = 2    # hours after end
 
     for row in api_data:
+        event_id = row.get("id")
         category_id = row.get("categoryId")
-        sport = CATEGORIES.get(category_id)
         name = row.get("gameName")
-        video_url = row.get("videoUrl")
+        embed = row.get("videoUrl")
         begin = row.get("beginPartie")
         end = row.get("endPartie")
 
-        if not all([sport, name, video_url, begin, end]):
+        if not all([event_id, category_id, name, embed, begin, end]):
             continue
 
-        start = Time.from_str(begin, timezone="CET")
-        stop = Time.from_str(end, timezone="CET")
+        if str(event_id) in cached_ids:
+            continue
 
-        PRE_START_HOURS = 6
-        POST_END_HOURS = 2
+        sport = CATEGORIES.get(category_id)
+        if not sport:
+            continue
 
-start_window = start.delta(hours=-PRE_START_HOURS)
-end_window = stop.delta(hours=POST_END_HOURS)
+        start_dt = Time.from_str(begin, timezone="CET")
+        end_dt = Time.from_str(end, timezone="CET")
 
-if not (start_window <= now <= end_window):
-    continue
+        if not (
+            start_dt.delta(hours=-PRE_START)
+            <= now
+            <= end_dt.delta(hours=POST_END)
+        ):
+            continue
 
-        logo = row.get("logoTeam1") or row.get("logoTeam2")
+        embed_url = embed.split("<")[0].strip()
+        if not embed_url.startswith("http"):
+            embed_url = urljoin(EMBED_BASE, embed_url)
 
         events.append(
             {
+                "id": str(event_id),
                 "sport": sport,
                 "event": name,
-                "video": video_url.split("<")[0].strip(),
-                "logo": logo,
+                "embed": embed_url,
+                "timestamp": start_dt.timestamp(),
             }
         )
 
     return events
 
+
 # -------------------------------------------------
-# Main scraper
+# MAIN SCRAPER
 # -------------------------------------------------
 async def scrape() -> None:
     cached = CACHE_FILE.load()
-    urls.update(cached)
+    cached_ids = set(cached.keys())
 
     log.info(f"Loaded {len(cached)} cached events")
 
-    events = await get_events(set(cached.keys()))
-    log.info(f"Found {len(events)} live API events")
+    events = await get_events(cached_ids)
+    log.info(f"Found {len(events)} live/upcoming API events")
 
     if not events:
-        write_playlist(urls)
+        playlist = build_playlist(cached)
+        OUTPUT_FILE.write_text(playlist, encoding="utf-8")
+        log.info(f"Wrote {len(cached)} entries to centerstrm.m3u")
         return
 
     async with async_playwright() as p:
@@ -142,7 +162,7 @@ async def scrape() -> None:
             for i, ev in enumerate(events, 1):
                 handler = partial(
                     network.process_event,
-                    url=ev["video"],
+                    url=ev["embed"],
                     url_num=i,
                     context=context,
                     timeout=20,
@@ -159,25 +179,32 @@ async def scrape() -> None:
                 if not stream:
                     continue
 
-                key = f"{TAG}:{row['id']}"
+                tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
-urls[key] = {
-    "name": f"[{sport}] {name} ({TAG})",
-    "url": stream,
-    "logo": logo,
-    "timestamp": Time.now().timestamp(),
-    "id": tvg_id or "Live.Event.us",
-}
+                cached[ev["id"]] = {
+                    "name": f"[{ev['sport']}] {ev['event']} ({TAG})",
+                    "url": stream,
+                    "logo": logo,
+                    "timestamp": ev["timestamp"],
+                    "id": tvg_id or "Live.Event.us",
+                }
 
         finally:
             await browser.close()
 
-    CACHE_FILE.write(urls)
-    write_playlist(urls)
+    CACHE_FILE.write(cached)
+
+    playlist = build_playlist(cached)
+    OUTPUT_FILE.write_text(playlist, encoding="utf-8")
+
+    log.info(f"Wrote {len(cached)} entries to centerstrm.m3u")
 
 
 # -------------------------------------------------
-# Entrypoint
+# ENTRY POINT
 # -------------------------------------------------
 if __name__ == "__main__":
+    import asyncio
+
+    log.info("🚀 Starting StreamCenter scraper...")
     asyncio.run(scrape())
