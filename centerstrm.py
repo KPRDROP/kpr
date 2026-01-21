@@ -49,6 +49,8 @@ def write_playlist(data: dict) -> None:
     ch = 1
 
     for name, e in data.items():
+        display = e["name"]
+        
         lines.append(
             f'#EXTINF:-1 tvg-chno="{ch}" '
             f'tvg-id="{e["id"]}" '
@@ -96,7 +98,7 @@ async def get_events(cached_keys: set[str]) -> list[dict]:
         stop = Time.from_str(end, timezone="CET")
 
         PRE_START_HOURS = 6
-    POST_END_HOURS = 2
+        POST_END_HOURS = 2
 
 start_window = start.delta(hours=-PRE_START_HOURS)
 end_window = stop.delta(hours=POST_END_HOURS)
@@ -116,7 +118,6 @@ if not (start_window <= now <= end_window):
         )
 
     return events
-
 
 # -------------------------------------------------
 # Main scraper
@@ -158,16 +159,15 @@ async def scrape() -> None:
                 if not stream:
                     continue
 
-                key = f"[{ev['sport']}] {ev['event']} ({TAG})"
-                tvg_id, _ = leagues.get_tvg_info(ev["sport"], ev["event"])
+                key = f"{TAG}:{row['id']}"
 
-                urls[key] = {
-                    "url": stream,
-                    "logo": ev["logo"],
-                    "base": BASE_ORIGIN,
-                    "timestamp": Time.now().timestamp(),
-                    "id": tvg_id or "Live.Event.us",
-                }
+urls[key] = {
+    "name": f"[{sport}] {name} ({TAG})",
+    "url": stream,
+    "logo": logo,
+    "timestamp": Time.now().timestamp(),
+    "id": tvg_id or "Live.Event.us",
+}
 
         finally:
             await browser.close()
