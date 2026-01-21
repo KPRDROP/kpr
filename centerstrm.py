@@ -2,7 +2,7 @@ from functools import partial
 from pathlib import Path
 from urllib.parse import urljoin
 
-from playwright.async_api import async_playwright, Browser, BrowserContext
+from playwright.async_api import async_playwright
 
 from utils import Cache, Time, get_logger, leagues, network
 
@@ -40,25 +40,25 @@ UA_ENC = (
 
 
 # -------------------------------------------------
-# PLAYLIST BUILDER
+# PLAYLIST BUILDER (TIVIMATE FORMAT)
 # -------------------------------------------------
 def build_playlist(data: dict) -> str:
     lines = ["#EXTM3U"]
     ch = 1
 
-    for e in data.values():
-        name = e["name"]
+    for entry in data.values():
+        name = entry["name"]
 
         lines.append(
             f'#EXTINF:-1 tvg-chno="{ch}" '
-            f'tvg-id="{e["id"]}" '
+            f'tvg-id="{entry["id"]}" '
             f'tvg-name="{name}" '
-            f'tvg-logo="{e["logo"]}" '
+            f'tvg-logo="{entry["logo"]}" '
             f'group-title="Live Events",{name}'
         )
 
         lines.append(
-            f'{e["url"]}'
+            f'{entry["url"]}'
             f'|referer=https://streamcenter.xyz/'
             f'|origin=https://streamcenter.xyz'
             f'|user-agent={UA_ENC}'
@@ -69,7 +69,7 @@ def build_playlist(data: dict) -> str:
 
 
 # -------------------------------------------------
-# API EVENT DISCOVERY
+# EVENT DISCOVERY (API)
 # -------------------------------------------------
 async def get_events(cached_ids: set[str]) -> list[dict]:
     now = Time.clean(Time.now())
@@ -89,18 +89,18 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
 
     events = []
 
-    PRE_START = 6
-    POST_END = 2
+    PRE_START = 6   # hours before kickoff
+    POST_END = 2    # hours after end
 
     for row in api_data:
         event_id = row.get("id")
-        name = row.get("gameName")
         category_id = row.get("categoryId")
+        name = row.get("gameName")
         embed = row.get("videoUrl")
         begin = row.get("beginPartie")
         end = row.get("endPartie")
 
-        if not all([event_id, name, category_id, embed, begin, end]):
+        if not all([event_id, category_id, name, embed, begin, end]):
             continue
 
         if str(event_id) in cached_ids:
@@ -138,24 +138,6 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
 
 
 # -------------------------------------------------
-# SAFE BROWSER FACTORY (FIX)
-# -------------------------------------------------
-async def get_browser(p) -> tuple[Browser, BrowserContext]:
-    try:
-        log.info("Trying external Chromium (CDP)")
-        return await network.browser(p, browser="external")
-    except Exception as e:
-        log.warning(f"External browser failed, falling back: {e}")
-
-        browser = await p.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage"],
-        )
-        context = await browser.new_context()
-        return browser, context
-
-
-# -------------------------------------------------
 # MAIN SCRAPER
 # -------------------------------------------------
 async def scrape() -> None:
@@ -168,12 +150,13 @@ async def scrape() -> None:
     log.info(f"Found {len(events)} live/upcoming API events")
 
     if not events:
-        OUTPUT_FILE.write_text(build_playlist(cached), encoding="utf-8")
+        playlist = build_playlist(cached)
+        OUTPUT_FILE.write_text(playlist, encoding="utf-8")
         log.info(f"Wrote {len(cached)} entries to centerstrm.m3u")
         return
 
     async with async_playwright() as p:
-        browser, context = await get_browser(p)
+        browser, context = await network.browser(p, browser="external")
 
         try:
             for i, ev in enumerate(events, 1):
@@ -210,7 +193,9 @@ async def scrape() -> None:
             await browser.close()
 
     CACHE_FILE.write(cached)
-    OUTPUT_FILE.write_text(build_playlist(cached), encoding="utf-8")
+
+    playlist = build_playlist(cached)
+    OUTPUT_FILE.write_text(playlist, encoding="utf-8")
 
     log.info(f"Wrote {len(cached)} entries to centerstrm.m3u")
 
