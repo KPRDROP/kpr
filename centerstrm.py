@@ -95,12 +95,14 @@ async def get_events(cached_keys: set[str]) -> list[dict]:
         start = Time.from_str(begin, timezone="CET")
         stop = Time.from_str(end, timezone="CET")
 
-        if not (start <= now <= stop):
-            continue
+        PRE_START_HOURS = 6
+    POST_END_HOURS = 2
 
-        key = f"[{sport}] {name} ({TAG})"
-        if key in cached_keys:
-            continue
+start_window = start.delta(hours=-PRE_START_HOURS)
+end_window = stop.delta(hours=POST_END_HOURS)
+
+if not (start_window <= now <= end_window):
+    continue
 
         logo = row.get("logoTeam1") or row.get("logoTeam2")
 
