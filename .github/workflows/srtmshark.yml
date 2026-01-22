@@ -24,7 +24,7 @@ jobs:
       - name: 📦 Install deps
         run: |
           pip install selectolax playwright httpx[http2] pytz
-          playwright install
+          playwright install chromium
 
       - name: 🦈 Run scraper
         env:
