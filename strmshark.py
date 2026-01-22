@@ -1,13 +1,17 @@
 import os
+import sys
 import re
-import json
-import asyncio
 from functools import partial
 from urllib.parse import quote
 
-from selectolax.parser import HTMLParser
+# 🔧 FIX: ensure project root is in PYTHONPATH
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
 
-from .utils import Cache, Time, get_logger, leagues, network
+from utils import Cache, Time, get_logger, leagues, network  # ← FIXED IMPORT
+
+from selectolax.parser import HTMLParser
 
 log = get_logger(__name__)
 
@@ -33,7 +37,8 @@ urls: dict[str, dict] = {}
 
 
 async def process_event(url: str, url_num: int) -> str | None:
-    if not (r := await network.request(url, log=log)):
+    r = await network.request(url, log=log)
+    if not r:
         return None
 
     data = r.json()
@@ -113,7 +118,7 @@ async def get_events(cached_keys: list[str]) -> list[dict]:
     return live
 
 
-def build_tivimate_playlist(data: dict):
+def build_tivimate_playlist(data: dict) -> str:
     lines = ["#EXTM3U"]
 
     for title, entry in sorted(data.items(), key=lambda x: x[1]["timestamp"]):
@@ -164,17 +169,14 @@ async def scrape():
 
         key = f"[{ev['sport']}] {ev['event']} ({TAG})"
 
-        entry = {
+        urls[key] = cached[key] = {
             "url": stream,
             "logo": logo,
-            "base": BASE_URL,
             "timestamp": ev["event_ts"],
             "id": tvg_id or "Live.Event.us",
             "sport": ev["sport"],
             "event": ev["event"],
         }
-
-        urls[key] = cached[key] = entry
 
     CACHE_FILE.write(cached)
 
@@ -184,3 +186,8 @@ async def scrape():
         f.write(playlist)
 
     log.info(f"✅ Saved {OUTPUT_FILE} ({len(urls)} entries)")
+
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(scrape())
