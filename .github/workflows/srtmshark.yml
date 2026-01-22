@@ -29,7 +29,7 @@ jobs:
         env:
           SHARK_BASE_URL: ${{ secrets.SHARK_BASE_URL }}
         run: |
-          python -m strmshark
+          python strmshark.py
 
       - name: 📤 Commit & Push
         run: |
