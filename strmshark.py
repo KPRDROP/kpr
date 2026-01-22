@@ -6,8 +6,9 @@ from functools import partial
 from urllib.parse import quote
 
 from selectolax.parser import HTMLParser
+from playwright.async_api import async_playwright
 
-# Ensure local imports work in GitHub Actions
+# Fix imports when running as script
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
@@ -36,16 +37,29 @@ CACHE_FILE = Cache("shark.json", exp=10800)
 urls: dict[str, dict] = {}
 
 
+# ---------------- JS RENDER FIX ----------------
+
 async def fetch_rendered_html() -> str:
-    """
-    JS-rendered HTML (same fix as centerstrm)
-    """
-    page = await network.browser_page(log=log)
-    await page.goto(BASE_URL, wait_until="domcontentloaded")
-    await page.wait_for_selector(".ch-date", timeout=15000)
-    html = await page.content()
-    await page.close()
-    return html
+    log.info("🌐 Launching browser for JS-rendered HTML")
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-dev-shm-usage"],
+        )
+        context = await browser.new_context(
+            user_agent=USER_AGENT_RAW,
+            viewport={"width": 1280, "height": 800},
+        )
+        page = await context.new_page()
+
+        await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=30000)
+        await page.wait_for_selector(".ch-date", timeout=20000)
+
+        html = await page.content()
+
+        await browser.close()
+        return html
 
 
 async def process_event(url: str, idx: int) -> str | None:
@@ -54,42 +68,39 @@ async def process_event(url: str, idx: int) -> str | None:
         return None
 
     data = r.json()
-    streams = data.get("urls")
-    if not streams:
+    urls = data.get("urls")
+    if not urls:
         return None
 
-    return streams[0]
+    return urls[0]
 
 
 async def scrape_events() -> dict:
-    log.info("🔄 Loading SharkStreams (JS-rendered)")
     html = await fetch_rendered_html()
-
     soup = HTMLParser(html)
+
     pattern = re.compile(r"openEmbed\('([^']+)'\)", re.I)
-
     events = {}
-    now = Time.now().timestamp()
 
-    for box in soup.css(".channel"):
-        date_node = box.css_first(".ch-date")
-        cat_node = box.css_first(".ch-category")
-        name_node = box.css_first(".ch-name")
-        btn = box.css_first("a.hd-link.secondary")
+    for row in soup.css(".channel"):
+        date_node = row.css_first(".ch-date")
+        cat_node = row.css_first(".ch-category")
+        name_node = row.css_first(".ch-name")
+        btn = row.css_first("a.hd-link.secondary")
 
         if not all([date_node, cat_node, name_node, btn]):
             continue
 
         onclick = btn.attributes.get("onclick", "")
-        match = pattern.search(onclick)
-        if not match:
+        m = pattern.search(onclick)
+        if not m:
             continue
 
         event_dt = Time.from_str(date_node.text(strip=True), timezone="EST")
         sport = cat_node.text(strip=True)
         event = name_node.text(strip=True)
 
-        api = match.group(1).replace("player.php", "get-stream.php")
+        api = m.group(1).replace("player.php", "get-stream.php")
 
         key = f"[{sport}] {event} ({TAG})"
         events[key] = {
@@ -97,7 +108,6 @@ async def scrape_events() -> dict:
             "event": event,
             "link": api,
             "event_ts": event_dt.timestamp(),
-            "timestamp": now,
         }
 
     log.info(f"📺 Parsed {len(events)} events from rendered DOM")
@@ -147,8 +157,8 @@ async def main():
         if not stream:
             continue
 
-        key = f"[{ev['sport']}] {ev['event']} ({TAG})"
         ev["url"] = stream
+        key = f"[{ev['sport']}] {ev['event']} ({TAG})"
         urls[key] = ev
 
     CACHE_FILE.write(urls)
