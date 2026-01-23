@@ -56,78 +56,62 @@ def build_playlist(data: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-async def fetch_api(context: BrowserContext) -> dict:
-    page = await context.new_page()
-
+async def get_api_data(context: BrowserContext) -> dict[str, list[dict, str, str]]:
     try:
-        # 1️⃣ Warm-up visit (cookies / session)
-        await page.goto(
-            "https://pixelsport.tv",
-            wait_until="domcontentloaded",
-            timeout=15_000,
-        )
+        page = await context.new_page()
 
-        # 2️⃣ REAL navigation to API (critical)
         await page.goto(
             BASE_URL,
             wait_until="domcontentloaded",
-            timeout=15_000,
+            timeout=10_000,
         )
 
-        raw = await page.evaluate("() => document.body.innerText")
+        raw_json = await page.locator("pre").inner_text(timeout=5_000)
+    except Exception as e:
+        log.error(f'Failed to fetch "{BASE_URL}": {e}')
 
-        return json.loads(raw)
+        return {}
 
-    finally:
-        await page.close()
+    return json.loads(raw_json)
 
-
-async def get_events(context: BrowserContext) -> dict:
+async def get_events(context: BrowserContext) -> dict[str, dict[str, str | float]]:
     now = Time.clean(Time.now())
+
+    api_data = await get_api_data(context)
+
     events = {}
 
-    api_data = await fetch_api(context)
-    api_events = api_data.get("events", [])
+    for event in api_data.get("events", []):
+        event_dt = Time.from_str(event["date"], timezone="UTC")
 
-    for ev in api_events:
-        try:
-            event_dt = Time.from_str(ev["date"], timezone="UTC")
-        except Exception:
+        if event_dt.date() != now.date():
             continue
 
-        # live + upcoming ±6h
-        if abs((event_dt - now).total_seconds()) > 6 * 3600:
-            continue
+        event_name = event["match_name"]
 
-        event_name = ev.get("match_name")
-        channel = ev.get("channel") or {}
-        category = channel.get("TVCategory") or {}
+        channel_info: dict[str, str] = event["channel"]
 
-        sport = category.get("name")
-        if not event_name or not sport:
-            continue
+        category: dict[str, str] = channel_info["TVCategory"]
 
-        for idx in (1, 2):
-            stream = channel.get(f"server{idx}URL")
-            if not stream or stream == "null":
-                continue
+        sport = category["name"]
 
-            key = f"[{sport}] {event_name} {idx} ({TAG})"
-            if key in events:
-                continue
+        stream_urls = [(i, f"server{i}URL") for i in range(1, 4)]
 
-            tvg_id, logo = leagues.get_tvg_info(sport, event_name)
+        for z, stream_url in stream_urls:
+            if (stream_link := channel_info.get(stream_url)) and stream_link != "null":
+                key = f"[{sport}] {event_name} {z} ({TAG})"
 
-            events[key] = {
-                "url": stream,
-                "logo": logo,
-                "base": ORIGIN,
-                "timestamp": now.timestamp(),
-                "id": tvg_id or "Live.Event.us",
-            }
+                tvg_id, logo = leagues.get_tvg_info(sport, event_name)
+
+                events[key] = {
+                    "url": stream_link,
+                    "logo": logo,
+                    "base": "https://pixelsport.tv",
+                    "timestamp": now.timestamp(),
+                    "id": tvg_id or "Live.Event.us",
+                }
 
     return events
-
 
 async def scrape() -> None:
     cached = CACHE_FILE.load()
