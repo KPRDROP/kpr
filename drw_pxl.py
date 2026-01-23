@@ -59,27 +59,25 @@ def build_playlist(data: dict) -> str:
 async def fetch_api(context: BrowserContext) -> dict:
     page = await context.new_page()
 
-    await page.goto(
-        "https://pixelsport.tv",
-        wait_until="domcontentloaded",
-        timeout=15_000,
-    )
-
     try:
-        data = await page.evaluate(
-            """
-            async (url) => {
-                const r = await fetch(url, {
-                    credentials: "include",
-                    headers: { "accept": "application/json" }
-                });
-                if (!r.ok) throw new Error(r.status);
-                return await r.json();
-            }
-            """,
-            BASE_URL,
+        # 1️⃣ Warm-up visit (cookies / session)
+        await page.goto(
+            "https://pixelsport.tv",
+            wait_until="domcontentloaded",
+            timeout=15_000,
         )
-        return data
+
+        # 2️⃣ REAL navigation to API (critical)
+        await page.goto(
+            BASE_URL,
+            wait_until="domcontentloaded",
+            timeout=15_000,
+        )
+
+        raw = await page.evaluate("() => document.body.innerText")
+
+        return json.loads(raw)
+
     finally:
         await page.close()
 
@@ -97,7 +95,7 @@ async def get_events(context: BrowserContext) -> dict:
         except Exception:
             continue
 
-        # Live + upcoming (±6h window)
+        # live + upcoming ±6h
         if abs((event_dt - now).total_seconds()) > 6 * 3600:
             continue
 
@@ -141,7 +139,7 @@ async def scrape() -> None:
     async with async_playwright() as p:
         browser, context = await network.browser(p, browser="chromium")
 
-        # ✅ APPLY UA + HEADERS HERE (FIX)
+        # ✅ headers applied AFTER context creation
         await context.set_extra_http_headers({
             "User-Agent": UA_RAW,
             "Referer": REFERER,
