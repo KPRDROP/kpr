@@ -25,7 +25,7 @@ jobs:
         run: |
           pip install playwright httpx[http2] pytz
           playwright install
-          playwright install chromium
+          playwright install --with-deps chromium
 
       - name: 🚀 Run PixelSport scraper
         env:
