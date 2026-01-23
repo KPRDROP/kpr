@@ -66,7 +66,7 @@ async def get_api_data(context: BrowserContext) -> dict[str, list[dict, str, str
             timeout=10_000,
         )
 
-        raw_json = await page.locator("pre").inner_text(timeout=5_000)
+        raw_json = await page.evaluate("() => document.body.innerText")
     except Exception as e:
         log.error(f'Failed to fetch "{BASE_URL}": {e}')
 
