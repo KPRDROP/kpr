@@ -1,0 +1,40 @@
+name: 📺 Update PixelSport TiviMate Playlist
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 📦 Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: 🚀 Run PixelSport scraper
+        env:
+          PIXEL_API_URL: ${{ secrets.PIXEL_API_URL }}
+        run: |
+          python -m drw_pxl
+
+      - name: 📤 Commit & Push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add drw_pxl_tivimate.m3u8 *.json
+          git commit -m "📺 Update PixelSport TiviMate playlist" || exit 0
+          git push
