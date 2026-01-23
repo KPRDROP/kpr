@@ -12,7 +12,6 @@ log = get_logger(__name__)
 
 TAG = "PIXEL"
 
-# 🔐 API URL FROM SECRET
 BASE_URL = os.getenv("PIXEL_API_URL")
 if not BASE_URL:
     raise RuntimeError("PIXEL_API_URL secret is not set")
@@ -56,18 +55,18 @@ def build_playlist(data: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-async def get_api_data(context: BrowserContext) -> dict[str, list[dict, str, str]]:
+async def get_api_data(context: BrowserContext) -> dict:
+    page = await context.new_page()
     try:
-        page = await context.new_page()
-
         await page.goto(
             BASE_URL,
             wait_until="domcontentloaded",
             timeout=15_000,
         )
 
-        raw_json = await page.evaluate("() => document.body.innerText")
-    if not raw or not raw.strip().startswith("{"):
+        raw = await page.evaluate("() => document.body.innerText")
+
+        if not raw or not raw.strip().startswith("{"):
             raise ValueError("Empty or non-JSON response")
 
         return json.loads(raw)
@@ -78,47 +77,52 @@ async def get_api_data(context: BrowserContext) -> dict[str, list[dict, str, str
 
     finally:
         await page.close()
-    
 
-async def get_events(context: BrowserContext) -> dict[str, dict[str, str | float]]:
+
+async def get_events(context: BrowserContext) -> dict:
     now = Time.clean(Time.now())
+    events = {}
 
     api_data = await get_api_data(context)
 
-    events = {}
-
     for event in api_data.get("events", []):
-        event_dt = Time.from_str(event["date"], timezone="UTC")
+        try:
+            event_dt = Time.from_str(event["date"], timezone="UTC")
+        except Exception:
+            continue
 
         if event_dt.date() != now.date():
             continue
 
-        event_name = event["match_name"]
+        event_name = event.get("match_name")
+        channel = event.get("channel") or {}
+        category = channel.get("TVCategory") or {}
 
-        channel_info: dict[str, str] = event["channel"]
+        sport = category.get("name")
+        if not event_name or not sport:
+            continue
 
-        category: dict[str, str] = channel_info["TVCategory"]
+        for i in range(1, 4):
+            stream = channel.get(f"server{i}URL")
+            if not stream or stream == "null":
+                continue
 
-        sport = category["name"]
+            key = f"[{sport}] {event_name} {i} ({TAG})"
+            if key in events:
+                continue
 
-        stream_urls = [(i, f"server{i}URL") for i in range(1, 4)]
+            tvg_id, logo = leagues.get_tvg_info(sport, event_name)
 
-        for z, stream_url in stream_urls:
-            if (stream_link := channel_info.get(stream_url)) and stream_link != "null":
-                key = f"[{sport}] {event_name} {z} ({TAG})"
-
-                tvg_id, logo = leagues.get_tvg_info(sport, event_name)
-
-                events[key] = {
-                    "url": stream_link,
-                    "logo": logo,
-                    "base": "https://pixelsport.tv",
-                    "timestamp": now.timestamp(),
-                    "id": tvg_id or "Live.Event.us",
-                }
+            events[key] = {
+                "url": stream,
+                "logo": logo,
+                "base": ORIGIN,
+                "timestamp": now.timestamp(),
+                "id": tvg_id or "Live.Event.us",
+            }
 
     return events
-    
+
 
 async def scrape() -> None:
     cached = CACHE_FILE.load()
@@ -130,7 +134,6 @@ async def scrape() -> None:
     async with async_playwright() as p:
         browser, context = await network.browser(p, browser="chromium")
 
-        # ✅ headers applied AFTER context creation
         await context.set_extra_http_headers({
             "User-Agent": UA_RAW,
             "Referer": REFERER,
