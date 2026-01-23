@@ -67,12 +67,17 @@ async def get_api_data(context: BrowserContext) -> dict[str, list[dict, str, str
         )
 
         raw_json = await page.evaluate("() => document.body.innerText")
+    if not raw or not raw.strip().startswith("{"):
+            raise ValueError("Empty or non-JSON response")
+
+        return json.loads(raw)
+
     except Exception as e:
         log.error(f'Failed to fetch "{BASE_URL}": {e}')
-
         return {}
 
-    return json.loads(raw_json)
+    finally:
+        await page.close()
     
 
 async def get_events(context: BrowserContext) -> dict[str, dict[str, str | float]]:
