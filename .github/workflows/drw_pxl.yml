@@ -24,7 +24,7 @@ jobs:
       - name: 📦 Install dependencies
         run: |
           pip install playwright httpx[http2] pytz
-          playwright install chromium
+          playwright install firefox
 
       - name: 🚀 Run PixelSport scraper
         env:
