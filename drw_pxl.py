@@ -71,9 +71,7 @@ async def fetch_api(context: BrowserContext) -> dict:
             async (url) => {
                 const r = await fetch(url, {
                     credentials: "include",
-                    headers: {
-                        "accept": "application/json",
-                    }
+                    headers: { "accept": "application/json" }
                 });
                 if (!r.ok) throw new Error(r.status);
                 return await r.json();
@@ -99,7 +97,7 @@ async def get_events(context: BrowserContext) -> dict:
         except Exception:
             continue
 
-        # ⏱ Live + upcoming window (±6h)
+        # Live + upcoming (±6h window)
         if abs((event_dt - now).total_seconds()) > 6 * 3600:
             continue
 
@@ -108,7 +106,7 @@ async def get_events(context: BrowserContext) -> dict:
         category = channel.get("TVCategory") or {}
 
         sport = category.get("name")
-        if not all([event_name, sport]):
+        if not event_name or not sport:
             continue
 
         for idx in (1, 2):
@@ -141,11 +139,14 @@ async def scrape() -> None:
     log.info(f'Scraping from "{BASE_URL}"')
 
     async with async_playwright() as p:
-        browser, context = await network.browser(
-            p,
-            browser="chromium",
-            user_agent=UA_RAW,
-        )
+        browser, context = await network.browser(p, browser="chromium")
+
+        # ✅ APPLY UA + HEADERS HERE (FIX)
+        await context.set_extra_http_headers({
+            "User-Agent": UA_RAW,
+            "Referer": REFERER,
+            "Origin": ORIGIN,
+        })
 
         try:
             handler = partial(get_events, context=context)
@@ -166,8 +167,10 @@ async def scrape() -> None:
 
     CACHE_FILE.write(urls)
 
-    playlist = build_playlist(urls)
-    OUTPUT_FILE.write_text(playlist, encoding="utf-8")
+    OUTPUT_FILE.write_text(
+        build_playlist(urls),
+        encoding="utf-8",
+    )
 
     log.info(f"Wrote {added} new streams")
     log.info(f"Total entries: {len(urls)}")
