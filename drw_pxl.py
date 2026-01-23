@@ -63,7 +63,7 @@ async def get_api_data(context: BrowserContext) -> dict[str, list[dict, str, str
         await page.goto(
             BASE_URL,
             wait_until="domcontentloaded",
-            timeout=10_000,
+            timeout=15_000,
         )
 
         raw_json = await page.evaluate("() => document.body.innerText")
