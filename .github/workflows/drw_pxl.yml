@@ -23,7 +23,7 @@ jobs:
 
       - name: 📦 Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install playwright httpx[http2] pytz
 
       - name: 🚀 Run PixelSport scraper
         env:
