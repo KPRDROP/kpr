@@ -2,6 +2,9 @@ import os
 import json
 from pathlib import Path
 from urllib.parse import quote
+from functools import partial
+
+from playwright.async_api import async_playwright, BrowserContext
 
 from utils import Cache, Time, get_logger, leagues, network
 
@@ -9,7 +12,7 @@ log = get_logger(__name__)
 
 TAG = "PIXEL"
 
-# 🔐 API URL FROM SECRETS
+# 🔐 API URL FROM SECRET
 BASE_URL = os.getenv("PIXEL_API_URL")
 if not BASE_URL:
     raise RuntimeError("PIXEL_API_URL secret is not set")
@@ -17,15 +20,15 @@ if not BASE_URL:
 CACHE_FILE = Cache(f"{TAG.lower()}.json", exp=900)
 OUTPUT_FILE = Path("drw_pxl_tivimate.m3u8")
 
+REFERER = "https://pixelsport.tv/"
+ORIGIN = "https://pixelsport.tv"
+
 UA_RAW = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
 )
 UA_ENC = quote(UA_RAW)
-
-REFERER = "https://pixelsport.tv/"
-ORIGIN = "https://pixelsport.tv"
 
 urls: dict[str, dict] = {}
 
@@ -53,30 +56,50 @@ def build_playlist(data: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-async def scrape() -> None:
+async def fetch_api(context: BrowserContext) -> dict:
+    page = await context.new_page()
+
+    await page.goto(
+        "https://pixelsport.tv",
+        wait_until="domcontentloaded",
+        timeout=15_000,
+    )
+
+    try:
+        data = await page.evaluate(
+            """
+            async (url) => {
+                const r = await fetch(url, {
+                    credentials: "include",
+                    headers: {
+                        "accept": "application/json",
+                    }
+                });
+                if (!r.ok) throw new Error(r.status);
+                return await r.json();
+            }
+            """,
+            BASE_URL,
+        )
+        return data
+    finally:
+        await page.close()
+
+
+async def get_events(context: BrowserContext) -> dict:
     now = Time.clean(Time.now())
-    cached = CACHE_FILE.load()
-    urls.update(cached)
+    events = {}
 
-    log.info(f"Loaded {len(cached)} cached events")
+    api_data = await fetch_api(context)
+    api_events = api_data.get("events", [])
 
-    r = await network.request(BASE_URL, log=log)
-    if not r:
-        log.error("Failed to fetch PixelSport API")
-        return
-
-    api_data = r.json()
-    events = api_data.get("events", [])
-
-    added = 0
-
-    for ev in events:
+    for ev in api_events:
         try:
             event_dt = Time.from_str(ev["date"], timezone="UTC")
         except Exception:
             continue
 
-        # 🎯 Today + upcoming window
+        # ⏱ Live + upcoming window (±6h)
         if abs((event_dt - now).total_seconds()) > 6 * 3600:
             continue
 
@@ -94,12 +117,12 @@ async def scrape() -> None:
                 continue
 
             key = f"[{sport}] {event_name} {idx} ({TAG})"
-            if key in urls:
+            if key in events:
                 continue
 
             tvg_id, logo = leagues.get_tvg_info(sport, event_name)
 
-            urls[key] = {
+            events[key] = {
                 "url": stream,
                 "logo": logo,
                 "base": ORIGIN,
@@ -107,6 +130,38 @@ async def scrape() -> None:
                 "id": tvg_id or "Live.Event.us",
             }
 
+    return events
+
+
+async def scrape() -> None:
+    cached = CACHE_FILE.load()
+    urls.update(cached)
+
+    log.info(f"Loaded {len(cached)} cached events")
+    log.info(f'Scraping from "{BASE_URL}"')
+
+    async with async_playwright() as p:
+        browser, context = await network.browser(
+            p,
+            browser="chromium",
+            user_agent=UA_RAW,
+        )
+
+        try:
+            handler = partial(get_events, context=context)
+            events = await network.safe_process(
+                handler,
+                url_num=1,
+                semaphore=network.PW_S,
+                log=log,
+            )
+        finally:
+            await browser.close()
+
+    added = 0
+    for k, v in (events or {}).items():
+        if k not in urls:
+            urls[k] = v
             added += 1
 
     CACHE_FILE.write(urls)
