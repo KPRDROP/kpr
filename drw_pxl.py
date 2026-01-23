@@ -73,6 +73,7 @@ async def get_api_data(context: BrowserContext) -> dict[str, list[dict, str, str
         return {}
 
     return json.loads(raw_json)
+    
 
 async def get_events(context: BrowserContext) -> dict[str, dict[str, str | float]]:
     now = Time.clean(Time.now())
@@ -112,6 +113,7 @@ async def get_events(context: BrowserContext) -> dict[str, dict[str, str | float
                 }
 
     return events
+    
 
 async def scrape() -> None:
     cached = CACHE_FILE.load()
