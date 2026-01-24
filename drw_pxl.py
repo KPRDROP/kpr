@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from urllib.parse import quote
 
-from playwright.async_api import async_playwright, BrowserContext
+from playwright.async_api import BrowserContext, Page
 
 from utils import Cache, Time, get_logger, leagues, network
 
@@ -15,7 +15,7 @@ TAG = "PIXEL"
 FRONTEND_URL = "https://pixelsport.tv/"
 API_URL = "https://pixelsport.tv/backend/liveTV/events"
 
-CACHE_FILE = Cache("pixel.json", exp=900)
+CACHE_FILE = Cache("TAG, exp=19_800)
 OUTPUT_FILE = Path("drw_pxl_tivimate.m3u8")
 
 REFERER = "https://pixelsport.tv/"
@@ -62,7 +62,7 @@ async def bootstrap_session(context: BrowserContext) -> None:
     log.info("PixelSport session initialized")
 
 
-async def fetch_api(context: BrowserContext) -> dict:
+async def fetch_api(page: Page) -> dict:
     try:
         r = await context.request.get(
             f"{API_URL}?ts={int(Time.now().timestamp() * 1000)}",
