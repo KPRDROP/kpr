@@ -4,7 +4,7 @@ from typing import Dict
 
 from playwright.async_api import Browser, BrowserContext, Page
 
-from .utils import Cache, Time, get_logger, leagues, network
+from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
