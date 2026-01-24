@@ -1,7 +1,7 @@
-from functools import partial
 from pathlib import Path
 from urllib.parse import urljoin
 import os
+import asyncio
 
 from playwright.async_api import async_playwright
 
@@ -17,7 +17,7 @@ API_FILE = Cache(f"{TAG.lower()}-api.json", exp=7_200)
 OUTPUT_FILE = Path("centerstrm.m3u")
 
 # 🔐 API URL FROM SECRET
-BASE_URL = os.environ["CENTERSTRM_API"]
+BASE_URL = os.environ["CENTERSTRM_API_URL"]
 EMBED_BASE = "https://streams.center/"
 
 CATEGORIES = {
@@ -167,14 +167,14 @@ async def scrape() -> None:
                 for i, ev in enumerate(events, start=1):
                     async with network.event_page(context) as page:
 
-                        # ✅ ZERO-ARG handler (CRITICAL FIX)
-                        handler = partial(
-                            network.process_event,
-                            page,
-                            ev["embed"],
-                            20,
-                            log,
-                        )
+                        async def handler():
+                            return await network.process_event(
+                                page,
+                                ev["embed"],
+                                i,
+                                20,
+                                log,
+                            )
 
                         stream = await network.safe_process(
                             handler,
@@ -211,7 +211,5 @@ async def scrape() -> None:
 # ENTRY POINT
 # -------------------------------------------------
 if __name__ == "__main__":
-    import asyncio
-
     log.info("🚀 Starting StreamCenter scraper...")
     asyncio.run(scrape())
