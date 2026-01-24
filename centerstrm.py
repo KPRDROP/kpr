@@ -168,11 +168,11 @@ async def scrape() -> None:
                     async with network.event_page(context) as page:
                         handler = partial(
                             network.process_event,
-                            page,
-                            url=ev["embed"],
-                            url_num=i,
-                            timeout=20,
-                            log=log,
+                            page,                 # page
+                            ev["embed"],          # url
+                            i,                    # url_num
+                            20,                   # timeout
+                            log,                  # log
                         )
 
                         stream = await network.safe_process(
