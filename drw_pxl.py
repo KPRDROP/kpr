@@ -1,72 +1,93 @@
 import json
 from functools import partial
-from typing import Dict
-
-import sys
 from pathlib import Path
+from urllib.parse import quote
 
-sys.path.append(str(Path(__file__).parent))
-
-from playwright.async_api import Browser, BrowserContext, Page
+from playwright.async_api import Browser, Page
 
 from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
 TAG = "PIXEL"
-CACHE_FILE = Cache(TAG, exp=19_800)
 
-FRONT_URL = "https://pixelsport.tv"
-API_URL = "https://pixelsport.tv/backend/liveTV/events"
+BASE_URL = "https://pixelsport.tv/backend/livetv/events"
 
-urls: Dict[str, dict] = {}
+REFERER = "https://pixelsport.tv/"
+ORIGIN = "https://pixelsport.tv"
 
+UA_RAW = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/134.0.0.0 Safari/537.36"
+)
+UA_ENC = quote(UA_RAW)
 
-# -------------------------
-# TOKEN HANDLING
-# -------------------------
-async def get_token(page: Page) -> str | None:
-    try:
-        token = await page.evaluate("() => localStorage.getItem('token')")
-        if not token:
-            log.error("PixelSport token not found")
-            return None
-        return token
-    except Exception as e:
-        log.error(f"Token extraction failed: {e}")
-        return None
+CACHE_FILE = Cache("pixel.json", exp=19_800)
+OUTPUT_FILE = Path("drw_pxl_tivimate.m3u8")
+
+urls: dict[str, dict[str, str | float]] = {}
 
 
-# -------------------------
+# =========================
+# TIVIMATE PLAYLIST BUILDER
+# =========================
+def build_tivimate_playlist(data: dict) -> str:
+    lines = ["#EXTM3U"]
+    ch = 1
+
+    for name, e in data.items():
+        lines.append(
+            f'#EXTINF:-1 '
+            f'tvg-chno="{ch}" '
+            f'tvg-id="{e["id"]}" '
+            f'tvg-name="{name}" '
+            f'tvg-logo="{e["logo"]}" '
+            f'group-title="Live Events",{name}'
+        )
+        lines.append(
+            f'{e["url"]}'
+            f'|referer={REFERER}'
+            f'|origin={ORIGIN}'
+            f'|user-agent={UA_ENC}'
+        )
+        ch += 1
+
+    return "\n".join(lines) + "\n"
+
+
+# =========================
 # API FETCH
-# -------------------------
+# =========================
 async def get_api_data(page: Page) -> dict:
-    token = await get_token(page)
-    if not token:
-        return {}
-
     try:
-        response = await page.request.get(
-            API_URL,
-            headers={"token": token},
+        await page.goto(
+            BASE_URL,
+            wait_until="domcontentloaded",
             timeout=10_000,
         )
 
-        if response.status != 200:
-            log.error(f"Backend returned HTTP {response.status}")
-            return {}
+        content = await page.content()
 
-        return await response.json()
+        # PixelSport sometimes returns raw JSON without <pre>
+        if content.strip().startswith("{"):
+            return json.loads(content)
+
+        pre = page.locator("pre")
+        if await pre.count():
+            return json.loads(await pre.inner_text())
+
+        raise RuntimeError("Empty or non-JSON response")
 
     except Exception as e:
-        log.error(f'Failed to fetch "{API_URL}": {e}')
+        log.error(f'Failed to fetch "{BASE_URL}": {e}')
         return {}
 
 
-# -------------------------
+# =========================
 # EVENT PARSER
-# -------------------------
-async def get_events(page: Page) -> Dict[str, dict]:
+# =========================
+async def get_events(page: Page) -> dict:
     now = Time.clean(Time.now())
     api_data = await get_api_data(page)
 
@@ -74,30 +95,24 @@ async def get_events(page: Page) -> Dict[str, dict]:
 
     for event in api_data.get("events", []):
         event_dt = Time.from_str(event["date"], timezone="UTC")
-
         if event_dt.date() != now.date():
             continue
 
         event_name = event["match_name"]
         channel = event["channel"]
-        category = channel.get("TVCategory", {})
-        sport = category.get("name", "Live")
+        sport = channel["TVCategory"]["name"]
 
         for i in range(1, 4):
-            key_name = f"server{i}URL"
-            stream = channel.get(key_name)
-
-            if not stream or stream == "null":
+            link = channel.get(f"server{i}URL")
+            if not link or link == "null":
                 continue
 
+            key = f"[{sport}] {event_name} {i} ({TAG})"
             tvg_id, logo = leagues.get_tvg_info(sport, event_name)
 
-            name = f"[{sport}] {event_name} {i} ({TAG})"
-
-            events[name] = {
-                "url": stream,
+            events[key] = {
+                "url": link,
                 "logo": logo,
-                "base": FRONT_URL,
                 "timestamp": now.timestamp(),
                 "id": tvg_id or "Live.Event.us",
             }
@@ -105,37 +120,38 @@ async def get_events(page: Page) -> Dict[str, dict]:
     return events
 
 
-# -------------------------
-# MAIN SCRAPER
-# -------------------------
+# =========================
+# SCRAPER ENTRY
+# =========================
 async def scrape(browser: Browser) -> None:
-    if cached := CACHE_FILE.load():
+    cached = CACHE_FILE.load()
+    if cached:
         urls.update(cached)
-        log.info(f"Loaded {len(urls)} cached events")
+        log.info(f"Loaded {len(urls)} cached event(s)")
         return
 
-    log.info("Launching PixelSport session")
+    log.info(f'Scraping from "{BASE_URL}"')
 
-    async with browser.new_context() as context:  # BrowserContext
-        page = await context.new_page()
-
-        # Load frontend FIRST
-        await page.goto(FRONT_URL, wait_until="networkidle", timeout=20_000)
-
-        handler = partial(get_events, page=page)
-
-        events = await network.safe_process(
-            handler,
-            url_num=1,
-            semaphore=network.PW_S,
-            log=log,
-        )
+    async with network.event_context(browser) as context:
+        async with network.event_page(context) as page:
+            handler = partial(get_events, page=page)
+            events = await network.safe_process(
+                handler,
+                url_num=1,
+                semaphore=network.PW_S,
+                log=log,
+            )
 
     if not events:
-        log.warning("Using cached events (API blocked or empty)")
+        log.warning("No events available — playlist not written")
         return
 
     urls.update(events)
     CACHE_FILE.write(urls)
 
-    log.info(f"Collected and cached {len(urls)} event(s)")
+    OUTPUT_FILE.write_text(
+        build_tivimate_playlist(urls),
+        encoding="utf-8",
+    )
+
+    log.info(f"Wrote {len(events)} event(s) to {OUTPUT_FILE.name}")
