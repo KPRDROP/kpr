@@ -2,6 +2,11 @@ import json
 from functools import partial
 from typing import Dict
 
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).parent))
+
 from playwright.async_api import Browser, BrowserContext, Page
 
 from utils import Cache, Time, get_logger, leagues, network
