@@ -3,7 +3,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 import os
 
-from playwright.async_api import Browser
+from playwright.async_api import Browser, BrowserContext
 
 from utils import Cache, Time, get_logger, leagues, network
 
