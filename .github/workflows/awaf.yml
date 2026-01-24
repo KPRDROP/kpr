@@ -36,6 +36,7 @@ jobs:
             git config user.email "github-actions@github.com"
             git add awaf.m3u
             git commit -m "📡 Update FAWA playlist"
+            git pull
             git push
           else
             echo "ℹ️ No changes to awaf.m3u"
