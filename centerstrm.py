@@ -11,12 +11,13 @@ log = get_logger(__name__)
 
 TAG = "STRMCNTR"
 
-CACHE_FILE = Cache(TAG, exp=10_800)
+CACHE_FILE = Cache(f"{TAG.lower()}.json", exp=10_800)
 API_FILE = Cache(f"{TAG.lower()}-api.json", exp=7_200)
 
 OUTPUT_FILE = Path("centerstrm.m3u")
 
-BASE_URL = "https://backend.streamcenter.live/api/Parties"
+# 🔐 API URL FROM SECRET
+BASE_URL = os.environ["CENTERSTRM_API"]
 EMBED_BASE = "https://streams.center/"
 
 CATEGORIES = {
@@ -139,17 +140,9 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
 
 
 # -------------------------------------------------
-# SAFE BROWSER FACTORY (FIXED)
+# SAFE BROWSER FACTORY
 # -------------------------------------------------
 async def get_browser(p) -> tuple[Browser, BrowserContext]:
-    # External Chrome ONLY if explicitly enabled
-    if os.getenv("USE_EXTERNAL_CHROME") == "1":
-        try:
-            log.info("Trying external Chromium (CDP)")
-            return await network.browser(p, browser="external")
-        except Exception as e:
-            log.warning(f"External browser failed, falling back: {e}")
-
     log.info("Launching Playwright Chromium")
     browser = await p.chromium.launch(
         headless=True,
@@ -185,7 +178,6 @@ async def scrape() -> None:
                     network.process_event,
                     url=ev["embed"],
                     url_num=i,
-                    context=context,
                     timeout=20,
                     log=log,
                 )
