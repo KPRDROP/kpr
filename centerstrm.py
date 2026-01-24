@@ -3,7 +3,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 import os
 
-from playwright.async_api import async_playwright, Browser, BrowserContext
+from playwright.async_api import async_playwright
 
 from utils import Cache, Time, get_logger, leagues, network
 
@@ -17,7 +17,7 @@ API_FILE = Cache(f"{TAG.lower()}-api.json", exp=7_200)
 OUTPUT_FILE = Path("centerstrm.m3u")
 
 # 🔐 API URL FROM SECRET
-BASE_URL = os.environ["CENTERSTRM_API"]
+BASE_URL = os.environ["CENTERSTRM_API_URL"]
 EMBED_BASE = "https://streams.center/"
 
 CATEGORIES = {
@@ -140,20 +140,7 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
 
 
 # -------------------------------------------------
-# SAFE BROWSER FACTORY
-# -------------------------------------------------
-async def get_browser(p) -> tuple[Browser, BrowserContext]:
-    log.info("Launching Playwright Chromium")
-    browser = await p.chromium.launch(
-        headless=True,
-        args=["--no-sandbox", "--disable-dev-shm-usage"],
-    )
-    context = await browser.new_context()
-    return browser, context
-
-
-# -------------------------------------------------
-# MAIN SCRAPER
+# MAIN SCRAPER (FIXED)
 # -------------------------------------------------
 async def scrape() -> None:
     cached = CACHE_FILE.load()
@@ -170,37 +157,45 @@ async def scrape() -> None:
         return
 
     async with async_playwright() as p:
-        browser, context = await get_browser(p)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-dev-shm-usage"],
+        )
 
         try:
-            for i, ev in enumerate(events, 1):
-                handler = partial(
-                    network.process_event,
-                    url=ev["embed"],
-                    url_num=i,
-                    timeout=20,
-                    log=log,
-                )
+            async with network.event_context(browser, stealth=False) as context:
+                for i, ev in enumerate(events, start=1):
+                    async with network.event_page(context) as page:
+                        handler = partial(
+                            network.process_event,
+                            page,
+                            url=ev["embed"],
+                            url_num=i,
+                            timeout=20,
+                            log=log,
+                        )
 
-                stream = await network.safe_process(
-                    handler,
-                    url_num=i,
-                    semaphore=network.PW_S,
-                    log=log,
-                )
+                        stream = await network.safe_process(
+                            handler,
+                            url_num=i,
+                            semaphore=network.PW_S,
+                            log=log,
+                        )
 
-                if not stream:
-                    continue
+                        if not stream:
+                            continue
 
-                tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
+                        tvg_id, logo = leagues.get_tvg_info(
+                            ev["sport"], ev["event"]
+                        )
 
-                cached[ev["id"]] = {
-                    "name": f"[{ev['sport']}] {ev['event']} ({TAG})",
-                    "url": stream,
-                    "logo": logo,
-                    "timestamp": ev["timestamp"],
-                    "id": tvg_id or "Live.Event.us",
-                }
+                        cached[ev["id"]] = {
+                            "name": f"[{ev['sport']}] {ev['event']} ({TAG})",
+                            "url": stream,
+                            "logo": logo,
+                            "timestamp": ev["timestamp"],
+                            "id": tvg_id or "Live.Event.us",
+                        }
 
         finally:
             await browser.close()
