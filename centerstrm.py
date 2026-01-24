@@ -17,7 +17,7 @@ API_FILE = Cache(f"{TAG.lower()}-api.json", exp=7_200)
 OUTPUT_FILE = Path("centerstrm.m3u")
 
 # 🔐 API URL FROM SECRET
-BASE_URL = os.environ["CENTERSTRM_API_URL"]
+BASE_URL = os.environ["CENTERSTRM_API"]
 EMBED_BASE = "https://streams.center/"
 
 CATEGORIES = {
