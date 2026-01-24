@@ -56,27 +56,31 @@ def build_playlist(data: dict) -> str:
 
 
 async def get_api_data(context: BrowserContext) -> dict:
-    page = await context.new_page()
     try:
-        await page.goto(
+        response = await context.request.get(
             BASE_URL,
-            wait_until="domcontentloaded",
+            headers={
+                "User-Agent": UA_RAW,
+                "Referer": REFERER,
+                "Origin": ORIGIN,
+                "Accept": "application/json",
+            },
             timeout=15_000,
         )
 
-        raw = await page.evaluate("() => document.body.innerText")
+        if response.status != 200:
+            raise RuntimeError(f"HTTP {response.status}")
 
-        if not raw or not raw.strip().startswith("{"):
-            raise ValueError("Empty or non-JSON response")
+        text = await response.text()
 
-        return json.loads(raw)
+        if not text or not text.lstrip().startswith("{"):
+            raise ValueError("Non-JSON API response")
+
+        return json.loads(text)
 
     except Exception as e:
         log.error(f'Failed to fetch "{BASE_URL}": {e}')
         return {}
-
-    finally:
-        await page.close()
 
 
 async def get_events(context: BrowserContext) -> dict:
@@ -84,8 +88,9 @@ async def get_events(context: BrowserContext) -> dict:
     events = {}
 
     api_data = await get_api_data(context)
+    raw_events = api_data.get("events", [])
 
-    for event in api_data.get("events", []):
+    for event in raw_events:
         try:
             event_dt = Time.from_str(event["date"], timezone="UTC")
         except Exception:
@@ -102,7 +107,7 @@ async def get_events(context: BrowserContext) -> dict:
         if not event_name or not sport:
             continue
 
-        for i in range(1, 4):
+        for i in (1, 2):
             stream = channel.get(f"server{i}URL")
             if not stream or stream == "null":
                 continue
@@ -134,15 +139,9 @@ async def scrape() -> None:
     async with async_playwright() as p:
         browser, context = await network.browser(p, browser="chromium")
 
-        await context.set_extra_http_headers({
-            "User-Agent": UA_RAW,
-            "Referer": REFERER,
-            "Origin": ORIGIN,
-        })
-
         try:
             handler = partial(get_events, context=context)
-            events = await network.safe_process(
+            fresh = await network.safe_process(
                 handler,
                 url_num=1,
                 semaphore=network.PW_S,
@@ -151,21 +150,23 @@ async def scrape() -> None:
         finally:
             await browser.close()
 
-    added = 0
-    for k, v in (events or {}).items():
-        if k not in urls:
-            urls[k] = v
-            added += 1
+    if fresh:
+        urls.update(fresh)
+        CACHE_FILE.write(urls)
+        log.info(f"Fetched {len(fresh)} live events")
+    else:
+        log.warning("Using cached events (API blocked or empty)")
 
-    CACHE_FILE.write(urls)
+    if not urls:
+        log.warning("No events available — playlist not updated")
+        return
 
     OUTPUT_FILE.write_text(
         build_playlist(urls),
         encoding="utf-8",
     )
 
-    log.info(f"Wrote {added} new streams")
-    log.info(f"Total entries: {len(urls)}")
+    log.info(f"Wrote playlist with {len(urls)} entries")
 
 
 if __name__ == "__main__":
