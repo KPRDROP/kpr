@@ -15,7 +15,7 @@ TAG = "PIXEL"
 FRONTEND_URL = "https://pixelsport.tv/"
 API_URL = "https://pixelsport.tv/backend/liveTV/events"
 
-CACHE_FILE = Cache("TAG", exp=19_800)
+CACHE_FILE = Cache(TAG, exp=19_800)
 OUTPUT_FILE = Path("drw_pxl_tivimate.m3u8")
 
 REFERER = "https://pixelsport.tv/"
