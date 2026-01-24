@@ -1,6 +1,7 @@
 from functools import partial
 from pathlib import Path
 from urllib.parse import urljoin
+import os
 
 from playwright.async_api import async_playwright, Browser, BrowserContext
 
@@ -138,21 +139,24 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
 
 
 # -------------------------------------------------
-# SAFE BROWSER FACTORY (FIX)
+# SAFE BROWSER FACTORY (FIXED)
 # -------------------------------------------------
 async def get_browser(p) -> tuple[Browser, BrowserContext]:
-    try:
-        log.info("Trying external Chromium (CDP)")
-        return await network.browser(p, browser="external")
-    except Exception as e:
-        log.warning(f"External browser failed, falling back: {e}")
+    # External Chrome ONLY if explicitly enabled
+    if os.getenv("USE_EXTERNAL_CHROME") == "1":
+        try:
+            log.info("Trying external Chromium (CDP)")
+            return await network.browser(p, browser="external")
+        except Exception as e:
+            log.warning(f"External browser failed, falling back: {e}")
 
-        browser = await p.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage"],
-        )
-        context = await browser.new_context()
-        return browser, context
+    log.info("Launching Playwright Chromium")
+    browser = await p.chromium.launch(
+        headless=True,
+        args=["--no-sandbox", "--disable-dev-shm-usage"],
+    )
+    context = await browser.new_context()
+    return browser, context
 
 
 # -------------------------------------------------
