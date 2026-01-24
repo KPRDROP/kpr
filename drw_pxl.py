@@ -1,8 +1,6 @@
-import os
 import json
 from pathlib import Path
 from urllib.parse import quote
-from functools import partial
 
 from playwright.async_api import async_playwright, BrowserContext
 
@@ -54,22 +52,15 @@ def build_playlist(data: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-async def get_token(context: BrowserContext) -> str | None:
+async def bootstrap_session(context: BrowserContext) -> None:
+    """Loads frontend to establish cookies + session"""
     page = await context.new_page()
     await page.goto(FRONTEND_URL, wait_until="networkidle", timeout=30_000)
-
-    token = await page.evaluate("() => localStorage.getItem('token')")
     await page.close()
-
-    if not token:
-        log.error("PixelSport token not found")
-        return None
-
-    log.info("PixelSport token acquired")
-    return token
+    log.info("PixelSport session initialized")
 
 
-async def fetch_api(context: BrowserContext, token: str) -> dict:
+async def fetch_api(context: BrowserContext) -> dict:
     try:
         r = await context.request.get(
             f"{API_URL}?ts={int(Time.now().timestamp() * 1000)}",
@@ -77,7 +68,6 @@ async def fetch_api(context: BrowserContext, token: str) -> dict:
                 "User-Agent": UA_RAW,
                 "Referer": REFERER,
                 "Origin": ORIGIN,
-                "token": token,
                 "Accept": "application/json",
             },
             timeout=20_000,
@@ -89,7 +79,7 @@ async def fetch_api(context: BrowserContext, token: str) -> dict:
         return await r.json()
 
     except Exception as e:
-        log.error(f"API fetch failed: {e}")
+        log.error(f"PixelSport API blocked: {e}")
         return {}
 
 
@@ -97,11 +87,8 @@ async def get_events(context: BrowserContext) -> dict:
     now = Time.clean(Time.now())
     events = {}
 
-    token = await get_token(context)
-    if not token:
-        return {}
-
-    api_data = await fetch_api(context, token)
+    await bootstrap_session(context)
+    api_data = await fetch_api(context)
 
     for event in api_data.get("events", []):
         try:
