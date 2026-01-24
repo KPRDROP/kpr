@@ -25,6 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install playwright httpx[http2] pytz
+          playwright install --with-deps
           playwright install firefox
 
       - name: Run scraper
