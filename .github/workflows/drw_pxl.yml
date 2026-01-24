@@ -35,10 +35,7 @@ jobs:
         run: |
           echo "🚀 Starting PixelSport scraper..."
           python -m drw_pxl
-
-      - name: 🧹 Cleanup python cache
-        run: |
-          rm -rf __pycache__ utils/__pycache__
+          
 
       - name: 📤 Commit & push playlist if changed
         run: |
