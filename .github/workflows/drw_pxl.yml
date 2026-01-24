@@ -1,9 +1,9 @@
-name: 📺 Update PixelSport TiviMate Playlist
+name: 📺 Update PixelSport TiViMate Playlist
 
 on:
   schedule:
-    # Runs every 2 hours
-    - cron: "0 */2 * * *"
+    # Every 30 minutes
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -12,9 +12,10 @@ permissions:
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
-      - name: 📥 Checkout
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
       - name: 🐍 Setup Python
@@ -24,20 +25,30 @@ jobs:
 
       - name: 📦 Install dependencies
         run: |
-          pip install playwright httpx[http2] pytz
-          playwright install --with-deps
+          python -m pip install --upgrade pip
+          pip install playwright requests pytz
           playwright install chromium
 
       - name: 🚀 Run PixelSport scraper
         env:
-          PIXEL_API_URL: ${{ secrets.PIXEL_API_URL }}
+          PIXEL_API_URL: https://pixelsport.tv/backend/livetv/events
         run: |
+          echo "🚀 Starting PixelSport scraper..."
           python -m drw_pxl
 
-      - name: 📤 Commit & Push
+      - name: 🧹 Cleanup python cache
+        run: |
+          rm -rf __pycache__ utils/__pycache__
+
+      - name: 📤 Commit & push playlist if changed
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add drw_pxl_tivimate.m3u8 *.json
-          git commit -m "📺 Update PixelSport TiviMate playlist" || exit 0
-          git push
+
+          if git status --porcelain | grep -q "drw_pxl_tivimate.m3u8"; then
+            git add drw_pxl_tivimate.m3u8
+            git commit -m "📺 Update PixelSport TiViMate playlist"
+            git push
+          else
+            echo "No playlist changes detected"
+          fi
