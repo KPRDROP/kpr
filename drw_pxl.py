@@ -1,125 +1,98 @@
 import json
-from pathlib import Path
-from urllib.parse import quote
+from functools import partial
+from typing import Dict
 
-from playwright.async_api import BrowserContext, Page
+from playwright.async_api import Browser, BrowserContext, Page
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
-urls: dict[str, dict[str, str | float]] = {}
-
 TAG = "PIXEL"
+CACHE_FILE = Cache(TAG, exp=19_800)
 
-FRONTEND_URL = "https://pixelsport.tv/"
+FRONT_URL = "https://pixelsport.tv"
 API_URL = "https://pixelsport.tv/backend/liveTV/events"
 
-CACHE_FILE = Cache(TAG, exp=19_800)
-OUTPUT_FILE = Path("drw_pxl_tivimate.m3u8")
-
-REFERER = "https://pixelsport.tv/"
-ORIGIN = "https://pixelsport.tv"
-
-UA_RAW = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
-)
-UA_ENC = quote(UA_RAW)
-
-urls: dict[str, dict] = {}
+urls: Dict[str, dict] = {}
 
 
-def build_playlist(data: dict) -> str:
-    lines = ["#EXTM3U"]
-    ch = 1
-
-    for name, e in data.items():
-        lines.append(
-            f'#EXTINF:-1 tvg-chno="{ch}" '
-            f'tvg-id="{e["id"]}" '
-            f'tvg-name="{name}" '
-            f'tvg-logo="{e["logo"]}" '
-            f'group-title="Live Events",{name}'
-        )
-        lines.append(
-            f'{e["url"]}'
-            f'|referer={REFERER}'
-            f'|origin={ORIGIN}'
-            f'|user-agent={UA_ENC}'
-        )
-        ch += 1
-
-    return "\n".join(lines) + "\n"
-
-
-async def bootstrap_session(context: BrowserContext) -> None:
-    """Loads frontend to establish cookies + session"""
-    page = await context.new_page()
-    await page.goto(FRONTEND_URL, wait_until="networkidle", timeout=30_000)
-    await page.close()
-    log.info("PixelSport session initialized")
-
-
-async def fetch_api(page: Page) -> dict:
+# -------------------------
+# TOKEN HANDLING
+# -------------------------
+async def get_token(page: Page) -> str | None:
     try:
-        r = await context.request.get(
-            f"{API_URL}?ts={int(Time.now().timestamp() * 1000)}",
-            headers={
-                "User-Agent": UA_RAW,
-                "Referer": REFERER,
-                "Origin": ORIGIN,
-                "Accept": "application/json",
-            },
-            timeout=20_000,
+        token = await page.evaluate("() => localStorage.getItem('token')")
+        if not token:
+            log.error("PixelSport token not found")
+            return None
+        return token
+    except Exception as e:
+        log.error(f"Token extraction failed: {e}")
+        return None
+
+
+# -------------------------
+# API FETCH
+# -------------------------
+async def get_api_data(page: Page) -> dict:
+    token = await get_token(page)
+    if not token:
+        return {}
+
+    try:
+        response = await page.request.get(
+            API_URL,
+            headers={"token": token},
+            timeout=10_000,
         )
 
-        if r.status != 200:
-            raise RuntimeError(f"HTTP {r.status}")
+        if response.status != 200:
+            log.error(f"Backend returned HTTP {response.status}")
+            return {}
 
-        return await r.json()
+        return await response.json()
 
     except Exception as e:
-        log.error(f"PixelSport API blocked: {e}")
+        log.error(f'Failed to fetch "{API_URL}": {e}')
         return {}
 
 
-async def get_events(context: BrowserContext) -> dict:
+# -------------------------
+# EVENT PARSER
+# -------------------------
+async def get_events(page: Page) -> Dict[str, dict]:
     now = Time.clean(Time.now())
+    api_data = await get_api_data(page)
+
     events = {}
 
-    await bootstrap_session(context)
-    api_data = await fetch_api(context)
-
     for event in api_data.get("events", []):
-        try:
-            event_dt = Time.from_str(event["date"], timezone="UTC")
-        except Exception:
-            continue
+        event_dt = Time.from_str(event["date"], timezone="UTC")
 
         if event_dt.date() != now.date():
             continue
 
-        name = event.get("match_name")
-        channel = event.get("channel") or {}
-        category = channel.get("TVCategory") or {}
+        event_name = event["match_name"]
+        channel = event["channel"]
+        category = channel.get("TVCategory", {})
+        sport = category.get("name", "Live")
 
-        sport = category.get("name")
-        if not name or not sport:
-            continue
+        for i in range(1, 4):
+            key_name = f"server{i}URL"
+            stream = channel.get(key_name)
 
-        for i in (1, 2):
-            stream = channel.get(f"server{i}URL")
             if not stream or stream == "null":
                 continue
 
-            key = f"[{sport}] {name} {i} ({TAG})"
-            tvg_id, logo = leagues.get_tvg_info(sport, name)
+            tvg_id, logo = leagues.get_tvg_info(sport, event_name)
 
-            events[key] = {
+            name = f"[{sport}] {event_name} {i} ({TAG})"
+
+            events[name] = {
                 "url": stream,
                 "logo": logo,
+                "base": FRONT_URL,
                 "timestamp": now.timestamp(),
                 "id": tvg_id or "Live.Event.us",
             }
@@ -127,37 +100,37 @@ async def get_events(context: BrowserContext) -> dict:
     return events
 
 
-async def scrape():
-    cached = CACHE_FILE.load()
-    urls.update(cached)
-
-    log.info(f"Loaded {len(cached)} cached events")
-
-    async with async_playwright() as p:
-        browser, context = await network.browser(p, browser="chromium")
-
-        try:
-            fresh = await get_events(context)
-        finally:
-            await browser.close()
-
-    if fresh:
-        urls.update(fresh)
-        CACHE_FILE.write(urls)
-        log.info(f"Fetched {len(fresh)} live events")
-    else:
-        log.warning("Using cached events")
-
-    if not urls:
-        log.warning("No events available — playlist not written")
+# -------------------------
+# MAIN SCRAPER
+# -------------------------
+async def scrape(browser: Browser) -> None:
+    if cached := CACHE_FILE.load():
+        urls.update(cached)
+        log.info(f"Loaded {len(urls)} cached events")
         return
 
-    OUTPUT_FILE.write_text(build_playlist(urls), encoding="utf-8")
-    log.info(f"Wrote playlist with {len(urls)} entries")
+    log.info("Launching PixelSport session")
 
+    async with browser.new_context() as context:  # BrowserContext
+        page = await context.new_page()
 
-if __name__ == "__main__":
-    import asyncio
+        # Load frontend FIRST
+        await page.goto(FRONT_URL, wait_until="networkidle", timeout=20_000)
 
-    log.info("🚀 Starting PixelSport scraper...")
-    asyncio.run(scrape())
+        handler = partial(get_events, page=page)
+
+        events = await network.safe_process(
+            handler,
+            url_num=1,
+            semaphore=network.PW_S,
+            log=log,
+        )
+
+    if not events:
+        log.warning("Using cached events (API blocked or empty)")
+        return
+
+    urls.update(events)
+    CACHE_FILE.write(urls)
+
+    log.info(f"Collected and cached {len(urls)} event(s)")
