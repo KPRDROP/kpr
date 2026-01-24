@@ -11,7 +11,7 @@ log = get_logger(__name__)
 
 TAG = "STRMCNTR"
 
-CACHE_FILE = Cache(f"{TAG.lower()}.json", exp=10_800)
+CACHE_FILE = Cache(TAG, exp=10_800)
 API_FILE = Cache(f"{TAG.lower()}-api.json", exp=7_200)
 
 OUTPUT_FILE = Path("centerstrm.m3u")
