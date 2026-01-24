@@ -3,7 +3,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 import os
 
-from playwright.async_api import async_playwright, Browser
+from playwright.async_api import async_playwright
 
 from utils import Cache, Time, get_logger, leagues, network
 
@@ -140,7 +140,7 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
 
 
 # -------------------------------------------------
-# MAIN SCRAPER (FIXED)
+# MAIN SCRAPER (FINAL FIX)
 # -------------------------------------------------
 async def scrape() -> None:
     cached = CACHE_FILE.load()
@@ -166,13 +166,14 @@ async def scrape() -> None:
             async with network.event_context(browser, stealth=False) as context:
                 for i, ev in enumerate(events, start=1):
                     async with network.event_page(context) as page:
+
+                        # ✅ ZERO-ARG handler (CRITICAL FIX)
                         handler = partial(
                             network.process_event,
-                            page,                 # page
-                            ev["embed"],          # url
-                            i,                    # url_num
-                            20,                   # timeout
-                            log,                  # log
+                            page,
+                            ev["embed"],
+                            20,
+                            log,
                         )
 
                         stream = await network.safe_process(
