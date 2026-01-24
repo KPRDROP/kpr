@@ -3,12 +3,13 @@ import logging
 import random
 import re
 from collections.abc import Awaitable, Callable
+from contextlib import asynccontextmanager
 from functools import partial
-from typing import TypeVar
+from typing import AsyncGenerator, TypeVar
 from urllib.parse import urlencode, urljoin
 
 import httpx
-from playwright.async_api import Browser, BrowserContext, Playwright, Request
+from playwright.async_api import Browser, BrowserContext, Page, Playwright, Request
 
 from .logger import get_logger
 
@@ -124,6 +125,112 @@ class Network:
                 return
 
     @staticmethod
+    @asynccontextmanager
+    async def event_context(
+        browser: Browser,
+        stealth: bool = True,
+    ) -> AsyncGenerator[BrowserContext, None]:
+        context: BrowserContext | None = None
+
+        try:
+            context = await browser.new_context(
+                user_agent=Network.UA if stealth else None,
+                viewport={"width": 1366, "height": 768},
+                device_scale_factor=1,
+                locale="en-US",
+                timezone_id="America/New_York",
+                color_scheme="dark",
+                permissions=["geolocation"],
+                extra_http_headers=(
+                    {
+                        "Accept-Language": "en-US,en;q=0.9",
+                        "Upgrade-Insecure-Requests": "1",
+                    }
+                    if stealth
+                    else None
+                ),
+            )
+
+            if stealth:
+                await context.add_init_script("""
+                    Object.defineProperty(navigator, "webdriver", { get: () => undefined });
+
+                    Object.defineProperty(navigator, "languages", {
+                    get: () => ["en-US", "en"],
+                    });
+
+                    Object.defineProperty(navigator, "plugins", {
+                    get: () => [1, 2, 3, 4],
+                    });
+
+                    const elementDescriptor = Object.getOwnPropertyDescriptor(
+                    HTMLElement.prototype,
+                    "offsetHeight"
+                    );
+
+                    Object.defineProperty(HTMLDivElement.prototype, "offsetHeight", {
+                    ...elementDescriptor,
+                    get: function () {
+                        if (this.id === "modernizr") {
+                        return 24;
+                        }
+                        return elementDescriptor.get.apply(this);
+                    },
+                    });
+
+                    Object.defineProperty(window.screen, "width", { get: () => 1366 });
+                    Object.defineProperty(window.screen, "height", { get: () => 768 });
+
+                    const getParameter = WebGLRenderingContext.prototype.getParameter;
+
+                    WebGLRenderingContext.prototype.getParameter = function (param) {
+                    if (param === 37445) return "Intel Inc."; //  UNMASKED_VENDOR_WEBGL
+                    if (param === 37446) return "Intel Iris OpenGL    Engine"; // UNMASKED_RENDERER_WEBGL
+                    return getParameter.apply(this, [param]);
+                    };
+
+                    const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        mutation.addedNodes.forEach((node) => {
+                        if (node.tagName === "IFRAME" && node.hasAttribute("sandbox")) {
+                            node.removeAttribute("sandbox");
+                        }
+                        });
+                    });
+                    });
+
+                    observer.observe(document.documentElement, { childList: true, subtree: true });
+                """)
+
+            else:
+                context = await browser.new_context()
+
+            yield context
+
+        finally:
+            if context:
+                await context.close()
+
+    @staticmethod
+    @asynccontextmanager
+    async def event_page(context: BrowserContext) -> AsyncGenerator[Page, None]:
+        page = await context.new_page()
+
+        try:
+            yield page
+
+        finally:
+            await page.close()
+
+    @staticmethod
+    async def browser(playwright: Playwright, external: bool = False) -> Browser:
+        return (
+            await playwright.chromium.connect_over_cdp("http://localhost:9222")
+            if external
+            else await playwright.firefox.launch(headless=True)
+        )
+
+    @staticmethod
     def capture_req(
         req: Request,
         captured: list[str],
@@ -147,14 +254,12 @@ class Network:
         self,
         url: str,
         url_num: int,
-        context: BrowserContext,
+        page: Page,
         timeout: int | float = 10,
         log: logging.Logger | None = None,
     ) -> str | None:
 
         log = log or logger
-
-        page = await context.new_page()
 
         captured: list[str] = []
 
@@ -211,86 +316,6 @@ class Network:
             page.remove_listener("request", handler)
 
             await page.close()
-
-    @staticmethod
-    async def browser(
-        playwright: Playwright, browser: str = "internal"
-    ) -> tuple[Browser, BrowserContext]:
-        if browser == "external":
-            brwsr = await playwright.chromium.connect_over_cdp("http://localhost:9222")
-
-            context = brwsr.contexts[0]
-
-        else:
-            brwsr = await playwright.firefox.launch(headless=True)
-
-            context = await brwsr.new_context(
-                user_agent=Network.UA,
-                ignore_https_errors=False,
-                viewport={"width": 1366, "height": 768},
-                device_scale_factor=1,
-                locale="en-US",
-                timezone_id="America/New_York",
-                color_scheme="dark",
-                permissions=["geolocation"],
-                extra_http_headers={
-                    "Accept-Language": "en-US,en;q=0.9",
-                    "Upgrade-Insecure-Requests": "1",
-                },
-            )
-
-            await context.add_init_script("""
-            Object.defineProperty(navigator, "webdriver", { get: () => undefined });
-
-            Object.defineProperty(navigator, "languages", {
-            get: () => ["en-US", "en"],
-            });
-
-            Object.defineProperty(navigator, "plugins", {
-            get: () => [1, 2, 3, 4],
-            });
-
-            const elementDescriptor = Object.getOwnPropertyDescriptor(
-            HTMLElement.prototype,
-            "offsetHeight"
-            );
-
-            Object.defineProperty(HTMLDivElement.prototype, "offsetHeight", {
-            ...elementDescriptor,
-            get: function () {
-                if (this.id === "modernizr") {
-                return 24;
-                }
-                return elementDescriptor.get.apply(this);
-            },
-            });
-
-            Object.defineProperty(window.screen, "width", { get: () => 1366 });
-            Object.defineProperty(window.screen, "height", { get: () => 768 });
-
-            const getParameter = WebGLRenderingContext.prototype.getParameter;
-
-            WebGLRenderingContext.prototype.getParameter = function (param) {
-            if (param === 37445) return "Intel Inc."; //  UNMASKED_VENDOR_WEBGL
-            if (param === 37446) return "Intel Iris OpenGL    Engine"; // UNMASKED_RENDERER_WEBGL
-            return getParameter.apply(this, [param]);
-            };
-
-            const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                if (node.tagName === "IFRAME" && node.hasAttribute("sandbox")) {
-                    node.removeAttribute("sandbox");
-                }
-                });
-            });
-            });
-
-            observer.observe(document.documentElement, { childList: true, subtree: true });
-
-            """)
-
-        return brwsr, context
 
 
 network = Network()
