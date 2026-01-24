@@ -26,16 +26,20 @@ jobs:
       - name: 📦 Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install playwright httpx[http2] requests pytz
+          pip install playwright requests pytz
           playwright install chromium
 
       - name: 🚀 Run PixelSport scraper
         env:
+          # If you later move API URL to secrets
           PIXEL_API_URL: https://pixelsport.tv/backend/livetv/events
         run: |
           echo "🚀 Starting PixelSport scraper..."
           python -m drw_pxl
-          
+
+      - name: 🧹 Cleanup python cache
+        run: |
+          rm -rf __pycache__ utils/__pycache__
 
       - name: 📤 Commit & push playlist if changed
         run: |
