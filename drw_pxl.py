@@ -12,11 +12,10 @@ log = get_logger(__name__)
 
 TAG = "PIXEL"
 
-BASE_URL = os.getenv("PIXEL_API_URL")
-if not BASE_URL:
-    raise RuntimeError("PIXEL_API_URL secret is not set")
+FRONTEND_URL = "https://pixelsport.tv/"
+API_URL = "https://pixelsport.tv/backend/liveTV/events"
 
-CACHE_FILE = Cache(f"{TAG.lower()}.json", exp=900)
+CACHE_FILE = Cache("pixel.json", exp=900)
 OUTPUT_FILE = Path("drw_pxl_tivimate.m3u8")
 
 REFERER = "https://pixelsport.tv/"
@@ -55,31 +54,42 @@ def build_playlist(data: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-async def get_api_data(context: BrowserContext) -> dict:
+async def get_token(context: BrowserContext) -> str | None:
+    page = await context.new_page()
+    await page.goto(FRONTEND_URL, wait_until="networkidle", timeout=30_000)
+
+    token = await page.evaluate("() => localStorage.getItem('token')")
+    await page.close()
+
+    if not token:
+        log.error("PixelSport token not found")
+        return None
+
+    log.info("PixelSport token acquired")
+    return token
+
+
+async def fetch_api(context: BrowserContext, token: str) -> dict:
     try:
-        response = await context.request.get(
-            BASE_URL,
+        r = await context.request.get(
+            f"{API_URL}?ts={int(Time.now().timestamp() * 1000)}",
             headers={
                 "User-Agent": UA_RAW,
                 "Referer": REFERER,
                 "Origin": ORIGIN,
+                "token": token,
                 "Accept": "application/json",
             },
-            timeout=15_000,
+            timeout=20_000,
         )
 
-        if response.status != 200:
-            raise RuntimeError(f"HTTP {response.status}")
+        if r.status != 200:
+            raise RuntimeError(f"HTTP {r.status}")
 
-        text = await response.text()
-
-        if not text or not text.lstrip().startswith("{"):
-            raise ValueError("Non-JSON API response")
-
-        return json.loads(text)
+        return await r.json()
 
     except Exception as e:
-        log.error(f'Failed to fetch "{BASE_URL}": {e}')
+        log.error(f"API fetch failed: {e}")
         return {}
 
 
@@ -87,10 +97,13 @@ async def get_events(context: BrowserContext) -> dict:
     now = Time.clean(Time.now())
     events = {}
 
-    api_data = await get_api_data(context)
-    raw_events = api_data.get("events", [])
+    token = await get_token(context)
+    if not token:
+        return {}
 
-    for event in raw_events:
+    api_data = await fetch_api(context, token)
+
+    for event in api_data.get("events", []):
         try:
             event_dt = Time.from_str(event["date"], timezone="UTC")
         except Exception:
@@ -99,12 +112,12 @@ async def get_events(context: BrowserContext) -> dict:
         if event_dt.date() != now.date():
             continue
 
-        event_name = event.get("match_name")
+        name = event.get("match_name")
         channel = event.get("channel") or {}
         category = channel.get("TVCategory") or {}
 
         sport = category.get("name")
-        if not event_name or not sport:
+        if not name or not sport:
             continue
 
         for i in (1, 2):
@@ -112,16 +125,12 @@ async def get_events(context: BrowserContext) -> dict:
             if not stream or stream == "null":
                 continue
 
-            key = f"[{sport}] {event_name} {i} ({TAG})"
-            if key in events:
-                continue
-
-            tvg_id, logo = leagues.get_tvg_info(sport, event_name)
+            key = f"[{sport}] {name} {i} ({TAG})"
+            tvg_id, logo = leagues.get_tvg_info(sport, name)
 
             events[key] = {
                 "url": stream,
                 "logo": logo,
-                "base": ORIGIN,
                 "timestamp": now.timestamp(),
                 "id": tvg_id or "Live.Event.us",
             }
@@ -129,24 +138,17 @@ async def get_events(context: BrowserContext) -> dict:
     return events
 
 
-async def scrape() -> None:
+async def scrape():
     cached = CACHE_FILE.load()
     urls.update(cached)
 
     log.info(f"Loaded {len(cached)} cached events")
-    log.info(f'Scraping from "{BASE_URL}"')
 
     async with async_playwright() as p:
         browser, context = await network.browser(p, browser="chromium")
 
         try:
-            handler = partial(get_events, context=context)
-            fresh = await network.safe_process(
-                handler,
-                url_num=1,
-                semaphore=network.PW_S,
-                log=log,
-            )
+            fresh = await get_events(context)
         finally:
             await browser.close()
 
@@ -155,17 +157,13 @@ async def scrape() -> None:
         CACHE_FILE.write(urls)
         log.info(f"Fetched {len(fresh)} live events")
     else:
-        log.warning("Using cached events (API blocked or empty)")
+        log.warning("Using cached events")
 
     if not urls:
-        log.warning("No events available — playlist not updated")
+        log.warning("No events available — playlist not written")
         return
 
-    OUTPUT_FILE.write_text(
-        build_playlist(urls),
-        encoding="utf-8",
-    )
-
+    OUTPUT_FILE.write_text(build_playlist(urls), encoding="utf-8")
     log.info(f"Wrote playlist with {len(urls)} entries")
 
 
