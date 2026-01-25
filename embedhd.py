@@ -91,16 +91,17 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
     return events
 
 
-async def resolve_stream_with_playwright(url: str, context) -> str | None:
+async def resolve_stream_with_playwright(url: str, context, url_num: int) -> str | None:
     """
     Use Playwright to open the fetch.php or API stream page and extract the real .m3u8 link.
     """
     try:
         async with network.event_page(context) as page:
-            # Use existing network helper to process event
+            # Pass url_num to network.process_event partial
+            handler = partial(network.process_event, url=url, page=page, log=log, url_num=url_num)
             stream = await network.safe_process(
-                partial(network.process_event, url=url, page=page, log=log),
-                url_num=1,
+                handler,
+                url_num=url_num,
                 semaphore=network.PW_S,
                 log=log,
             )
@@ -165,7 +166,7 @@ async def scrape(browser: Browser) -> None:
     if events:
         async with network.event_context(browser) as context:
             for i, ev in enumerate(events, start=1):
-                stream = await resolve_stream_with_playwright(ev["link"], context)
+                stream = await resolve_stream_with_playwright(ev["link"], context, url_num=i)
                 if stream:
                     tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
                     key = f"[{ev['sport']}] {ev['event']} ({TAG})"
