@@ -4,7 +4,6 @@ from pathlib import Path
 from urllib.parse import quote
 
 from playwright.async_api import async_playwright, TimeoutError as PWTimeout
-
 from utils import Cache, Time, get_logger, leagues
 
 log = get_logger(__name__)
@@ -33,22 +32,17 @@ UA_ENC = quote(UA_RAW)
 
 urls: dict[str, dict] = {}
 
-
-# --------------------------------------------------
-# API EVENTS
-# --------------------------------------------------
-
+# -----------------------------
+# Get API events
+# -----------------------------
 async def get_events(cached_keys: list[str]) -> list[dict]:
     now = Time.clean(Time.now())
 
     if not (api := API_CACHE.load(per_entry=False)):
         log.info("Refreshing API cache")
-        async with async_playwright() as p:
-            browser = await p.chromium.launch()
-            page = await browser.new_page()
-            await page.goto(BASE_URL, timeout=30_000)
-            api = await page.evaluate("() => window.__DATA__ || {}")
-            await browser.close()
+        # Use simple GET request
+        if r := await asyncio.to_thread(lambda: __import__("requests").get(BASE_URL, timeout=15)):
+            api = r.json()
         api["timestamp"] = now.timestamp()
         API_CACHE.write(api)
 
@@ -82,11 +76,9 @@ async def get_events(cached_keys: list[str]) -> list[dict]:
 
     return events
 
-
-# --------------------------------------------------
-# STREAM RESOLVER (CLICK REQUIRED)
-# --------------------------------------------------
-
+# -----------------------------
+# Extract m3u8 (autoplay)
+# -----------------------------
 async def extract_m3u8(page, url: str, idx: int) -> str | None:
     m3u8_url = None
 
@@ -98,42 +90,23 @@ async def extract_m3u8(page, url: str, idx: int) -> str | None:
     page.on("response", on_response)
 
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
-
-        iframe = await page.wait_for_selector("iframe", timeout=10_000)
-        frame = await iframe.content_frame()
-
-        for selector in (
-            ".vjs-big-play-button",
-            ".jw-icon-playback",
-            "button",
-            "div[role='button']",
-        ):
-            try:
-                await frame.click(selector, timeout=2_000)
-                await asyncio.sleep(1)
-                if m3u8_url:
-                    break
-            except Exception:
-                pass
-
+        await page.goto(url, wait_until="networkidle", timeout=20_000)
+        # Wait max 10s for m3u8 to appear
         for _ in range(10):
             if m3u8_url:
                 return m3u8_url
             await asyncio.sleep(1)
-
+        log.warning(f"URL {idx}) Timed out waiting for m3u8")
     except PWTimeout:
-        log.warning(f"URL {idx}) Timed out after 10s, skipping event")
+        log.warning(f"URL {idx}) Page load timeout")
     except Exception as e:
         log.warning(f"URL {idx}) Failed: {e}")
 
     return None
 
-
-# --------------------------------------------------
-# PLAYLIST BUILDERS
-# --------------------------------------------------
-
+# -----------------------------
+# Build Playlists
+# -----------------------------
 def build_vlc(data: dict) -> str:
     out = ["#EXTM3U"]
     ch = 1
@@ -148,7 +121,6 @@ def build_vlc(data: dict) -> str:
         out.append(e["url"])
         ch += 1
     return "\n".join(out) + "\n"
-
 
 def build_tivimate(data: dict) -> str:
     out = ["#EXTM3U"]
@@ -165,11 +137,9 @@ def build_tivimate(data: dict) -> str:
         ch += 1
     return "\n".join(out) + "\n"
 
-
-# --------------------------------------------------
-# MAIN
-# --------------------------------------------------
-
+# -----------------------------
+# Main
+# -----------------------------
 async def main():
     log.info("🚀 Starting EmbedHD scraper...")
 
@@ -216,7 +186,6 @@ async def main():
     OUT_TIVI.write_text(build_tivimate(urls), encoding="utf-8")
 
     log.info(f"Wrote {len(urls)} total events")
-
 
 if __name__ == "__main__":
     asyncio.run(main())
