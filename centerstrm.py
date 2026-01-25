@@ -140,7 +140,7 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
 
 
 # -------------------------------------------------
-# MAIN SCRAPER (FINAL FIX)
+# MAIN SCRAPER (FIXED)
 # -------------------------------------------------
 async def scrape() -> None:
     cached = CACHE_FILE.load()
@@ -166,22 +166,17 @@ async def scrape() -> None:
             async with network.event_context(browser, stealth=False) as context:
                 for i, ev in enumerate(events, start=1):
                     async with network.event_page(context) as page:
-
-                        async def handler():
-                            return await network.process_event(
-                                page,
-                                ev["embed"],
-                                i,
-                                20,
-                                log,
+                        try:
+                            stream = await network.process_event(
+                                page=page,
+                                url=ev["embed"],
+                                url_num=i,
+                                timeout=20,
+                                log=log,
                             )
-
-                        stream = await network.safe_process(
-                            handler,
-                            url_num=i,
-                            semaphore=network.PW_S,
-                            log=log,
-                        )
+                        except Exception as e:
+                            log.error(f"URL {i}) Failed: {e}")
+                            continue
 
                         if not stream:
                             continue
