@@ -4,8 +4,6 @@ from functools import partial
 from pathlib import Path
 from urllib.parse import quote
 
-import aiohttp
-
 from playwright.async_api import Browser, async_playwright
 
 from utils import Cache, Time, get_logger, leagues, network
@@ -16,7 +14,7 @@ urls: dict[str, dict[str, str | float]] = {}
 
 TAG = "EMBEDHD"
 
-# 🔐 Base URL from secret
+# 🔐 Base URL secret
 BASE_URL = os.getenv("EMBEDHD_API_URL")
 if not BASE_URL:
     raise RuntimeError("EMBEDHD_API_URL secret is not set")
@@ -93,30 +91,23 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
     return events
 
 
-async def resolve_stream(url: str) -> str | None:
+async def resolve_stream_with_playwright(url: str, context) -> str | None:
     """
-    Resolve a fetch.php URL to the final .m3u8 link.
+    Use Playwright to open the fetch.php or API stream page and extract the real .m3u8 link.
     """
-    if url.endswith(".m3u8"):
-        return url
-
     try:
-        # HEAD request to follow redirects
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
-            async with session.get(url, headers={"User-Agent": UA_RAW, "Referer": REFERER}, allow_redirects=True) as resp:
-                final_url = str(resp.url)
-                if final_url.endswith(".m3u8"):
-                    return final_url
-                # Some servers return plain text .m3u8 inside body
-                text = await resp.text()
-                if ".m3u8" in text:
-                    for line in text.splitlines():
-                        if line.strip().endswith(".m3u8"):
-                            return line.strip()
+        async with network.event_page(context) as page:
+            # Use existing network helper to process event
+            stream = await network.safe_process(
+                partial(network.process_event, url=url, page=page, log=log),
+                url_num=1,
+                semaphore=network.PW_S,
+                log=log,
+            )
+            return stream
     except Exception as e:
-        log.warning(f"Failed to resolve {url}: {e}")
-
-    return None
+        log.warning(f"Failed to get m3u8 from {url}: {e}")
+        return None
 
 
 def build_vlc_playlist(data: dict) -> str:
@@ -174,24 +165,7 @@ async def scrape(browser: Browser) -> None:
     if events:
         async with network.event_context(browser) as context:
             for i, ev in enumerate(events, start=1):
-                stream = await resolve_stream(ev["link"])
-                if not stream:
-                    # Fallback to Playwright if HEAD/get fails
-                    async with network.event_page(context) as page:
-                        handler = partial(
-                            network.process_event,
-                            url=ev["link"],
-                            url_num=i,
-                            page=page,
-                            log=log,
-                        )
-                        stream = await network.safe_process(
-                            handler,
-                            url_num=i,
-                            semaphore=network.PW_S,
-                            log=log,
-                        )
-
+                stream = await resolve_stream_with_playwright(ev["link"], context)
                 if stream:
                     tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
                     key = f"[{ev['sport']}] {ev['event']} ({TAG})"
