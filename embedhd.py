@@ -14,6 +14,7 @@ urls: dict[str, dict[str, str | float]] = {}
 
 TAG = "EMBEDHD"
 
+# 🔐 Base URL from secret
 BASE_URL = os.getenv("EMBEDHD_API_URL")
 if not BASE_URL:
     raise RuntimeError("EMBEDHD_API_URL secret is not set")
@@ -21,6 +22,7 @@ if not BASE_URL:
 CACHE_FILE = Cache(TAG, exp=5_400)
 API_CACHE = Cache(f"{TAG}-api", exp=28_800)
 
+# Output files
 OUT_VLC = Path("embedhd_vlc.m3u8")
 OUT_TIVI = Path("embedhd_tivimate.m3u8")
 
@@ -39,44 +41,11 @@ def fix_league(s: str) -> str:
     return " ".join(x.capitalize() for x in s.split()) if len(s) > 5 else s.upper()
 
 
-async def resolve_direct_stream(url: str) -> str | None:
-    """
-    Follow redirects and detect direct m3u8 streams
-    without launching Playwright.
-    """
-    try:
-        r = await network.request(
-            url,
-            headers={
-                "User-Agent": UA_RAW,
-                "Referer": REFERER,
-                "Origin": ORIGIN,
-            },
-            allow_redirects=True,
-            log=log,
-        )
-        if not r:
-            return None
-
-        final_url = str(r.url)
-
-        ct = r.headers.get("content-type", "").lower()
-
-        if ".m3u8" in final_url or "mpegurl" in ct:
-            return final_url
-
-    except Exception:
-        return None
-
-    return None
-
-
 async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
     now = Time.clean(Time.now())
 
     if not (api_data := API_CACHE.load(per_entry=False)):
         log.info("Refreshing API cache")
-
         api_data = {"timestamp": now.timestamp()}
 
         if r := await network.request(BASE_URL, log=log):
@@ -122,6 +91,17 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
     return events
 
 
+async def resolve_stream(url: str) -> str | None:
+    """
+    If the link is already a direct .m3u8, return it immediately.
+    Otherwise, fall back to Playwright.
+    """
+    if url.endswith(".m3u8"):
+        return url
+    # Could add HEAD request here if needed
+    return None
+
+
 def build_vlc_playlist(data: dict) -> str:
     lines = ["#EXTM3U"]
     ch = 1
@@ -135,6 +115,7 @@ def build_vlc_playlist(data: dict) -> str:
         lines.append(f"#EXTVLCOPT:http-referrer={REFERER}")
         lines.append(f"#EXTVLCOPT:http-origin={ORIGIN}")
         lines.append(f"#EXTVLCOPT:http-user-agent={UA_RAW}")
+        lines.append(f"#EXTVLCOPT:http-icy-metadata=1")
         lines.append(e["url"])
         ch += 1
 
@@ -156,6 +137,7 @@ def build_tivimate_playlist(data: dict) -> str:
             f'|referer={REFERER}'
             f'|origin={ORIGIN}'
             f'|user-agent={UA_ENC}'
+            f'|icy-metadata=1'
         )
         ch += 1
 
@@ -171,11 +153,12 @@ async def scrape(browser: Browser) -> None:
 
     events = await get_events(list(cached_urls.keys()))
 
+    log.info(f"Processing {len(events)} new URL(s)")
+
     if events:
         async with network.event_context(browser) as context:
             for i, ev in enumerate(events, start=1):
-
-                stream = await resolve_direct_stream(ev["link"])
+                stream = await resolve_stream(ev["link"])
 
                 if not stream:
                     async with network.event_page(context) as page:
