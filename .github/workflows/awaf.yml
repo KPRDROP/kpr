@@ -2,7 +2,8 @@ name: 📡 Update AWAF Playlist
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Run every hour
+    # Runs every hour
+    - cron: '0 * * * *'
   workflow_dispatch:
     # Allow manual run from GitHub UI
 
