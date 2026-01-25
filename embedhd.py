@@ -1,4 +1,5 @@
 import os
+from functools import partial
 import asyncio
 from pathlib import Path
 from urllib.parse import quote
