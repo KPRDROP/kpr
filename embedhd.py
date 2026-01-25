@@ -1,11 +1,11 @@
 import os
-from functools import partial
 import asyncio
+import time
+import re
 from pathlib import Path
 from urllib.parse import quote
 
-from playwright.async_api import async_playwright, Browser
-
+from playwright.async_api import async_playwright
 from utils import Cache, Time, get_logger, leagues
 
 log = get_logger(__name__)
@@ -22,8 +22,8 @@ API_CACHE = Cache(f"{TAG}-api", exp=28800)
 OUT_VLC = Path("embedhd_vlc.m3u8")
 OUT_TIVI = Path("embedhd_tivimate.m3u8")
 
-REFERER = "https://vividmosaica.com/"
-ORIGIN = "https://vividmosaica.com/"
+REFERER = "https://embedhd.org/"
+ORIGIN = "https://embedhd.org/"
 
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -31,6 +31,8 @@ UA = (
     "Chrome/134.0.0.0 Safari/537.36"
 )
 UA_ENC = quote(UA)
+
+M3U8_RE = re.compile(r"\.m3u8(\?|$)")
 
 events_cache: dict[str, dict] = {}
 
@@ -78,42 +80,44 @@ async def get_events(existing_keys):
     return items
 
 # --------------------------------------------------
-# M3U8 extractor (AUTOPLAY SAFE)
+# M3U8 extractor (IFRAME SAFE)
 # --------------------------------------------------
-import asyncio
-import re
-import time
-
-M3U8_RE = re.compile(r"\.m3u8(\?|$)")
-
-async def resolve_m3u8(context, page, url, idx):
+async def resolve_m3u8(page, url, idx):
     found = []
 
-    def on_request(request):
-        if M3U8_RE.search(request.url):
-            found.append(request.url)
+    def on_response(response):
+        try:
+            if M3U8_RE.search(response.url):
+                found.append(response.url)
+        except Exception:
+            pass
 
-    context.on("request", on_request)
+    page.on("response", on_response)
 
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=20000)
+        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
 
-        # allow iframe + player JS to load
-        await asyncio.sleep(3)
+        # wait for iframe injection
+        await page.wait_for_selector("iframe", timeout=15000)
 
-        # force autoplay (EmbedHD allows muted play)
+        # allow player boot + autoplay
+        await asyncio.sleep(5)
+
+        # force play inside iframe
         await page.evaluate("""
-            document.querySelectorAll("video").forEach(v => {
+            document.querySelectorAll("iframe").forEach(f => {
                 try {
-                    v.muted = true;
-                    v.play();
-                } catch (e) {}
+                    const v = f.contentDocument?.querySelector("video");
+                    if (v) {
+                        v.muted = true;
+                        v.play();
+                    }
+                } catch(e){}
             });
         """)
 
-        # wait up to 30s for m3u8
         start = time.time()
-        while time.time() - start < 30:
+        while time.time() - start < 40:
             if found:
                 return found[0]
             await asyncio.sleep(0.5)
@@ -125,14 +129,13 @@ async def resolve_m3u8(context, page, url, idx):
         return None
 
     finally:
-        # ✅ correct way to remove listener in Playwright Python
         try:
-            context.remove_listener("request", on_request)
+            page.remove_listener("response", on_response)
         except Exception:
             pass
-    
+
 # --------------------------------------------------
-# Playlist builders
+# Playlist builder
 # --------------------------------------------------
 def build_tivimate(data):
     out = ["#EXTM3U"]
@@ -168,19 +171,22 @@ async def main():
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            args=["--autoplay-policy=no-user-gesture-required"]
+            args=[
+                "--autoplay-policy=no-user-gesture-required",
+                "--disable-features=MediaSessionService"
+            ]
         )
 
         context = await browser.new_context(
-    user_agent=UA,
-    viewport={"width": 1280, "height": 720},
-    java_script_enabled=True,
-)
+            user_agent=UA,
+            viewport={"width": 1280, "height": 720},
+            java_script_enabled=True,
+        )
 
         page = await context.new_page()
 
         for i, ev in enumerate(new_events, 1):
-            m3u8 = await resolve_m3u8(context, page, ev["link"], i)
+            m3u8 = await resolve_m3u8(page, ev["link"], i)
             if not m3u8:
                 continue
 
