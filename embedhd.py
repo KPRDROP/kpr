@@ -144,25 +144,13 @@ async def scrape(browser: Browser) -> None:
     if events:
         async with network.event_context(browser) as context:
             for i, ev in enumerate(events, start=1):
-
-                # ✅ DIRECT STREAM — NO PLAYWRIGHT
-                if ".m3u8" in ev["link"]:
-                    stream = ev["link"]
-                else:
-                    async with network.event_page(context) as page:
-                        handler = partial(
-                            network.process_event,
-                            url=ev["link"],
-                            url_num=i,
-                            page=page,
-                            log=log,
-                        )
-
-                        stream = await network.safe_process(
-                            handler,
-                            url_num=i,
-                            semaphore=network.PW_S,
-                            log=log,
+                async with network.event_page(context) as page:
+                    handler = partial(
+                        network.process_event,
+                        url=ev["link"],
+                        url_num=i,
+                        page=page,
+                        log=log,
                         )
 
                 if stream:
