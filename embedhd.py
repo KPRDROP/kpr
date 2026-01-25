@@ -3,7 +3,7 @@ from functools import partial
 from pathlib import Path
 from urllib.parse import quote
 
-from playwright.async_api import Browser
+from playwright.async_api import Browser, async_playwright
 
 from utils import Cache, Time, get_logger, leagues, network
 
@@ -178,6 +178,7 @@ async def scrape(browser: Browser) -> None:
     log.info(f"Wrote {len(urls)} total events")
 
 
+# ✅ FIXED ENTRYPOINT
 async def main() -> None:
     log.info("🚀 Starting EmbedHD scraper...")
     async with async_playwright() as p:
