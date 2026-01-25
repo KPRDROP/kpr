@@ -2,8 +2,8 @@ name: 📺 Update PixelSport TiViMate Playlist
 
 on:
   schedule:
-    # Every 30 minutes
-    - cron: "*/30 * * * *"
+    # Runs every hour
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
