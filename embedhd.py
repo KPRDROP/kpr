@@ -34,16 +34,15 @@ UA_ENC = quote(UA_RAW)
 urls: dict[str, dict] = {}
 
 
-# ---------------------------
-# API
-# ---------------------------
+# --------------------------------------------------
+# API EVENTS
+# --------------------------------------------------
 
 async def get_events(cached_keys: list[str]) -> list[dict]:
     now = Time.clean(Time.now())
 
     if not (api := API_CACHE.load(per_entry=False)):
         log.info("Refreshing API cache")
-        api = {"timestamp": now.timestamp()}
         async with async_playwright() as p:
             browser = await p.chromium.launch()
             page = await browser.new_page()
@@ -84,35 +83,32 @@ async def get_events(cached_keys: list[str]) -> list[dict]:
     return events
 
 
-# ---------------------------
-# PLAYWRIGHT STREAM RESOLVER
-# ---------------------------
+# --------------------------------------------------
+# STREAM RESOLVER (CLICK REQUIRED)
+# --------------------------------------------------
 
 async def extract_m3u8(page, url: str, idx: int) -> str | None:
     m3u8_url = None
 
     def on_response(resp):
         nonlocal m3u8_url
-        u = resp.url
-        if ".m3u8" in u and "hls" in u:
-            m3u8_url = u
+        if ".m3u8" in resp.url and "hls" in resp.url:
+            m3u8_url = resp.url
 
     page.on("response", on_response)
 
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
 
-        # Wait iframe
         iframe = await page.wait_for_selector("iframe", timeout=10_000)
         frame = await iframe.content_frame()
 
-        # Try clicking common play buttons
-        for selector in [
-            "button",
+        for selector in (
             ".vjs-big-play-button",
             ".jw-icon-playback",
+            "button",
             "div[role='button']",
-        ]:
+        ):
             try:
                 await frame.click(selector, timeout=2_000)
                 await asyncio.sleep(1)
@@ -121,7 +117,6 @@ async def extract_m3u8(page, url: str, idx: int) -> str | None:
             except Exception:
                 pass
 
-        # Final wait for network
         for _ in range(10):
             if m3u8_url:
                 return m3u8_url
@@ -135,9 +130,9 @@ async def extract_m3u8(page, url: str, idx: int) -> str | None:
     return None
 
 
-# ---------------------------
+# --------------------------------------------------
 # PLAYLIST BUILDERS
-# ---------------------------
+# --------------------------------------------------
 
 def build_vlc(data: dict) -> str:
     out = ["#EXTM3U"]
@@ -171,9 +166,9 @@ def build_tivimate(data: dict) -> str:
     return "\n".join(out) + "\n"
 
 
-# ---------------------------
-# MAIN SCRAPER
-# ---------------------------
+# --------------------------------------------------
+# MAIN
+# --------------------------------------------------
 
 async def main():
     log.info("🚀 Starting EmbedHD scraper...")
@@ -184,11 +179,18 @@ async def main():
     events = await get_events(list(cached.keys()))
     log.info(f"Processing {len(events)} new URL(s)")
 
+    if not events:
+        log.info("No new events found")
+        return
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(
             user_agent=UA_RAW,
-            referer=REFERER,
+            extra_http_headers={
+                "Referer": REFERER,
+                "Origin": ORIGIN,
+            },
         )
         page = await context.new_page()
 
