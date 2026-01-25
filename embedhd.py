@@ -178,11 +178,16 @@ async def scrape(browser: Browser) -> None:
     log.info(f"Wrote {len(urls)} total events")
 
 
-if __name__ == "__main__":
-    import asyncio
-    from playwright.async_api import async_playwright
-
+async def main() -> None:
     log.info("🚀 Starting EmbedHD scraper...")
     async with async_playwright() as p:
         browser = await network.browser_only(p)
-        asyncio.run(scrape(browser))
+        try:
+            await scrape(browser)
+        finally:
+            await browser.close()
+
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
