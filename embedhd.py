@@ -92,7 +92,7 @@ async def resolve_m3u8(context, page, url, idx):
             timeout=15000,
         ) as req_info:
 
-            await page.goto(url, wait_until="domcontentloaded", timeout=15000)
+            await page.goto(url, wait_until="domcontentloaded", timeout=20000)
 
             # autoplay safety (some embeds still need it)
             await page.evaluate("""
