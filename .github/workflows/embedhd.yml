@@ -23,7 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install playwright httpx[http2]
+          pip install playwright httpx[http2] pytz
           playwright install chromium
 
       - name: Run EmbedHD scraper
