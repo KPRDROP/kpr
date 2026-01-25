@@ -3,7 +3,7 @@ import asyncio
 from pathlib import Path
 from urllib.parse import quote
 
-from playwright.async_api import async_playwright, TimeoutError as PWTimeout
+from playwright.async_api import async_playwright
 from utils import Cache, Time, get_logger, leagues
 
 log = get_logger(__name__)
@@ -12,10 +12,10 @@ TAG = "EMBEDHD"
 
 BASE_URL = os.getenv("EMBEDHD_API_URL")
 if not BASE_URL:
-    raise RuntimeError("EMBEDHD_API_URL secret is not set")
+    raise RuntimeError("EMBEDHD_API_URL not set")
 
-CACHE_FILE = Cache(TAG, exp=5_400)
-API_CACHE = Cache(f"{TAG}-api", exp=28_800)
+CACHE = Cache(TAG, exp=5400)
+API_CACHE = Cache(f"{TAG}-api", exp=28800)
 
 OUT_VLC = Path("embedhd_vlc.m3u8")
 OUT_TIVI = Path("embedhd_tivimate.m3u8")
@@ -23,30 +23,29 @@ OUT_TIVI = Path("embedhd_tivimate.m3u8")
 REFERER = "https://vividmosaica.com/"
 ORIGIN = "https://vividmosaica.com/"
 
-UA_RAW = (
+UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/134.0.0.0 Safari/537.36"
 )
-UA_ENC = quote(UA_RAW)
+UA_ENC = quote(UA)
 
-urls: dict[str, dict] = {}
+events_cache: dict[str, dict] = {}
 
-# -----------------------------
-# Get API events
-# -----------------------------
-async def get_events(cached_keys: list[str]) -> list[dict]:
+# --------------------------------------------------
+# API
+# --------------------------------------------------
+async def get_events(existing_keys):
     now = Time.clean(Time.now())
 
     if not (api := API_CACHE.load(per_entry=False)):
         log.info("Refreshing API cache")
-        # Use simple GET request
-        if r := await asyncio.to_thread(lambda: __import__("requests").get(BASE_URL, timeout=15)):
-            api = r.json()
+        import requests
+        api = requests.get(BASE_URL, timeout=15).json()
         api["timestamp"] = now.timestamp()
         API_CACHE.write(api)
 
-    events = []
+    items = []
     start = now.delta(hours=-3)
     end = now.delta(minutes=30)
 
@@ -64,65 +63,58 @@ async def get_events(cached_keys: list[str]) -> list[dict]:
                 continue
 
             key = f"[{ev['league']}] {ev['title']} ({TAG})"
-            if key in cached_keys:
+            if key in existing_keys:
                 continue
 
-            events.append({
+            items.append({
                 "sport": ev["league"],
                 "event": ev["title"],
                 "link": streams[0]["link"],
                 "timestamp": now.timestamp(),
             })
 
-    return events
+    return items
 
-# -----------------------------
-# Extract m3u8 (autoplay)
-# -----------------------------
-async def extract_m3u8(page, url: str, idx: int) -> str | None:
-    m3u8_url = None
+# --------------------------------------------------
+# M3U8 extractor (AUTOPLAY SAFE)
+# --------------------------------------------------
+async def resolve_m3u8(page, url, idx):
+    found = None
 
-    def on_response(resp):
-        nonlocal m3u8_url
-        if ".m3u8" in resp.url and "hls" in resp.url:
-            m3u8_url = resp.url
+    def on_request(req):
+        nonlocal found
+        if ".m3u8" in req.url:
+            found = req.url
 
-    page.on("response", on_response)
+    page.on("request", on_request)
 
     try:
-        await page.goto(url, wait_until="networkidle", timeout=20_000)
-        # Wait max 10s for m3u8 to appear
-        for _ in range(10):
-            if m3u8_url:
-                return m3u8_url
+        await page.goto(url, wait_until="domcontentloaded", timeout=15000)
+
+        # force autoplay just in case
+        await page.evaluate("""
+            document.querySelectorAll("video").forEach(v => {
+                v.muted = true;
+                v.play().catch(()=>{});
+            });
+        """)
+
+        for _ in range(12):
+            if found:
+                return found
             await asyncio.sleep(1)
+
         log.warning(f"URL {idx}) Timed out waiting for m3u8")
-    except PWTimeout:
-        log.warning(f"URL {idx}) Page load timeout")
+
     except Exception as e:
         log.warning(f"URL {idx}) Failed: {e}")
 
     return None
 
-# -----------------------------
-# Build Playlists
-# -----------------------------
-def build_vlc(data: dict) -> str:
-    out = ["#EXTM3U"]
-    ch = 1
-    for name, e in data.items():
-        out.append(
-            f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
-            f'tvg-name="{name}" tvg-logo="{e["logo"]}" group-title="Live Events",{name}'
-        )
-        out.append(f"#EXTVLCOPT:http-referrer={REFERER}")
-        out.append(f"#EXTVLCOPT:http-origin={ORIGIN}")
-        out.append(f"#EXTVLCOPT:http-user-agent={UA_RAW}")
-        out.append(e["url"])
-        ch += 1
-    return "\n".join(out) + "\n"
-
-def build_tivimate(data: dict) -> str:
+# --------------------------------------------------
+# Playlist builders
+# --------------------------------------------------
+def build_tivimate(data):
     out = ["#EXTM3U"]
     ch = 1
     for name, e in data.items():
@@ -137,43 +129,48 @@ def build_tivimate(data: dict) -> str:
         ch += 1
     return "\n".join(out) + "\n"
 
-# -----------------------------
-# Main
-# -----------------------------
+# --------------------------------------------------
+# MAIN
+# --------------------------------------------------
 async def main():
     log.info("🚀 Starting EmbedHD scraper...")
 
-    cached = CACHE_FILE.load() or {}
-    urls.update(cached)
+    cached = CACHE.load() or {}
+    events_cache.update(cached)
 
-    events = await get_events(list(cached.keys()))
-    log.info(f"Processing {len(events)} new URL(s)")
+    new_events = await get_events(list(cached.keys()))
+    log.info(f"Processing {len(new_events)} new URL(s)")
 
-    if not events:
+    if not new_events:
         log.info("No new events found")
         return
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--autoplay-policy=no-user-gesture-required"]
+        )
+
         context = await browser.new_context(
-            user_agent=UA_RAW,
+            user_agent=UA,
             extra_http_headers={
                 "Referer": REFERER,
                 "Origin": ORIGIN,
             },
         )
+
         page = await context.new_page()
 
-        for i, ev in enumerate(events, 1):
-            stream = await extract_m3u8(page, ev["link"], i)
-            if not stream:
+        for i, ev in enumerate(new_events, 1):
+            m3u8 = await resolve_m3u8(page, ev["link"], i)
+            if not m3u8:
                 continue
 
             tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
             key = f"[{ev['sport']}] {ev['event']} ({TAG})"
 
-            urls[key] = {
-                "url": stream,
+            events_cache[key] = {
+                "url": m3u8,
                 "logo": logo,
                 "id": tvg_id or "Live.Event.us",
                 "timestamp": ev["timestamp"],
@@ -181,11 +178,10 @@ async def main():
 
         await browser.close()
 
-    CACHE_FILE.write(urls)
-    OUT_VLC.write_text(build_vlc(urls), encoding="utf-8")
-    OUT_TIVI.write_text(build_tivimate(urls), encoding="utf-8")
+    CACHE.write(events_cache)
+    OUT_TIVI.write_text(build_tivimate(events_cache), encoding="utf-8")
 
-    log.info(f"Wrote {len(urls)} total events")
+    log.info(f"Wrote {len(events_cache)} total events")
 
 if __name__ == "__main__":
     asyncio.run(main())
