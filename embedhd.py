@@ -1,4 +1,5 @@
 import os
+import asyncio
 from functools import partial
 from pathlib import Path
 from urllib.parse import quote
@@ -181,8 +182,9 @@ async def scrape(browser: Browser) -> None:
 # ✅ FIXED ENTRYPOINT
 async def main() -> None:
     log.info("🚀 Starting EmbedHD scraper...")
+
     async with async_playwright() as p:
-        browser = await network.browser_only(p)
+        browser = await p.chromium.launch(headless=True)
         try:
             await scrape(browser)
         finally:
@@ -190,5 +192,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    import asyncio
     asyncio.run(main())
