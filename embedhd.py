@@ -95,20 +95,26 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
 async def resolve_stream(url: str) -> str | None:
     """
-    Resolve a stream URL.
-    1. If URL ends with .m3u8, return directly.
-    2. Otherwise, do a HEAD request to check if it exists.
+    Resolve a fetch.php URL to the final .m3u8 link.
     """
     if url.endswith(".m3u8"):
         return url
 
     try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session:
-            async with session.head(url, headers={"User-Agent": UA_RAW}) as resp:
-                if resp.status == 200:
-                    return url
+        # HEAD request to follow redirects
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+            async with session.get(url, headers={"User-Agent": UA_RAW, "Referer": REFERER}, allow_redirects=True) as resp:
+                final_url = str(resp.url)
+                if final_url.endswith(".m3u8"):
+                    return final_url
+                # Some servers return plain text .m3u8 inside body
+                text = await resp.text()
+                if ".m3u8" in text:
+                    for line in text.splitlines():
+                        if line.strip().endswith(".m3u8"):
+                            return line.strip()
     except Exception as e:
-        log.warning(f"HEAD request failed for {url}: {e}")
+        log.warning(f"Failed to resolve {url}: {e}")
 
     return None
 
@@ -163,16 +169,14 @@ async def scrape(browser: Browser) -> None:
     log.info(f'Scraping from "{BASE_URL}"')
 
     events = await get_events(list(cached_urls.keys()))
-
     log.info(f"Processing {len(events)} new URL(s)")
 
     if events:
         async with network.event_context(browser) as context:
             for i, ev in enumerate(events, start=1):
                 stream = await resolve_stream(ev["link"])
-
                 if not stream:
-                    # Only use Playwright if the HEAD request didn't resolve
+                    # Fallback to Playwright if HEAD/get fails
                     async with network.event_page(context) as page:
                         handler = partial(
                             network.process_event,
@@ -191,7 +195,6 @@ async def scrape(browser: Browser) -> None:
                 if stream:
                     tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
                     key = f"[{ev['sport']}] {ev['event']} ({TAG})"
-
                     urls[key] = {
                         "url": stream,
                         "logo": logo,
