@@ -78,39 +78,50 @@ async def get_events(existing_keys):
 # --------------------------------------------------
 # M3U8 extractor (AUTOPLAY SAFE)
 # --------------------------------------------------
+import asyncio
 import re
-from asyncio import TimeoutError
+import time
 
 M3U8_RE = re.compile(r"\.m3u8(\?|$)")
 
 async def resolve_m3u8(context, page, url, idx):
+    found = []
+
+    def on_request(req):
+        if M3U8_RE.search(req.url):
+            found.append(req.url)
+
+    context.on("request", on_request)
+
     try:
-        # wait for ANY m3u8 request from page OR iframe
-        async with context.expect_event(
-            "request",
-            predicate=lambda r: M3U8_RE.search(r.url),
-            timeout=15000,
-        ) as req_info:
+        await page.goto(url, wait_until="domcontentloaded", timeout=20000)
 
-            await page.goto(url, wait_until="domcontentloaded", timeout=20000)
+        # give iframe time to inject + autoplay
+        await asyncio.sleep(2)
 
-            # autoplay safety (some embeds still need it)
-            await page.evaluate("""
-                document.querySelectorAll("video").forEach(v => {
-                    v.muted = true;
-                    v.play().catch(()=>{});
-                });
-            """)
+        # force autoplay (safe even if already playing)
+        await page.evaluate("""
+            document.querySelectorAll("video").forEach(v => {
+                v.muted = true;
+                v.play().catch(()=>{});
+            });
+        """)
 
-        req = await req_info.value
-        return req.url
+        # wait up to 25s for m3u8 to appear
+        start = time.time()
+        while time.time() - start < 25:
+            if found:
+                return found[0]
+            await asyncio.sleep(0.5)
 
-    except TimeoutError:
-        log.warning(f"URL {idx}) Timed out waiting for m3u8")
+        raise TimeoutError("m3u8 not detected")
+
     except Exception as e:
         log.warning(f"URL {idx}) Failed: {e}")
+        return None
 
-    return None
+    finally:
+        context.off("request", on_request)
     
 # --------------------------------------------------
 # Playlist builders
@@ -153,12 +164,10 @@ async def main():
         )
 
         context = await browser.new_context(
-            user_agent=UA,
-            extra_http_headers={
-                "Referer": REFERER,
-                "Origin": ORIGIN,
-            },
-        )
+    user_agent=UA,
+    viewport={"width": 1280, "height": 720},
+    java_script_enabled=True,
+)
 
         page = await context.new_page()
 
