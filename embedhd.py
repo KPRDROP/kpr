@@ -87,29 +87,31 @@ M3U8_RE = re.compile(r"\.m3u8(\?|$)")
 async def resolve_m3u8(context, page, url, idx):
     found = []
 
-    def on_request(req):
-        if M3U8_RE.search(req.url):
-            found.append(req.url)
+    def on_request(request):
+        if M3U8_RE.search(request.url):
+            found.append(request.url)
 
     context.on("request", on_request)
 
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=20000)
 
-        # give iframe time to inject + autoplay
-        await asyncio.sleep(2)
+        # allow iframe + player JS to load
+        await asyncio.sleep(3)
 
-        # force autoplay (safe even if already playing)
+        # force autoplay (EmbedHD allows muted play)
         await page.evaluate("""
             document.querySelectorAll("video").forEach(v => {
-                v.muted = true;
-                v.play().catch(()=>{});
+                try {
+                    v.muted = true;
+                    v.play();
+                } catch (e) {}
             });
         """)
 
-        # wait up to 25s for m3u8 to appear
+        # wait up to 30s for m3u8
         start = time.time()
-        while time.time() - start < 25:
+        while time.time() - start < 30:
             if found:
                 return found[0]
             await asyncio.sleep(0.5)
@@ -121,7 +123,11 @@ async def resolve_m3u8(context, page, url, idx):
         return None
 
     finally:
-        context.off("request", on_request)
+        # ✅ correct way to remove listener in Playwright Python
+        try:
+            context.remove_listener("request", on_request)
+        except Exception:
+            pass
     
 # --------------------------------------------------
 # Playlist builders
