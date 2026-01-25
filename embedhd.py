@@ -4,6 +4,8 @@ from functools import partial
 from pathlib import Path
 from urllib.parse import quote
 
+import aiohttp
+
 from playwright.async_api import Browser, async_playwright
 
 from utils import Cache, Time, get_logger, leagues, network
@@ -93,12 +95,21 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
 async def resolve_stream(url: str) -> str | None:
     """
-    If the link is already a direct .m3u8, return it immediately.
-    Otherwise, fall back to Playwright.
+    Resolve a stream URL.
+    1. If URL ends with .m3u8, return directly.
+    2. Otherwise, do a HEAD request to check if it exists.
     """
     if url.endswith(".m3u8"):
         return url
-    # Could add HEAD request here if needed
+
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session:
+            async with session.head(url, headers={"User-Agent": UA_RAW}) as resp:
+                if resp.status == 200:
+                    return url
+    except Exception as e:
+        log.warning(f"HEAD request failed for {url}: {e}")
+
     return None
 
 
@@ -161,6 +172,7 @@ async def scrape(browser: Browser) -> None:
                 stream = await resolve_stream(ev["link"])
 
                 if not stream:
+                    # Only use Playwright if the HEAD request didn't resolve
                     async with network.event_page(context) as page:
                         handler = partial(
                             network.process_event,
