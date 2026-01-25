@@ -10,6 +10,7 @@ from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
+urls: dict[str, dict[str, str | float]] = {}
 
 TAG = "EMBEDHD"
 
