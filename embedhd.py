@@ -78,39 +78,40 @@ async def get_events(existing_keys):
 # --------------------------------------------------
 # M3U8 extractor (AUTOPLAY SAFE)
 # --------------------------------------------------
-async def resolve_m3u8(page, url, idx):
-    found = None
+import re
+from asyncio import TimeoutError
 
-    def on_request(req):
-        nonlocal found
-        if ".m3u8" in req.url:
-            found = req.url
+M3U8_RE = re.compile(r"\.m3u8(\?|$)")
 
-    page.on("request", on_request)
-
+async def resolve_m3u8(context, page, url, idx):
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=15000)
+        # wait for ANY m3u8 request from page OR iframe
+        async with context.expect_event(
+            "request",
+            predicate=lambda r: M3U8_RE.search(r.url),
+            timeout=15000,
+        ) as req_info:
 
-        # force autoplay just in case
-        await page.evaluate("""
-            document.querySelectorAll("video").forEach(v => {
-                v.muted = true;
-                v.play().catch(()=>{});
-            });
-        """)
+            await page.goto(url, wait_until="domcontentloaded", timeout=15000)
 
-        for _ in range(12):
-            if found:
-                return found
-            await asyncio.sleep(1)
+            # autoplay safety (some embeds still need it)
+            await page.evaluate("""
+                document.querySelectorAll("video").forEach(v => {
+                    v.muted = true;
+                    v.play().catch(()=>{});
+                });
+            """)
 
+        req = await req_info.value
+        return req.url
+
+    except TimeoutError:
         log.warning(f"URL {idx}) Timed out waiting for m3u8")
-
     except Exception as e:
         log.warning(f"URL {idx}) Failed: {e}")
 
     return None
-
+    
 # --------------------------------------------------
 # Playlist builders
 # --------------------------------------------------
@@ -162,7 +163,7 @@ async def main():
         page = await context.new_page()
 
         for i, ev in enumerate(new_events, 1):
-            m3u8 = await resolve_m3u8(page, ev["link"], i)
+            m3u8 = await resolve_m3u8(context, page, ev["link"], i)
             if not m3u8:
                 continue
 
