@@ -17,7 +17,7 @@ TAG = "PAWA"
 
 CACHE_FILE = Cache(TAG, exp=10_800)
 
-BASE_URL = os.environ.get("PAWA_API_URL")
+BASE_URL = os.environ.get("PAWA_FEED_URL")
 if not BASE_URL:
     raise RuntimeError("Missing PAWA_API_URL secret")
 
