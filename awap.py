@@ -1,4 +1,5 @@
 import os
+import sys
 import base64
 import re
 import urllib.parse
@@ -7,14 +8,17 @@ from functools import partial
 import feedparser
 from selectolax.parser import HTMLParser
 
-from utils import Cache, Time, get_logger, leagues, network
+# 🔧 FIX: allow running as script OR package
+try:
+    from .utils import Cache, Time, get_logger, leagues, network
+except ImportError:
+    from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
 urls: dict[str, dict[str, str | float]] = {}
 
 TAG = "PAWA"
-
 CACHE_FILE = Cache(TAG, exp=10_800)
 
 BASE_URL = os.environ.get("PAWA_FEED_URL")
@@ -145,7 +149,7 @@ def write_playlists(entries: dict):
 
     encoded_ua = urllib.parse.quote(USER_AGENT, safe="")
 
-    for idx, (key, e) in enumerate(entries.items(), start=1):
+    for idx, (_, e) in enumerate(entries.items(), start=1):
         title = f"[Live Event] {e['event']} (PAWA)"
         ref = e["base"]
 
@@ -180,3 +184,8 @@ def write_playlists(entries: dict):
         f.write("\n".join(tivi) + "\n")
 
     log.info(f"Generated {OUTPUT_VLC} and {OUTPUT_TIVI}")
+
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(scrape())
