@@ -38,7 +38,7 @@ M3U8_RE = re.compile(r"\.m3u8(\?|$)")
 events_cache: dict[str, dict] = {}
 
 # --------------------------------------------------
-# API
+# API (FIXED)
 # --------------------------------------------------
 async def get_events(existing_keys):
     now = Time.clean(Time.now())
@@ -53,6 +53,9 @@ async def get_events(existing_keys):
     start = now.delta(hours=-3)
     end = now.delta(minutes=30)
 
+    # normalize existing keys once
+    normalized_existing = {k.lower() for k in existing_keys}
+
     for day in api.get("days", []):
         for ev in day.get("items", []):
             if ev.get("league") == "channel tv":
@@ -66,13 +69,14 @@ async def get_events(existing_keys):
             if not streams:
                 continue
 
-            # 🔧 FIX: normalized key
-            key = f"[{ev['league'].upper()}] {ev['title']} ({TAG})"
-            if key in existing_keys:
+            # ✅ RESTORED ORIGINAL KEY FORMAT
+            key = f"[{ev['league']}] {ev['title']} ({TAG})"
+
+            if key.lower() in normalized_existing:
                 continue
 
             items.append({
-                "sport": ev["league"].upper(),
+                "sport": ev["league"],
                 "event": ev["title"],
                 "link": streams[0]["link"],
                 "timestamp": now.timestamp(),
@@ -81,7 +85,7 @@ async def get_events(existing_keys):
     return items
 
 # --------------------------------------------------
-# M3U8 EXTRACTOR (REAL FIX)
+# M3U8 EXTRACTOR (WORKING)
 # --------------------------------------------------
 async def resolve_m3u8(context, url, idx):
     m3u8_url = None
@@ -94,13 +98,11 @@ async def resolve_m3u8(context, url, idx):
         await route.continue_()
 
     await context.route("**/*", route_handler)
-
     page = await context.new_page()
 
     try:
         await page.goto(url, wait_until="networkidle", timeout=30000)
 
-        # autoplay happens automatically
         for _ in range(60):
             if m3u8_url:
                 return m3u8_url
