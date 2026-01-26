@@ -3,9 +3,9 @@ import asyncio
 import time
 import re
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urljoin
 
-from playwright.async_api import async_playwright, Request
+from playwright.async_api import async_playwright
 from utils import Cache, Time, get_logger, leagues
 
 log = get_logger(__name__)
@@ -30,9 +30,6 @@ UA = (
     "Chrome/134.0.0.0 Safari/537.36"
 )
 UA_ENC = quote(UA)
-
-# Ignore junk CDN URLs
-INVALID_M3U8 = ("amazonaws", "knitcdn")
 
 M3U8_RE = re.compile(r"\.m3u8", re.I)
 
@@ -82,47 +79,52 @@ async def get_events(existing_keys):
     return items
 
 # --------------------------------------------------
-# M3U8 CAPTURE (NETWORK SAFE)
+# REAL M3U8 RESOLVER (IFRAME FIRST)
 # --------------------------------------------------
-async def resolve_m3u8(page, url, idx, timeout=20):
-    captured: list[str] = []
-    got_one = asyncio.Event()
-
-    def on_request(req: Request):
-        try:
-            if (
-                M3U8_RE.search(req.url)
-                and not any(bad in req.url for bad in INVALID_M3U8)
-            ):
-                captured.append(req.url)
-                got_one.set()
-        except Exception:
-            pass
-
-    page.on("request", on_request)
-
+async def resolve_m3u8(page, fetch_url, idx):
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=15000)
+        await page.goto(fetch_url, wait_until="domcontentloaded", timeout=15000)
 
-        try:
-            await asyncio.wait_for(got_one.wait(), timeout=timeout)
-        except asyncio.TimeoutError:
-            log.warning(f"URL {idx}) Timed out waiting for M3U8")
-            return None
+        # 1️⃣ extract iframe src
+        iframe = await page.query_selector("iframe")
+        if not iframe:
+            raise RuntimeError("iframe not found")
 
-        if captured:
-            log.info(f"URL {idx}) Captured M3U8")
-            return captured[0]
+        src = await iframe.get_attribute("src")
+        if not src:
+            raise RuntimeError("iframe src empty")
 
-        log.warning(f"URL {idx}) No M3U8 captured")
-        return None
+        iframe_url = urljoin(fetch_url, src)
+
+        # 2️⃣ load iframe directly
+        await page.goto(iframe_url, wait_until="domcontentloaded", timeout=15000)
+
+        found = []
+
+        def on_request(req):
+            if M3U8_RE.search(req.url):
+                found.append(req.url)
+
+        page.on("request", on_request)
+
+        start = time.time()
+        while time.time() - start < 20:
+            if found:
+                log.info(f"URL {idx}) m3u8 resolved")
+                return found[0]
+            await asyncio.sleep(0.4)
+
+        raise TimeoutError("m3u8 not detected")
 
     except Exception as e:
         log.warning(f"URL {idx}) Failed: {e}")
         return None
 
     finally:
-        page.remove_listener("request", on_request)
+        try:
+            page.remove_listener("request", on_request)
+        except Exception:
+            pass
 
 # --------------------------------------------------
 # PLAYLIST
