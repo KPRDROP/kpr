@@ -19,7 +19,7 @@ CACHE_FILE = Cache(TAG, exp=10_800)
 
 BASE_URL = os.environ.get("PAWA_FEED_URL")
 if not BASE_URL:
-    raise RuntimeError("Missing PAWA_API_URL secret")
+    raise RuntimeError("Missing PAWA_FEED_URL secret")
 
 OUTPUT_VLC = "awap_vlc.m3u8"
 OUTPUT_TIVI = "awap_tivimate.m3u8"
