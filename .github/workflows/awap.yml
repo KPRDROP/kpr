@@ -1,0 +1,50 @@
+name: ▶️ Update AWAP Playlist
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install feedparser selectolax
+
+      - name: Run AWAP scraper
+        env:
+          PAWA_FEED_URL: ${{ secrets.PAWA_API_URL }}
+        run: |
+          python -m awap
+
+      - name: Commit & Push playlists
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add awap_vlc.m3u8 awap_tivimate.m3u8
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+
+          git commit -m "📡 Update AWAP playlists"
+          git pull --rebase
+          git push
