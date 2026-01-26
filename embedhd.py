@@ -82,7 +82,7 @@ async def get_events(existing_keys):
 # --------------------------------------------------
 # M3U8 extractor (NETWORK SAFE)
 # --------------------------------------------------
-async def resolve_m3u8(page, url, idx):
+async def resolve_m3u8(context, url, idx):
     found = {"url": None}
 
     def on_request(request):
