@@ -30,7 +30,7 @@ jobs:
 
       - name: Run AWAP scraper
         env:
-          PAWA_FEED_URL: ${{ secrets.PAWA_API_URL }}
+          PAWA_FEED_URL: ${{ secrets.PAWA_FEED_URL }}
         run: |
           python -m awap
 
