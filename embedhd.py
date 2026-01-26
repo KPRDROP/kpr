@@ -1,55 +1,114 @@
+import os
 import asyncio
-import json
-import logging
+import time
 import re
 from pathlib import Path
-from playwright.async_api import async_playwright, TimeoutError
+from urllib.parse import quote
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] %(levelname)-8s %(message)s',
-    datefmt='%Y-%m-%d | %H:%M:%S'
+from playwright.async_api import async_playwright
+from utils import Cache, Time, get_logger, leagues
+
+log = get_logger(__name__)
+
+TAG = "EMBEDHD"
+
+BASE_URL = os.getenv("EMBEDHD_API_URL")
+if not BASE_URL:
+    raise RuntimeError("EMBEDHD_API_URL not set")
+
+CACHE = Cache(TAG, exp=5400)
+API_CACHE = Cache(f"{TAG}-api", exp=28800)
+
+OUT_VLC = Path("embedhd_vlc.m3u8")
+OUT_TIVI = Path("embedhd_tivimate.m3u8")
+
+REFERER = "https://embedhd.org/"
+ORIGIN = "https://embedhd.org/"
+
+UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/134.0.0.0 Safari/537.36"
 )
+UA_ENC = quote(UA)
 
-API_URL = "https://embedhd.org/api-event.php"
-OUT_FILE = Path("embedhd.m3u")
+M3U8_RE = re.compile(r"\.m3u8(\?|$)")
 
-M3U8_RE = re.compile(r"\.m3u8(\?|$)", re.I)
+events_cache: dict[str, dict] = {}
 
+# --------------------------------------------------
+# API
+# --------------------------------------------------
+async def get_events(existing_keys):
+    now = Time.clean(Time.now())
 
-async def fetch_events():
-    import aiohttp
-    async with aiohttp.ClientSession() as s:
-        async with s.get(API_URL, timeout=20) as r:
-            r.raise_for_status()
-            return await r.json()
+    if not (api := API_CACHE.load(per_entry=False)):
+        log.info("Refreshing API cache")
+        import requests
+        api = requests.get(BASE_URL, timeout=15).json()
+        api["timestamp"] = now.timestamp()
+        API_CACHE.write(api)
 
+    items = []
+    start = now.delta(hours=-3)
+    end = now.delta(minutes=30)
 
+    for day in api.get("days", []):
+        for ev in day.get("items", []):
+            if ev.get("league") == "channel tv":
+                continue
+
+            dt = Time.from_str(ev["when_et"], timezone="ET")
+            if not start <= dt <= end:
+                continue
+
+            streams = ev.get("streams") or []
+            if not streams:
+                continue
+
+            key = f"[{ev['league']}] {ev['title']} ({TAG})"
+            if key in existing_keys:
+                continue
+
+            items.append({
+                "sport": ev["league"],
+                "event": ev["title"],
+                "link": streams[0]["link"],
+                "timestamp": now.timestamp(),
+            })
+
+    return items
+
+# --------------------------------------------------
+# M3U8 extractor (NETWORK SAFE)
+# --------------------------------------------------
 async def resolve_m3u8(page, url, idx):
     found = {"url": None}
 
-    def on_request(req):
-        if found["url"]:
-            return
-        if M3U8_RE.search(req.url):
-            found["url"] = req.url
-            logging.info(f"URL {idx}) 🎯 Found m3u8")
+    def on_request(request):
+        try:
+            if M3U8_RE.search(request.url):
+                found["url"] = request.url
+        except Exception:
+            pass
 
     page.on("request", on_request)
 
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=20000)
+        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
 
-        # Give maestrohd1.js time to execute
-        for _ in range(60):
+        # allow maestrohd1.js to execute
+        start = time.time()
+        while time.time() - start < 40:
             if found["url"]:
-                break
+                return found["url"]
             await asyncio.sleep(0.5)
 
-        if not found["url"]:
-            raise TimeoutError("m3u8 not detected")
+        raise TimeoutError("m3u8 not detected")
 
-        return found["url"]
+    except Exception as e:
+        log.warning(f"URL {idx}) Failed: {e}")
+        return None
 
     finally:
         try:
@@ -58,53 +117,78 @@ async def resolve_m3u8(page, url, idx):
             pass
 
 
-async def main():
-    logging.info("🚀 Starting EmbedHD scraper...")
+# --------------------------------------------------
+# Playlist builder
+# --------------------------------------------------
+def build_tivimate(data):
+    out = ["#EXTM3U"]
+    ch = 1
+    for name, e in data.items():
+        out.append(
+            f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
+            f'tvg-name="{name}" tvg-logo="{e["logo"]}" group-title="Live Events",{name}'
+        )
+        out.append(
+            f'{e["url"]}|referer={REFERER}|origin={ORIGIN}'
+            f'|user-agent={UA_ENC}|icy-metadata=1'
+        )
+        ch += 1
+    return "\n".join(out) + "\n"
 
-    events = await fetch_events()
-    streams = []
+# --------------------------------------------------
+# MAIN
+# --------------------------------------------------
+async def main():
+    log.info("🚀 Starting EmbedHD scraper...")
+
+    cached = CACHE.load() or {}
+    events_cache.update(cached)
+
+    new_events = await get_events(list(cached.keys()))
+    log.info(f"Processing {len(new_events)} new URL(s)")
+
+    if not new_events:
+        log.info("No new events found")
+        return
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--autoplay-policy=no-user-gesture-required",
+                "--disable-features=MediaSessionService"
+            ]
+        )
+
         context = await browser.new_context(
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/122.0.0.0 Safari/537.36"
-            )
+            user_agent=UA,
+            viewport={"width": 1280, "height": 720},
+            java_script_enabled=True,
         )
 
         page = await context.new_page()
 
-        urls = []
-        for ev in events:
-            if ev.get("status") != "LIVE":
+        for i, ev in enumerate(new_events, 1):
+            m3u8 = await resolve_m3u8(page, ev["link"], i)
+            if not m3u8:
                 continue
-            for s in ev.get("streams", []):
-                urls.append({
-                    "title": ev["title"],
-                    "link": s["link"]
-                })
 
-        logging.info(f"Processing {len(urls)} new URL(s)")
+            tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
+            key = f"[{ev['sport']}] {ev['event']} ({TAG})"
 
-        for i, ev in enumerate(urls, 1):
-            try:
-                m3u8 = await resolve_m3u8(page, ev["link"], i)
-                streams.append((ev["title"], m3u8))
-            except Exception as e:
-                logging.warning(f"URL {i}) Failed: {e}")
+            events_cache[key] = {
+                "url": m3u8,
+                "logo": logo,
+                "id": tvg_id or "Live.Event.us",
+                "timestamp": ev["timestamp"],
+            }
 
         await browser.close()
 
-    if streams:
-        with OUT_FILE.open("w", encoding="utf-8") as f:
-            f.write("#EXTM3U\n")
-            for title, url in streams:
-                f.write(f"#EXTINF:-1,{title}\n{url}\n")
+    CACHE.write(events_cache)
+    OUT_TIVI.write_text(build_tivimate(events_cache), encoding="utf-8")
 
-    logging.info(f"Wrote {len(streams)} total events")
-
+    log.info(f"Wrote {len(events_cache)} total events")
 
 if __name__ == "__main__":
     asyncio.run(main())
