@@ -83,32 +83,51 @@ async def get_events(existing_keys):
 # --------------------------------------------------
 async def resolve_m3u8(page, fetch_url, idx):
     try:
-        await page.goto(fetch_url, wait_until="domcontentloaded", timeout=15000)
+        await page.goto(fetch_url, wait_until="domcontentloaded", timeout=20000)
 
-        # 1️⃣ extract iframe src
+        # give embedhd JS time to inject iframe
+        await asyncio.sleep(2)
+
+        iframe_url = None
+
+        # 1️⃣ try normal iframe src
         iframe = await page.query_selector("iframe")
-        if not iframe:
-            raise RuntimeError("iframe not found")
+        if iframe:
+            iframe_url = await iframe.get_attribute("src")
+            if not iframe_url:
+                iframe_url = await iframe.get_attribute("data-src")
+            if not iframe_url:
+                iframe_url = await iframe.get_attribute("data-frame")
 
-        src = await iframe.get_attribute("src")
-        if not src:
+        # 2️⃣ fallback: Playwright frame inspection (MOST RELIABLE)
+        if not iframe_url:
+            for frame in page.frames:
+                if "embed" in frame.url or "player" in frame.url:
+                    iframe_url = frame.url
+                    break
+
+        if not iframe_url:
             raise RuntimeError("iframe src empty")
 
-        iframe_url = urljoin(fetch_url, src)
-
-        # 2️⃣ load iframe directly
-        await page.goto(iframe_url, wait_until="domcontentloaded", timeout=15000)
+        # normalize relative URLs
+        if iframe_url.startswith("//"):
+            iframe_url = "https:" + iframe_url
+        elif iframe_url.startswith("/"):
+            iframe_url = "https://embedhd.org" + iframe_url
 
         found = []
 
         def on_request(req):
-            if M3U8_RE.search(req.url):
+            if ".m3u8" in req.url:
                 found.append(req.url)
 
         page.on("request", on_request)
 
+        # 3️⃣ load the REAL player page
+        await page.goto(iframe_url, wait_until="domcontentloaded", timeout=20000)
+
         start = time.time()
-        while time.time() - start < 20:
+        while time.time() - start < 25:
             if found:
                 log.info(f"URL {idx}) m3u8 resolved")
                 return found[0]
