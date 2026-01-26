@@ -1,6 +1,5 @@
 import os
 import asyncio
-import time
 import re
 from pathlib import Path
 from urllib.parse import quote
@@ -22,7 +21,6 @@ if not BASE_URL:
 CACHE = Cache(TAG, exp=5400)
 API_CACHE = Cache(f"{TAG}-api", exp=28800)
 
-OUT_VLC = Path("embedhd_vlc.m3u8")
 OUT_TIVI = Path("embedhd_tivimate.m3u8")
 
 REFERER = "https://embedhd.org/"
@@ -35,7 +33,7 @@ UA = (
 )
 UA_ENC = quote(UA)
 
-M3U8_RE = re.compile(r"https?://[^\"']+\.m3u8[^\"']*")
+M3U8_RE = re.compile(r"\.m3u8(\?|$)")
 
 events_cache: dict[str, dict] = {}
 
@@ -49,7 +47,6 @@ async def get_events(existing_keys):
         log.info("Refreshing API cache")
         import requests
         api = requests.get(BASE_URL, timeout=15).json()
-        api["timestamp"] = now.timestamp()
         API_CACHE.write(api)
 
     items = []
@@ -69,12 +66,13 @@ async def get_events(existing_keys):
             if not streams:
                 continue
 
-            key = f"[{ev['league']}] {ev['title']} ({TAG})"
+            # 🔧 FIX: normalized key
+            key = f"[{ev['league'].upper()}] {ev['title']} ({TAG})"
             if key in existing_keys:
                 continue
 
             items.append({
-                "sport": ev["league"],
+                "sport": ev["league"].upper(),
                 "event": ev["title"],
                 "link": streams[0]["link"],
                 "timestamp": now.timestamp(),
@@ -83,38 +81,30 @@ async def get_events(existing_keys):
     return items
 
 # --------------------------------------------------
-# M3U8 EXTRACTOR (JS SOURCE SCAN – WORKING)
+# M3U8 EXTRACTOR (REAL FIX)
 # --------------------------------------------------
-async def resolve_m3u8(page, url, idx):
+async def resolve_m3u8(context, url, idx):
+    m3u8_url = None
+
+    async def route_handler(route, request):
+        nonlocal m3u8_url
+        if m3u8_url is None and M3U8_RE.search(request.url):
+            m3u8_url = request.url
+            log.info(f"URL {idx}) m3u8 captured")
+        await route.continue_()
+
+    await context.route("**/*", route_handler)
+
+    page = await context.new_page()
+
     try:
         await page.goto(url, wait_until="networkidle", timeout=30000)
 
-        # give JS time to inject player config
-        await asyncio.sleep(5)
-
-        # 1️⃣ scan all <script> tags
-        scripts = await page.evaluate("""
-            Array.from(document.scripts)
-                .map(s => s.innerText || "")
-                .join("\\n")
-        """)
-
-        match = re.search(r"https?://[^\"']+\\.m3u8[^\"']*", scripts)
-        if match:
-            log.info(f"URL {idx}) m3u8 found in script")
-            return match.group(0)
-
-        # 2️⃣ scan performance entries (HLS preload)
-        perf = await page.evaluate("""
-            performance.getEntries()
-              .map(e => e.name)
-              .join("\\n")
-        """)
-
-        match = re.search(r"https?://[^\"']+\\.m3u8[^\"']*", perf)
-        if match:
-            log.info(f"URL {idx}) m3u8 found in performance")
-            return match.group(0)
+        # autoplay happens automatically
+        for _ in range(60):
+            if m3u8_url:
+                return m3u8_url
+            await asyncio.sleep(0.5)
 
         raise TimeoutError("m3u8 not detected")
 
@@ -122,8 +112,12 @@ async def resolve_m3u8(page, url, idx):
         log.warning(f"URL {idx}) Failed: {e}")
         return None
 
+    finally:
+        await page.close()
+        await context.unroute("**/*", route_handler)
+
 # --------------------------------------------------
-# PLAYLIST BUILDER
+# PLAYLIST
 # --------------------------------------------------
 def build_tivimate(data):
     out = ["#EXTM3U"]
@@ -165,16 +159,10 @@ async def main():
             args=["--autoplay-policy=no-user-gesture-required"]
         )
 
-        context = await browser.new_context(
-            user_agent=UA,
-            viewport={"width": 1280, "height": 720},
-            java_script_enabled=True,
-        )
-
-        page = await context.new_page()
+        context = await browser.new_context(user_agent=UA)
 
         for i, ev in enumerate(new_events, 1):
-            m3u8 = await resolve_m3u8(page, ev["link"], i)
+            m3u8 = await resolve_m3u8(context, ev["link"], i)
             if not m3u8:
                 continue
 
