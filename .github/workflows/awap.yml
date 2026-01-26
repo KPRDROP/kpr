@@ -1,4 +1,4 @@
-name: ▶️ Update AWAP Playlist
+name: ▶️ Update AWAP
 
 on:
   workflow_dispatch:
@@ -13,39 +13,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: |
-          pip install playwright httpx[http2] pytz
+          python -m pip install --upgrade pip
           pip install feedparser selectolax
 
-      - name: Run AWAP scraper
+      - name: 🚀 Run AWAP scraper
         env:
           PAWA_FEED_URL: ${{ secrets.PAWA_FEED_URL }}
         run: |
           python -m awap
 
-      - name: Commit & Push playlists
+      - name: 📤 Commit & Push safely
         run: |
-          git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
 
           git add awap_vlc.m3u8 awap_tivimate.m3u8
 
           if git diff --cached --quiet; then
-            echo "No changes"
+            echo "No changes to commit"
             exit 0
           fi
 
           git commit -m "📡 Update AWAP playlists"
-          git pull --rebase
-          git push
+
+          # 🔧 FIX: stash before rebase
+          if ! git push origin main; then
+            echo "Push rejected — rebasing safely..."
+            git stash
+            git pull --rebase origin main
+            git stash pop
+            git add awap_vlc.m3u8 awap_tivimate.m3u8
+            git commit -m "📡 Update AWAP playlists (rebased)" || true
+            git push origin main
+          fi
