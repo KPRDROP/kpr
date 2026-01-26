@@ -5,7 +5,8 @@ import re
 from pathlib import Path
 from urllib.parse import quote
 
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, Pages, Browser
+
 from utils import Cache, Time, get_logger, leagues
 
 log = get_logger(__name__)
