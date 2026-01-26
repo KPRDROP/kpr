@@ -38,7 +38,7 @@ M3U8_RE = re.compile(r"\.m3u8(\?|$)")
 events_cache: dict[str, dict] = {}
 
 # --------------------------------------------------
-# API (FIXED)
+# API (RESTORED & WORKING)
 # --------------------------------------------------
 async def get_events(existing_keys):
     now = Time.clean(Time.now())
@@ -53,8 +53,7 @@ async def get_events(existing_keys):
     start = now.delta(hours=-3)
     end = now.delta(minutes=30)
 
-    # normalize existing keys once
-    normalized_existing = {k.lower() for k in existing_keys}
+    existing = {k.lower() for k in existing_keys}
 
     for day in api.get("days", []):
         for ev in day.get("items", []):
@@ -69,10 +68,8 @@ async def get_events(existing_keys):
             if not streams:
                 continue
 
-            # ✅ RESTORED ORIGINAL KEY FORMAT
             key = f"[{ev['league']}] {ev['title']} ({TAG})"
-
-            if key.lower() in normalized_existing:
+            if key.lower() in existing:
                 continue
 
             items.append({
@@ -85,27 +82,36 @@ async def get_events(existing_keys):
     return items
 
 # --------------------------------------------------
-# M3U8 EXTRACTOR (WORKING)
+# M3U8 EXTRACTOR (STABLE)
 # --------------------------------------------------
 async def resolve_m3u8(context, url, idx):
-    m3u8_url = None
+    found = {"url": None}
 
     async def route_handler(route, request):
-        nonlocal m3u8_url
-        if m3u8_url is None and M3U8_RE.search(request.url):
-            m3u8_url = request.url
+        if found["url"] is None and M3U8_RE.search(request.url):
+            found["url"] = request.url
             log.info(f"URL {idx}) m3u8 captured")
         await route.continue_()
 
-    await context.route("**/*", route_handler)
+    await context.route("**/*.m3u8*", route_handler)
     page = await context.new_page()
 
     try:
-        await page.goto(url, wait_until="networkidle", timeout=30000)
+        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
 
-        for _ in range(60):
-            if m3u8_url:
-                return m3u8_url
+        # force autoplay (EmbedHD-safe)
+        await page.evaluate("""
+            document.querySelectorAll("video").forEach(v => {
+                try {
+                    v.muted = true;
+                    v.play();
+                } catch(e){}
+            });
+        """)
+
+        for _ in range(60):  # 30s
+            if found["url"]:
+                return found["url"]
             await asyncio.sleep(0.5)
 
         raise TimeoutError("m3u8 not detected")
@@ -116,7 +122,7 @@ async def resolve_m3u8(context, url, idx):
 
     finally:
         await page.close()
-        await context.unroute("**/*", route_handler)
+        await context.unroute("**/*.m3u8*", route_handler)
 
 # --------------------------------------------------
 # PLAYLIST
@@ -161,7 +167,11 @@ async def main():
             args=["--autoplay-policy=no-user-gesture-required"]
         )
 
-        context = await browser.new_context(user_agent=UA)
+        context = await browser.new_context(
+            user_agent=UA,
+            viewport={"width": 1280, "height": 720},
+            java_script_enabled=True,
+        )
 
         for i, ev in enumerate(new_events, 1):
             m3u8 = await resolve_m3u8(context, ev["link"], i)
