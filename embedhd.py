@@ -5,8 +5,7 @@ import re
 from pathlib import Path
 from urllib.parse import quote
 
-from playwright.async_api import async_playwright, Pages, Browser
-
+from playwright.async_api import async_playwright
 from utils import Cache, Time, get_logger, leagues
 
 log = get_logger(__name__)
@@ -81,9 +80,9 @@ async def get_events(existing_keys):
     return items
 
 # --------------------------------------------------
-# M3U8 extractor (NETWORK SAFE)
+# M3U8 extractor (CONTEXT LEVEL — IFRAME SAFE)
 # --------------------------------------------------
-async def resolve_m3u8(context, url, idx):
+async def resolve_m3u8(context, page, url, idx):
     found = {"url": None}
 
     def on_request(request):
@@ -93,14 +92,13 @@ async def resolve_m3u8(context, url, idx):
         except Exception:
             pass
 
-    page.on("request", on_request)
+    context.on("request", on_request)
 
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=30000)
 
-        # allow maestrohd1.js to execute
         start = time.time()
-        while time.time() - start < 40:
+        while time.time() - start < 45:
             if found["url"]:
                 return found["url"]
             await asyncio.sleep(0.5)
@@ -113,10 +111,9 @@ async def resolve_m3u8(context, url, idx):
 
     finally:
         try:
-            page.remove_listener("request", on_request)
+            context.remove_listener("request", on_request)
         except Exception:
             pass
-
 
 # --------------------------------------------------
 # Playlist builder
@@ -170,7 +167,7 @@ async def main():
         page = await context.new_page()
 
         for i, ev in enumerate(new_events, 1):
-            m3u8 = await resolve_m3u8(page, ev["link"], i)
+            m3u8 = await resolve_m3u8(context, page, ev["link"], i)
             if not m3u8:
                 continue
 
