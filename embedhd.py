@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 from urllib.parse import quote
 
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, Request
 from utils import Cache, Time, get_logger, leagues
 
 log = get_logger(__name__)
@@ -19,7 +19,6 @@ if not BASE_URL:
 CACHE = Cache(TAG, exp=5400)
 API_CACHE = Cache(f"{TAG}-api", exp=28800)
 
-OUT_VLC = Path("embedhd_vlc.m3u8")
 OUT_TIVI = Path("embedhd_tivimate.m3u8")
 
 REFERER = "https://embedhd.org/"
@@ -32,7 +31,10 @@ UA = (
 )
 UA_ENC = quote(UA)
 
-M3U8_RE = re.compile(r"\.m3u8(\?|$)")
+# Ignore junk CDN URLs
+INVALID_M3U8 = ("amazonaws", "knitcdn")
+
+M3U8_RE = re.compile(r"\.m3u8", re.I)
 
 events_cache: dict[str, dict] = {}
 
@@ -80,47 +82,55 @@ async def get_events(existing_keys):
     return items
 
 # --------------------------------------------------
-# M3U8 extractor (CONTEXT LEVEL — IFRAME SAFE)
+# M3U8 CAPTURE (NETWORK SAFE)
 # --------------------------------------------------
-async def resolve_m3u8(context, page, url, idx):
-    found = {"url": None}
+async def resolve_m3u8(page, url, idx, timeout=20):
+    captured: list[str] = []
+    got_one = asyncio.Event()
 
-    def on_request(request):
+    def on_request(req: Request):
         try:
-            if M3U8_RE.search(request.url):
-                found["url"] = request.url
+            if (
+                M3U8_RE.search(req.url)
+                and not any(bad in req.url for bad in INVALID_M3U8)
+            ):
+                captured.append(req.url)
+                got_one.set()
         except Exception:
             pass
 
-    context.on("request", on_request)
+    page.on("request", on_request)
 
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+        await page.goto(url, wait_until="domcontentloaded", timeout=15000)
 
-        start = time.time()
-        while time.time() - start < 45:
-            if found["url"]:
-                return found["url"]
-            await asyncio.sleep(0.5)
+        try:
+            await asyncio.wait_for(got_one.wait(), timeout=timeout)
+        except asyncio.TimeoutError:
+            log.warning(f"URL {idx}) Timed out waiting for M3U8")
+            return None
 
-        raise TimeoutError("m3u8 not detected")
+        if captured:
+            log.info(f"URL {idx}) Captured M3U8")
+            return captured[0]
+
+        log.warning(f"URL {idx}) No M3U8 captured")
+        return None
 
     except Exception as e:
         log.warning(f"URL {idx}) Failed: {e}")
         return None
 
     finally:
-        try:
-            context.remove_listener("request", on_request)
-        except Exception:
-            pass
+        page.remove_listener("request", on_request)
 
 # --------------------------------------------------
-# Playlist builder
+# PLAYLIST
 # --------------------------------------------------
 def build_tivimate(data):
     out = ["#EXTM3U"]
     ch = 1
+
     for name, e in data.items():
         out.append(
             f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
@@ -131,6 +141,7 @@ def build_tivimate(data):
             f'|user-agent={UA_ENC}|icy-metadata=1'
         )
         ch += 1
+
     return "\n".join(out) + "\n"
 
 # --------------------------------------------------
@@ -146,28 +157,20 @@ async def main():
     log.info(f"Processing {len(new_events)} new URL(s)")
 
     if not new_events:
-        log.info("No new events found")
         return
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=[
-                "--autoplay-policy=no-user-gesture-required",
-                "--disable-features=MediaSessionService"
-            ]
-        )
+        browser = await p.chromium.launch(headless=True)
 
         context = await browser.new_context(
             user_agent=UA,
             viewport={"width": 1280, "height": 720},
-            java_script_enabled=True,
         )
 
         page = await context.new_page()
 
         for i, ev in enumerate(new_events, 1):
-            m3u8 = await resolve_m3u8(context, page, ev["link"], i)
+            m3u8 = await resolve_m3u8(page, ev["link"], i)
             if not m3u8:
                 continue
 
