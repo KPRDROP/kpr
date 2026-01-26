@@ -7,7 +7,7 @@ from functools import partial
 import feedparser
 from selectolax.parser import HTMLParser
 
-from .utils import Cache, Time, get_logger, leagues, network
+from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
