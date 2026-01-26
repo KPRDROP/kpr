@@ -26,6 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install feedparser selectolax
+          pip install playwright httpx[http2] pytz
 
       - name: Run AWAP scraper
         env:
