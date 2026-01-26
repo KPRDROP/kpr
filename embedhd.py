@@ -89,31 +89,31 @@ async def resolve_m3u8(page, url, idx):
     try:
         await page.goto(url, wait_until="networkidle", timeout=30000)
 
-        # allow player JS to inject config
+        # give JS time to inject player config
         await asyncio.sleep(5)
 
-        # 1) scan all inline JS
+        # 1️⃣ scan all <script> tags
         scripts = await page.evaluate("""
             Array.from(document.scripts)
                 .map(s => s.innerText || "")
                 .join("\\n")
         """)
 
-        match = M3U8_RE.search(scripts)
+        match = re.search(r"https?://[^\"']+\\.m3u8[^\"']*", scripts)
         if match:
-            log.info(f"URL {idx}) m3u8 found in JS")
+            log.info(f"URL {idx}) m3u8 found in script")
             return match.group(0)
 
-        # 2) fallback: performance entries
+        # 2️⃣ scan performance entries (HLS preload)
         perf = await page.evaluate("""
             performance.getEntries()
-                .map(e => e.name)
-                .join("\\n")
+              .map(e => e.name)
+              .join("\\n")
         """)
 
-        match = M3U8_RE.search(perf)
+        match = re.search(r"https?://[^\"']+\\.m3u8[^\"']*", perf)
         if match:
-            log.info(f"URL {idx}) m3u8 found via performance")
+            log.info(f"URL {idx}) m3u8 found in performance")
             return match.group(0)
 
         raise TimeoutError("m3u8 not detected")
