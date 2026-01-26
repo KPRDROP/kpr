@@ -83,55 +83,46 @@ async def get_events(existing_keys):
 # --------------------------------------------------
 async def resolve_m3u8(page, fetch_url, idx):
     try:
+        # 🔥 Inject JS hook BEFORE page loads
+        await page.add_init_script("""
+            (() => {
+                window.__M3U8__ = null;
+
+                const _fetch = window.fetch;
+                window.fetch = async function(...args) {
+                    const res = await _fetch.apply(this, args);
+                    try {
+                        const url = args[0]?.url || args[0];
+                        if (url && url.includes(".m3u8")) {
+                            window.__M3U8__ = url;
+                        }
+                    } catch (e) {}
+                    return res;
+                };
+
+                const _open = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function(method, url) {
+                    if (url && url.includes(".m3u8")) {
+                        window.__M3U8__ = url;
+                    }
+                    return _open.apply(this, arguments);
+                };
+            })();
+        """)
+
         await page.goto(fetch_url, wait_until="domcontentloaded", timeout=20000)
 
-        # give embedhd JS time to inject iframe
-        await asyncio.sleep(2)
+        # allow EmbedHD JS to resolve stream
+        await asyncio.sleep(5)
 
-        iframe_url = None
-
-        # 1️⃣ try normal iframe src
-        iframe = await page.query_selector("iframe")
-        if iframe:
-            iframe_url = await iframe.get_attribute("src")
-            if not iframe_url:
-                iframe_url = await iframe.get_attribute("data-src")
-            if not iframe_url:
-                iframe_url = await iframe.get_attribute("data-frame")
-
-        # 2️⃣ fallback: Playwright frame inspection (MOST RELIABLE)
-        if not iframe_url:
-            for frame in page.frames:
-                if "embed" in frame.url or "player" in frame.url:
-                    iframe_url = frame.url
-                    break
-
-        if not iframe_url:
-            raise RuntimeError("iframe src empty")
-
-        # normalize relative URLs
-        if iframe_url.startswith("//"):
-            iframe_url = "https:" + iframe_url
-        elif iframe_url.startswith("/"):
-            iframe_url = "https://embedhd.org" + iframe_url
-
-        found = []
-
-        def on_request(req):
-            if ".m3u8" in req.url:
-                found.append(req.url)
-
-        page.on("request", on_request)
-
-        # 3️⃣ load the REAL player page
-        await page.goto(iframe_url, wait_until="domcontentloaded", timeout=20000)
-
+        # poll JS memory (this is the KEY)
         start = time.time()
-        while time.time() - start < 25:
-            if found:
-                log.info(f"URL {idx}) m3u8 resolved")
-                return found[0]
-            await asyncio.sleep(0.4)
+        while time.time() - start < 30:
+            m3u8 = await page.evaluate("window.__M3U8__")
+            if m3u8:
+                log.info(f"URL {idx}) m3u8 captured")
+                return m3u8
+            await asyncio.sleep(0.5)
 
         raise TimeoutError("m3u8 not detected")
 
