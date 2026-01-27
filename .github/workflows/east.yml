@@ -1,0 +1,58 @@
+name: ▶️ Update XEAST Playlist
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: 📦 Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install selectolax
+
+      - name: 🚀 Run scraper
+        env:
+          XEAST_BASE_URL: ${{ secrets.XEAST_BASE_URL }}
+        run: |
+          python east.py
+
+      - name: 📤 Commit & push
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+          git add east_vlc.m3u8 east_tivimate.m3u8
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+
+          git commit -m "📡 Update XEAST playlists"
+
+          if ! git push origin main; then
+            git stash
+            git pull --rebase origin main
+            git stash pop
+            git add east_vlc.m3u8 east_tivimate.m3u8
+            git commit -m "📡 Update XEAST playlists (rebased)" || true
+            git push origin main
+          fi
