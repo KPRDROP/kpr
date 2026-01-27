@@ -1,9 +1,10 @@
 name: ▶️ Update XEAST Playlist
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"
+    # Runs every hour
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
