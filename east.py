@@ -43,22 +43,13 @@ async def process_event(url: str, url_num: int):
     soup = HTMLParser(html.content)
     iframe = soup.css_first("iframe")
 
-    if not iframe:
-        log.warning(f"URL {url_num}) No iframe found")
-        return None, None
-
-    src = iframe.attributes.get("src", "").strip()
-
-    # 🔒 HARD BLOCK BAD IFRAMES
-    if not src or src in {"about:blank", "/blank"} or not src.startswith("http"):
-        log.warning(f"URL {url_num}) Invalid iframe src: {src}")
+    if not iframe or not (src := iframe.attributes.get("src")):
         return None, None
 
     if not (iframe_html := await network.request(src, log=log)):
         return None, None
 
     if not (m := pattern.search(iframe_html.text)):
-        log.warning(f"URL {url_num}) No Clappr source found")
         return None, None
 
     log.info(f"URL {url_num}) Captured M3U8")
@@ -119,20 +110,11 @@ async def scrape():
 
     for i, ev in enumerate(events, 1):
         handler = partial(process_event, ev["link"], i)
-
-        result = await network.safe_process(
-            handler,
-            url_num=i,
-            semaphore=network.HTTP_S,
-            log=log,
+        url, iframe = await network.safe_process(
+            handler, url_num=i, semaphore=network.HTTP_S, log=log
         )
 
-        # 🛡️ SAFE UNPACK
-        if not result:
-            continue
-
-        url, iframe = result
-        if not url or not iframe:
+        if not url:
             continue
 
         tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
