@@ -33,42 +33,36 @@ SPORT_ENDPOINTS = ["mma", "nba", "nfl", "nhl", "soccer", "wwe"]
 
 urls: dict[str, dict] = {}
 
-HEX_M3U8 = re.compile(r'var\s+\w+\s*=\s*"([0-9a-fA-F]+)"', re.IGNORECASE)
-
 # ---------------- SCRAPER ----------------
-async def extract_m3u8(text: str):
-    if not (m := HEX_M3U8.search(text)):
-        return None
-    return bytes.fromhex(m[1]).decode("utf-8")
-
-
 async def process_event(url: str, url_num: int):
+    pattern = re.compile(r'var\s+\w+\s*=\s*"([^"]+)"', re.IGNORECASE)
+
     if not (html := await network.request(url, log=log)):
         return None, None
 
     soup = HTMLParser(html.content)
-
-    # 1️⃣ Try iframe first
     iframe = soup.css_first("iframe")
-    if iframe:
-        src = iframe.attributes.get("src", "").strip()
 
-        if src and src.startswith("http"):
-            if iframe_html := await network.request(src, log=log):
-                if m3u8 := await extract_m3u8(iframe_html.text):
-                    log.info(f"URL {url_num}) Captured M3U8 (iframe)")
-                    return m3u8, src
+    if not iframe:
+        log.warning(f"URL {url_num}) No iframe found")
+        return None, None
 
-        else:
-            log.warning(f"URL {url_num}) Invalid iframe src: {src}")
+    src = iframe.attributes.get("src", "").strip()
 
-    # 2️⃣ Fallback: scan main page (THIS WAS MISSING)
-    if m3u8 := await extract_m3u8(html.text):
-        log.info(f"URL {url_num}) Captured M3U8 (page)")
-        return m3u8, url
+    # 🔒 HARD BLOCK BAD IFRAMES
+    if not src or src in {"about:blank", "/blank"} or not src.startswith("http"):
+        log.warning(f"URL {url_num}) Invalid iframe src: {src}")
+        return None, None
 
-    log.warning(f"URL {url_num}) No M3U8 found")
-    return None, None
+    if not (iframe_html := await network.request(src, log=log)):
+        return None, None
+
+    if not (m := pattern.search(iframe_html.text)):
+        log.warning(f"URL {url_num}) No Clappr source found")
+        return None, None
+
+    log.info(f"URL {url_num}) Captured M3U8")
+    return bytes.fromhex(m[1]).decode("utf-8"), src
 
 
 async def get_events(cached_keys):
@@ -124,18 +118,21 @@ async def scrape():
     now = Time.clean(Time.now()).timestamp()
 
     for i, ev in enumerate(events, 1):
+        handler = partial(process_event, ev["link"], i)
+
         result = await network.safe_process(
-            partial(process_event, ev["link"], i),
+            handler,
             url_num=i,
             semaphore=network.HTTP_S,
             log=log,
         )
 
+        # 🛡️ SAFE UNPACK
         if not result:
             continue
 
-        url, referer = result
-        if not url:
+        url, iframe = result
+        if not url or not iframe:
             continue
 
         tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
@@ -143,7 +140,7 @@ async def scrape():
         key = f"[{ev['sport']}] {ev['event']} ({TAG})"
         urls[key] = cached[key] = {
             "url": url,
-            "base": referer,
+            "base": iframe,
             "logo": logo,
             "id": tvg_id or "Live.Event.us",
             "sport": ev["sport"],
@@ -160,7 +157,7 @@ def write_playlists():
 
     for key, e in urls.items():
         title = f"[{e['sport']}] {e['event']} ({TAG})"
-        ref = e["base"]
+        referer = e["base"]
 
         extinf = (
             f'#EXTINF:-1 tvg-id="{e["id"]}" '
@@ -169,21 +166,23 @@ def write_playlists():
             f'group-title="Live Events",{title}'
         )
 
-        vlc += [
+        # VLC
+        vlc.extend([
             extinf,
-            f"#EXTVLCOPT:http-referrer={ref}",
-            f"#EXTVLCOPT:http-origin={ref}",
+            f"#EXTVLCOPT:http-referrer={referer}",
+            f"#EXTVLCOPT:http-origin={referer}",
             f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
             e["url"],
-        ]
+        ])
 
-        tivi += [
+        # TiviMate
+        tivi.extend([
             extinf,
             f'{e["url"]}'
-            f'|referer={ref}'
-            f'|origin={ref}'
+            f'|referer={referer}'
+            f'|origin={referer}'
             f'|user-agent={ENCODED_UA}',
-        ]
+        ])
 
     with open(OUTPUT_VLC, "w", encoding="utf-8") as f:
         f.write("\n".join(vlc) + "\n")
