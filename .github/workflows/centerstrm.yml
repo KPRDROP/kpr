@@ -35,13 +35,27 @@ jobs:
           echo "🚀 Starting StreamCenter scraper..."
           python centerstrm.py
 
-      - name: Commit changes
+      - name: 📤 Commit & Push safely
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
 
-          git add -A
-          git commit -m "📡 Update CenterStrm playlist" || echo "No changes"
+          git add centerstrm.m3u
 
-      - name: Push changes
-        uses: ad-m/github-push-action@master
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "📡 Update CenterStrm playlist"
+
+          # 🔧 FIX: stash before rebase
+          if ! git push origin main; then
+            echo "Push rejected — rebasing safely..."
+            git stash
+            git pull --rebase origin main
+            git stash pop
+            git add centerstrm.m3u
+            git commit -m "📡 Update CenterStrm playlist (rebased)" || true
+            git push origin main
+          fi
