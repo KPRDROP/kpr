@@ -4,9 +4,10 @@ import re
 import base64
 from pathlib import Path
 from urllib.parse import quote, urljoin
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
 
-HOMEPAGE = "https://hiteasport.infom/"
+# ✅ FIXED HOMEPAGE
+HOMEPAGE = "https://hiteasport.info/"
 BASE = "https://streambtw.com"
 
 OUTPUT_VLC = "Streambtw_VLC.m3u8"
@@ -45,8 +46,15 @@ async def fetch_events():
         ctx = await browser.new_context(user_agent=USER_AGENT)
         page = await ctx.new_page()
 
-        await page.goto(HOMEPAGE, timeout=TIMEOUT)
-        await page.wait_for_timeout(2000)
+        # ✅ HARDENED NAVIGATION
+        try:
+            await page.goto(HOMEPAGE, timeout=TIMEOUT, wait_until="domcontentloaded")
+        except Exception as e:
+            print(f"❌ Homepage unreachable: {e}")
+            await browser.close()
+            return []
+
+        await page.wait_for_timeout(3000)
 
         for match in await page.locator(".match").all():
             try:
@@ -54,7 +62,6 @@ async def fetch_events():
                 href = await match.locator("a.watch-btn").get_attribute("href")
 
                 if title and href:
-                    # 🔥 CRITICAL FIX: normalize relative URLs
                     full_url = urljoin(BASE, href)
                     events.append({
                         "title": title,
@@ -71,11 +78,9 @@ async def fetch_events():
 async def extract_streams(page, context, url: str) -> list[str]:
     streams = set()
 
-    # 🔒 Safety guard (never allow relative navigation)
     if not url.startswith("http"):
         url = urljoin(BASE, url)
 
-    # 🔥 CONTEXT-LEVEL NETWORK CAPTURE
     def on_request_finished(req):
         try:
             if ".m3u8" in req.url:
@@ -85,10 +90,14 @@ async def extract_streams(page, context, url: str) -> list[str]:
 
     context.on("requestfinished", on_request_finished)
 
-    await page.goto(url, timeout=TIMEOUT)
+    try:
+        await page.goto(url, timeout=TIMEOUT, wait_until="domcontentloaded")
+    except (PlaywrightTimeout, Exception):
+        context.remove_listener("requestfinished", on_request_finished)
+        return []
+
     await page.wait_for_timeout(4000)
 
-    # Locate iframe provider
     iframe = None
     for f in page.frames:
         if f.url and ("hiteasport" in f.url or "embed" in f.url):
@@ -104,18 +113,15 @@ async def extract_streams(page, context, url: str) -> list[str]:
         except Exception:
             pass
 
-    # fallback click coords
     x = int(box["x"] + box["width"] / 2) if box else 200
     y = int(box["y"] + box["height"] / 2) if box else 200
 
-    # 👆 MOMENTUM CLICK SEQUENCE
     pages_before = context.pages.copy()
 
     try:
         await page.mouse.click(x, y)
         await asyncio.sleep(1)
 
-        # Close ad popup
         for _ in range(10):
             pages_now = context.pages
             if len(pages_now) > len(pages_before):
@@ -124,12 +130,10 @@ async def extract_streams(page, context, url: str) -> list[str]:
                 break
             await asyncio.sleep(0.3)
 
-        # Second click starts stream
         await page.mouse.click(x, y)
     except Exception:
         pass
 
-    # ⏳ Wait for stream requests
     await page.wait_for_timeout(15000)
 
     context.remove_listener("requestfinished", on_request_finished)
