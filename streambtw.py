@@ -6,7 +6,7 @@ from pathlib import Path
 from urllib.parse import quote, urljoin
 from playwright.async_api import async_playwright
 
-HOMEPAGE = "https://streambtw.com/"
+HOMEPAGE = "https://hiteasport.infom/"
 BASE = "https://streambtw.com"
 
 OUTPUT_VLC = "Streambtw_VLC.m3u8"
