@@ -6,8 +6,12 @@ from pathlib import Path
 from urllib.parse import quote, urljoin
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
 
-# ✅ FIXED HOMEPAGE
-HOMEPAGE = "https://hiteasport.info/"
+# 🔁 MULTIPLE ENTRY POINTS
+HOMEPAGES = [
+    "https://hiteasport.info/",
+    "https://streambtw.com/",
+]
+
 BASE = "https://streambtw.com"
 
 OUTPUT_VLC = "Streambtw_VLC.m3u8"
@@ -38,6 +42,19 @@ def extract_m3u8(text: str) -> set[str]:
     return found
 
 # -------------------------------------------------
+async def goto_first_available(page):
+    for url in HOMEPAGES:
+        try:
+            print(f"🌐 Trying homepage: {url}")
+            await page.goto(url, timeout=TIMEOUT, wait_until="domcontentloaded")
+            await page.wait_for_timeout(2500)
+            print(f"✅ Connected: {url}")
+            return True
+        except Exception as e:
+            print(f"❌ Failed: {url} ({e})")
+    return False
+
+# -------------------------------------------------
 async def fetch_events():
     events = []
 
@@ -46,15 +63,11 @@ async def fetch_events():
         ctx = await browser.new_context(user_agent=USER_AGENT)
         page = await ctx.new_page()
 
-        # ✅ HARDENED NAVIGATION
-        try:
-            await page.goto(HOMEPAGE, timeout=TIMEOUT, wait_until="domcontentloaded")
-        except Exception as e:
-            print(f"❌ Homepage unreachable: {e}")
+        ok = await goto_first_available(page)
+        if not ok:
+            print("❌ All homepages unreachable.")
             await browser.close()
             return []
-
-        await page.wait_for_timeout(3000)
 
         for match in await page.locator(".match").all():
             try:
@@ -182,7 +195,6 @@ async def main():
         print("❌ No streams captured.")
         return
 
-    # ---------------- PLAYLISTS ----------------
     vlc = ["#EXTM3U"]
     for t, u in collected:
         vlc.append(f"#EXTINF:-1,{t}")
