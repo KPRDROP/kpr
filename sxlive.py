@@ -8,22 +8,21 @@ import feedparser
 from playwright.async_api import async_playwright, Page, Browser
 
 from utils import Cache, Time, get_logger, leagues, network
+
 log = get_logger(__name__)
 
 TAG = "LIVETVSX"
 
-# 🔐 Secrets (required)
 BASE_URL = os.getenv("SXLIVE_BASE_URL")
 BASE_REF = os.getenv("SXLIVE_BASE_REF")
 
 if not BASE_URL or not BASE_REF:
-    raise RuntimeError("Missing SXLIVE_BASE_URL or SXLIVE_BASE_REF secret")
+    raise RuntimeError("Missing SXLIVE_BASE_URL or SXLIVE_BASE_REF")
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) "
     "Gecko/20100101 Firefox/146.0"
 )
-
 ENCODED_UA = quote(USER_AGENT)
 
 CACHE_FILE = Cache(TAG, exp=10_800)
@@ -63,8 +62,8 @@ async def refresh_xml_cache(now_ts: float) -> dict:
         if sport not in VALID_SPORTS:
             continue
 
-        event_dt = Time.from_str(date)
         league = league[0].strip() if league else ""
+        event_dt = Time.from_str(date)
 
         key = f"[{sport} - {league}] {title} ({TAG})"
 
@@ -90,7 +89,7 @@ async def get_events(cached_keys):
         XML_CACHE.write(events)
 
     start = now.delta(hours=-1).timestamp()
-    end = now.delta(minutes=5).timestamp()
+    end = now.delta(minutes=10).timestamp()
 
     return [
         v for k, v in events.items()
@@ -100,43 +99,58 @@ async def get_events(cached_keys):
 
 # --------------------------------------------------
 async def process_event(url: str, idx: int, page):
-    captured = []
-    got_one = asyncio.Event()
+    streams = set()
 
-    handler = partial(network.capture_req, captured=captured, got_one=got_one)
-    page.on("request", handler)
+    def on_finished(req):
+        if ".m3u8" in req.url:
+            streams.add(req.url)
+
+    page.context.on("requestfinished", on_finished)
 
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=15_000)
-        await page.wait_for_timeout(1_500)
+        await page.goto(url, wait_until="domcontentloaded", timeout=20_000)
+        await page.wait_for_timeout(2_000)
 
-        btns = await page.query_selector_all(".lnktbj a[href*='webplayer']")
-        labels = await page.eval_on_selector_all(
-            ".lnktyt span",
-            "els => els.map(e => e.textContent.trim().toLowerCase())",
-        )
+        # 🔍 Try ALL player links (livetv changed structure)
+        links = await page.query_selector_all("a[href]")
 
-        for b, l in zip(btns, labels):
-            if l not in ("web", "youtube"):
-                href = await b.get_attribute("href")
-                if href:
-                    href = href if href.startswith("http") else f"https:{href}"
-                    await page.goto(href, timeout=7_000)
-                    break
-        else:
-            log.warning(f"URL {idx}) No valid source")
-            return None
+        for a in links:
+            href = await a.get_attribute("href")
+            if not href:
+                continue
 
+            if any(x in href for x in ("player", "embed", "stream")):
+                full = href if href.startswith("http") else f"https:{href}"
+                await page.goto(full, timeout=15_000)
+                break
+
+        # 🖱 Force playback (required now)
         try:
-            await asyncio.wait_for(got_one.wait(), timeout=6)
-        except asyncio.TimeoutError:
-            log.warning(f"URL {idx}) No M3U8 captured")
-            return None
+            await page.mouse.click(300, 300)
+            await asyncio.sleep(1)
+            await page.mouse.click(300, 300)
+        except Exception:
+            pass
 
-        return captured[0] if captured else None
+        # ⏳ Allow HLS to appear
+        for _ in range(10):
+            if streams:
+                break
+            await asyncio.sleep(1)
+
+        if streams:
+            log.info(f"URL {idx}) Captured M3U8")
+            return next(iter(streams))
+
+        log.warning(f"URL {idx}) No valid source")
+        return None
+
+    except Exception as e:
+        log.warning(f"URL {idx}) Exception: {e}")
+        return None
 
     finally:
-        page.remove_listener("request", handler)
+        page.context.remove_listener("requestfinished", on_finished)
 
 
 # --------------------------------------------------
