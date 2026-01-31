@@ -5,7 +5,7 @@ from urllib.parse import quote
 from functools import partial
 
 import feedparser
-from playwright.async_api import Browser, Page
+from playwright.async_api import async_playwright, Browser, Page
 
 from utils import Cache, Time, get_logger, leagues, network
 
