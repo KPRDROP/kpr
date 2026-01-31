@@ -29,7 +29,7 @@ jobs:
           playwright install chromium
 
       - name: 🚀 Run SXLive scraper
-        run: python -m sxlive
+        run: python -m sxlive.py
 
       - name: 📤 Commit & push
         run: |
