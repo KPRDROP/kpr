@@ -98,33 +98,67 @@ async def get_events(cached_keys):
 
 
 # --------------------------------------------------
-async def process_event(url: str, idx: int, page):
-    streams = set()
+async def process_event(
+    url: str,
+    url_num: int,
+    page: Page,
+) -> str | None:
 
-    def on_finished(req):
-        if ".m3u8" in req.url:
-            streams.add(req.url)
+    captured: list[str] = []
+    got_one = asyncio.Event()
 
-    page.context.on("requestfinished", on_finished)
+    handler = partial(
+        network.capture_req,
+        captured=captured,
+        got_one=got_one,
+    )
+
+    page.on("request", handler)
 
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=20_000)
+        await page.goto(
+            url,
+            wait_until="domcontentloaded",
+            timeout=20_000,
+        )
+
         await page.wait_for_timeout(2_000)
 
-        # 🔍 Try ALL player links (livetv changed structure)
+        # 🔧 FIX 1: scan ALL links (livetv DOM changed)
         links = await page.query_selector_all("a[href]")
+
+        player_url = None
 
         for a in links:
             href = await a.get_attribute("href")
             if not href:
                 continue
 
-            if any(x in href for x in ("player", "embed", "stream")):
-                full = href if href.startswith("http") else f"https:{href}"
-                await page.goto(full, timeout=15_000)
+            href_l = href.lower()
+            if any(k in href_l for k in ("player", "embed", "stream", "iframe")):
+                player_url = href
                 break
 
-        # 🖱 Force playback (required now)
+        # 🔧 FIX 2: iframe fallback
+        if not player_url:
+            iframe = await page.query_selector("iframe[src]")
+            if iframe:
+                player_url = await iframe.get_attribute("src")
+
+        if not player_url:
+            log.warning(f"URL {url_num}) No valid source")
+            return None
+
+        if not player_url.startswith("http"):
+            player_url = f"https:{player_url}"
+
+        await page.goto(
+            player_url,
+            wait_until="domcontentloaded",
+            timeout=15_000,
+        )
+
+        # 🔧 FIX 3: trigger playback (required now)
         try:
             await page.mouse.click(300, 300)
             await asyncio.sleep(1)
@@ -132,25 +166,26 @@ async def process_event(url: str, idx: int, page):
         except Exception:
             pass
 
-        # ⏳ Allow HLS to appear
-        for _ in range(10):
-            if streams:
-                break
-            await asyncio.sleep(1)
+        # 🔧 FIX 4: wait longer for HLS
+        try:
+            await asyncio.wait_for(got_one.wait(), timeout=12)
+        except asyncio.TimeoutError:
+            log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
+            return None
 
-        if streams:
-            log.info(f"URL {idx}) Captured M3U8")
-            return next(iter(streams))
+        if captured:
+            log.info(f"URL {url_num}) Captured M3U8")
+            return captured[0]
 
-        log.warning(f"URL {idx}) No valid source")
+        log.warning(f"URL {url_num}) No M3U8 captured after waiting.")
         return None
 
     except Exception as e:
-        log.warning(f"URL {idx}) Exception: {e}")
+        log.warning(f"URL {url_num}) Exception while processing: {e}")
         return None
 
     finally:
-        page.context.remove_listener("requestfinished", on_finished)
+        page.remove_listener("request", handler)
 
 
 # --------------------------------------------------
