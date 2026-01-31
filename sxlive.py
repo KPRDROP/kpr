@@ -5,9 +5,9 @@ from urllib.parse import quote
 from functools import partial
 
 import feedparser
-from playwright.async_api import async_playwright, Page
+from playwright.async_api import async_playwright, Page, Browser
 
-from .utils import Cache, Time, get_logger, leagues, network
+from utils import Cache, Time, get_logger, leagues, network
 log = get_logger(__name__)
 
 TAG = "LIVETVSX"
