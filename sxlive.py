@@ -1,10 +1,12 @@
 import asyncio
 from functools import partial
 from urllib.parse import quote
+import os
 
 import feedparser
 from playwright.async_api import Browser, Page
 
+# ✅ FIX: absolute imports (no relative import)
 from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
@@ -16,8 +18,12 @@ TAG = "LIVETVSX"
 CACHE_FILE = Cache(TAG, exp=10_800)
 XML_CACHE = Cache(f"{TAG}-xml", exp=28_000)
 
-BASE_URL = "https://cdn.livetv861.me/rss/upcoming_en.xml"
-BASE_REF = "https://livetv.sx/enx/"
+# ✅ FROM SECRETS
+BASE_URL = os.environ.get("SXLIVE_BASE_URL")
+BASE_REF = os.environ.get("SXLIVE_BASE_REF")
+
+if not BASE_URL or not BASE_REF:
+    raise RuntimeError("❌ Missing SXLIVE_BASE_URL or SXLIVE_BASE_REF secret")
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) "
@@ -99,44 +105,63 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
         page.remove_listener("request", handler)
 
 # -------------------------------------------------
-async def scrape(browser: Browser) -> None:
-    cached = CACHE_FILE.load()
-    urls.update({k: v for k, v in cached.items() if v.get("url")})
+async def refresh_xml_cache(now_ts: float) -> dict:
+    log.info("Refreshing XML cache")
 
-    log.info(f"Loaded {len(urls)} cached event(s)")
-    events = await get_events(cached.keys())
-    log.info(f"Processing {len(events)} new URL(s)")
+    events = {}
+    xml = await network.request(BASE_URL, log=log)
+    if not xml:
+        return events
 
-    if events:
-        async with network.event_context(browser, ignore_https=True) as context:
-            for i, ev in enumerate(events, 1):
-                async with network.event_page(context) as page:
-                    url = await network.safe_process(
-                        partial(process_event, ev["link"], i, page),
-                        url_num=i,
-                        semaphore=network.PW_S,
-                        log=log,
-                    )
+    feed = feedparser.parse(xml.content)
 
-                    tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
+    for entry in feed.entries:
+        title = entry.get("title")
+        link = entry.get("link")
+        summary = entry.get("summary")
+        date = entry.get("published")
 
-                    key = f"[{ev['sport']} - {ev['league']}] {ev['event']} ({TAG})"
+        if not all([title, link, summary, date]):
+            continue
 
-                    entry = {
-                        "url": url,
-                        "logo": logo,
-                        "base": BASE_REF,
-                        "timestamp": ev["event_ts"],
-                        "id": tvg_id or "Live.Event.us",
-                        "link": ev["link"],
-                    }
+        sport, *rest = summary.split(".", 1)
+        league = rest[0].strip() if rest else ""
 
-                    cached[key] = entry
-                    if url:
-                        urls[key] = entry
+        if sport not in VALID_SPORTS:
+            continue
 
-    CACHE_FILE.write(cached)
-    write_playlists()
+        ts = Time.from_str(date).timestamp()
+        key = f"[{sport} - {league}] {title} ({TAG})"
+
+        events[key] = {
+            "sport": sport,
+            "league": league,
+            "event": title,
+            "link": link,
+            "event_ts": ts,
+            "timestamp": now_ts,
+        }
+
+    return events
+
+# -------------------------------------------------
+async def get_events(cached_keys):
+    now = Time.clean(Time.now())
+
+    events = XML_CACHE.load() or await refresh_xml_cache(now.timestamp())
+    XML_CACHE.write(events)
+
+    live = []
+    start_ts = now.delta(hours=-1).timestamp()
+    end_ts = now.delta(minutes=5).timestamp()
+
+    for k, v in events.items():
+        if k in cached_keys:
+            continue
+        if start_ts <= v["event_ts"] <= end_ts:
+            live.append(v)
+
+    return live
 
 # -------------------------------------------------
 def write_playlists():
@@ -172,6 +197,39 @@ def write_playlists():
     with open(OUTPUT_TIVI, "w", encoding="utf-8") as f:
         f.write("\n".join(tivi))
 
-    log.info("✅ sxlive playlists written")
+    log.info("✅ SXLive playlists written")
 
 # -------------------------------------------------
+async def scrape(browser: Browser):
+    cached = CACHE_FILE.load()
+    urls.update({k: v for k, v in cached.items() if v.get("url")})
+
+    events = await get_events(cached.keys())
+
+    if events:
+        async with network.event_context(browser, ignore_https=True) as ctx:
+            for i, ev in enumerate(events, 1):
+                async with network.event_page(ctx) as page:
+                    url = await process_event(ev["link"], i, page)
+
+                    tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
+                    key = f"[{ev['sport']} - {ev['league']}] {ev['event']} ({TAG})"
+
+                    cached[key] = {
+                        "url": url,
+                        "logo": logo,
+                        "base": BASE_REF,
+                        "timestamp": ev["event_ts"],
+                        "id": tvg_id or "Live.Event.us",
+                        "link": ev["link"],
+                    }
+
+                    if url:
+                        urls[key] = cached[key]
+
+    CACHE_FILE.write(cached)
+    write_playlists()
+
+# -------------------------------------------------
+if __name__ == "__main__":
+    asyncio.run(network.run(scrape))
