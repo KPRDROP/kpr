@@ -1,4 +1,4 @@
-name: ▶️ Update STRMSGATE Playlists
+name: ▶️ Update STGATE Playlists
 
 on:
   schedule:
@@ -26,9 +26,9 @@ jobs:
           pip install playwright
           playwright install chromium
 
-      - name: ▶️ Run STRMSGATE scraper
+      - name: ▶️ Run STGATE scraper
         env:
-          STRMSGATE_BASE_URL: https://streamingon.org
+          STGATE_BASE_URL: ${{ secrets.STGATE_BASE_URL }}
         run: |
           python -m stgate
 
