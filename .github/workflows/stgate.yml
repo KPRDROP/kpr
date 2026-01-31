@@ -1,0 +1,41 @@
+name: ▶️ Update STRMSGATE Playlists
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 📦 Install dependencies
+        run: |
+          pip install playwright
+          playwright install chromium
+
+      - name: ▶️ Run STRMSGATE scraper
+        env:
+          STRMSGATE_BASE_URL: https://streamingon.org
+        run: |
+          python -m stgate
+
+      - name: 📤 Commit playlists
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add stgate_vlc.m3u8 stgate_tivimate.m3u8
+          git commit -m "🔄 Update STRMSGATE playlists" || echo "No changes"
+          git push
