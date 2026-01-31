@@ -32,11 +32,10 @@ OUTPUT_VLC = "sxlive_vlc.m3u8"
 OUTPUT_TIVI = "sxlive_tivimate.m3u8"
 
 VALID_SPORTS = {
-    "Football", "Basketball", "Ice Hockey", "Volleyball",
-    "Table Tennis", "Handball", "Water Polo",
-    "Tennis", "Futsal", "Floorball"
+    "Football", "Basketball", "Ice Hockey"
 }
 
+urls = {}
 
 # --------------------------------------------------
 async def refresh_xml_cache(now_ts: float) -> dict:
