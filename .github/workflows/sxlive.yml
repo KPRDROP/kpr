@@ -25,7 +25,7 @@ jobs:
       - name: 📦 Install dependencies
         run: |
           pip install playwright httpx[http2] pytz
-          pip install feedparser selectolax
+          pip install feedparser
           playwright install chromium
 
       - name: 🚀 Run SXLive scraper
