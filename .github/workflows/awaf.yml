@@ -29,15 +29,25 @@ jobs:
       - name: ▶️ Run scraper
         run: python -m awaf
 
-      - name: 📤 Commit and push if changed
+      - name: 📤 Commit & push
         run: |
-          if [[ -n "$(git status --porcelain awaf.m3u)" ]]; then
-            git config user.name "github-actions"
-            git config user.email "github-actions@github.com"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+          git add awaf.m3u
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+
+          git commit -m "📡 Update FAWA playlists"
+
+          if ! git push origin main; then
+            git stash
+            git pull --rebase origin main
+            git stash pop
             git add awaf.m3u
-            git commit -m "📡 Update FAWA playlist"
-            git pull
-            git push
-          else
-            echo "ℹ️ No changes to awaf.m3u"
+            git commit -m "📡 Update FAWA playlists (rebased)" || true
+            git push origin main
           fi
