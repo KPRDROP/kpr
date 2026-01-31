@@ -23,7 +23,7 @@ jobs:
 
       - name: 📦 Install dependencies
         run: |
-          pip install playwright
+          pip install playwright httpx[http2] pytz
           playwright install chromium
 
       - name: ▶️ Run STGATE scraper
