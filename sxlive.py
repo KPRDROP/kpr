@@ -99,7 +99,7 @@ async def refresh_xml_cache(now_ts: float):
     log.info("Refreshing XML cache")
 
     events = {}
-    xml = await network.request(BASE_URL, log=log)
+    xml = await network.request(SXLIVE_BASE_URL, log=log)
 
     if not xml:
         return events
@@ -183,7 +183,7 @@ async def scrape():
             cached[key] = {
                 "url": stream,
                 "logo": logo,
-                "base": BASE_REF,
+                "base": SXLIVE_BASE_REF,
                 "timestamp": ev["event_ts"],
                 "id": tvg_id or "Live.Event.us",
                 "link": ev["link"],
