@@ -9,7 +9,7 @@ from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
-TAG = "LIVETVSX"
+TAG = "SXLIVE"
 
 CACHE_FILE = Cache(TAG, exp=10_800)
 XML_CACHE = Cache(f"{TAG}-xml", exp=28_000)
@@ -17,12 +17,12 @@ XML_CACHE = Cache(f"{TAG}-xml", exp=28_000)
 # -------------------------------------------------
 # ✅ SECRETS FROM ENVIRONMENT (GitHub Actions)
 # -------------------------------------------------
-BASE_URL = os.environ.get("BASE_URL")
-BASE_REF = os.environ.get("BASE_REF")
+SXLIVE_BASE_URL = os.environ.get("SXLIVE_BASE_URL")
+SXLIVE_BASE_REF = os.environ.get("SXLIVE_BASE_REF")
 
 if not BASE_URL or not BASE_REF:
     raise RuntimeError(
-        "Missing required secrets: BASE_URL and/or BASE_REF"
+        "Missing required secrets: SXLIVE_BASE_URL and/or SXLIVE_BASE_REF"
     )
 
 VALID_SPORTS = {
