@@ -1,6 +1,5 @@
 import asyncio
 from functools import partial
-from itertools import chain
 from typing import Any
 from urllib.parse import quote
 from pathlib import Path
@@ -20,6 +19,8 @@ TAG = "STGATE"
 BASE_URL = os.environ.get("STGATE_BASE_URL")
 if not BASE_URL:
     raise RuntimeError("Missing STGATE_BASE_URL secret")
+
+DATA_BASE = f"{BASE_URL.rstrip('/')}/data"
 
 REFERER = "https://instreams.click/"
 ORIGIN = "https://instreams.click/"
@@ -60,35 +61,33 @@ def build_event_name(home: str, away: str) -> str:
 async def refresh_api_cache(now_ts: float) -> list[dict[str, Any]]:
     log.info("Refreshing JSON API cache")
 
-    tasks = [
-        network.request(f"{BASE_URL}/{sport}.json", log=log)
-        for sport in SPORT_ENDPOINTS
-    ]
-
-    results = await asyncio.gather(*tasks)
-
     events: list[dict[str, Any]] = []
 
-    for res in results:
+    for sport in SPORT_ENDPOINTS:
+        url = f"{DATA_BASE}/{sport}.json"
+        res = await network.request(url, log=log)
+
         if not res:
+            log.warning(f"No response for {sport}.json")
             continue
 
         try:
             data = res.json()
-        except Exception:
+        except Exception as e:
+            log.warning(f"Invalid JSON in {sport}.json: {e}")
             continue
 
-        if isinstance(data, list):
-            events.extend(data)
+        if not isinstance(data, list):
+            continue
+
+        log.info(f"{sport}.json → {len(data)} events")
+        events.extend(data)
 
     if not events:
-        return [{"timestamp": now_ts}]
+        log.warning("No events found in any JSON endpoint")
+        return []
 
-    for ev in events:
-        if "timestamp" in ev:
-            ev["ts"] = ev["timestamp"]
-
-    events.append({"timestamp": now_ts})
+    events.append({"_cache_ts": now_ts})
     return events
 
 # --------------------------------------------------
@@ -102,9 +101,12 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, Any]]:
 
     events = []
     start_dt = now.delta(hours=-1)
-    end_dt = now.delta(minutes=10)
+    end_dt = now.delta(minutes=15)
 
     for ev in api_data:
+        if "_cache_ts" in ev:
+            continue
+
         home = ev.get("home")
         away = ev.get("away")
         league = ev.get("league")
@@ -145,7 +147,7 @@ async def scrape(browser: Browser) -> None:
     cached_count = len(cached_urls)
 
     log.info(f"Loaded {cached_count} cached event(s)")
-    log.info(f'Scraping JSON from "{BASE_URL}"')
+    log.info(f'Scraping JSON from "{DATA_BASE}"')
 
     events = await get_events(list(cached_urls.keys()))
     log.info(f"Processing {len(events)} new stream URL(s)")
