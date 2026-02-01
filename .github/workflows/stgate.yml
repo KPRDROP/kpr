@@ -2,7 +2,8 @@ name: ▶️ Update STGATE Playlists
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    # Runs every hour
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
