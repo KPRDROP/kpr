@@ -32,7 +32,7 @@ JSON_ENDPOINTS = [
     "f1.json",
 ]
 
-# IMPORTANT: Cache expects STRING names, not Path
+# Cache names MUST be strings
 EVENT_CACHE = Cache("stgate_events", exp=0)
 STREAM_CACHE = Cache("stgate_streams", exp=0)
 
@@ -60,8 +60,8 @@ async def load_events() -> List[str]:
                         continue
 
                     data = await r.json()
-
                     events = data.get("events", data)
+
                     log.info(f"{name} → {len(events)} events")
 
                     for ev in events:
@@ -100,12 +100,12 @@ async def extract_m3u8(page: Page, url: str) -> Optional[str]:
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
 
-        # Momentum clicks (ads → player)
+        # momentum clicks (ads → player)
         await page.mouse.click(400, 300)
         await asyncio.sleep(1)
         await page.mouse.click(400, 300)
 
-        for _ in range(20):
+        for _ in range(25):
             if found:
                 return found
             await asyncio.sleep(0.8)
@@ -123,8 +123,13 @@ async def extract_m3u8(page: Page, url: str) -> Optional[str]:
 async def scrape():
     log.info("🚀 Starting STGATE scraper")
 
-    cached_events: Dict[str, bool] = EVENT_CACHE.load(default={})
-    cached_streams: Dict[str, Dict] = STREAM_CACHE.load(default={})
+    cached_events = EVENT_CACHE.load()
+    if not isinstance(cached_events, dict):
+        cached_events = {}
+
+    cached_streams = STREAM_CACHE.load()
+    if not isinstance(cached_streams, dict):
+        cached_streams = {}
 
     event_urls = await load_events()
     new_urls = [u for u in event_urls if u not in cached_events]
@@ -148,7 +153,6 @@ async def scrape():
             log.info(f"{idx}/{len(new_urls)} Opening event")
 
             m3u8 = await extract_m3u8(page, url)
-
             cached_events[url] = True
 
             if not m3u8:
