@@ -17,7 +17,9 @@ log = get_logger(__name__)
 # --------------------------------------------------
 TAG = "STGATE"
 
-BASE_URL = os.getenv("STGAT_BASE_URL")
+BASE_URL = os.environ.get("STGATE_BASE_URL")
+if not BASE_URL:
+    raise RuntimeError("Missing STGATE_BASE_URL secret")
 
 REFERER = "https://instreams.click/"
 ORIGIN = "https://instreams.click/"
