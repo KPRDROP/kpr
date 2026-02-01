@@ -1,11 +1,16 @@
 import asyncio
+from functools import partial
+from itertools import chain
+from typing import Any
+from urllib.parse import urljoin, quote
+from pathlib import Path
 import os
-from urllib.parse import urljoin
-from typing import Dict, List, Optional
 
-from playwright.async_api import async_playwright, Page
+from playwright.async_api import async_playwright, Browser
 
-from utils import Cache, Time, get_logger, network
+from utils import Cache, Time, get_logger, leagues, network
+
+log = get_logger(__name__)
 
 # --------------------------------------------------
 # CONFIG
@@ -13,169 +18,231 @@ from utils import Cache, Time, get_logger, network
 
 TAG = "STGATE"
 
-BASE_URL = os.environ.get("STGATE_BASE_URL", "").rstrip("/")
+BASE_URL = os.environ.get("STGATE_BASE_URL")
 if not BASE_URL:
-    raise RuntimeError("STGATE_BASE_URL is not set")
+    raise RuntimeError("Missing STGATE_BASE_URL secret")
 
 REFERER = "https://instreams.click/"
 ORIGIN = "https://instreams.click/"
 
-JSON_ENDPOINTS = [
-    "soccer.json",
-    "nfl.json",
-    "nba.json",
-    "cfb.json",
-    "mlb.json",
-    "nhl.json",
-    "ufc.json",
-    "box.json",
-    "f1.json",
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) "
+    "Gecko/20100101 Firefox/146.0"
+)
+UA_ENC = quote(USER_AGENT)
+
+OUT_VLC = Path("stgate_vlc.m3u8")
+OUT_TIVI = Path("stgate_tivimate.m3u8")
+
+CACHE_FILE = Cache(TAG, exp=10_800)
+API_FILE = Cache(f"{TAG}-api", exp=19_800)
+
+SPORT_ENDPOINTS = [
+    "soccer",
+    "nfl",
+    "nba",
+    "cfb",
+    "mlb",
+    "nhl",
+    "ufc",
+    "box",
+    "f1",
 ]
 
-# Cache names MUST be strings
-EVENT_CACHE = Cache("stgate_events", exp=0)
-STREAM_CACHE = Cache("stgate_streams", exp=0)
-
-log = get_logger(__name__)
+urls: dict[str, dict[str, Any]] = {}
 
 # --------------------------------------------------
-# LOAD EVENTS FROM JSON
-# --------------------------------------------------
-
-async def load_events() -> List[str]:
-    urls: List[str] = []
-
-    async with network.session(headers={
-        "Referer": REFERER,
-        "Origin": ORIGIN,
-        "User-Agent": "Mozilla/5.0",
-    }) as session:
-
-        for name in JSON_ENDPOINTS:
-            api_url = f"{BASE_URL}/data/{name}"
-            try:
-                async with session.get(api_url, timeout=20) as r:
-                    if r.status != 200:
-                        log.warning(f"{name} → HTTP {r.status}")
-                        continue
-
-                    data = await r.json()
-                    events = data.get("events", data)
-
-                    log.info(f"{name} → {len(events)} events")
-
-                    for ev in events:
-                        streams = ev.get("streams") or []
-                        if not streams:
-                            continue
-
-                        src = streams[0].get("url")
-                        if not src:
-                            continue
-
-                        urls.append(urljoin(BASE_URL + "/", src.lstrip("/")))
-
-            except Exception as e:
-                log.warning(f"{name} failed: {e}")
-
-    return urls
-
+def get_event(t1: str, t2: str) -> str:
+    if t1 == "RED ZONE":
+        return "NFL RedZone"
+    if t1 == "TBD":
+        return "TBD"
+    return f"{t1.strip()} vs {t2.strip()}"
 
 # --------------------------------------------------
-# STREAM EXTRACTION
+async def refresh_api_cache(now_ts: float) -> list[dict[str, Any]]:
+    log.info("Refreshing JSON API cache")
+
+    tasks = [
+        network.request(
+            urljoin(BASE_URL, f"data/{sport}.json"),
+            log=log,
+        )
+        for sport in SPORT_ENDPOINTS
+    ]
+
+    results = await asyncio.gather(*tasks)
+
+    data: list[dict[str, Any]] = []
+
+    for sport, r in zip(SPORT_ENDPOINTS, results):
+        if not r:
+            continue
+
+        js = r.json()
+        if not isinstance(js, list):
+            continue
+
+        log.info(f"{sport}.json → {len(js)} events")
+        data.extend(js)
+
+    if not data:
+        return [{"timestamp": now_ts}]
+
+    for ev in data:
+        if "timestamp" in ev:
+            ev["ts"] = ev.pop("timestamp")
+
+    data[-1]["timestamp"] = now_ts
+    return data
+
 # --------------------------------------------------
+async def get_events(cached_keys: list[str]) -> list[dict[str, Any]]:
+    now = Time.clean(Time.now())
 
-async def extract_m3u8(page: Page, url: str) -> Optional[str]:
-    found: Optional[str] = None
+    api_data = API_FILE.load()
+    if not api_data:
+        api_data = await refresh_api_cache(now.timestamp())
+        API_FILE.write(api_data)
 
-    def on_request(req):
-        nonlocal found
-        if found:
-            return
-        if ".m3u8" in req.url:
-            found = req.url
+    events = []
+    start_dt = now.delta(hours=-1)
+    end_dt = now.delta(minutes=5)
 
-    page.on("requestfinished", on_request)
+    for ev in api_data:
+        date = ev.get("time")
+        sport = ev.get("league")
+        t1, t2 = ev.get("home"), ev.get("away")
 
-    try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
+        if not (date and sport and t1 and t2):
+            continue
 
-        # momentum clicks (ads → player)
-        await page.mouse.click(400, 300)
-        await asyncio.sleep(1)
-        await page.mouse.click(400, 300)
+        event = get_event(t1, t2)
+        key = f"[{sport}] {event} ({TAG})"
 
-        for _ in range(25):
-            if found:
-                return found
-            await asyncio.sleep(0.8)
+        if key in cached_keys:
+            continue
 
-    except Exception as e:
-        log.debug(f"Player error: {e}")
+        event_dt = Time.from_str(date, timezone="UTC")
+        if not start_dt <= event_dt <= end_dt:
+            continue
 
-    return None
+        streams = ev.get("streams") or []
+        if not streams:
+            continue
 
+        link = streams[0].get("url")
+        if not link:
+            continue
+
+        events.append({
+            "sport": sport,
+            "event": event,
+            "link": link,
+            "timestamp": event_dt.timestamp(),
+        })
+
+    return events
 
 # --------------------------------------------------
-# MAIN SCRAPER
-# --------------------------------------------------
+async def scrape(browser: Browser) -> None:
+    cached_urls = CACHE_FILE.load() or {}
+    cached_count = len(cached_urls)
 
-async def scrape():
-    log.info("🚀 Starting STGATE scraper")
+    urls.update(cached_urls)
 
-    cached_events = EVENT_CACHE.load()
-    if not isinstance(cached_events, dict):
-        cached_events = {}
+    log.info(f"Loaded {cached_count} cached event(s)")
+    log.info(f'Scraping JSON from "{BASE_URL}/data"')
 
-    cached_streams = STREAM_CACHE.load()
-    if not isinstance(cached_streams, dict):
-        cached_streams = {}
+    events = await get_events(list(cached_urls.keys()))
+    log.info(f"Processing {len(events)} new stream URL(s)")
 
-    event_urls = await load_events()
-    new_urls = [u for u in event_urls if u not in cached_events]
-
-    log.info(f"Processing {len(new_urls)} new stream URL(s)")
-
-    if not new_urls:
+    if not events:
+        CACHE_FILE.write(cached_urls)
         return
 
+    async with network.event_context(browser, stealth=False) as context:
+        for i, ev in enumerate(events, start=1):
+            async with network.event_page(context) as page:
+                handler = partial(
+                    network.process_event,
+                    url=ev["link"],
+                    url_num=i,
+                    page=page,
+                    log=log,
+                )
+
+                stream_url = await network.safe_process(
+                    handler,
+                    url_num=i,
+                    semaphore=network.PW_S,
+                    log=log,
+                )
+
+                if not stream_url:
+                    continue
+
+                key = f"[{ev['sport']}] {ev['event']} ({TAG})"
+                tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
+
+                cached_urls[key] = {
+                    "url": stream_url,
+                    "logo": logo,
+                    "base": BASE_URL,
+                    "timestamp": ev["timestamp"],
+                    "id": tvg_id or "Live.Event.us",
+                    "link": ev["link"],
+                }
+
+    CACHE_FILE.write(cached_urls)
+    build_playlists(cached_urls)
+
+    log.info(f"Collected {len(cached_urls) - cached_count} new event(s)")
+
+# --------------------------------------------------
+def build_playlists(data: dict[str, dict]):
+    vlc = ["#EXTM3U"]
+    tm = ["#EXTM3U"]
+    ch = 1
+
+    for name, e in data.items():
+        vlc.extend([
+            f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
+            f'tvg-name="{name}" tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
+            f"#EXTVLCOPT:http-referrer={REFERER}",
+            f"#EXTVLCOPT:http-origin={ORIGIN}",
+            f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
+            e["url"],
+        ])
+
+        tm.extend([
+            f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
+            f'tvg-name="{name}" tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
+            f'{e["url"]}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}',
+        ])
+
+        ch += 1
+
+    OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
+    OUT_TIVI.write_text("\n".join(tm), encoding="utf-8")
+
+    log.info("Playlists written successfully")
+
+# --------------------------------------------------
+async def main():
+    log.info("🚀 Starting STGATE scraper")
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page(
-            extra_http_headers={
-                "Referer": REFERER,
-                "Origin": ORIGIN,
-                "User-Agent": "Mozilla/5.0",
-            }
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--autoplay-policy=no-user-gesture-required",
+            ],
         )
-
-        for idx, url in enumerate(new_urls, 1):
-            log.info(f"{idx}/{len(new_urls)} Opening event")
-
-            m3u8 = await extract_m3u8(page, url)
-            cached_events[url] = True
-
-            if not m3u8:
-                log.warning("No stream found")
-                continue
-
-            cached_streams[url] = {
-                "m3u8": m3u8,
-                "timestamp": Time.now(),
-                "tag": TAG,
-            }
-
-            log.info("✅ Stream captured")
-
+        await scrape(browser)
         await browser.close()
 
-    EVENT_CACHE.write(cached_events)
-    STREAM_CACHE.write(cached_streams)
-
-
 # --------------------------------------------------
-# ENTRYPOINT
-# --------------------------------------------------
-
 if __name__ == "__main__":
-    asyncio.run(scrape())
+    asyncio.run(main())
