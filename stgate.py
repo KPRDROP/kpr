@@ -39,7 +39,7 @@ CACHE_FILE = Cache(TAG, exp=10_800)
 API_FILE = Cache(f"{TAG}-api", exp=19_800)
 
 SPORT_ENDPOINTS = [
-    "all", "soccer", "nfl", "nba", "cfb", "mlb",
+    "soccer", "nfl", "nba", "cfb", "mlb",
     "nhl", "ufc", "boxing", "f1",
 ]
 
