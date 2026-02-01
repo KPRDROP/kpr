@@ -20,7 +20,7 @@ XML_CACHE = Cache(f"{TAG}-xml", exp=28_000)
 SXLIVE_BASE_URL = os.environ.get("SXLIVE_BASE_URL")
 SXLIVE_BASE_REF = os.environ.get("SXLIVE_BASE_REF")
 
-if not BASE_URL or not BASE_REF:
+if not SXLIVE_BASE_URL or not SXLIVE_BASE_REF:
     raise RuntimeError(
         "Missing required secrets: SXLIVE_BASE_URL and/or SXLIVE_BASE_REF"
     )
