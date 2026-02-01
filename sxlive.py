@@ -1,6 +1,6 @@
 import asyncio
+import os
 from functools import partial
-from urllib.parse import urlparse
 
 import feedparser
 from playwright.async_api import async_playwright, Page
@@ -14,8 +14,16 @@ TAG = "LIVETVSX"
 CACHE_FILE = Cache(TAG, exp=10_800)
 XML_CACHE = Cache(f"{TAG}-xml", exp=28_000)
 
-BASE_URL = network.SECRETS["BASE_URL"]
-BASE_REF = network.SECRETS["BASE_REF"]
+# -------------------------------------------------
+# ✅ SECRETS FROM ENVIRONMENT (GitHub Actions)
+# -------------------------------------------------
+BASE_URL = os.environ.get("BASE_URL")
+BASE_REF = os.environ.get("BASE_REF")
+
+if not BASE_URL or not BASE_REF:
+    raise RuntimeError(
+        "Missing required secrets: BASE_URL and/or BASE_REF"
+    )
 
 VALID_SPORTS = {
     "Football",
@@ -25,7 +33,7 @@ VALID_SPORTS = {
 
 urls = {}
 
-# -------------------------------------------------------------
+# -------------------------------------------------
 
 async def process_event(url: str, url_num: int, page: Page) -> str | None:
     captured = set()
@@ -33,8 +41,7 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
 
     def capture(req):
         try:
-            u = req.url.lower()
-            if ".m3u8" in u:
+            if ".m3u8" in req.url.lower():
                 captured.add(req.url)
                 got_one.set()
         except Exception:
@@ -47,7 +54,7 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
         await page.goto(url, timeout=30_000, wait_until="domcontentloaded")
         await page.wait_for_timeout(4_000)
 
-        # Try clicking ALL iframes/videos
+        # Trigger playback multiple times
         for _ in range(3):
             for frame in page.frames:
                 try:
@@ -86,13 +93,14 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
     finally:
         page.context.remove_listener("requestfinished", capture)
 
-# -------------------------------------------------------------
+# -------------------------------------------------
 
 async def refresh_xml_cache(now_ts: float):
     log.info("Refreshing XML cache")
-    events = {}
 
+    events = {}
     xml = await network.request(BASE_URL, log=log)
+
     if not xml:
         return events
 
@@ -127,7 +135,7 @@ async def refresh_xml_cache(now_ts: float):
 
     return events
 
-# -------------------------------------------------------------
+# -------------------------------------------------
 
 async def get_events(cached_keys):
     now = Time.clean(Time.now())
@@ -149,7 +157,7 @@ async def get_events(cached_keys):
 
     return live
 
-# -------------------------------------------------------------
+# -------------------------------------------------
 
 async def scrape():
     cached = CACHE_FILE.load()
@@ -188,7 +196,7 @@ async def scrape():
 
     CACHE_FILE.write(cached)
 
-# -------------------------------------------------------------
+# -------------------------------------------------
 
 if __name__ == "__main__":
     asyncio.run(scrape())
