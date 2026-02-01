@@ -58,10 +58,7 @@ async def refresh_api_cache(now_ts: float) -> list[dict[str, Any]]:
     log.info("Refreshing API cache")
 
     tasks = [
-        network.request(
-            urljoin(BASE_URL, f"data/{sport}.json"),
-            log=log,
-        )
+        network.request(urljoin(BASE_URL, f"data/{sport}.json"), log=log)
         for sport in SPORT_ENDPOINTS
     ]
 
@@ -73,8 +70,7 @@ async def refresh_api_cache(now_ts: float) -> list[dict[str, Any]]:
     for ev in data:
         ev["ts"] = ev.pop("timestamp")
 
-        data[-1]["timestamp"] = now_ts
-
+    data[-1]["timestamp"] = now_ts
     return data
 
 # --------------------------------------------------
@@ -105,10 +101,9 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
         if not start_dt <= event_dt <= end_dt:
             continue
 
-        if not (streams := ev.get("streams")):
-            continue
-
-        if not (url := streams[0].get("url")):
+        streams = ev.get("streams") or []
+        url = streams[0].get("url") if streams else None
+        if not url:
             continue
 
         events.append({
@@ -126,7 +121,7 @@ async def scrape(browser: Browser) -> None:
     cached_count = len(cached_urls)
     urls.update(cached_urls)
 
-    log.info(f"Loaded {cached_count} event(s) from cache")
+    log.info(f"Loaded {cached_count} cached event(s)")
     log.info(f'Scraping from "{BASE_URL}"')
 
     events = await get_events(list(cached_urls.keys()))
@@ -144,62 +139,48 @@ async def scrape(browser: Browser) -> None:
                         log=log,
                     )
 
-                    url = await network.safe_process(
+                    stream_url = await network.safe_process(
                         handler,
                         url_num=i,
                         semaphore=network.PW_S,
                         log=log,
                     )
 
-                    if not url:
+                    if not stream_url:
                         continue
 
-                    sport, event, ts, link = (
-                        ev["sport"],
-                        ev["event"],
-                        ev["timestamp"],
-                        ev["link"],
-                    )
+                    key = f"[{ev['sport']}] {ev['event']} ({TAG})"
+                    tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
-                    key = f"[{sport}] {event} ({TAG})"
-                    tvg_id, logo = leagues.get_tvg_info(sport, event)
-
-                    entry = {
-                        "url": url,
+                    cached_urls[key] = {
+                        "url": stream_url,
                         "logo": logo,
                         "base": BASE_URL,
-                        "timestamp": ts,
+                        "timestamp": ev["timestamp"],
                         "id": tvg_id or "Live.Event.us",
-                        "link": link,
+                        "link": ev["link"],
                     }
 
-                    urls[key] = cached_urls[key] = entry
-
-    if new_count := len(cached_urls) - cached_count:
-        log.info(f"Collected and cached {new_count} new event(s)")
-    else:
-        log.info("No new events found")
-
     CACHE_FILE.write(cached_urls)
-
     build_playlists(cached_urls)
+
+    new_count = len(cached_urls) - cached_count
+    log.info(f"Collected {new_count} new event(s)")
 
 # --------------------------------------------------
 def build_playlists(data: dict[str, dict]):
     # VLC
     vlc = ["#EXTM3U"]
     ch = 1
-
     for name, e in data.items():
-        vlc.append(
-            f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
-            f'tvg-name="{name}" tvg-logo="{e["logo"]}" '
-            f'group-title="Live Events",{name}'
-        )
-        vlc.append(f"#EXTVLCOPT:http-referrer={REFERER}")
-        vlc.append(f"#EXTVLCOPT:http-origin={ORIGIN}")
-        vlc.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
-        vlc.append(e["url"])
+        vlc.extend([
+            f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" tvg-name="{name}" '
+            f'tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
+            f"#EXTVLCOPT:http-referrer={REFERER}",
+            f"#EXTVLCOPT:http-origin={ORIGIN}",
+            f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
+            e["url"],
+        ])
         ch += 1
 
     OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
@@ -207,18 +188,32 @@ def build_playlists(data: dict[str, dict]):
     # TiviMate
     tm = ["#EXTM3U"]
     ch = 1
-
     for name, e in data.items():
-        tm.append(
-            f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
-            f'tvg-name="{name}" tvg-logo="{e["logo"]}" '
-            f'group-title="Live Events",{name}'
-        )
-        tm.append(
-            f'{e["url"]}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}'
-        )
+        tm.extend([
+            f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" tvg-name="{name}" '
+            f'tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
+            f'{e["url"]}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}',
+        ])
         ch += 1
 
     OUT_TIVI.write_text("\n".join(tm), encoding="utf-8")
+    log.info("Playlists written successfully")
 
-    log.info("Playlists written: stgate_vlc.m3u8, stgate_tivimate.m3u8")
+# --------------------------------------------------
+async def main():
+    log.info("🚀 Starting STGATE scraper")
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--autoplay-policy=no-user-gesture-required",
+            ],
+        )
+        await scrape(browser)
+        await browser.close()
+
+# --------------------------------------------------
+if __name__ == "__main__":
+    asyncio.run(main())
