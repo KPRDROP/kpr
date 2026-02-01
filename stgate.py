@@ -2,7 +2,7 @@ import asyncio
 from functools import partial
 from itertools import chain
 from typing import Any
-from urllib.parse import urljoin, quote
+from urllib.parse import quote
 from pathlib import Path
 import os
 
@@ -33,85 +33,109 @@ UA_ENC = quote(USER_AGENT)
 OUT_VLC = Path("stgate_vlc.m3u8")
 OUT_TIVI = Path("stgate_tivimate.m3u8")
 
-urls: dict[str, dict[str, str | float]] = {}
-
 CACHE_FILE = Cache(TAG, exp=10_800)
-API_FILE = Cache(f"{TAG}-api", exp=19_800)
+API_FILE = Cache(f"{TAG}-api", exp=10_800)
 
 SPORT_ENDPOINTS = [
-    "soccer", "nfl", "nba", "cfb", "mlb",
-    "nhl", "ufc", "boxing", "f1",
+    "soccer",
+    "nfl",
+    "nba",
+    "cfb",
+    "mlb",
+    "nhl",
+    "ufc",
+    "box",
+    "f1",
 ]
 
 # --------------------------------------------------
-def get_event(t1: str, t2: str) -> str:
-    match t1:
-        case "RED ZONE":
-            return "NFL RedZone"
-        case "TBD":
-            return "TBD"
-        case _:
-            return f"{t1.strip()} vs {t2.strip()}"
+def build_event_name(home: str, away: str) -> str:
+    home = (home or "").strip()
+    away = (away or "").strip()
+    if not home or not away:
+        return "TBD"
+    return f"{home} vs {away}"
 
 # --------------------------------------------------
 async def refresh_api_cache(now_ts: float) -> list[dict[str, Any]]:
-    log.info("Refreshing API cache")
+    log.info("Refreshing JSON API cache")
 
     tasks = [
-        network.request(urljoin(BASE_URL, f"data/{sport}.json"), log=log)
+        network.request(f"{BASE_URL}/{sport}.json", log=log)
         for sport in SPORT_ENDPOINTS
     ]
 
     results = await asyncio.gather(*tasks)
 
-    if not (data := [*chain.from_iterable(r.json() for r in results if r)]):
+    events: list[dict[str, Any]] = []
+
+    for res in results:
+        if not res:
+            continue
+
+        try:
+            data = res.json()
+        except Exception:
+            continue
+
+        if isinstance(data, list):
+            events.extend(data)
+
+    if not events:
         return [{"timestamp": now_ts}]
 
-    for ev in data:
-        ev["ts"] = ev.pop("timestamp")
+    for ev in events:
+        if "timestamp" in ev:
+            ev["ts"] = ev["timestamp"]
 
-    data[-1]["timestamp"] = now_ts
-    return data
+    events.append({"timestamp": now_ts})
+    return events
 
 # --------------------------------------------------
-async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
+async def get_events(cached_keys: list[str]) -> list[dict[str, Any]]:
     now = Time.clean(Time.now())
 
-    if not (api_data := API_FILE.load(per_entry=False, index=-1)):
+    api_data = API_FILE.load(per_entry=False, index=-1)
+    if not api_data:
         api_data = await refresh_api_cache(now.timestamp())
         API_FILE.write(api_data)
 
     events = []
     start_dt = now.delta(hours=-1)
-    end_dt = now.delta(minutes=5)
+    end_dt = now.delta(minutes=10)
 
     for ev in api_data:
-        date = ev.get("time")
-        sport = ev.get("league")
-        event = get_event(ev.get("away", ""), ev.get("home", ""))
+        home = ev.get("home")
+        away = ev.get("away")
+        league = ev.get("league")
+        ts = ev.get("timestamp")
+        streams = ev.get("streams") or []
 
-        if not (date and sport):
+        if not (home and away and league and ts and streams):
             continue
 
-        key = f"[{sport}] {event} ({TAG})"
-        if key in cached_keys:
-            continue
+        event_name = build_event_name(home, away)
+        event_dt = Time.from_ts(ts)
 
-        event_dt = Time.from_str(date, timezone="UTC")
         if not start_dt <= event_dt <= end_dt:
             continue
 
-        streams = ev.get("streams") or []
-        url = streams[0].get("url") if streams else None
-        if not url:
-            continue
+        for idx, s in enumerate(streams, start=1):
+            link = s.get("url")
+            if not link:
+                continue
 
-        events.append({
-            "sport": sport,
-            "event": event,
-            "link": url,
-            "timestamp": event_dt.timestamp(),
-        })
+            key = f"[{league}] {event_name} #{idx} ({TAG})"
+            if key in cached_keys:
+                continue
+
+            events.append({
+                "sport": league,
+                "event": event_name,
+                "link": link,
+                "timestamp": event_dt.timestamp(),
+                "key": key,
+            })
 
     return events
 
@@ -119,58 +143,58 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 async def scrape(browser: Browser) -> None:
     cached_urls = CACHE_FILE.load() or {}
     cached_count = len(cached_urls)
-    urls.update(cached_urls)
 
     log.info(f"Loaded {cached_count} cached event(s)")
-    log.info(f'Scraping from "{BASE_URL}"')
+    log.info(f'Scraping JSON from "{BASE_URL}"')
 
     events = await get_events(list(cached_urls.keys()))
-    log.info(f"Processing {len(events)} new URL(s)")
+    log.info(f"Processing {len(events)} new stream URL(s)")
 
-    if events:
-        async with network.event_context(browser, stealth=False) as context:
-            for i, ev in enumerate(events, start=1):
-                async with network.event_page(context) as page:
-                    handler = partial(
-                        network.process_event,
-                        url=ev["link"],
-                        url_num=i,
-                        page=page,
-                        log=log,
-                    )
+    if not events:
+        return
 
-                    stream_url = await network.safe_process(
-                        handler,
-                        url_num=i,
-                        semaphore=network.PW_S,
-                        log=log,
-                    )
+    async with network.event_context(browser, stealth=False) as context:
+        for i, ev in enumerate(events, start=1):
+            async with network.event_page(context) as page:
+                handler = partial(
+                    network.process_event,
+                    url=ev["link"],
+                    url_num=i,
+                    page=page,
+                    log=log,
+                )
 
-                    if not stream_url:
-                        continue
+                stream_url = await network.safe_process(
+                    handler,
+                    url_num=i,
+                    semaphore=network.PW_S,
+                    log=log,
+                )
 
-                    key = f"[{ev['sport']}] {ev['event']} ({TAG})"
-                    tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
+                if not stream_url:
+                    continue
 
-                    cached_urls[key] = {
-                        "url": stream_url,
-                        "logo": logo,
-                        "base": BASE_URL,
-                        "timestamp": ev["timestamp"],
-                        "id": tvg_id or "Live.Event.us",
-                        "link": ev["link"],
-                    }
+                tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
+
+                cached_urls[ev["key"]] = {
+                    "url": stream_url,
+                    "logo": logo,
+                    "base": BASE_URL,
+                    "timestamp": ev["timestamp"],
+                    "id": tvg_id or "Live.Event.us",
+                    "link": ev["link"],
+                }
 
     CACHE_FILE.write(cached_urls)
     build_playlists(cached_urls)
 
-    new_count = len(cached_urls) - cached_count
-    log.info(f"Collected {new_count} new event(s)")
+    log.info(f"Collected {len(cached_urls) - cached_count} new event(s)")
 
 # --------------------------------------------------
 def build_playlists(data: dict[str, dict]):
-    # VLC
     vlc = ["#EXTM3U"]
+    tm = ["#EXTM3U"]
+
     ch = 1
     for name, e in data.items():
         vlc.extend([
@@ -181,21 +205,16 @@ def build_playlists(data: dict[str, dict]):
             f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
             e["url"],
         ])
-        ch += 1
 
-    OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
-
-    # TiviMate
-    tm = ["#EXTM3U"]
-    ch = 1
-    for name, e in data.items():
         tm.extend([
             f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" tvg-name="{name}" '
             f'tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
             f'{e["url"]}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}',
         ])
+
         ch += 1
 
+    OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
     OUT_TIVI.write_text("\n".join(tm), encoding="utf-8")
     log.info("Playlists written successfully")
 
