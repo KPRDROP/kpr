@@ -1,6 +1,5 @@
 import asyncio
 import os
-from pathlib import Path
 from urllib.parse import urljoin
 from typing import Dict, List, Optional
 
@@ -33,12 +32,9 @@ JSON_ENDPOINTS = [
     "f1.json",
 ]
 
-CACHE_DIR = Path("cache")
-CACHE_DIR.mkdir(exist_ok=True)
-
-# exp=0 → never expire
-EVENT_CACHE = Cache(CACHE_DIR / "stgate_events.json", exp=0)
-STREAM_CACHE = Cache(CACHE_DIR / "stgate_streams.json", exp=0)
+# IMPORTANT: Cache expects STRING names, not Path
+EVENT_CACHE = Cache("stgate_events", exp=0)
+STREAM_CACHE = Cache("stgate_streams", exp=0)
 
 log = get_logger(__name__)
 
@@ -56,23 +52,28 @@ async def load_events() -> List[str]:
     }) as session:
 
         for name in JSON_ENDPOINTS:
-            url = f"{BASE_URL}/data/{name}"
+            api_url = f"{BASE_URL}/data/{name}"
             try:
-                async with session.get(url, timeout=20) as r:
+                async with session.get(api_url, timeout=20) as r:
                     if r.status != 200:
                         log.warning(f"{name} → HTTP {r.status}")
                         continue
 
                     data = await r.json()
-                    events = data.get("events", data)
 
+                    events = data.get("events", data)
                     log.info(f"{name} → {len(events)} events")
 
                     for ev in events:
-                        path = ev.get("url") or ev.get("link")
-                        if not path:
+                        streams = ev.get("streams") or []
+                        if not streams:
                             continue
-                        urls.append(urljoin(BASE_URL + "/", path.lstrip("/")))
+
+                        src = streams[0].get("url")
+                        if not src:
+                            continue
+
+                        urls.append(urljoin(BASE_URL + "/", src.lstrip("/")))
 
             except Exception as e:
                 log.warning(f"{name} failed: {e}")
@@ -99,15 +100,15 @@ async def extract_m3u8(page: Page, url: str) -> Optional[str]:
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
 
-        # momentum click (ads first, then player)
+        # Momentum clicks (ads → player)
         await page.mouse.click(400, 300)
         await asyncio.sleep(1)
         await page.mouse.click(400, 300)
 
-        for _ in range(15):
+        for _ in range(20):
             if found:
                 return found
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.8)
 
     except Exception as e:
         log.debug(f"Player error: {e}")
@@ -116,7 +117,7 @@ async def extract_m3u8(page: Page, url: str) -> Optional[str]:
 
 
 # --------------------------------------------------
-# MAIN
+# MAIN SCRAPER
 # --------------------------------------------------
 
 async def scrape():
@@ -126,7 +127,6 @@ async def scrape():
     cached_streams: Dict[str, Dict] = STREAM_CACHE.load(default={})
 
     event_urls = await load_events()
-
     new_urls = [u for u in event_urls if u not in cached_events]
 
     log.info(f"Processing {len(new_urls)} new stream URL(s)")
@@ -149,24 +149,24 @@ async def scrape():
 
             m3u8 = await extract_m3u8(page, url)
 
+            cached_events[url] = True
+
             if not m3u8:
                 log.warning("No stream found")
-                cached_events[url] = True
                 continue
 
             cached_streams[url] = {
                 "m3u8": m3u8,
-                "time": Time.now(),
+                "timestamp": Time.now(),
                 "tag": TAG,
             }
 
-            cached_events[url] = True
             log.info("✅ Stream captured")
 
         await browser.close()
 
-    EVENT_CACHE.save(cached_events)
-    STREAM_CACHE.save(cached_streams)
+    EVENT_CACHE.write(cached_events)
+    STREAM_CACHE.write(cached_streams)
 
 
 # --------------------------------------------------
