@@ -6,7 +6,7 @@ from urllib.parse import urljoin, quote
 from pathlib import Path
 import os
 
-from playwright.async_api import Browser
+from playwright.async_api import async_playwright, Browser
 
 from utils import Cache, Time, get_logger, leagues, network
 
