@@ -57,7 +57,7 @@ async def refresh_html_cache(url: str) -> dict[str, dict]:
     soup = HTMLParser(html.content)
 
     title = soup.css_first("title").text(strip=True)
-    sport = "NFL" if "NFL" in title else "NHL"
+    sport = "NFL" if "NFL" in title else "NFL"
 
     date_text = now.strftime("%B %d, %Y")
 
