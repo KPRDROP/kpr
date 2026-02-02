@@ -3,6 +3,7 @@ from functools import partial
 from pathlib import Path
 from urllib.parse import quote
 import os
+import re
 
 from playwright.async_api import async_playwright, Browser
 from selectolax.parser import HTMLParser
@@ -34,47 +35,76 @@ USER_AGENT = (
 )
 UA_ENC = quote(USER_AGENT)
 
+HEADERS = {
+    "User-Agent": USER_AGENT,
+    "Referer": REFERER,
+    "Origin": ORIGIN,
+}
+
 OUT_VLC = Path("webtv_vlc.m3u8")
 OUT_TIVI = Path("webtv_tivimate.m3u8")
 
 CACHE_FILE = Cache(TAG, exp=10_800)
-HTML_CACHE = Cache(f"{TAG}-html", exp=86_400)
+HTML_CACHE = Cache(f"{TAG}-html", exp=3_600)
 
 urls: dict[str, dict] = {}
 
 # --------------------------------------------------
 def fix_event(s: str) -> str:
-    return " vs ".join(s.split("@"))
+    return " vs ".join(map(str.strip, s.split("@")))
+
+# --------------------------------------------------
+def parse_event_time(date_text: str, time_text: str) -> float:
+    """
+    Safely parse event time.
+    Falls back to 'now' if parsing fails.
+    """
+    clean = re.sub(r"(ET|CT|PT|LIVE)", "", time_text, flags=re.I).strip()
+    try:
+        return Time.from_str(
+            f"{date_text} {clean}",
+            timezone="EST"
+        ).timestamp()
+    except Exception:
+        log.warning(f"Time parse failed: {date_text} {time_text}")
+        return Time.now().timestamp()
 
 # --------------------------------------------------
 async def refresh_html_cache(url: str) -> dict[str, dict]:
     events = {}
 
-    if not (html := await network.request(url, log=log)):
+    html = await network.request(
+        url,
+        headers=HEADERS,
+        log=log,
+    )
+    if not html:
         return events
 
     now = Time.clean(Time.now())
     soup = HTMLParser(html.content)
 
     title = soup.css_first("title").text(strip=True)
-    sport = "NFL" if "NFL" in title else "NFL"
+    sport = "NFL" if "NFL" in title else "NHL"
 
     date_text = now.strftime("%B %d, %Y")
-
     if row := soup.css_first("tr.mdatetitle span.mtdate"):
         date_text = row.text(strip=True)
 
-    for row in soup.css("tr.singele_match_date"):
+    rows = soup.css("tr.singele_match_date")
+    log.info(f"Found {len(rows)} raw event row(s)")
+
+    for row in rows:
         time_node = row.css_first("td.matchtime")
         vs_node = row.css_first("td.teamvs a")
 
         if not time_node or not vs_node:
             continue
 
-        time = time_node.text(strip=True)
+        time_text = time_node.text(strip=True)
         raw_event = vs_node.text(strip=True)
 
-        for span in vs_node.css("span.mtdate"):
+        for span in vs_node.css("span"):
             raw_event = raw_event.replace(span.text(strip=True), "").strip()
 
         href = vs_node.attributes.get("href")
@@ -82,7 +112,7 @@ async def refresh_html_cache(url: str) -> dict[str, dict]:
             continue
 
         event = fix_event(raw_event)
-        event_dt = Time.from_str(f"{date_text} {time} PM", timezone="EST")
+        event_ts = parse_event_time(date_text, time_text)
 
         key = f"[{sport}] {event} ({TAG})"
 
@@ -90,7 +120,7 @@ async def refresh_html_cache(url: str) -> dict[str, dict]:
             "sport": sport,
             "event": event,
             "link": href,
-            "event_ts": event_dt.timestamp(),
+            "event_ts": event_ts,
             "timestamp": now.timestamp(),
         }
 
@@ -98,8 +128,6 @@ async def refresh_html_cache(url: str) -> dict[str, dict]:
 
 # --------------------------------------------------
 async def get_events(cached_keys: list[str]) -> list[dict]:
-    now = Time.clean(Time.now())
-
     events = HTML_CACHE.load()
     if not events:
         log.info("Refreshing HTML cache")
@@ -110,15 +138,10 @@ async def get_events(cached_keys: list[str]) -> list[dict]:
         HTML_CACHE.write(events)
 
     live = []
-    start_ts = now.delta(minutes=-30).timestamp()
-    end_ts = now.delta(minutes=30).timestamp()
-
     for k, v in events.items():
         if k in cached_keys:
             continue
-        if not start_ts <= v["event_ts"] <= end_ts:
-            continue
-        live.append({**v})
+        live.append(v)
 
     return live
 
@@ -126,8 +149,6 @@ async def get_events(cached_keys: list[str]) -> list[dict]:
 async def scrape(browser: Browser) -> None:
     cached_urls = CACHE_FILE.load() or {}
     cached_count = len(cached_urls)
-
-    urls.update(cached_urls)
 
     log.info(f"Loaded {cached_count} cached event(s)")
     log.info(f'Scraping from "{", ".join(BASE_URLS.values())}"')
