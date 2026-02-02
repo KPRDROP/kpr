@@ -34,12 +34,6 @@ USER_AGENT = (
 )
 UA_ENC = quote(USER_AGENT)
 
-HEADERS = {
-    "User-Agent": USER_AGENT,
-    "Referer": REFERER,
-    "Origin": ORIGIN,
-}
-
 OUT_VLC = Path("webtv_vlc.m3u8")
 OUT_TIVI = Path("webtv_tivimate.m3u8")
 
@@ -56,13 +50,7 @@ def fix_event(s: str) -> str:
 async def refresh_html_cache(url: str) -> dict[str, dict]:
     events = {}
 
-    html = await network.request(
-        url,
-        headers=HEADERS,
-        log=log,
-    )
-
-    if not html:
+    if not (html := await network.request(url, log=log)):
         return events
 
     now = Time.clean(Time.now())
