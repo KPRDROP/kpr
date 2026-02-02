@@ -2,8 +2,7 @@ name: 📺 Update WEBTV Playlists
 
 on:
   schedule:
-    # Runs every hour
-    - cron: '0 * * * *'
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -14,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repo
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
       - name: 🐍 Setup Python
@@ -33,10 +32,16 @@ jobs:
         run: |
           python webtv.py
 
-      - name: 🚀 Commit & push updates
+      - name: 🚀 Commit & push playlists
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
           git add webtv_*.m3u8
-          git commit -m "📺 Update WEBTV playlists" || exit 0
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "📺 Update WEBTV playlists"
           git push
