@@ -2,7 +2,8 @@ name: 📺 Update WEBTV Playlists
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    # Runs every hour
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -23,12 +24,12 @@ jobs:
 
       - name: 📦 Install dependencies
         run: |
-          pip install playwright selectolax
+          pip install playwright selectolax httpx[http2] pytz
           playwright install chromium
 
       - name: ▶️ Run WEBTV scraper
         env:
-          WEBTV_NFL_BASE_URL: https://nflwebcast.com
+          WEBTV_NFL_BASE_URL: ${{ secrets.WEBTV_NFL_BASE_URL }}
         run: |
           python webtv.py
 
