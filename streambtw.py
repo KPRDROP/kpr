@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
 import base64
 import re
 from functools import partial
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote
+from pathlib import Path
 
 from selectolax.parser import HTMLParser
 
@@ -10,8 +12,23 @@ from utils import Cache, Time, get_logger, leagues, network
 log = get_logger(__name__)
 
 # --------------------------------------------------
+# CONFIG
+# --------------------------------------------------
 TAG = "STRMBTW"
-BASE_URL = "https://hiteasport.info/"
+
+BASE_URL = "https://streambtw.com/"
+REFERER = BASE_URL
+ORIGIN = BASE_URL
+
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/122.0.0.0 Safari/537.36"
+)
+UA_ENC = quote(USER_AGENT)
+
+OUT_VLC = Path("Streambtw_VLC.m3u8")
+OUT_TIVI = Path("Streambtw_TiviMate.m3u8")
 
 CACHE_FILE = Cache(TAG, exp=3600)
 
@@ -37,7 +54,8 @@ def fix_league(s: str) -> str:
 
 # --------------------------------------------------
 async def process_event(url: str, url_num: int) -> str | None:
-    if not (html := await network.request(url, log=log)):
+    html = await network.request(url, log=log)
+    if not html:
         return None
 
     if not (m := STREAM_VAR_RE.search(html.text)):
@@ -65,14 +83,11 @@ async def get_events() -> list[dict[str, str]]:
 
     soup = HTMLParser(html.text)
 
-    # 🔥 NEW: scan scripts instead of DOM
     scripts = "\n".join(
         s.text() for s in soup.css("script") if s.text()
     )
 
-    matches = []
     current = {}
-
     for m in EVENT_RE.finditer(scripts):
         if m.group("league"):
             current["sport"] = fix_league(m.group("league"))
@@ -82,61 +97,93 @@ async def get_events() -> list[dict[str, str]]:
             current["link"] = urljoin(BASE_URL, m.group("url"))
 
         if len(current) == 3:
-            matches.append(current)
+            events.append(current)
             current = {}
 
-    for ev in matches:
-        events.append(ev)
-
     return events
+
+# --------------------------------------------------
+def build_playlists(data: dict[str, dict]):
+    # VLC
+    vlc = ["#EXTM3U"]
+    ch = 1
+
+    for name, e in data.items():
+        vlc.append(
+            f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
+            f'tvg-name="{name}" tvg-logo="{e["logo"]}" '
+            f'group-title="Live Events",{name}'
+        )
+        vlc.append(f"#EXTVLCOPT:http-referrer={REFERER}")
+        vlc.append(f"#EXTVLCOPT:http-origin={ORIGIN}")
+        vlc.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
+        vlc.append(e["url"])
+        ch += 1
+
+    OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
+
+    # TiviMate
+    tm = ["#EXTM3U"]
+    ch = 1
+
+    for name, e in data.items():
+        tm.append(
+            f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
+            f'tvg-name="{name}" tvg-logo="{e["logo"]}" '
+            f'group-title="Live Events",{name}'
+        )
+        tm.append(
+            f'{e["url"]}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}'
+        )
+        ch += 1
+
+    OUT_TIVI.write_text("\n".join(tm), encoding="utf-8")
+
+    log.info("Playlists written: Streambtw_VLC.m3u8, Streambtw_TiviMate.m3u8")
 
 # --------------------------------------------------
 async def scrape() -> None:
     if cached := CACHE_FILE.load():
         urls.update(cached)
         log.info(f"Loaded {len(urls)} event(s) from cache")
-        return
+    else:
+        log.info(f'Scraping from "{BASE_URL}"')
 
-    log.info(f'Scraping from "{BASE_URL}"')
+        events = await get_events()
+        log.info(f"Processing {len(events)} new URL(s)")
 
-    events = await get_events()
-    log.info(f"Processing {len(events)} new URL(s)")
+        now = Time.clean(Time.now())
 
-    if not events:
-        return
+        for i, ev in enumerate(events, start=1):
+            handler = partial(process_event, ev["link"], i)
 
-    now = Time.clean(Time.now())
+            url = await network.safe_process(
+                handler,
+                url_num=i,
+                semaphore=network.HTTP_S,
+                log=log,
+            )
 
-    for i, ev in enumerate(events, 1):
-        handler = partial(
-            process_event,
-            url=ev["link"],
-            url_num=i,
-        )
+            if not url:
+                continue
 
-        url = await network.safe_process(
-            handler,
-            url_num=i,
-            semaphore=network.HTTP_S,
-            log=log,
-        )
+            key = f"[{ev['sport']}] {ev['event']} ({TAG})"
+            tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
-        if not url:
-            continue
+            urls[key] = {
+                "url": url,
+                "logo": logo,
+                "base": BASE_URL,
+                "timestamp": now.timestamp(),
+                "id": tvg_id or "Live.Event.us",
+                "link": ev["link"],
+            }
 
-        sport, event, link = ev["sport"], ev["event"], ev["link"]
-        key = f"[{sport}] {event} ({TAG})"
+        CACHE_FILE.write(urls)
 
-        tvg_id, logo = leagues.get_tvg_info(sport, event)
+    build_playlists(urls)
 
-        urls[key] = {
-            "url": url,
-            "logo": logo,
-            "base": BASE_URL,
-            "timestamp": now.timestamp(),
-            "id": tvg_id or "Live.Event.us",
-            "link": link,
-        }
-
-    log.info(f"Collected {len(urls)} event(s)")
-    CACHE_FILE.write(urls)
+# --------------------------------------------------
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(scrape())
