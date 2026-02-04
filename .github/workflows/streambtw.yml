@@ -35,18 +35,25 @@ jobs:
           echo "----- Streambtw_TiviMate.m3u8 -----"
           cat Streambtw_TiviMate.m3u8 || true
 
-      - name: Commit and Push Changes
+      - name: 📤 Commit & push
         run: |
-          git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
 
           git add Streambtw_VLC.m3u8 Streambtw_TiviMate.m3u8 || true
 
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+            echo "No changes"
             exit 0
           fi
 
           git commit -m "🔄 Update StreamBTW playlists [auto]"
-          git pull --rebase origin main
-          git push origin main
+
+          if ! git push origin main; then
+            git stash
+            git pull --rebase origin main
+            git stash pop
+            git add Streambtw_VLC.m3u8 Streambtw_TiviMate.m3u8
+            git commit -m "📡 Update StreamBTW playlists (rebased)" || true
+            git push origin main
+          fi
