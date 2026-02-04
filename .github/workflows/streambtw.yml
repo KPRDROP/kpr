@@ -23,7 +23,6 @@ jobs:
       - name: Install Python Requirements
         run: |
           pip install requests selectolax aiohttp async-timeout yarl
-          pip install httpx[http2] pytz
 
       - name: Run StreamBTW Scraper
         run: python streambtw.py
