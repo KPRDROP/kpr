@@ -16,9 +16,13 @@ log = get_logger(__name__)
 # --------------------------------------------------
 TAG = "STRMBTW"
 
-BASE_URL = "https://hiteasport.info/"
-REFERER = BASE_URL
-ORIGIN = BASE_URL
+BASE_URLS = [
+    "https://hiteasport.info/",
+    "https://streambtw.com/",
+]
+
+REFERER = "https://hiteasport.info/"
+ORIGIN = "https://hiteasport.info/"
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -32,21 +36,10 @@ OUT_TIVI = Path("Streambtw_TiviMate.m3u8")
 
 CACHE_FILE = Cache(TAG, exp=3600)
 
-urls: dict[str, dict[str, str | float]] = {}
+urls: dict[str, dict] = {}
 
 # --------------------------------------------------
-EVENT_RE = re.compile(
-    r"""
-    league\s*:\s*"(?P<league>[^"]+)"|
-    title\s*:\s*"(?P<title>[^"]+)"|
-    url\s*:\s*"(?P<url>/[^"]+)"
-    """,
-    re.VERBOSE | re.IGNORECASE,
-)
-
-STREAM_VAR_RE = re.compile(
-    r'var\s+\w+\s*=\s*"([^"]+)"', re.IGNORECASE
-)
+M3U8_VAR_RE = re.compile(r'var\s+\w+\s*=\s*"([^"]+)"', re.IGNORECASE)
 
 # --------------------------------------------------
 def fix_league(s: str) -> str:
@@ -58,7 +51,7 @@ async def process_event(url: str, url_num: int) -> str | None:
     if not html:
         return None
 
-    if not (m := STREAM_VAR_RE.search(html.text)):
+    if not (m := M3U8_VAR_RE.search(html.text)):
         log.info(f"URL {url_num}) No M3U8 found")
         return None
 
@@ -77,28 +70,36 @@ async def process_event(url: str, url_num: int) -> str | None:
 async def get_events() -> list[dict[str, str]]:
     events = []
 
-    html = await network.request(BASE_URL, log=log)
-    if not html:
-        return events
+    for base in BASE_URLS:
+        log.info(f'Scraping from "{base}"')
 
-    soup = HTMLParser(html.text)
+        html = await network.request(base, log=log)
+        if not html:
+            continue
 
-    scripts = "\n".join(
-        s.text() for s in soup.css("script") if s.text()
-    )
+        soup = HTMLParser(html.content)
 
-    current = {}
-    for m in EVENT_RE.finditer(scripts):
-        if m.group("league"):
-            current["sport"] = fix_league(m.group("league"))
-        elif m.group("title"):
-            current["event"] = m.group("title")
-        elif m.group("url"):
-            current["link"] = urljoin(BASE_URL, m.group("url"))
+        for item in soup.css(".t-item"):
+            league_el = item.css_first(".t-league")
+            match_el = item.css_first(".t-match")
+            watch_el = item.css_first("a.t-watch")
 
-        if len(current) == 3:
-            events.append(current)
-            current = {}
+            if not (league_el and match_el and watch_el):
+                continue
+
+            href = watch_el.attributes.get("href")
+            if not href:
+                continue
+
+            events.append({
+                "sport": fix_league(league_el.text(strip=True)),
+                "event": match_el.text(strip=True),
+                "link": urljoin(base, href),
+                "base": base,
+            })
+
+        if events:
+            break  # stop after first working base
 
     return events
 
@@ -142,13 +143,11 @@ def build_playlists(data: dict[str, dict]):
     log.info("Playlists written: Streambtw_VLC.m3u8, Streambtw_TiviMate.m3u8")
 
 # --------------------------------------------------
-async def scrape() -> None:
+async def scrape():
     if cached := CACHE_FILE.load():
         urls.update(cached)
         log.info(f"Loaded {len(urls)} event(s) from cache")
     else:
-        log.info(f'Scraping from "{BASE_URL}"')
-
         events = await get_events()
         log.info(f"Processing {len(events)} new URL(s)")
 
@@ -173,7 +172,7 @@ async def scrape() -> None:
             urls[key] = {
                 "url": url,
                 "logo": logo,
-                "base": BASE_URL,
+                "base": ev["base"],
                 "timestamp": now.timestamp(),
                 "id": tvg_id or "Live.Event.us",
                 "link": ev["link"],
