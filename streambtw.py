@@ -7,11 +7,10 @@ from playwright.async_api import async_playwright
 
 # --------------------------------------------------
 HOMEPAGES = [
-    "https://streambtw.com/",
-    "https://hiteasport.info/",
+    "https://hiteasport.info",
 ]
 
-BASE = "https://streambtw.com"
+BASE = "https://hiteasport.info/"
 
 OUTPUT_VLC = "Streambtw_VLC.m3u8"
 OUTPUT_TIVIMATE = "Streambtw_TiviMate.m3u8"
