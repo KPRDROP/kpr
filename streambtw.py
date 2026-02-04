@@ -6,8 +6,8 @@ from urllib.parse import quote, urljoin
 from playwright.async_api import async_playwright
 
 HOMEPAGES = [
-    "https://hiteasport.info/",
-    "https://streambtw.com/",
+    "https://streambtw.com",
+    "https://hiteasport.info",
 ]
 
 BASE = "https://streambtw.com"
