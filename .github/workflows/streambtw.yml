@@ -2,7 +2,6 @@ name: StreamBTW Scraper
 
 on:
   schedule:
-    # Run every 2 hours
     - cron: "0 */2 * * *"
   workflow_dispatch:
 
@@ -21,38 +20,9 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install System Dependencies (Chromium)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libnss3 \
-            libatk-bridge2.0-0 \
-            libcups2 \
-            libxkbcommon0 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxfixes3 \
-            libdrm2 \
-            libxrandr2 \
-            libgbm1 \
-            libasound2t64 \
-            libatspi2.0-0 \
-            libpango-1.0-0 \
-            libpangocairo-1.0-0 \
-            libgdk-pixbuf-2.0-0 \
-            libgtk-3-0 \
-            ffmpeg
-
-      - name: Install Playwright browsers
-        run: |
-          pip install playwright
-          playwright install chromium
-
       - name: Install Python Requirements
         run: |
-          pip install requests beautifulsoup4 aiohttp
-          pip install async-timeout yarl
-          playwright install-deps chromium
+          pip install requests selectolax aiohttp async-timeout yarl
 
       - name: Run StreamBTW Scraper
         run: python streambtw.py
@@ -64,7 +34,7 @@ jobs:
           echo "----- Streambtw_TiviMate.m3u8 -----"
           cat Streambtw_TiviMate.m3u8 || true
 
-      - name: Commit and Push Changes (safe)
+      - name: Commit and Push Changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -76,7 +46,6 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Updated StreamBTW playlists [auto]"
-
+          git commit -m "🔄 Update StreamBTW playlists [auto]"
           git pull --rebase origin main
           git push origin main
