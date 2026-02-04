@@ -16,7 +16,7 @@ log = get_logger(__name__)
 # --------------------------------------------------
 TAG = "STRMBTW"
 
-BASE_URL = "https://streambtw.com/"
+BASE_URL = "https://hiteasport.info/"
 REFERER = BASE_URL
 ORIGIN = BASE_URL
 
