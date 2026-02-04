@@ -1,187 +1,142 @@
-#!/usr/bin/env python3
-import asyncio
+import base64
 import re
-from pathlib import Path
-from urllib.parse import quote, urljoin
-from playwright.async_api import async_playwright
+from functools import partial
+from urllib.parse import urljoin
+
+from selectolax.parser import HTMLParser
+
+from utils import Cache, Time, get_logger, leagues, network
+
+log = get_logger(__name__)
 
 # --------------------------------------------------
-HOMEPAGES = [
-    "https://hiteasport.info",
-]
+TAG = "STRMBTW"
+BASE_URL = "https://hiteasport.info/"
 
-BASE = "https://hiteasport.info/"
+CACHE_FILE = Cache(TAG, exp=3600)
 
-OUTPUT_VLC = "Streambtw_VLC.m3u8"
-OUTPUT_TIVIMATE = "Streambtw_TiviMate.m3u8"
+urls: dict[str, dict[str, str | float]] = {}
 
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/122.0.0.0 Safari/537.36"
+# --------------------------------------------------
+EVENT_RE = re.compile(
+    r"""
+    league\s*:\s*"(?P<league>[^"]+)"|
+    title\s*:\s*"(?P<title>[^"]+)"|
+    url\s*:\s*"(?P<url>/[^"]+)"
+    """,
+    re.VERBOSE | re.IGNORECASE,
 )
 
-TIMEOUT = 60000
-M3U8_RE = re.compile(r"https?://[^\"']+\.m3u8[^\"']*")
+STREAM_VAR_RE = re.compile(
+    r'var\s+\w+\s*=\s*"([^"]+)"', re.IGNORECASE
+)
 
 # --------------------------------------------------
-async def goto_first_available(page):
-    for url in HOMEPAGES:
+def fix_league(s: str) -> str:
+    return " ".join(s.split("-"))
+
+# --------------------------------------------------
+async def process_event(url: str, url_num: int) -> str | None:
+    if not (html := await network.request(url, log=log)):
+        return None
+
+    if not (m := STREAM_VAR_RE.search(html.text)):
+        log.info(f"URL {url_num}) No M3U8 found")
+        return None
+
+    stream = m.group(1)
+
+    if not stream.startswith("http"):
         try:
-            print(f"🌐 Trying homepage: {url}")
-            await page.goto(url, timeout=TIMEOUT, wait_until="networkidle")
-            print(f"✅ Connected: {url}")
-            return True
+            stream = base64.b64decode(stream).decode("utf-8")
         except Exception:
-            pass
-    return False
+            return None
+
+    log.info(f"URL {url_num}) Captured M3U8")
+    return stream
 
 # --------------------------------------------------
-async def fetch_events():
+async def get_events() -> list[dict[str, str]]:
     events = []
-    seen = set()
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        ctx = await browser.new_context(user_agent=USER_AGENT)
-        page = await ctx.new_page()
+    html = await network.request(BASE_URL, log=log)
+    if not html:
+        return events
 
-        if not await goto_first_available(page):
-            await browser.close()
-            return []
+    soup = HTMLParser(html.text)
 
-        # 🔥 wait for dynamic JS
-        await page.wait_for_timeout(4000)
+    # 🔥 NEW: scan scripts instead of DOM
+    scripts = "\n".join(
+        s.text() for s in soup.css("script") if s.text()
+    )
 
-        # 1️⃣ try network JSON
-        try:
-            perf = await page.evaluate("""
-                performance.getEntries()
-                  .map(e => e.name)
-                  .filter(n => n.includes("match") || n.includes("event"))
-            """)
-        except Exception:
-            perf = []
+    matches = []
+    current = {}
 
-        # 2️⃣ DOM fallback (AFTER JS)
-        for card in await page.locator("a[href*='watch']").all():
-            try:
-                title = (await card.inner_text()).strip()
-                href = await card.get_attribute("href")
-                if not title or not href:
-                    continue
+    for m in EVENT_RE.finditer(scripts):
+        if m.group("league"):
+            current["sport"] = fix_league(m.group("league"))
+        elif m.group("title"):
+            current["event"] = m.group("title")
+        elif m.group("url"):
+            current["link"] = urljoin(BASE_URL, m.group("url"))
 
-                url = urljoin(BASE, href)
-                if url in seen:
-                    continue
+        if len(current) == 3:
+            matches.append(current)
+            current = {}
 
-                seen.add(url)
-                events.append({"title": title, "url": url})
-            except Exception:
-                pass
-
-        await browser.close()
+    for ev in matches:
+        events.append(ev)
 
     return events
 
 # --------------------------------------------------
-async def extract_streams(context, url, idx):
-    streams = set()
+async def scrape() -> None:
+    if cached := CACHE_FILE.load():
+        urls.update(cached)
+        log.info(f"Loaded {len(urls)} event(s) from cache")
+        return
 
-    def on_request(req):
-        if M3U8_RE.search(req.url):
-            streams.add(req.url)
+    log.info(f'Scraping from "{BASE_URL}"')
 
-    context.on("requestfinished", on_request)
-
-    page = await context.new_page()
-
-    try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=TIMEOUT)
-        await page.wait_for_timeout(3000)
-
-        # click center (momentum click)
-        box = await page.evaluate("""
-            (() => {
-                const el = document.querySelector("video, iframe, body");
-                if (!el) return null;
-                const r = el.getBoundingClientRect();
-                return {x: r.x + r.width/2, y: r.y + r.height/2};
-            })()
-        """)
-
-        if box:
-            await page.mouse.click(int(box["x"]), int(box["y"]))
-            await asyncio.sleep(1)
-            await page.mouse.click(int(box["x"]), int(box["y"]))
-
-        # wait for hls
-        for _ in range(40):
-            if streams:
-                return list(streams)
-            await asyncio.sleep(0.5)
-
-    except Exception:
-        pass
-
-    finally:
-        context.remove_listener("requestfinished", on_request)
-        await page.close()
-
-    return []
-
-# --------------------------------------------------
-async def main():
-    events = await fetch_events()
-    print(f"📌 Found {len(events)} events")
+    events = await get_events()
+    log.info(f"Processing {len(events)} new URL(s)")
 
     if not events:
-        print("❌ No events detected")
         return
 
-    collected = []
+    now = Time.clean(Time.now())
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=["--autoplay-policy=no-user-gesture-required"]
+    for i, ev in enumerate(events, 1):
+        handler = partial(
+            process_event,
+            url=ev["link"],
+            url_num=i,
         )
-        ctx = await browser.new_context(user_agent=USER_AGENT)
 
-        for i, ev in enumerate(events, 1):
-            print(f"🔎 [{i}/{len(events)}] {ev['title']}")
-            streams = await extract_streams(ctx, ev["url"], i)
+        url = await network.safe_process(
+            handler,
+            url_num=i,
+            semaphore=network.HTTP_S,
+            log=log,
+        )
 
-            if streams:
-                for s in streams:
-                    print(f"  ✅ STREAM FOUND: {s}")
-                    collected.append((ev["title"], s))
-            else:
-                print("  ⚠️ No streams found")
+        if not url:
+            continue
 
-        await browser.close()
+        sport, event, link = ev["sport"], ev["event"], ev["link"]
+        key = f"[{sport}] {event} ({TAG})"
 
-    if not collected:
-        print("❌ No streams captured.")
-        return
+        tvg_id, logo = leagues.get_tvg_info(sport, event)
 
-    # VLC
-    vlc = ["#EXTM3U"]
-    for t, u in collected:
-        vlc.append(f"#EXTINF:-1,{t}")
-        vlc.append(u)
-    Path(OUTPUT_VLC).write_text("\n".join(vlc), encoding="utf-8")
+        urls[key] = {
+            "url": url,
+            "logo": logo,
+            "base": BASE_URL,
+            "timestamp": now.timestamp(),
+            "id": tvg_id or "Live.Event.us",
+            "link": link,
+        }
 
-    # TiviMate
-    ua = quote(USER_AGENT)
-    tm = ["#EXTM3U"]
-    for t, u in collected:
-        tm.append(f"#EXTINF:-1,{t}")
-        tm.append(f"{u}|referer={BASE}/|origin={BASE}|user-agent={ua}")
-    Path(OUTPUT_TIVIMATE).write_text("\n".join(tm), encoding="utf-8")
-
-    print("✅ Playlists saved")
-
-# --------------------------------------------------
-if __name__ == "__main__":
-    asyncio.run(main())
+    log.info(f"Collected {len(urls)} event(s)")
+    CACHE_FILE.write(urls)
