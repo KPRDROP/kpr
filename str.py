@@ -1,21 +1,22 @@
 import asyncio
-import re
 from pathlib import Path
-from urllib.parse import urljoin, quote_plus
+from urllib.parse import quote_plus
+
+from playwright.async_api import async_playwright
 
 from utils import Cache, Time, get_logger, network
 
 log = get_logger(__name__)
 
-# -------------------------------------------------
+# --------------------------------------------------
 # CONFIG
-# -------------------------------------------------
+# --------------------------------------------------
 
 BASE_URL = "https://streamtp10.com/"
 TAG = "STR"
 
-OUTPUT_FILE = Path("str_tivimate.m3u8")
-CACHE_FILE = Cache("str_channels", exp=6 * 60 * 60)
+OUT_FILE = Path("str_tivimate.m3u8")
+CACHE = Cache("str_channels", exp=6 * 60 * 60)
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) "
@@ -23,104 +24,107 @@ USER_AGENT = (
 )
 UA_ENC = quote_plus(USER_AGENT)
 
-STREAM_PAGE_RE = re.compile(r'global\d+\.php\?stream=', re.I)
-M3U8_RE = re.compile(r'(https?:\/\/[^\s"\']+\.m3u8[^\s"\']*)', re.I)
-
-# -------------------------------------------------
-def build_playlist(data: dict) -> str:
+# --------------------------------------------------
+def build_playlist(data: dict) -> None:
     lines = ["#EXTM3U"]
     chno = 1
 
-    for name, info in data.items():
+    for name, e in data.items():
         lines.append(
             f'#EXTINF:-1 tvg-chno="{chno}" '
             f'tvg-id="Live.Event.us" '
             f'tvg-name="{name}" '
-            f'tvg-logo="{info["logo"]}" '
+            f'tvg-logo="{e["logo"]}" '
             f'group-title="Live Events",{name} --- (ACTIVO)'
         )
         lines.append(
-            f'{info["m3u8"]}'
+            f'{e["m3u8"]}'
             f'|referer={BASE_URL}'
             f'|origin={BASE_URL}'
             f'|user-agent={UA_ENC}'
         )
         chno += 1
 
-    return "\n".join(lines) + "\n"
+    OUT_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    log.info(f"✅ Wrote {len(data)} entries to str_tivimate.m3u8")
 
 
-# -------------------------------------------------
-async def extract_m3u8(page_url: str) -> str | None:
-    r = await network.request(page_url, log=log)
-    if not r:
-        return None
-
-    match = M3U8_RE.search(r.text)
-    if match:
-        log.info(f"🎯 M3U8 found -> {match.group(1)}")
-        return match.group(1)
-
-    log.warning("❌ No m3u8 found on page")
-    return None
-
-
-# -------------------------------------------------
-async def discover_channels() -> list[str]:
-    r = await network.request(BASE_URL, log=log)
-    if not r:
-        return []
-
-    html = r.text
-    found = set()
-
-    for href in re.findall(r'href="([^"]+)"', html):
-        if "${" in href:
-            continue
-        if not STREAM_PAGE_RE.search(href):
-            continue
-
-        found.add(urljoin(BASE_URL, href))
-
-    return list(found)
-
-
-# -------------------------------------------------
+# --------------------------------------------------
 async def scrape():
-    cached = CACHE_FILE.load() or {}
+    cached = CACHE.load() or {}
     log.info(f"Loaded {len(cached)} cached channel(s)")
 
-    channels = await discover_channels()
-    log.info(f"Discovered {len(channels)} channel link(s)")
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-dev-shm-usage"],
+        )
 
-    now = Time.clean(Time.now()).timestamp()
+        context = await browser.new_context(
+            user_agent=USER_AGENT,
+            referer=BASE_URL,
+        )
 
-    for i, url in enumerate(channels, start=1):
-        name = url.split("stream=")[-1].upper()
+        page = await context.new_page()
 
-        if name in cached:
-            continue
+        # ---------------------------
+        # STEP 1: Load homepage
+        # ---------------------------
+        await page.goto(BASE_URL, wait_until="networkidle", timeout=60_000)
 
-        m3u8 = await extract_m3u8(url)
-        if not m3u8:
-            continue
+        links = await page.eval_on_selector_all(
+            "a[href*='global'][href*='stream=']",
+            "els => els.map(e => e.href)"
+        )
 
-        cached[name] = {
-            "m3u8": m3u8,
-            "logo": "https://i.postimg.cc/tgrdPjjC/live-icon-streaming.png",
-            "timestamp": now,
-        }
+        links = list(dict.fromkeys(links))  # de-dup
+        log.info(f"Discovered {len(links)} channel link(s)")
 
-        log.info(f"✔ Added channel: {name}")
+        # ---------------------------
+        # STEP 2: Visit each channel
+        # ---------------------------
+        for url in links:
+            name = url.split("stream=")[-1].upper()
 
-    CACHE_FILE.write(cached)
+            if name in cached:
+                continue
 
-    playlist = build_playlist(cached)
-    OUTPUT_FILE.write_text(playlist, encoding="utf-8")
+            log.info(f"▶ Opening channel: {name}")
 
-    log.info(f"✅ Wrote {len(cached)} entries to str_tivimate.m3u8")
+            m3u8_url = None
+
+            async def on_request(req):
+                nonlocal m3u8_url
+                if ".m3u8" in req.url and not m3u8_url:
+                    m3u8_url = req.url
+                    log.info(f"🎯 Captured m3u8 → {m3u8_url}")
+
+            page.on("request", on_request)
+
+            try:
+                await page.goto(url, wait_until="networkidle", timeout=60_000)
+                await page.wait_for_timeout(5_000)
+            except Exception as e:
+                log.warning(f"Failed loading {url}: {e}")
+
+            page.remove_listener("request", on_request)
+
+            if not m3u8_url:
+                log.warning(f"No m3u8 found for {name}")
+                continue
+
+            cached[name] = {
+                "m3u8": m3u8_url,
+                "logo": "https://i.postimg.cc/tgrdPjjC/live-icon-streaming.png",
+                "timestamp": Time.clean(Time.now()).timestamp(),
+            }
+
+        await browser.close()
+
+    CACHE.write(cached)
+    build_playlist(cached)
 
 
-# -------------------------------------------------
+# --------------------------------------------------
 if __name__ == "__main__":
     asyncio.run(scrape())
