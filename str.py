@@ -4,7 +4,7 @@ from urllib.parse import quote_plus
 
 from playwright.async_api import async_playwright
 
-from utils import Cache, Time, get_logger, network
+from utils import Cache, Time, get_logger
 
 log = get_logger(__name__)
 
@@ -62,7 +62,6 @@ async def scrape():
 
         context = await browser.new_context(
             user_agent=USER_AGENT,
-            referer=BASE_URL,
         )
 
         page = await context.new_page()
@@ -70,14 +69,19 @@ async def scrape():
         # ---------------------------
         # STEP 1: Load homepage
         # ---------------------------
-        await page.goto(BASE_URL, wait_until="networkidle", timeout=60_000)
+        await page.goto(
+            BASE_URL,
+            wait_until="networkidle",
+            timeout=60_000,
+            referer=BASE_URL,
+        )
 
         links = await page.eval_on_selector_all(
             "a[href*='global'][href*='stream=']",
             "els => els.map(e => e.href)"
         )
 
-        links = list(dict.fromkeys(links))  # de-dup
+        links = list(dict.fromkeys(links))
         log.info(f"Discovered {len(links)} channel link(s)")
 
         # ---------------------------
@@ -102,7 +106,12 @@ async def scrape():
             page.on("request", on_request)
 
             try:
-                await page.goto(url, wait_until="networkidle", timeout=60_000)
+                await page.goto(
+                    url,
+                    wait_until="networkidle",
+                    timeout=60_000,
+                    referer=BASE_URL,
+                )
                 await page.wait_for_timeout(5_000)
             except Exception as e:
                 log.warning(f"Failed loading {url}: {e}")
