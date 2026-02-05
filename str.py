@@ -23,8 +23,8 @@ USER_AGENT = (
 )
 UA_ENC = quote_plus(USER_AGENT)
 
-# -------------------------------------------------
-# Build TiViMate playlist
+VALID_STREAM_RE = re.compile(r'global\d+\.php\?stream=', re.I)
+
 # -------------------------------------------------
 def build_playlist(data: dict) -> str:
     lines = ["#EXTM3U"]
@@ -50,8 +50,6 @@ def build_playlist(data: dict) -> str:
 
 
 # -------------------------------------------------
-# Extract m3u8 from PHP stream page
-# -------------------------------------------------
 async def extract_m3u8(url: str) -> str | None:
     r = await network.request(url, log=log)
     if not r:
@@ -60,13 +58,11 @@ async def extract_m3u8(url: str) -> str | None:
     match = re.search(
         r'(https?:\/\/[^\s"\']+\.m3u8[^\s"\']*)',
         r.text,
-        re.IGNORECASE,
+        re.I,
     )
     return match.group(1) if match else None
 
 
-# -------------------------------------------------
-# Parse channels from homepage
 # -------------------------------------------------
 async def get_channels() -> list[dict]:
     r = await network.request(BASE_URL, log=log)
@@ -83,6 +79,12 @@ async def get_channels() -> list[dict]:
     )
 
     for name, href in pattern.findall(html):
+        # 🚫 Reject template / fake / JS placeholders
+        if "${" in href:
+            continue
+        if not VALID_STREAM_RE.search(href):
+            continue
+
         channels.append(
             {
                 "name": name.strip(),
@@ -95,14 +97,12 @@ async def get_channels() -> list[dict]:
 
 
 # -------------------------------------------------
-# Main scraper
-# -------------------------------------------------
 async def scrape():
     cached = CACHE_FILE.load() or {}
     log.info(f"Loaded {len(cached)} cached channel(s)")
 
     channels = await get_channels()
-    log.info(f"Discovered {len(channels)} channel link(s)")
+    log.info(f"Discovered {len(channels)} valid channel link(s)")
 
     now = Time.clean(Time.now()).timestamp()
 
@@ -112,7 +112,7 @@ async def scrape():
 
         m3u8 = await extract_m3u8(ch["url"])
         if not m3u8:
-            continue  # NOT ACTIVE / NOT STREAMING
+            continue
 
         cached[ch["name"]] = {
             "m3u8": m3u8,
@@ -120,7 +120,7 @@ async def scrape():
             "timestamp": now,
         }
 
-        log.info(f"✔ Active: {ch['name']}")
+        log.info(f"✔ Active channel: {ch['name']}")
 
     CACHE_FILE.write(cached)
 
