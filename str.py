@@ -1,5 +1,4 @@
 import asyncio
-import json
 import re
 from pathlib import Path
 from urllib.parse import quote_plus, urljoin
@@ -8,35 +7,36 @@ from utils import Cache, Time, get_logger, network
 
 log = get_logger(__name__)
 
-TAG = "STR"
+# -------------------------------------------------
+# CONFIG
+# -------------------------------------------------
+
 BASE_URL = "https://streamtp10.com/"
-STATUS_URL = f"{BASE_URL}status.json"
+TAG = "STR"
 
 OUTPUT_FILE = Path("str_tivimate.m3u8")
-CACHE_FILE = Cache("str_cache", exp=6 * 60 * 60)
+CACHE_FILE = Cache("str_channels", exp=6 * 60 * 60)
 
-UA = (
+USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) "
     "Gecko/20100101 Firefox/147.0"
 )
-UA_ENC = quote_plus(UA)
-
+UA_ENC = quote_plus(USER_AGENT)
 
 # -------------------------------------------------
 # Build TiViMate playlist
 # -------------------------------------------------
-def build_playlist(channels: dict) -> str:
+def build_playlist(data: dict) -> str:
     lines = ["#EXTM3U"]
     chno = 1
 
-    for name, info in channels.items():
-        status = info["status"].upper()
+    for name, info in data.items():
         lines.append(
             f'#EXTINF:-1 tvg-chno="{chno}" '
             f'tvg-id="Live.Event.us" '
             f'tvg-name="{name}" '
             f'tvg-logo="{info["logo"]}" '
-            f'group-title="Live Events",{name} --- ({status})'
+            f'group-title="Live Events",{name} --- (ACTIVO)'
         )
         lines.append(
             f'{info["m3u8"]}'
@@ -50,9 +50,9 @@ def build_playlist(channels: dict) -> str:
 
 
 # -------------------------------------------------
-# Extract m3u8 from channel page
+# Extract m3u8 from PHP stream page
 # -------------------------------------------------
-async def process_event(url: str) -> str | None:
+async def extract_m3u8(url: str) -> str | None:
     r = await network.request(url, log=log)
     if not r:
         return None
@@ -66,65 +66,32 @@ async def process_event(url: str) -> str | None:
 
 
 # -------------------------------------------------
-# Load & normalize status.json
+# Parse channels from homepage
 # -------------------------------------------------
-async def get_status_map() -> dict[str, str]:
-    r = await network.request(STATUS_URL, log=log)
-    if not r:
-        return {}
-
-    try:
-        raw = json.loads(r.text)
-    except Exception:
-        return {}
-
-    status_map = {}
-
-    if isinstance(raw, list):
-        for item in raw:
-            name = item.get("channel") or item.get("name")
-            state = item.get("Estado") or item.get("status")
-            if name and state:
-                status_map[name.strip()] = state.strip().lower()
-
-    return status_map
-
-
-# -------------------------------------------------
-# Parse homepage channels
-# -------------------------------------------------
-async def get_events(status_map: dict) -> list[dict]:
+async def get_channels() -> list[dict]:
     r = await network.request(BASE_URL, log=log)
     if not r:
         return []
 
     html = r.text
-    events = []
+    channels = []
 
     pattern = re.compile(
         r'<div class="channel-info">\s*<h2>([^<]+)</h2>.*?'
-        r'<div class="channel-status">.*?(Activo|Inactivo).*?</div>.*?'
         r'<div class="channel-buttons">\s*<a href="([^"]+)"',
         re.S | re.I,
     )
 
-    for name, status_html, link in pattern.findall(html):
-        name = name.strip()
-
-        # Status from status.json has priority
-        status_api = status_map.get(name, "").lower()
-        if status_api != "activo":
-            continue
-
-        events.append(
+    for name, href in pattern.findall(html):
+        channels.append(
             {
-                "name": name,
-                "status": "Activo",
-                "url": urljoin(BASE_URL, link),
+                "name": name.strip(),
+                "url": urljoin(BASE_URL, href),
+                "logo": "https://i.postimg.cc/tgrdPjjC/live-icon-streaming.png",
             }
         )
 
-    return events
+    return channels
 
 
 # -------------------------------------------------
@@ -134,26 +101,26 @@ async def scrape():
     cached = CACHE_FILE.load() or {}
     log.info(f"Loaded {len(cached)} cached channel(s)")
 
-    status_map = await get_status_map()
-    events = await get_events(status_map)
+    channels = await get_channels()
+    log.info(f"Discovered {len(channels)} channel link(s)")
 
-    log.info(f"Processing {len(events)} active channel(s)")
     now = Time.clean(Time.now()).timestamp()
 
-    for ev in events:
-        if ev["name"] in cached:
+    for ch in channels:
+        if ch["name"] in cached:
             continue
 
-        m3u8 = await process_event(ev["url"])
+        m3u8 = await extract_m3u8(ch["url"])
         if not m3u8:
-            continue
+            continue  # NOT ACTIVE / NOT STREAMING
 
-        cached[ev["name"]] = {
+        cached[ch["name"]] = {
             "m3u8": m3u8,
-            "status": "Activo",
-            "logo": "https://i.postimg.cc/tgrdPjjC/live-icon-streaming.png",
+            "logo": ch["logo"],
             "timestamp": now,
         }
+
+        log.info(f"✔ Active: {ch['name']}")
 
     CACHE_FILE.write(cached)
 
