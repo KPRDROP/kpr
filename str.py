@@ -1,7 +1,7 @@
 import asyncio
 import re
 from pathlib import Path
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import urljoin, quote_plus
 
 from utils import Cache, Time, get_logger, network
 
@@ -23,7 +23,8 @@ USER_AGENT = (
 )
 UA_ENC = quote_plus(USER_AGENT)
 
-VALID_STREAM_RE = re.compile(r'global\d+\.php\?stream=', re.I)
+STREAM_PAGE_RE = re.compile(r'global\d+\.php\?stream=', re.I)
+M3U8_RE = re.compile(r'(https?:\/\/[^\s"\']+\.m3u8[^\s"\']*)', re.I)
 
 # -------------------------------------------------
 def build_playlist(data: dict) -> str:
@@ -50,50 +51,38 @@ def build_playlist(data: dict) -> str:
 
 
 # -------------------------------------------------
-async def extract_m3u8(url: str) -> str | None:
-    r = await network.request(url, log=log)
+async def extract_m3u8(page_url: str) -> str | None:
+    r = await network.request(page_url, log=log)
     if not r:
         return None
 
-    match = re.search(
-        r'(https?:\/\/[^\s"\']+\.m3u8[^\s"\']*)',
-        r.text,
-        re.I,
-    )
-    return match.group(1) if match else None
+    match = M3U8_RE.search(r.text)
+    if match:
+        log.info(f"🎯 M3U8 found -> {match.group(1)}")
+        return match.group(1)
+
+    log.warning("❌ No m3u8 found on page")
+    return None
 
 
 # -------------------------------------------------
-async def get_channels() -> list[dict]:
+async def discover_channels() -> list[str]:
     r = await network.request(BASE_URL, log=log)
     if not r:
         return []
 
     html = r.text
-    channels = []
+    found = set()
 
-    pattern = re.compile(
-        r'<div class="channel-info">\s*<h2>([^<]+)</h2>.*?'
-        r'<div class="channel-buttons">\s*<a href="([^"]+)"',
-        re.S | re.I,
-    )
-
-    for name, href in pattern.findall(html):
-        # 🚫 Reject template / fake / JS placeholders
+    for href in re.findall(r'href="([^"]+)"', html):
         if "${" in href:
             continue
-        if not VALID_STREAM_RE.search(href):
+        if not STREAM_PAGE_RE.search(href):
             continue
 
-        channels.append(
-            {
-                "name": name.strip(),
-                "url": urljoin(BASE_URL, href),
-                "logo": "https://i.postimg.cc/tgrdPjjC/live-icon-streaming.png",
-            }
-        )
+        found.add(urljoin(BASE_URL, href))
 
-    return channels
+    return list(found)
 
 
 # -------------------------------------------------
@@ -101,26 +90,28 @@ async def scrape():
     cached = CACHE_FILE.load() or {}
     log.info(f"Loaded {len(cached)} cached channel(s)")
 
-    channels = await get_channels()
-    log.info(f"Discovered {len(channels)} valid channel link(s)")
+    channels = await discover_channels()
+    log.info(f"Discovered {len(channels)} channel link(s)")
 
     now = Time.clean(Time.now()).timestamp()
 
-    for ch in channels:
-        if ch["name"] in cached:
+    for i, url in enumerate(channels, start=1):
+        name = url.split("stream=")[-1].upper()
+
+        if name in cached:
             continue
 
-        m3u8 = await extract_m3u8(ch["url"])
+        m3u8 = await extract_m3u8(url)
         if not m3u8:
             continue
 
-        cached[ch["name"]] = {
+        cached[name] = {
             "m3u8": m3u8,
-            "logo": ch["logo"],
+            "logo": "https://i.postimg.cc/tgrdPjjC/live-icon-streaming.png",
             "timestamp": now,
         }
 
-        log.info(f"✔ Active channel: {ch['name']}")
+        log.info(f"✔ Added channel: {name}")
 
     CACHE_FILE.write(cached)
 
