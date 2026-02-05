@@ -23,7 +23,7 @@ UA_ENC = quote_plus(UA)
 
 
 # -------------------------------------------------
-# Playlist builder
+# Build TiViMate playlist
 # -------------------------------------------------
 def build_playlist(channels: dict) -> str:
     lines = ["#EXTM3U"]
@@ -66,22 +66,34 @@ async def process_event(url: str) -> str | None:
 
 
 # -------------------------------------------------
-# Load live status.json
+# Load & normalize status.json
 # -------------------------------------------------
-async def get_status() -> dict:
+async def get_status_map() -> dict[str, str]:
     r = await network.request(STATUS_URL, log=log)
     if not r:
         return {}
+
     try:
-        return json.loads(r.text)
+        raw = json.loads(r.text)
     except Exception:
         return {}
 
+    status_map = {}
+
+    if isinstance(raw, list):
+        for item in raw:
+            name = item.get("channel") or item.get("name")
+            state = item.get("Estado") or item.get("status")
+            if name and state:
+                status_map[name.strip()] = state.strip().lower()
+
+    return status_map
+
 
 # -------------------------------------------------
-# Parse channels from homepage
+# Parse homepage channels
 # -------------------------------------------------
-async def get_events(status_data: dict) -> list[dict]:
+async def get_events(status_map: dict) -> list[dict]:
     r = await network.request(BASE_URL, log=log)
     if not r:
         return []
@@ -96,20 +108,18 @@ async def get_events(status_data: dict) -> list[dict]:
         re.S | re.I,
     )
 
-    for name, status, link in pattern.findall(html):
+    for name, status_html, link in pattern.findall(html):
         name = name.strip()
-        status = status.strip()
 
-        if status.lower() != "activo":
-            continue
-
-        if status_data.get(name, "").lower() != "activo":
+        # Status from status.json has priority
+        status_api = status_map.get(name, "").lower()
+        if status_api != "activo":
             continue
 
         events.append(
             {
                 "name": name,
-                "status": status,
+                "status": "Activo",
                 "url": urljoin(BASE_URL, link),
             }
         )
@@ -118,14 +128,14 @@ async def get_events(status_data: dict) -> list[dict]:
 
 
 # -------------------------------------------------
-# Main
+# Main scraper
 # -------------------------------------------------
 async def scrape():
     cached = CACHE_FILE.load() or {}
     log.info(f"Loaded {len(cached)} cached channel(s)")
 
-    status_data = await get_status()
-    events = await get_events(status_data)
+    status_map = await get_status_map()
+    events = await get_events(status_map)
 
     log.info(f"Processing {len(events)} active channel(s)")
     now = Time.clean(Time.now()).timestamp()
@@ -140,7 +150,7 @@ async def scrape():
 
         cached[ev["name"]] = {
             "m3u8": m3u8,
-            "status": ev["status"],
+            "status": "Activo",
             "logo": "https://i.postimg.cc/tgrdPjjC/live-icon-streaming.png",
             "timestamp": now,
         }
@@ -153,5 +163,6 @@ async def scrape():
     log.info(f"✅ Wrote {len(cached)} entries to str_tivimate.m3u8")
 
 
+# -------------------------------------------------
 if __name__ == "__main__":
     asyncio.run(scrape())
