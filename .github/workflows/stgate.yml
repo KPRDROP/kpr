@@ -33,10 +33,25 @@ jobs:
         run: |
           python -m stgate
 
-      - name: 📤 Commit playlists
+      - name: 📤 Commit & push
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add stgate_vlc.m3u8 stgate_tivimate.m3u8
-          git commit -m "🔄 Update STRMSGATE playlists" || echo "No changes"
-          git push
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+          git add stgate_vlc.m3u8 stgate_tivimate.m3u8 || true
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+
+          git commit -m "🔄 Update STRMSGATE playlists [auto]"
+
+          if ! git push origin main; then
+            git stash
+            git pull --rebase origin main
+            git stash pop
+            git add stgate_vlc.m3u8 stgate_tivimate.m3u8
+            git commit -m "🔄 Update STRMSGATE playlists" || true
+            git push origin main
+          fi
