@@ -22,7 +22,7 @@ BASE_URLS = [
 ]
 
 REFERER = "https://hiteasport.info/"
-ORIGIN = "https://hiteasport.info/"
+ORIGIN = "https://hiteasport.info"
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
