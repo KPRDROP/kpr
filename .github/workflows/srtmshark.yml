@@ -34,11 +34,25 @@ jobs:
         run: |
           python strmshark.py
 
-      - name: 📤 Commit & Push
+      - name: 📤 Commit & push
         run: |
-          git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
           git add strmshark_tivimate.m3u8
-          git diff --cached --quiet || git commit -m "🦈 Update SharkStreams TiviMate playlist"
-          git pull --rebase
-          git push
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+
+          git commit -m "🦈 Update SharkStreams Playlist"
+
+          if ! git push origin main; then
+            git stash
+            git pull --rebase origin main
+            git stash pop
+            git add strmshark_tivimate.m3u8
+            git commit -m "🦈 Update SharkStreams Playlist (rebased)" || true
+            git push origin main
+          fi
