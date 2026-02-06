@@ -38,7 +38,6 @@ CACHE_FILE = Cache(TAG, exp=3600)
 
 urls: dict[str, dict] = {}
 
-# --------------------------------------------------
 M3U8_VAR_RE = re.compile(r'var\s+\w+\s*=\s*"([^"]+)"', re.IGNORECASE)
 
 # --------------------------------------------------
@@ -79,24 +78,56 @@ async def get_events() -> list[dict[str, str]]:
 
         soup = HTMLParser(html.content)
 
-        for item in soup.css(".t-item"):
-            league_el = item.css_first(".t-league")
-            match_el = item.css_first(".t-match")
-            watch_el = item.css_first("a.t-watch")
-
-            if not (league_el and match_el and watch_el):
+        # ---------------------------
+        # ✅ NEW LAYOUT (league cards)
+        # ---------------------------
+        for card in soup.css(".league"):
+            league_el = card.css_first(".league-title")
+            if not league_el:
                 continue
 
-            href = watch_el.attributes.get("href")
-            if not href:
-                continue
+            league = fix_league(league_el.text(strip=True))
 
-            events.append({
-                "sport": fix_league(league_el.text(strip=True)),
-                "event": match_el.text(strip=True),
-                "link": urljoin(base, href),
-                "base": base,
-            })
+            for ev in card.css(".match"):
+                name_el = ev.css_first(".match-name")
+                btn = ev.css_first("a.watch-btn")
+
+                if not (name_el and btn):
+                    continue
+
+                href = btn.attributes.get("href")
+                if not href:
+                    continue
+
+                events.append({
+                    "sport": league,
+                    "event": name_el.text(strip=True),
+                    "link": urljoin(base, href),
+                    "base": base,
+                })
+
+        # ---------------------------
+        # 🔁 FALLBACK: legacy layout
+        # ---------------------------
+        if not events:
+            for item in soup.css(".t-item"):
+                league_el = item.css_first(".t-league")
+                match_el = item.css_first(".t-match")
+                watch_el = item.css_first("a.t-watch")
+
+                if not (league_el and match_el and watch_el):
+                    continue
+
+                href = watch_el.attributes.get("href")
+                if not href:
+                    continue
+
+                events.append({
+                    "sport": fix_league(league_el.text(strip=True)),
+                    "event": match_el.text(strip=True),
+                    "link": urljoin(base, href),
+                    "base": base,
+                })
 
         if events:
             break  # stop after first working base
