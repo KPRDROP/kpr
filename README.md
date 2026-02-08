@@ -2,4 +2,4 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 
 "Educational Purposes Only" 
 
-[![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=KPRDROP)]
+https://github-readme-stats.vercel.app/api?username=KPRDROP&show_icons=true&theme=radical
