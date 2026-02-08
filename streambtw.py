@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import base64
-import re
 import json
+import re
 from functools import partial
-from urllib.parse import urljoin, quote
 from pathlib import Path
+from urllib.parse import quote
 
 from selectolax.parser import HTMLParser
 
@@ -37,31 +37,27 @@ OUT_TIVI = Path("Streambtw_TiviMate.m3u8")
 
 CACHE_FILE = Cache(TAG, exp=3600)
 
-urls: dict[str, dict] = {}
-
-M3U8_VAR_RE = re.compile(r'var\s+\w+\s*=\s*"([^"]+)"', re.I)
+urls: dict[str, dict[str, str | float]] = {}
 
 # --------------------------------------------------
 def fix_league(s: str) -> str:
-    return " ".join(s.replace("-", " ").split())
+    pattern = re.compile(r"^\w*-\w*", re.I)
+    return " ".join(s.split("-")) if pattern.search(s) else s
 
 # --------------------------------------------------
 async def process_event(url: str, url_num: int) -> str | None:
-    html = await network.request(url, log=log)
-    if not html:
+    if not (html := await network.request(url, log=log)):
         return None
 
-    if not (m := M3U8_VAR_RE.search(html.text)):
+    m = re.search(r'var\s+\w+\s*=\s*"([^"]+)"', html.text, re.I)
+    if not m:
         log.info(f"URL {url_num}) No M3U8 found")
         return None
 
     stream = m.group(1)
 
     if not stream.startswith("http"):
-        try:
-            stream = base64.b64decode(stream).decode("utf-8")
-        except Exception:
-            return None
+        stream = base64.b64decode(stream).decode("utf-8")
 
     log.info(f"URL {url_num}) Captured M3U8")
     return stream
@@ -73,8 +69,7 @@ async def get_events() -> list[dict[str, str]]:
     for base in BASE_URLS:
         log.info(f'Scraping from "{base}"')
 
-        html = await network.request(base, log=log)
-        if not html:
+        if not (html := await network.request(base, log=log)):
             continue
 
         soup = HTMLParser(html.content)
@@ -94,52 +89,47 @@ async def get_events() -> list[dict[str, str]]:
             script_text,
             re.S,
         )
-
         if not m:
             continue
 
-        # --- normalize JS → JSON ---
-        js = m.group(1)
-        js = re.sub(r"(\w+)\s*:", r'"\1":', js)     # keys
-        js = js.replace("'", '"')                  # quotes
-        js = re.sub(r",\s*}", "}", js)
-        js = re.sub(r",\s*]", "]", js)
+        # 🔑 ORIGINAL WORKING NORMALIZATION (DO NOT TOUCH)
+        data_js = m[1].replace("\n      ", "").replace("\n    ", "")
+        s1 = re.sub(r"{\s", '{"', data_js)
+        s2 = re.sub(r':"', '":"', s1)
+        s3 = re.sub(r":\[", '":[', s2)
+        s4 = re.sub(r"},\]", "}]", s3)
+        s5 = re.sub(r'",\s', '","', s4)
 
         try:
-            data = json.loads(js)
+            data: list[dict[str, str]] = json.loads(s5)
         except Exception as e:
             log.warning(f"DATA parse failed: {e}")
             continue
 
-        for block in data:
-            league = fix_league(block.get("title", "Unknown"))
+        for matches in data:
+            league = matches["title"]
+            items = matches["items"]
 
-            for item in block.get("items", []):
-                title = item.get("title")
-                link = item.get("url")
-
-                if not (title and link):
-                    continue
-
+            for info in items:
                 events.append({
-                    "sport": league,
-                    "event": title,
-                    "link": urljoin(base, link),
-                    "base": base,
+                    "sport": fix_league(league),
+                    "event": info["title"],
+                    "link": info["url"],
                 })
 
         if events:
-            break  # first valid base wins
+            break  # stop after first valid base
 
     return events
 
 # --------------------------------------------------
 def build_playlists(data: dict[str, dict]):
-    # VLC
     vlc = ["#EXTM3U"]
-    ch = 1
+    tiv = ["#EXTM3U"]
 
+    ch = 1
     for name, e in data.items():
+        # VLC
         vlc.append(
             f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
             f'tvg-name="{name}" tvg-logo="{e["logo"]}" '
@@ -149,26 +139,21 @@ def build_playlists(data: dict[str, dict]):
         vlc.append(f"#EXTVLCOPT:http-origin={ORIGIN}")
         vlc.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
         vlc.append(e["url"])
-        ch += 1
 
-    OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
-
-    # TiviMate
-    tm = ["#EXTM3U"]
-    ch = 1
-
-    for name, e in data.items():
-        tm.append(
+        # TiviMate
+        tiv.append(
             f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
             f'tvg-name="{name}" tvg-logo="{e["logo"]}" '
             f'group-title="Live Events",{name}'
         )
-        tm.append(
+        tiv.append(
             f'{e["url"]}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}'
         )
+
         ch += 1
 
-    OUT_TIVI.write_text("\n".join(tm), encoding="utf-8")
+    OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
+    OUT_TIVI.write_text("\n".join(tiv), encoding="utf-8")
 
     log.info("Playlists written: Streambtw_VLC.m3u8, Streambtw_TiviMate.m3u8")
 
@@ -202,7 +187,7 @@ async def scrape():
             urls[key] = {
                 "url": url,
                 "logo": logo,
-                "base": ev["base"],
+                "base": ev["link"],
                 "timestamp": now.timestamp(),
                 "id": tvg_id or "Live.Event.us",
                 "link": ev["link"],
