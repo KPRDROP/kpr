@@ -22,8 +22,9 @@ jobs:
 
       - name: Install Python Requirements
         run: |
+          pip install --upgrade pip
           pip install requests selectolax aiohttp async-timeout yarl
-          playwright install
+          pip install playwright
           pip install playwright httpx[http2] pytz
 
       - name: Run StreamBTW Scraper
