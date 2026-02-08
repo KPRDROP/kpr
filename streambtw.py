@@ -34,7 +34,10 @@ UA_ENC = quote(USER_AGENT)
 OUT_VLC = Path("Streambtw_VLC.m3u8")
 OUT_TIVI = Path("Streambtw_TiviMate.m3u8")
 
-CACHE_FILE = Cache(TAG, exp=3600)
+CACHE_FILE = Cache(TAG, exp=3_600)
+
+API_FILE = Cache(f"{TAG}-api", exp=28_800)
+
 urls: dict[str, dict] = {}
 
 M3U8_RE = re.compile(r'var\s+\w+\s*=\s*"([^"]+)"', re.I)
