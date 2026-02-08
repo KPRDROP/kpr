@@ -22,10 +22,10 @@ jobs:
 
       - name: Install Python Requirements
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install requests selectolax aiohttp async-timeout yarl
-          pip install playwright
           pip install playwright httpx[http2] pytz
+          playwright install chromium
 
       - name: Run StreamBTW Scraper
         run: python streambtw.py
