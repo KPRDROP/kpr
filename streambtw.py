@@ -39,11 +39,11 @@ CACHE_FILE = Cache(TAG, exp=3600)
 
 urls: dict[str, dict] = {}
 
-M3U8_VAR_RE = re.compile(r'var\s+\w+\s*=\s*"([^"]+)"', re.IGNORECASE)
+M3U8_VAR_RE = re.compile(r'var\s+\w+\s*=\s*"([^"]+)"', re.I)
 
 # --------------------------------------------------
 def fix_league(s: str) -> str:
-    return " ".join(s.split("-"))
+    return " ".join(s.replace("-", " ").split())
 
 # --------------------------------------------------
 async def process_event(url: str, url_num: int) -> str | None:
@@ -68,7 +68,7 @@ async def process_event(url: str, url_num: int) -> str | None:
 
 # --------------------------------------------------
 async def get_events() -> list[dict[str, str]]:
-    events = []
+    events: list[dict[str, str]] = []
 
     for base in BASE_URLS:
         log.info(f'Scraping from "{base}"')
@@ -79,59 +79,57 @@ async def get_events() -> list[dict[str, str]]:
 
         soup = HTMLParser(html.content)
 
-        # ---------------------------
-        # ✅ NEW LAYOUT (league cards)
-        # ---------------------------
-        for card in soup.css(".league"):
-            league_el = card.css_first(".league-title")
-            if not league_el:
-                continue
+        script_text = None
+        for s in soup.css("script"):
+            t = s.text() or ""
+            if "const DATA" in t:
+                script_text = t
+                break
 
-            league = fix_league(league_el.text(strip=True))
+        if not script_text:
+            continue
 
-            for ev in card.css(".match"):
-                name_el = ev.css_first(".match-name")
-                btn = ev.css_first("a.watch-btn")
+        m = re.search(
+            r"const\s+DATA\s*=\s*(\[\s*.*?\s*\]);",
+            script_text,
+            re.S,
+        )
 
-                if not (name_el and btn):
-                    continue
+        if not m:
+            continue
 
-                href = btn.attributes.get("href")
-                if not href:
+        # --- normalize JS → JSON ---
+        js = m.group(1)
+        js = re.sub(r"(\w+)\s*:", r'"\1":', js)     # keys
+        js = js.replace("'", '"')                  # quotes
+        js = re.sub(r",\s*}", "}", js)
+        js = re.sub(r",\s*]", "]", js)
+
+        try:
+            data = json.loads(js)
+        except Exception as e:
+            log.warning(f"DATA parse failed: {e}")
+            continue
+
+        for block in data:
+            league = fix_league(block.get("title", "Unknown"))
+
+            for item in block.get("items", []):
+                title = item.get("title")
+                link = item.get("url")
+
+                if not (title and link):
                     continue
 
                 events.append({
                     "sport": league,
-                    "event": name_el.text(strip=True),
-                    "link": urljoin(base, href),
-                    "base": base,
-                })
-
-        # ---------------------------
-        # 🔁 FALLBACK: legacy layout
-        # ---------------------------
-        if not events:
-            for item in soup.css(".t-item"):
-                league_el = item.css_first(".t-league")
-                match_el = item.css_first(".t-match")
-                watch_el = item.css_first("a.t-watch")
-
-                if not (league_el and match_el and watch_el):
-                    continue
-
-                href = watch_el.attributes.get("href")
-                if not href:
-                    continue
-
-                events.append({
-                    "sport": fix_league(league_el.text(strip=True)),
-                    "event": match_el.text(strip=True),
-                    "link": urljoin(base, href),
+                    "event": title,
+                    "link": urljoin(base, link),
                     "base": base,
                 })
 
         if events:
-            break  # stop after first working base
+            break  # first valid base wins
 
     return events
 
