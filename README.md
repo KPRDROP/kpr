@@ -2,4 +2,4 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 
 "Educational Purposes Only" 
 
-https://github-readme-stats.vercel.app/api?username=KPRDROP&show_icons=true&theme=radical
+[![GitHub Streak](https://streak-stats.demolab.com?user=KPRDROP)](https://git.io/streak-stats)
