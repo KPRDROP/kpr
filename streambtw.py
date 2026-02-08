@@ -18,7 +18,7 @@ log = get_logger(__name__)
 TAG = "STRMBTW"
 
 BASE_URLS = [
-    "https://hiteasport.info",
+    "https://hiteasport.info"
 ]
 
 REFERER = "https://hiteasport.info/"
