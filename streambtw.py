@@ -3,7 +3,6 @@ import base64
 import re
 import json
 from functools import partial
-from urllib.parse import urljoin, quote
 from pathlib import Path
 
 from selectolax.parser import HTMLParser
