@@ -2,4 +2,4 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 
 "Educational Purposes Only" 
 
-[![GitHub Streak](https://streak-stats.demolab.com?user=KPRDROP)](https://git.io/streak-stats)
+[![GitHub Streak](https://streak-stats.demolab.com?user=KPRDROP&theme=neon)](https://git.io/streak-stats)
