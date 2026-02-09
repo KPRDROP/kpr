@@ -77,7 +77,7 @@ async def get_events() -> list[dict[str, str]]:
         api["timestamp"] = now.timestamp()
         API_FILE.write(api)
 
-    events: list[dict[str, str]] = []
+    events = []
 
     for group in api.get("groups", []):
         sport = fix_league(group.get("title") or "Live")
@@ -140,9 +140,14 @@ async def scrape():
 
     for i, ev in enumerate(events, 1):
         handler = partial(process_event, ev["link"], i)
+
         url = await network.safe_process(
-            handler, i, network.HTTP_S, log
+            handler,
+            url_num=i,
+            semaphore=network.HTTP_S,
+            log=log,
         )
+
         if not url:
             continue
 
