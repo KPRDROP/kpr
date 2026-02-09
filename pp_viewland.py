@@ -23,18 +23,22 @@ def print_banner():
     print(f"{Col.CYAN}{'='*60}{Col.RESET}\n")
 
 # --- CONFIG ---
-API_URL = "https://api.ppv.to/api/streams"
+API_URL = [
+    "https://old.ppv.to/api/streams",
+    "https://api.ppvs.su/api/streams",
+    "https://api.ppv.to/api/streams",
+]
 PLAYLIST_FILE = "pp_viewland.m3u8"
 PLAYLIST_TIVIMATE = "pp_viewland_tivimate.m3u8"   
 
 STREAM_HEADERS = [
-    '#EXTVLCOPT:http-referrer=https://playembed.top/',
-    '#EXTVLCOPT:http-origin=https://playembed.top',
+    '#EXTVLCOPT:http-referrer=https://modistreams.org/',
+    '#EXTVLCOPT:http-origin=https://modistreams.org',
     '#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36'
 ]
 
-TIVI_REFERER = "https://playembed.top/"
-TIVI_ORIGIN = "https://playembed.top"
+TIVI_REFERER = "https://modistreams.org/"
+TIVI_ORIGIN = "https://modistreams.org"
 TIVI_UA = urllib.parse.quote(
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
     safe=""
