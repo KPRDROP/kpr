@@ -29,7 +29,8 @@ ENCODED_UA = quote(USER_AGENT, safe="")
 
 CACHE_FILE = Cache(TAG, exp=10_800)
 
-SPORT_ENDPOINTS = ["mma", "nba", "nfl", "nhl", "soccer", "wwe"]
+SPORT_ENDPOINTS = ["mma", "nba", #"nfl", 
+                   "nhl", "soccer", "wwe"]
 
 urls: dict[str, dict] = {}
 
