@@ -44,14 +44,17 @@ async def process_event(url: str, url_num: int) -> tuple[str | None, str | None]
         log.info(f"URL {url_num}) Failed to load url.")
         return nones
 
-    soup = HTMLParser(html.content)
+     soup = HTMLParser(html_data.content)
+
     iframe = soup.css_first("iframe")
 
-    if not iframe:
-        log.warning(f"URL {url_num}) No iframe found")
-        return None, None
+    if not iframe or not (iframe_src := iframe.attributes.get("src")):
+        log.warning(f"URL {url_num}) No iframe element found.")
+        return nones
 
-    src = iframe.attributes.get("src", "").strip()
+    elif iframe_src == "about:blank":
+        log.warning(f"URL {url_num}) No iframe element found.")
+        return nones
 
     # 🔒 HARD BLOCK BAD IFRAMES
     if not src or src in {"about:blank", "/blank"} or not src.startswith("http"):
