@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import asyncio
 import os
 import re
@@ -23,55 +24,70 @@ OUTPUT_TIVI = "east_tivimate.m3u8"
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
+    "Chrome/134.0.0.0 Safari/537.36"
 )
 ENCODED_UA = quote(USER_AGENT, safe="")
 
 CACHE_FILE = Cache(TAG, exp=10_800)
 
-SPORT_ENDPOINTS = ["mma", "nba", #"nfl", 
-                   "nhl", "soccer", "wwe"]
+SPORT_ENDPOINTS = [
+    "mma",
+    "nba",
+    # "nfl",
+    "nhl",
+    "soccer",
+    "wwe",
+]
 
 urls: dict[str, dict] = {}
 
 # ---------------- SCRAPER ----------------
 async def process_event(url: str, url_num: int) -> tuple[str | None, str | None]:
-    valid_m3u8 = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.IGNORECASE)
-
+    valid_m3u8 = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
     nones = None, None
 
     if not (html_data := await network.request(url, log=log)):
-        log.info(f"URL {url_num}) Failed to load url.")
+        log.info(f"URL {url_num}) Failed to load url")
         return nones
 
-     soup = HTMLParser(html_data.content)
+    soup = HTMLParser(html_data.content)
 
     iframe = soup.css_first("iframe")
-
-    if not iframe or not (iframe_src := iframe.attributes.get("src")):
-        log.warning(f"URL {url_num}) No iframe element found.")
+    if not iframe:
+        log.warning(f"URL {url_num}) No iframe found")
         return nones
 
-    elif iframe_src == "about:blank":
-        log.warning(f"URL {url_num}) No iframe element found.")
+    iframe_src = iframe.attributes.get("src")
+    if not iframe_src or iframe_src in {"about:blank", "/blank"}:
+        log.warning(f"URL {url_num}) Invalid iframe src")
         return nones
 
-    # 🔒 HARD BLOCK BAD IFRAMES
-    if not src or src in {"about:blank", "/blank"} or not src.startswith("http"):
-        log.warning(f"URL {url_num}) Invalid iframe src: {src}")
-        return None, None
+    if not iframe_src.startswith("http"):
+        iframe_src = urljoin(url, iframe_src)
 
-    if not (iframe_html := await network.request(src, log=log)):
-        return None, None
+    if not (iframe_html := await network.request(iframe_src, log=log)):
+        log.warning(f"URL {url_num}) Failed to load iframe source")
+        return nones
 
-    if not (m := pattern.search(iframe_html.text)):
+    if not (match := valid_m3u8.search(iframe_html.text)):
         log.warning(f"URL {url_num}) No Clappr source found")
-        return None, None
+        return nones
+
+    encoded = match[3]
+    if len(encoded) < 20:
+        encoded = match[2]
+
+    try:
+        stream = bytes.fromhex(encoded).decode("utf-8")
+    except Exception:
+        log.warning(f"URL {url_num}) Failed to decode stream")
+        return nones
 
     log.info(f"URL {url_num}) Captured M3U8")
-    return bytes.fromhex(m[1]).decode("utf-8"), src
+    return stream, iframe_src
 
 
+# ---------------- EVENTS ----------------
 async def get_events(cached_keys):
     tasks = [
         network.request(urljoin(BASE_URL, f"categories/{sport}/"), log=log)
@@ -92,7 +108,7 @@ async def get_events(cached_keys):
             sport = h.text(strip=True).split("Streams")[0].strip()
 
         for card in soup.css("article.game-card"):
-            team = card.css_first("h2.text-xl")
+            team = card.css_first("h2.text-xl.font-semibold")
             link = card.css_first("a.stream-button")
             live = card.css_first("span.bg-green-600")
 
@@ -101,12 +117,18 @@ async def get_events(cached_keys):
 
             name = team.text(strip=True)
             href = link.attributes.get("href")
+            if not href:
+                continue
 
             key = f"[{sport}] {name} ({TAG})"
             if key in cached_keys:
                 continue
 
-            events.append({"sport": sport, "event": name, "link": href})
+            events.append({
+                "sport": sport,
+                "event": name,
+                "link": href,
+            })
 
     return events
 
@@ -134,7 +156,6 @@ async def scrape():
             log=log,
         )
 
-        # 🛡️ SAFE UNPACK
         if not result:
             continue
 
@@ -159,6 +180,7 @@ async def scrape():
     write_playlists()
 
 
+# ---------------- PLAYLISTS ----------------
 def write_playlists():
     vlc, tivi = ["#EXTM3U"], ["#EXTM3U"]
 
@@ -185,10 +207,7 @@ def write_playlists():
         # TiviMate
         tivi.extend([
             extinf,
-            f'{e["url"]}'
-            f'|referer={referer}'
-            f'|origin={referer}'
-            f'|user-agent={ENCODED_UA}',
+            f'{e["url"]}|referer={referer}|origin={referer}|user-agent={ENCODED_UA}',
         ])
 
     with open(OUTPUT_VLC, "w", encoding="utf-8") as f:
