@@ -24,7 +24,7 @@ CATEGORIES = {
     4: "Basketball",
     9: "Football",
     13: "Baseball",
-    14: "American Football",
+    #14: "American Football",
     15: "Motor Sport",
     16: "Hockey",
     17: "Fight MMA",
