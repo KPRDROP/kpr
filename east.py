@@ -43,14 +43,14 @@ urls: dict[str, dict] = {}
 
 # ---------------- SCRAPER ----------------
 async def process_event(url: str, url_num: int) -> tuple[str | None, str | None]:
-    valid_m3u8 = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
+    valid_m3u8 = re.compile(r'(var|const)\s+\w+\s*=\s*"([^"]+)"', re.I)
     nones = None, None
 
-    if not (html_data := await network.request(url, log=log)):
+    if not (html := await network.request(url, log=log)):
         log.info(f"URL {url_num}) Failed to load url")
         return nones
 
-    soup = HTMLParser(html_data.content)
+    soup = HTMLParser(html.content)
 
     iframe = soup.css_first("iframe")
     if not iframe:
@@ -58,24 +58,27 @@ async def process_event(url: str, url_num: int) -> tuple[str | None, str | None]
         return nones
 
     iframe_src = iframe.attributes.get("src")
-    if not iframe_src or iframe_src in {"about:blank", "/blank"}:
+    if not iframe_src or iframe_src == "about:blank":
         log.warning(f"URL {url_num}) Invalid iframe src")
         return nones
 
-    if not iframe_src.startswith("http"):
+    # 🔧 NORMALIZE iframe src (CRITICAL FIX)
+    if iframe_src.startswith("//"):
+        iframe_src = "https:" + iframe_src
+    elif iframe_src.startswith("/"):
+        iframe_src = urljoin(url, iframe_src)
+    elif not iframe_src.startswith("http"):
         iframe_src = urljoin(url, iframe_src)
 
     if not (iframe_html := await network.request(iframe_src, log=log)):
         log.warning(f"URL {url_num}) Failed to load iframe source")
         return nones
 
-    if not (match := valid_m3u8.search(iframe_html.text)):
+    if not (m := valid_m3u8.search(iframe_html.text)):
         log.warning(f"URL {url_num}) No Clappr source found")
         return nones
 
-    encoded = match[3]
-    if len(encoded) < 20:
-        encoded = match[2]
+    encoded = m.group(2)
 
     try:
         stream = bytes.fromhex(encoded).decode("utf-8")
@@ -160,7 +163,7 @@ async def scrape():
             continue
 
         url, iframe = result
-        if not url or not iframe:
+        if not url:
             continue
 
         tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
@@ -195,7 +198,6 @@ def write_playlists():
             f'group-title="Live Events",{title}'
         )
 
-        # VLC
         vlc.extend([
             extinf,
             f"#EXTVLCOPT:http-referrer={referer}",
@@ -204,7 +206,6 @@ def write_playlists():
             e["url"],
         ])
 
-        # TiviMate
         tivi.extend([
             extinf,
             f'{e["url"]}|referer={referer}|origin={referer}|user-agent={ENCODED_UA}',
