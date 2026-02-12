@@ -5,9 +5,9 @@ from functools import partial
 from pathlib import Path
 from urllib.parse import urljoin, quote_plus
 
-from playwright.async_api import async_playwright, Browser, Page
+from playwright.async_api import async_playwright, Browser, Page, Response
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
@@ -25,16 +25,14 @@ BASE_URL = os.getenv("PIXNINE_BASE_URL")
 if not BASE_URL:
     raise ValueError("PIXNINE_BASE_URL secret is not set")
 
+API_ENDPOINT = urljoin(BASE_URL, "backend/livetv/events")
+
 # -------------------------------------------------
 # OUTPUT FILES
 # -------------------------------------------------
 
 VLC_FILE = Path("pixnine_vlc.m3u8")
 TIVIMATE_FILE = Path("pixnine_tivimate.m3u8")
-
-# -------------------------------------------------
-# USER AGENTS
-# -------------------------------------------------
 
 VLC_USER_AGENT = network.UA
 
@@ -44,6 +42,7 @@ TIVIMATE_USER_AGENT = (
 )
 
 TIVIMATE_UA_ENC = quote_plus(TIVIMATE_USER_AGENT)
+
 
 # -------------------------------------------------
 # PLAYLIST BUILDERS
@@ -102,36 +101,38 @@ def build_tivimate_playlist(data: dict) -> None:
 
 
 # -------------------------------------------------
-# FIXED API FETCH (NO <pre>)
+# NETWORK CAPTURE BASED API FETCH (FIXED)
 # -------------------------------------------------
 
 async def get_api_data(page: Page) -> dict:
-    url = urljoin(BASE_URL, "backend/livetv/events")
+    captured_json = {}
+
+    async def handle_response(response: Response):
+        if "backend/livetv/events" in response.url and response.status == 200:
+            try:
+                data = await response.json()
+                captured_json.update(data)
+            except Exception as e:
+                log.error(f"Failed parsing API JSON: {e}")
+
+    page.on("response", handle_response)
 
     try:
         await page.goto(
-            url,
+            API_ENDPOINT,
             wait_until="networkidle",
             timeout=15_000,
         )
 
-        content = await page.content()
-
-        # Extract JSON from page body safely
-        start = content.find("{")
-        end = content.rfind("}") + 1
-
-        if start == -1 or end == -1:
-            log.error("Could not locate JSON in page content")
-            return {}
-
-        json_text = content[start:end]
-
-        return json.loads(json_text)
+        await page.wait_for_timeout(2000)
 
     except Exception as e:
-        log.error(f'Failed to fetch "{url}": {e}')
-        return {}
+        log.error(f'Failed to fetch "{API_ENDPOINT}": {e}')
+
+    finally:
+        page.remove_listener("response", handle_response)
+
+    return captured_json
 
 
 # -------------------------------------------------
