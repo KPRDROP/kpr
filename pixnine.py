@@ -123,6 +123,8 @@ async def get_api_data(page: Page) -> dict:
         log.error(f"Failed to fetch API data: {e}")
         return {}
 
+    return json.loads(raw_json)
+
 
 async def get_events(page: Page) -> dict:
     now = Time.clean(Time.now())
