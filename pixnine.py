@@ -104,35 +104,39 @@ def build_tivimate_playlist(data: dict) -> None:
 # NETWORK CAPTURE BASED API FETCH (FIXED)
 # -------------------------------------------------
 
+# -------------------------------------------------
+# SESSION WARM-UP + API FETCH (FINAL FIX)
+# -------------------------------------------------
+
 async def get_api_data(page: Page) -> dict:
-    captured_json = {}
-
-    async def handle_response(response: Response):
-        if "backend/livetv/events" in response.url and response.status == 200:
-            try:
-                data = await response.json()
-                captured_json.update(data)
-            except Exception as e:
-                log.error(f"Failed parsing API JSON: {e}")
-
-    page.on("response", handle_response)
-
     try:
+        # 1️⃣ Visit homepage first to set cookies/session
         await page.goto(
-            API_ENDPOINT,
+            BASE_URL,
             wait_until="networkidle",
-            timeout=15_000,
+            timeout=20_000,
         )
 
+        # Small human-like delay
         await page.wait_for_timeout(2000)
+
+        # 2️⃣ Fetch API using browser context (keeps cookies + referer)
+        data = await page.evaluate(
+            """async (apiUrl) => {
+                const res = await fetch(apiUrl, {
+                    credentials: 'include'
+                });
+                if (!res.ok) return {};
+                return await res.json();
+            }""",
+            API_ENDPOINT,
+        )
+
+        return data or {}
 
     except Exception as e:
         log.error(f'Failed to fetch "{API_ENDPOINT}": {e}')
-
-    finally:
-        page.remove_listener("response", handle_response)
-
-    return captured_json
+        return {}
 
 
 # -------------------------------------------------
