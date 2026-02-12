@@ -5,9 +5,9 @@ from functools import partial
 from pathlib import Path
 from urllib.parse import urljoin, quote_plus
 
-from playwright.async_api import async_playwright, Browser
+from playwright.async_api import async_playwright, Browser, Page
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
@@ -16,9 +16,18 @@ urls: dict[str, dict[str, str | float]] = {}
 TAG = "PIXEL"
 CACHE_FILE = Cache(TAG, exp=19_800)
 
+# -------------------------------------------------
+# SECRET BASE URL
+# -------------------------------------------------
+
 BASE_URL = os.getenv("PIXNINE_BASE_URL")
+
 if not BASE_URL:
     raise ValueError("PIXNINE_BASE_URL secret is not set")
+
+# -------------------------------------------------
+# OUTPUT FILES
+# -------------------------------------------------
 
 VLC_FILE = Path("pixnine_vlc.m3u8")
 TIVIMATE_FILE = Path("pixnine_tivimate.m3u8")
@@ -27,11 +36,7 @@ TIVIMATE_FILE = Path("pixnine_tivimate.m3u8")
 # USER AGENTS
 # -------------------------------------------------
 
-VLC_USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
-)
+VLC_USER_AGENT = network.UA
 
 TIVIMATE_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) "
@@ -97,33 +102,51 @@ def build_tivimate_playlist(data: dict) -> None:
 
 
 # -------------------------------------------------
-# DIRECT API REQUEST (FIXED)
+# FIXED API FETCH (NO <pre>)
 # -------------------------------------------------
 
-async def get_events() -> dict:
-    now = Time.clean(Time.now())
-
-    api_url = urljoin(BASE_URL, "backend/livetv/events")
-
-    response = await network.request(api_url, log=log)
-
-    if not response:
-        log.error("API request failed")
-        return {}
+async def get_api_data(page: Page) -> dict:
+    url = urljoin(BASE_URL, "backend/livetv/events")
 
     try:
-        api_data = response.json()
-    except Exception:
-        try:
-            api_data = json.loads(response.text)
-        except Exception as e:
-            log.error(f"Failed to parse JSON: {e}")
+        await page.goto(
+            url,
+            wait_until="networkidle",
+            timeout=15_000,
+        )
+
+        content = await page.content()
+
+        # Extract JSON from page body safely
+        start = content.find("{")
+        end = content.rfind("}") + 1
+
+        if start == -1 or end == -1:
+            log.error("Could not locate JSON in page content")
             return {}
+
+        json_text = content[start:end]
+
+        return json.loads(json_text)
+
+    except Exception as e:
+        log.error(f'Failed to fetch "{url}": {e}')
+        return {}
+
+
+# -------------------------------------------------
+# EVENT PARSER
+# -------------------------------------------------
+
+async def get_events(page: Page) -> dict:
+    now = Time.clean(Time.now())
+    api_data = await get_api_data(page)
 
     events = {}
 
     for event in api_data.get("events", []):
         event_dt = Time.from_str(event["date"], timezone="UTC")
+
         if event_dt.date() != now.date():
             continue
 
@@ -133,9 +156,10 @@ async def get_events() -> dict:
 
         for i in range(1, 4):
             stream_link = channel_info.get(f"server{i}URL")
-            if stream_link and stream_link != "null":
 
+            if stream_link and stream_link != "null":
                 key = f"[{sport}] {event_name} {i} ({TAG})"
+
                 tvg_id, logo = leagues.get_tvg_info(sport, event_name)
 
                 events[key] = {
@@ -152,18 +176,28 @@ async def get_events() -> dict:
 # SCRAPER
 # -------------------------------------------------
 
-async def scrape():
+async def scrape(browser: Browser) -> None:
     if cached := CACHE_FILE.load():
         urls.update(cached)
         log.info(f"Loaded {len(urls)} event(s) from cache")
     else:
         log.info(f'Scraping from "{BASE_URL}"')
 
-        events = await get_events()
+        async with network.event_context(browser) as context:
+            async with network.event_page(context) as page:
+                handler = partial(get_events, page=page)
+
+                events = await network.safe_process(
+                    handler,
+                    url_num=1,
+                    semaphore=network.PW_S,
+                    log=log,
+                )
 
         urls.update(events or {})
         CACHE_FILE.write(urls)
-        log.info(f"Collected {len(urls)} new event(s)")
+
+        log.info(f"Collected and cached {len(urls)} new event(s)")
 
     build_vlc_playlist(urls)
     build_tivimate_playlist(urls)
@@ -175,7 +209,15 @@ async def scrape():
 
 async def main():
     log.info("🚀 PIXNINE scraper starting")
-    await scrape()
+
+    async with async_playwright() as p:
+        browser = await network.browser(p)
+
+        try:
+            await scrape(browser)
+        finally:
+            await browser.close()
+
     log.info("✅ PIXNINE scraper finished")
 
 
