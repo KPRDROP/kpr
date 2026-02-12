@@ -5,30 +5,20 @@ from functools import partial
 from pathlib import Path
 from urllib.parse import urljoin, quote_plus
 
-from playwright.async_api import async_playwright, Browser, Page
+from playwright.async_api import async_playwright, Browser
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
 urls: dict[str, dict[str, str | float]] = {}
 
 TAG = "PIXEL"
-
 CACHE_FILE = Cache(TAG, exp=19_800)
 
-# -------------------------------------------------
-# SECRET BASE URL
-# -------------------------------------------------
-
 BASE_URL = os.getenv("PIXNINE_BASE_URL")
-
 if not BASE_URL:
     raise ValueError("PIXNINE_BASE_URL secret is not set")
-
-# -------------------------------------------------
-# OUTPUT FILES
-# -------------------------------------------------
 
 VLC_FILE = Path("pixnine_vlc.m3u8")
 TIVIMATE_FILE = Path("pixnine_tivimate.m3u8")
@@ -107,28 +97,28 @@ def build_tivimate_playlist(data: dict) -> None:
 
 
 # -------------------------------------------------
-# DATA FETCH
+# DIRECT API REQUEST (FIXED)
 # -------------------------------------------------
 
-async def get_api_data(page: Page) -> dict:
-    try:
-        await page.goto(
-            urljoin(BASE_URL, "backend/livetv/events"),
-            wait_until="domcontentloaded",
-            timeout=10_000,
-        )
-        raw_json = await page.locator("pre").inner_text(timeout=5_000)
-        return json.loads(raw_json)
-    except Exception as e:
-        log.error(f"Failed to fetch API data: {e}")
+async def get_events() -> dict:
+    now = Time.clean(Time.now())
+
+    api_url = urljoin(BASE_URL, "backend/livetv/events")
+
+    response = await network.request(api_url, log=log)
+
+    if not response:
+        log.error("API request failed")
         return {}
 
-    return json.loads(raw_json)
-
-
-async def get_events(page: Page) -> dict:
-    now = Time.clean(Time.now())
-    api_data = await get_api_data(page)
+    try:
+        api_data = response.json()
+    except Exception:
+        try:
+            api_data = json.loads(response.text)
+        except Exception as e:
+            log.error(f"Failed to parse JSON: {e}")
+            return {}
 
     events = {}
 
@@ -162,22 +152,14 @@ async def get_events(page: Page) -> dict:
 # SCRAPER
 # -------------------------------------------------
 
-async def scrape(browser: Browser) -> None:
+async def scrape():
     if cached := CACHE_FILE.load():
         urls.update(cached)
         log.info(f"Loaded {len(urls)} event(s) from cache")
     else:
         log.info(f'Scraping from "{BASE_URL}"')
 
-        async with network.event_context(browser) as context:
-            async with network.event_page(context) as page:
-                handler = partial(get_events, page=page)
-                events = await network.safe_process(
-                    handler,
-                    url_num=1,
-                    semaphore=network.PW_S,
-                    log=log,
-                )
+        events = await get_events()
 
         urls.update(events or {})
         CACHE_FILE.write(urls)
@@ -188,23 +170,12 @@ async def scrape(browser: Browser) -> None:
 
 
 # -------------------------------------------------
-# ENTRYPOINT (CRITICAL FIX)
+# ENTRYPOINT
 # -------------------------------------------------
 
 async def main():
     log.info("🚀 PIXNINE scraper starting")
-
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage"],
-        )
-
-        try:
-            await scrape(browser)
-        finally:
-            await browser.close()
-
+    await scrape()
     log.info("✅ PIXNINE scraper finished")
 
 
