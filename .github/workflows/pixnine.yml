@@ -31,7 +31,7 @@ jobs:
         env:
           PIXNINE_BASE_URL: ${{ secrets.PIXNINE_BASE_URL }}
         run: |
-          python -m pixnine
+          python pixnine.py
 
       - name: Commit and push if changed
         run: |
