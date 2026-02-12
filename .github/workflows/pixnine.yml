@@ -1,4 +1,4 @@
-name: PIXNINE Scraper
+xname: PIXNINE Scraper
 
 on:
   schedule:
@@ -26,8 +26,7 @@ jobs:
         run: |
           pip install playwright httpx[http2] pytz
           playwright install-deps
-          playwright install chromium
-
+          playwright install firefox
       - name: Run scraper
         env:
           PIXNINE_BASE_URL: ${{ secrets.PIXNINE_BASE_URL }}
