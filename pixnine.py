@@ -5,9 +5,9 @@ from functools import partial
 from pathlib import Path
 from urllib.parse import urljoin, quote_plus
 
-from playwright.async_api import async_playwright, Browser, Page, Response
+from playwright.async_api import async_playwright, Browser, Page
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
@@ -16,20 +16,12 @@ urls: dict[str, dict[str, str | float]] = {}
 TAG = "PIXEL"
 CACHE_FILE = Cache(TAG, exp=19_800)
 
-# -------------------------------------------------
-# SECRET BASE URL
-# -------------------------------------------------
-
 BASE_URL = os.getenv("PIXNINE_BASE_URL")
 
 if not BASE_URL:
     raise ValueError("PIXNINE_BASE_URL secret is not set")
 
 API_ENDPOINT = urljoin(BASE_URL, "backend/livetv/events")
-
-# -------------------------------------------------
-# OUTPUT FILES
-# -------------------------------------------------
 
 VLC_FILE = Path("pixnine_vlc.m3u8")
 TIVIMATE_FILE = Path("pixnine_tivimate.m3u8")
@@ -101,41 +93,42 @@ def build_tivimate_playlist(data: dict) -> None:
 
 
 # -------------------------------------------------
-# NETWORK CAPTURE BASED API FETCH (FIXED)
-# -------------------------------------------------
-
-# -------------------------------------------------
-# SESSION WARM-UP + API FETCH (FINAL FIX)
+# REALISTIC HEADER API FETCH
 # -------------------------------------------------
 
 async def get_api_data(page: Page) -> dict:
     try:
-        # 1️⃣ Visit homepage first to set cookies/session
-        await page.goto(
-            BASE_URL,
-            wait_until="networkidle",
-            timeout=20_000,
-        )
+        # 1️⃣ Warm up homepage
+        await page.goto(BASE_URL, wait_until="networkidle", timeout=20000)
+        await page.wait_for_timeout(3000)
 
-        # Small human-like delay
-        await page.wait_for_timeout(2000)
+        context = page.context
 
-        # 2️⃣ Fetch API using browser context (keeps cookies + referer)
-        data = await page.evaluate(
-            """async (apiUrl) => {
-                const res = await fetch(apiUrl, {
-                    credentials: 'include'
-                });
-                if (!res.ok) return {};
-                return await res.json();
-            }""",
+        # 2️⃣ Real browser-like headers
+        headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": BASE_URL + "/",
+            "Origin": BASE_URL,
+            "User-Agent": VLC_USER_AGENT,
+            "X-Requested-With": "XMLHttpRequest",
+        }
+
+        response = await context.request.get(
             API_ENDPOINT,
+            headers=headers,
+            timeout=20000,
         )
 
+        if response.status != 200:
+            log.error(f"API returned status {response.status}")
+            return {}
+
+        data = await response.json()
         return data or {}
 
     except Exception as e:
-        log.error(f'Failed to fetch "{API_ENDPOINT}": {e}')
+        log.error(f"API fetch failed: {e}")
         return {}
 
 
@@ -182,27 +175,16 @@ async def get_events(page: Page) -> dict:
 # -------------------------------------------------
 
 async def scrape(browser: Browser) -> None:
-    if cached := CACHE_FILE.load():
-        urls.update(cached)
-        log.info(f"Loaded {len(urls)} event(s) from cache")
-    else:
-        log.info(f'Scraping from "{BASE_URL}"')
+    log.info(f'Scraping from "{BASE_URL}"')
 
-        async with network.event_context(browser) as context:
-            async with network.event_page(context) as page:
-                handler = partial(get_events, page=page)
+    async with network.event_context(browser) as context:
+        async with network.event_page(context) as page:
+            events = await get_events(page)
 
-                events = await network.safe_process(
-                    handler,
-                    url_num=1,
-                    semaphore=network.PW_S,
-                    log=log,
-                )
+    urls.update(events or {})
+    CACHE_FILE.write(urls)
 
-        urls.update(events or {})
-        CACHE_FILE.write(urls)
-
-        log.info(f"Collected and cached {len(urls)} new event(s)")
+    log.info(f"Collected and cached {len(urls)} new event(s)")
 
     build_vlc_playlist(urls)
     build_tivimate_playlist(urls)
