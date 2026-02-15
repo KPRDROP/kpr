@@ -1,4 +1,4 @@
-name: SharkStreams Updater
+name: Shark Updater
 
 on:
   schedule:
@@ -46,13 +46,13 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Update SharkStreams Playlist"
+          git commit -m "Update Shark Playlist"
 
           if ! git push origin main; then
             git stash
             git pull --rebase origin main
             git stash pop
             git add strmshark_tivimate.m3u8
-            git commit -m "🦈 Update SharkStreams Playlist (rebased)" || true
+            git commit -m "🦈 Update Shark Playlist (rebased)" || true
             git push origin main
           fi
