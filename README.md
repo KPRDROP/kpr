@@ -12,4 +12,6 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 [![SportHub Scraper](https://github.com/KPRDROP/kpr/actions/workflows/sporthub.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/sporthub.yml)
 &nbsp;
 [![Update SportsWebcast Playlist](https://github.com/KPRDROP/kpr/actions/workflows/castwebsports.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/castwebsports.yml)
+&nbsp;
+[![STGATE Updater](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml)
 </div>
