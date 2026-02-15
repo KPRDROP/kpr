@@ -1,4 +1,4 @@
-name: 🦈 Update SharkStreams Playlist
+name: SharkStreams Updater
 
 on:
   schedule:
@@ -14,15 +14,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🐍 Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: 📦 Install deps
+      - name: Install deps
         run: |
           pip install selectolax playwright httpx[http2] pytz
           playwright install --with-deps
@@ -34,7 +34,7 @@ jobs:
         run: |
           python strmshark.py
 
-      - name: 📤 Commit & push
+      - name: Commit & push
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
@@ -46,7 +46,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "🦈 Update SharkStreams Playlist"
+          git commit -m "Update SharkStreams Playlist"
 
           if ! git push origin main; then
             git stash
