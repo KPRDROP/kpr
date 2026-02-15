@@ -1,4 +1,4 @@
-name: ▶️ Update XEAST Playlist
+name: XEAST Updater
 
 on:
   schedule:
@@ -14,28 +14,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 🐍 Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
-      - name: 📦 Install deps
+      - name: Install deps
         run: |
           pip install playwright httpx[http2] pytz
           pip install selectolax
 
-      - name: 🚀 Run scraper
+      - name: Run scraper
         env:
           XEAST_BASE_URL: ${{ secrets.XEAST_BASE_URL }}
         run: |
           python east.py
 
-      - name: 📤 Commit & push
+      - name: Commit & push
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
@@ -47,13 +47,13 @@ jobs:
             exit 0
           fi
 
-          git commit -m "📡 Update XEAST playlists"
+          git commit -m "Update XEAST playlists"
 
           if ! git push origin main; then
             git stash
             git pull --rebase origin main
             git stash pop
             git add east_vlc.m3u8 east_tivimate.m3u8
-            git commit -m "📡 Update XEAST playlists (rebased)" || true
+            git commit -m "Update XEAST playlists (rebased)" || true
             git push origin main
           fi
