@@ -21,4 +21,5 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
   
   [![STGATE Updater](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml)
   
-  [![Roxie Updater](https://github.com/KPRDROP/kpr/actions/workflows/update_rox.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/update_rox.yml) </p>
+  [![Roxie Updater](https://github.com/KPRDROP/kpr/actions/workflows/update_rox.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/update_rox.yml)
+  
