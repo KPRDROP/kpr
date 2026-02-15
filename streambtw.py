@@ -14,10 +14,10 @@ log = get_logger(__name__)
 # --------------------------------------------------
 TAG = "STRMBTW"
 
-BASE_URL = "https://hiteasport.info"
+BASE_URL = "https://streambtw.com"
 
-REFERER = "https://hiteasport.info/"
-ORIGIN = "https://hiteasport.info"
+REFERER = "https://streambtw.live/"
+ORIGIN = "https://streambtw.live"
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
