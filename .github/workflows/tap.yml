@@ -1,4 +1,4 @@
-name: 🚀 Update TheTVApp Playlist 📺
+name: TheTVApp Updater
 
 on:
   schedule:
@@ -13,27 +13,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: 🐍 Set up Python 3.11
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: 📦 Install Python dependencies & Playwright
+      - name: Install Python dependencies & Playwright
         run: |
           python -m pip install --upgrade pip
           pip install playwright urllib3 aiohttp
           playwright install firefox
           playwright install-deps
 
-      - name: 🎯 Run scraping script
+      - name: Run scraping script
         run: python tap.py
 
-      - name: 💾 Commit & Safely Push if Playlist Changed
+      - name: Commit & Safely Push if Playlist Changed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -41,29 +41,29 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           if [ ! -f "TheTV.m3u8" ]; then
-            echo "❌ TheTV.m3u8 NOT found — script did not generate the file"
+            echo "TheTV.m3u8 NOT found — script did not generate the file"
             exit 0
           fi
 
           git add TheTV.m3u8
 
           if git diff --cached --quiet; then
-            echo "✅ No changes to commit"
+            echo "No changes to commit"
             exit 0
           fi
 
-          git commit -m "🔁 Update playlist $(date -u +'%a %b %d %T UTC %Y')"
+          git commit -m "Update playlist $(date -u +'%a %b %d %T UTC %Y')"
 
           sleep $((RANDOM % 10 + 5))
 
           if ! git push origin main; then
-            echo "⚠️ Push rejected. Trying safe fetch + rebase..."
+            echo "Push rejected. Trying safe fetch + rebase..."
             git pull origin main --rebase || {
-              echo "❌ Rebase failed. Exiting to avoid corruption."
+              echo "Rebase failed. Exiting to avoid corruption."
               exit 1
             }
             git push origin main || {
-              echo "❌ Second push failed. Remote changed again."
+              echo "Second push failed. Remote changed again."
               exit 1
             }
           fi
