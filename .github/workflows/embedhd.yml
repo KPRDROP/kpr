@@ -1,4 +1,4 @@
-name: 📺 EmbedHD Updater
+name: EmbedHD Updater
 
 on:
   schedule:
@@ -38,5 +38,5 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add embedhd_vlc.m3u8 embedhd_tivimate.m3u8
-          git commit -m "📺 Update EmbedHD playlists" || exit 0
+          git commit -m "Update EmbedHD playlists" || exit 0
           git push
