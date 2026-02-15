@@ -1,4 +1,4 @@
-name: PixelSport Updater
+name: Pixel Updater
 
 on:
   schedule:
@@ -41,7 +41,7 @@ jobs:
           pip install playwright
           playwright install firefox
 
-      - name: Run PixelSport scraper
+      - name: Run Pixel scraper
         env:
           PIXELSPORTS_API_URL: ${{ secrets.PIXELSPORTS_API_URL }}
         run: |
@@ -58,6 +58,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Update PixelSport playlists"
+            git commit -m "Update Pixel playlists"
             git push
           fi
