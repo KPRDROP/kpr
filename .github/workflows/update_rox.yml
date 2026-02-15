@@ -1,4 +1,4 @@
-name: 🏆 Generate RoxieStreams Playlists
+name: Generate RoxieStreams Playlists
 
 on:
   schedule:
@@ -15,28 +15,28 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - name: 🧾 Checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: 🐍 Set up Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      - name: ⚙️ Install dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
-      - name: 🚀 Run update_rox.py
+      - name: Run update_rox.py
         env:
           PYTHONUNBUFFERED: 1
         run: |
-          echo "▶️ Starting RoxieStreams playlist generation..."
+          echo "Starting RoxieStreams playlist generation..."
           python update_rox.py
-          echo "✅ Script finished."
+          echo "cript finished."
 
-      - name: 💾 Commit & Push if Playlists Changed
+      - name: Commit & Push if Playlists Changed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -48,21 +48,21 @@ jobs:
 
           # Exit if no changes
           if git diff --cached --quiet; then
-            echo "✅ No changes detected — skipping commit."
+            echo "No changes detected — skipping commit."
             exit 0
           fi
 
           # Commit with timestamp
-          git commit -m "🔄 Auto-update RoxieStreams playlists [skip ci] ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+          git commit -m "Auto-update RoxieStreams playlists [skip ci] ($(date -u +'%Y-%m-%d %H:%M UTC'))"
 
           # Pull remote changes and rebase to avoid push rejection
           git pull --rebase origin main || {
-            echo "❌ Rebase failed, aborting push."
+            echo "Rebase failed, aborting push."
             exit 1
           }
 
           # Push updated files
           git push origin main || {
-            echo "❌ Push failed even after rebase."
+            echo "Push failed even after rebase."
             exit 1
           }
