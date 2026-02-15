@@ -1,4 +1,4 @@
-name: StreamBTW Scraper
+name: BTW Updater
 
 on:
   schedule:
@@ -37,7 +37,7 @@ jobs:
           echo "----- Streambtw_TiviMate.m3u8 -----"
           cat Streambtw_TiviMate.m3u8 || true
 
-      - name: 📤 Commit & push
+      - name: Commit & push
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
@@ -49,13 +49,13 @@ jobs:
             exit 0
           fi
 
-          git commit -m "🔄 Update StreamBTW playlists [auto]"
+          git commit -m "Update BTW playlists [auto]"
 
           if ! git push origin main; then
             git stash
             git pull --rebase origin main
             git stash pop
             git add Streambtw_VLC.m3u8 Streambtw_TiviMate.m3u8
-            git commit -m "📡 Update StreamBTW playlists (rebased)" || true
+            git commit -m "BTW playlists (rebased)" || true
             git push origin main
           fi
