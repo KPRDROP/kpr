@@ -1,4 +1,4 @@
-name: RoxieStreams Updater
+name: Roxie Updater
 
 on:
   schedule:
@@ -32,7 +32,7 @@ jobs:
         env:
           PYTHONUNBUFFERED: 1
         run: |
-          echo "Starting RoxieStreams playlist generation..."
+          echo "Starting Roxie playlist generation..."
           python update_rox.py
           echo "cript finished."
 
@@ -43,7 +43,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage only the specific RoxieStreams files
+          # Stage only the specific Roxie files
           git add Roxiestreams_VLC.m3u8 Roxiestreams_TiviMate.m3u8
 
           # Exit if no changes
@@ -53,7 +53,7 @@ jobs:
           fi
 
           # Commit with timestamp
-          git commit -m "Auto-update RoxieStreams playlists [skip ci] ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+          git commit -m "Auto-update Roxie playlists [skip ci] ($(date -u +'%Y-%m-%d %H:%M UTC'))"
 
           # Pull remote changes and rebase to avoid push rejection
           git pull --rebase origin main || {
