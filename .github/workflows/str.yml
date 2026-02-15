@@ -1,4 +1,4 @@
-name: ▶️ Update STR TiViMate Playlist
+name: STR Updater
 
 on:
   schedule:
@@ -14,26 +14,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: 🐍 Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: 📦 Install deps
+      - name: Install deps
         run: |
           pip install playwright httpx[http2] pytz
           playwright install chromium
 
-      - name: 🚀 Run scraper
+      - name: Run scraper
         env:
           BASE_URL: ${{ secrets.STR_BASE_URL }}
         run: |
           python str.py
 
-      - name: 📤 Commit & Push safely
+      - name: Commit & Push safely
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
@@ -45,15 +45,15 @@ jobs:
             exit 0
           fi
 
-          git commit -m "📡 Update STR playlists"
+          git commit -m "Update STR playlists"
 
-          # 🔧 FIX: stash before rebase
+          # FIX: stash before rebase
           if ! git push origin main; then
             echo "Push rejected — rebasing safely..."
             git stash
             git pull --rebase origin main
             git stash pop
             git add str_tivimate.m3u8
-            git commit -m "📡 Update STR playlists (rebased)" || true
+            git commit -m "Update STR playlists (rebased)" || true
             git push origin main
           fi
