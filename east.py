@@ -43,12 +43,14 @@ urls: dict[str, dict] = {}
 
 # ---------------- SCRAPER ----------------
 async def process_event(url: str, url_num: int) -> tuple[str | None, str | None]:
-    valid_m3u8 = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
+    
     nones = None, None
 
     if not (html := await network.request(url, log=log)):
         log.info(f"URL {url_num}) Failed to load url")
         return nones
+
+    valid_m3u8 = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
 
     soup = HTMLParser(html.content)
 
