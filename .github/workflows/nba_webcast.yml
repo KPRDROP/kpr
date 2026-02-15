@@ -1,4 +1,4 @@
-name: 🏀 NBA Webcast Scraper
+name: NBA Webcast Updater
 
 on:
   schedule:
@@ -22,12 +22,12 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: 🐍 Install Python requirements
+      - name: Install Python requirements
         run: |
           python -m pip install --upgrade pip
           pip install aiohttp bs4 lxml
 
-      - name: 🚀 Run castweb_nba.py
+      - name: Run castweb_nba.py
         run: |
           echo "Running NBA-only scraper..."
           python nba_webcast.py
