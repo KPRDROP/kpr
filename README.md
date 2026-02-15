@@ -14,6 +14,8 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 [![Update SportsWebcast Playlist](https://github.com/KPRDROP/kpr/actions/workflows/castwebsports.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/castwebsports.yml)
 &nbsp;
 </div>
+
 <p>
+  
 [![STGATE Updater](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml)
 </p>
