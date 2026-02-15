@@ -1,4 +1,4 @@
-name: ▶️ Update SXLive Playlists
+name: SXLive Updater
 
 on:
   workflow_dispatch:
@@ -13,31 +13,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: 🐍 Set up Python
+          
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install playwright httpx[http2] pytz
           pip install feedparser selectolax
           playwright install chromium
 
-      - name: 🚀 Run SXLive
+      - name: Run SXLive
         env:
           SXLIVE_BASE_URL: ${{ secrets.SXLIVE_BASE_URL }}
           SXLIVE_BASE_REF: ${{ secrets.SXLIVE_BASE_REF }}
         run: |
           python sxlive.py
 
-      - name: 📤 Commit & Push playlists
+      - name: Commit & Push playlists
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -45,14 +45,14 @@ jobs:
           git add sxlive_vlc.m3u8 sxlive_tivimate.m3u8
 
           if git diff --cached --quiet; then
-            echo "✅ No playlist changes"
+            echo "No playlist changes"
             exit 0
           fi
 
-          git commit -m "📡 Update SXLive playlists ($(date -u))"
+          git commit -m "Update SXLive playlists ($(date -u))"
 
           if ! git push origin main; then
-            echo "⚠️ Push rejected, rebasing..."
+            echo "Push rejected, rebasing..."
             git pull origin main --rebase
             git push origin main
           fi
