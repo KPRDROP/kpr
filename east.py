@@ -30,66 +30,72 @@ ENCODED_UA = quote(USER_AGENT, safe="")
 
 CACHE_FILE = Cache(TAG, exp=10_800)
 
-SPORT_ENDPOINTS = [
-    "mma",
-    "nba",
-    # "nfl",
-    "nhl",
-    "soccer",
-    "wwe",
-]
+SPORT_ENDPOINTS = ["mma", "nba", "nhl", "soccer", "wwe"]
 
 urls: dict[str, dict] = {}
 
+
 # ---------------- SCRAPER ----------------
 async def process_event(url: str, url_num: int) -> tuple[str | None, str | None]:
-    
+
+    # 🔧 FIX 1 — Ensure absolute URL
+    if not url.startswith("http"):
+        url = urljoin(BASE_URL, url)
+
+    valid_m3u8 = re.compile(r'(var|const)\s+\w+\s*=\s*"([^"]+)"', re.I)
     nones = None, None
 
     if not (html := await network.request(url, log=log)):
-        log.info(f"URL {url_num}) Failed to load url")
+        log.warning(f"URL {url_num}) Failed to load event page")
         return nones
 
     soup = HTMLParser(html.content)
 
-    iframe = soup.css_first("iframe")
-    if not iframe:
+    # 🔧 FIX 2 — Iterate ALL iframes (not just first)
+    iframes = soup.css("iframe")
+
+    if not iframes:
         log.warning(f"URL {url_num}) No iframe found")
         return nones
 
-    iframe_src = iframe.attributes.get("src")
-    if not iframe_src or iframe_src == "about:blank":
-        log.warning(f"URL {url_num}) Invalid iframe src")
-        return nones
+    for iframe in iframes:
 
-    # 🔧 NORMALIZE iframe src (CRITICAL FIX)
-    if iframe_src.startswith("//"):
-        iframe_src = "https:" + iframe_src
-    elif iframe_src.startswith("/"):
-        iframe_src = urljoin(url, iframe_src)
-    elif not iframe_src.startswith("http"):
-        iframe_src = urljoin(url, iframe_src)
+        iframe_src = iframe.attributes.get("src")
 
-    if not (iframe_html := await network.request(iframe_src, log=log)):
-        log.warning(f"URL {url_num}) Failed to load iframe source")
-        return nones
+        if (
+            not iframe_src
+            or iframe_src == "about:blank"
+            or "ads" in iframe_src
+            or "doubleclick" in iframe_src
+        ):
+            continue
 
-    valid_m3u8 = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
+        # 🔧 FIX 3 — Normalize iframe src
+        if iframe_src.startswith("//"):
+            iframe_src = "https:" + iframe_src
+        elif iframe_src.startswith("/"):
+            iframe_src = urljoin(url, iframe_src)
+        elif not iframe_src.startswith("http"):
+            iframe_src = urljoin(url, iframe_src)
 
-    if not (m := valid_m3u8.search(iframe_html.text)):
-        log.warning(f"URL {url_num}) No Clappr source found")
-        return nones
+        if not (iframe_html := await network.request(iframe_src, log=log)):
+            continue
 
-    encoded = m.group(2)
+        if not (m := valid_m3u8.search(iframe_html.text)):
+            continue
 
-    try:
-        stream = bytes.fromhex(encoded).decode("utf-8")
-    except Exception:
-        log.warning(f"URL {url_num}) Failed to decode stream")
-        return nones
+        encoded = m.group(2)
 
-    log.info(f"URL {url_num}) Captured M3U8")
-    return stream, iframe_src
+        try:
+            stream = bytes.fromhex(encoded).decode("utf-8")
+        except Exception:
+            continue
+
+        log.info(f"URL {url_num}) Captured M3U8")
+        return stream, iframe_src
+
+    log.warning(f"URL {url_num}) No valid player iframe found")
+    return nones
 
 
 # ---------------- EVENTS ----------------
@@ -122,8 +128,13 @@ async def get_events(cached_keys):
 
             name = team.text(strip=True)
             href = link.attributes.get("href")
+
             if not href:
                 continue
+
+            # 🔧 FIX 4 — Normalize event link
+            if not href.startswith("http"):
+                href = urljoin(BASE_URL, href)
 
             key = f"[{sport}] {name} ({TAG})"
             if key in cached_keys:
