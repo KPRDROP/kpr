@@ -1,4 +1,4 @@
-name: 📡 CenterStrm Scraper
+name: CenterStrm Scraper
 
 on:
   schedule:
@@ -32,10 +32,10 @@ jobs:
         env:
           CENTERSTRM_API: ${{ secrets.CENTERSTRM_API }}
         run: |
-          echo "🚀 Starting StreamCenter scraper..."
+          echo "Starting StreamCenter scraper..."
           python centerstrm.py
 
-      - name: 📤 Commit & Push safely
+      - name: Commit & Push safely
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
@@ -47,15 +47,15 @@ jobs:
             exit 0
           fi
 
-          git commit -m "📡 Update CenterStrm playlist"
+          git commit -m "Update CenterStrm playlist"
 
-          # 🔧 FIX: stash before rebase
+          # FIX: stash before rebase
           if ! git push origin main; then
             echo "Push rejected — rebasing safely..."
             git stash
             git pull --rebase origin main
             git stash pop
             git add centerstrm.m3u
-            git commit -m "📡 Update CenterStrm playlist (rebased)" || true
+            git commit -m "Update CenterStrm playlist (rebased)" || true
             git push origin main
           fi
