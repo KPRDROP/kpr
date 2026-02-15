@@ -2,10 +2,10 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 
 <div align="center">
 "Educational Purposes Only"
-</div>
 
 &nbsp;
 
 <div align="center">
   
 [![PIXNINE Scraper](https://github.com/KPRDROP/kpr/actions/workflows/pixnine.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/pixnine.yml)
+</div>
