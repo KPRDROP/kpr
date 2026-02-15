@@ -28,7 +28,7 @@ jobs:
           playwright install --with-deps
           playwright install chromium
 
-      - name: 🦈 Run scraper
+      - name: Run scraper
         env:
           SHARK_BASE_URL: ${{ secrets.SHARK_BASE_URL }}
         run: |
@@ -53,6 +53,6 @@ jobs:
             git pull --rebase origin main
             git stash pop
             git add strmshark_tivimate.m3u8
-            git commit -m "🦈 Update Shark Playlist (rebased)" || true
+            git commit -m "Update Shark Playlist (rebased)" || true
             git push origin main
           fi
