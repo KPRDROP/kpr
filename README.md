@@ -10,4 +10,3 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 [![PIXNINE Scraper](https://github.com/KPRDROP/kpr/actions/workflows/pixnine.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/pixnine.yml)
 
 [![SportHub Scraper](https://github.com/KPRDROP/kpr/actions/workflows/sporthub.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/sporthub.yml)
-</div>
