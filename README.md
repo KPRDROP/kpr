@@ -15,7 +15,6 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 &nbsp;
 </div>
 
-<p>
   
 <div align="center">
   
