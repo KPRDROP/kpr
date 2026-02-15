@@ -1,4 +1,4 @@
-name: ▶️ Update STGATE Playlists
+name: STGATE Updater
 
 on:
   schedule:
@@ -14,26 +14,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: 🐍 Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: |
           pip install playwright httpx[http2] pytz
           playwright install chromium
 
-      - name: ▶️ Run STGATE scraper
+      - name: Run STGATE scraper
         env:
           STGATE_BASE_URL: ${{ secrets.STGATE_BASE_URL }}
         run: |
           python -m stgate
 
-      - name: 📤 Commit & push
+      - name: Commit & push
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
@@ -45,13 +45,13 @@ jobs:
             exit 0
           fi
 
-          git commit -m "🔄 Update STRMSGATE playlists [auto]"
+          git commit -m "Update STRMSGATE playlists [auto]"
 
           if ! git push origin main; then
             git stash
             git pull --rebase origin main
             git stash pop
             git add stgate_vlc.m3u8 stgate_tivimate.m3u8
-            git commit -m "🔄 Update STRMSGATE playlists" || true
+            git commit -m "Update STRMSGATE playlists" || true
             git push origin main
           fi
