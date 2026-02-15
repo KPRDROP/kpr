@@ -1,4 +1,4 @@
-name: PixelSport Playlist Generator
+name: PixelSport Updater
 
 on:
   schedule:
@@ -45,7 +45,7 @@ jobs:
         env:
           PIXELSPORTS_API_URL: ${{ secrets.PIXELSPORTS_API_URL }}
         run: |
-          echo "🚀 Running PixelSport scraper..."
+          echo "Running PixelSport scraper..."
           python Pixelsports_Playlist_Generator.py
 
       - name: Commit and push playlists
@@ -58,6 +58,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "🔄 Update PixelSport playlists"
+            git commit -m "Update PixelSport playlists"
             git push
           fi
