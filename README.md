@@ -18,4 +18,4 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
   
 <div align="center">
   
-[![STGATE Updater](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml) &nbsp; [![Roxie Updater](https://github.com/KPRDROP/kpr/actions/workflows/update_rox.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/update_rox.yml) [![AWAF Updater](https://github.com/KPRDROP/kpr/actions/workflows/awaf.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/awaf.yml)
+[![STGATE Updater](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml) &nbsp; [![Roxie Updater](https://github.com/KPRDROP/kpr/actions/workflows/update_rox.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/update_rox.yml) &nbsp; [![AWAF Updater](https://github.com/KPRDROP/kpr/actions/workflows/awaf.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/awaf.yml)
