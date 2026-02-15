@@ -1,4 +1,4 @@
-name: 🏒 NHL Webcast Scraper
+name: NHL Webcast Updater
 
 on:
   schedule:
@@ -24,19 +24,19 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: 🐍 Install Python dependencies
+      - name: Install Python dependencies
         run: |
           pip install --upgrade pip
           pip install requests beautifulsoup4 lxml playwright
 
-      - name: 📦 Install Playwright Browsers (Firefox & Chromium)
+      - name: Install Playwright Browsers (Firefox & Chromium)
         run: |
           python -m playwright install firefox chromium
           python -m playwright install-deps firefox chromium
 
-      - name: 🚀 Run Webcast Scraper
+      - name: Run Webcast Scraper
         run: |
-          echo "🏒 Starting NHL Webcast Scraper..."
+          echo "Starting NHL Webcast Scraper..."
           python nhl_webcast.py
 
       - name: Show outputs
