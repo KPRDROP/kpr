@@ -106,8 +106,8 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, Any]]:
         API_FILE.write(api_data)
 
     events = []
-    start_dt = now.delta(hours=-1)
-    end_dt = now.delta(minutes=5)
+    start_dt = now.delta(hours=-6)
+    end_dt = now.delta(minutes=12)
 
     for ev in api_data:
         date = ev.get("time")
