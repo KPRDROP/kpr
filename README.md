@@ -16,6 +16,7 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 </div>
 
 <p>
-  
+  <div align="center">
 [![STGATE Updater](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml)
+
 </p>
