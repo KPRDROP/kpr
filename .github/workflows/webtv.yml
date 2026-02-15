@@ -1,4 +1,4 @@
-name: 📺 Update WEBTV Playlists
+name: WEBTV Updater
 
 on:
   schedule:
@@ -13,26 +13,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🐍 Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: |
           pip install playwright selectolax httpx[http2] pytz
           playwright install chromium
 
-      - name: ▶️ Run WEBTV scraper
+      - name: Run WEBTV scraper
         env:
           WEBTV_NFL_BASE_URL: ${{ secrets.WEBTV_NFL_BASE_URL }}
         run: |
           python webtv.py
 
-      - name: 🚀 Commit & push playlists
+      - name: Commit & push playlists
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -43,5 +43,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "📺 Update WEBTV playlists"
+          git commit -m "Update WEBTV playlists"
           git push
