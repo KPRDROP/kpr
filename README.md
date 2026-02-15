@@ -10,4 +10,6 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 [![PIXNINE Scraper](https://github.com/KPRDROP/kpr/actions/workflows/pixnine.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/pixnine.yml)
 &nbsp;
 [![SportHub Scraper](https://github.com/KPRDROP/kpr/actions/workflows/sporthub.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/sporthub.yml)
+&nbsp;
+[![Update SportsWebcast Playlist](https://github.com/KPRDROP/kpr/actions/workflows/castwebsports.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/castwebsports.yml)
 </div>
