@@ -4,6 +4,6 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 "Educational Purposes Only"
 </div>
 
-<div style="text-align: center;">
+<center>
   
-[![PIXNINE Scraper](https://github.com/KPRDROP/kpr/actions/workflows/pixnine.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/pixnine.yml) </div>
+[![PIXNINE Scraper](https://github.com/KPRDROP/kpr/actions/workflows/pixnine.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/pixnine.yml) </center>
