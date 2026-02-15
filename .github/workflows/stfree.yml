@@ -1,4 +1,4 @@
-name: ▶️ StrmFree Scraper
+name: StrmFree Updater
 
 on:
   schedule:
@@ -14,29 +14,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: 🐍 Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install httpx[http2] playwright
           playwright install firefox
 
-      - name: 🚀 Run StreamFree scraper
+      - name: Run StreamFree scraper
         run: |
-          echo "🚀 Starting StrmFree scraper..."
+          echo "Starting StrmFree scraper..."
           python stfree.py
 
-      - name: 📤 Commit & push changes
+      - name: Commit & push changes
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add stfree.m3u *.json || true
-          git commit -m "🔄 Update StreamFree playlist" || exit 0
+          git commit -m "Update StreamFree playlist" || exit 0
           git push
