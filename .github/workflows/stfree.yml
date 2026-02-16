@@ -28,9 +28,9 @@ jobs:
           pip install httpx[http2] playwright
           playwright install firefox
 
-      - name: Run StreamFree scraper
+      - name: Run StreamFree updater
         run: |
-          echo "Starting StrmFree scraper..."
+          echo "Starting StrmFree updater..."
           python stfree.py
 
       - name: Commit & push changes
