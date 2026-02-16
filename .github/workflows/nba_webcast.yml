@@ -1,11 +1,10 @@
-name: NBA Webcast Updater
+name: NBA Web Updater
 
 on:
   schedule:
     # Run every 2 hours
     - cron: "0 */2 * * *"
   workflow_dispatch:
-    # Allow manual run from GitHub UI
 
 jobs:
   scrape:
@@ -29,7 +28,7 @@ jobs:
 
       - name: Run castweb_nba.py
         run: |
-          echo "Running NBA-only scraper..."
+          echo "Running NBA-only updater..."
           python nba_webcast.py
 
       - name: Upload NBA Playlists
