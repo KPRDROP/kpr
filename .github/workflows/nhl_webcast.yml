@@ -1,4 +1,4 @@
-name: NHL Webcast Updater
+name: NHL Web Updater
 
 on:
   schedule:
@@ -36,7 +36,7 @@ jobs:
 
       - name: Run Webcast Scraper
         run: |
-          echo "Starting NHL Webcast Scraper..."
+          echo "Starting NHL Web Updater..."
           python nhl_webcast.py
 
       - name: Show outputs
@@ -58,7 +58,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Update NHL Webcast playlists [auto]"
+          git commit -m "Update NHL Web playlists [auto]"
 
           git pull --rebase origin main
           git push origin main
