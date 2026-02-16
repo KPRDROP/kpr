@@ -26,6 +26,7 @@ jobs:
 
       - name: Install deps
         run: |
+          playwright install
           pip install playwright httpx[http2] pytz
           pip install selectolax
 
