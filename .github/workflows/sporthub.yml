@@ -27,7 +27,7 @@ jobs:
 
       - name: Run scraper
         run: |
-          echo "Starting SportHub Scraper..."
+          echo "Starting SportHub Updater..."
           python sporthub.py
 
       - name: Commit & Push playlists
