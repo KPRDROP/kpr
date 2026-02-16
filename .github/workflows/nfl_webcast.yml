@@ -1,4 +1,4 @@
-name: NFL Webcast Updater
+name: NFL Web Updater
 
 on:
   schedule:
@@ -34,9 +34,9 @@ jobs:
           python -m playwright install firefox chromium
           python -m playwright install-deps firefox chromium
 
-      - name: Run Webcast Scraper
+      - name: Run Webcast Updater
         run: |
-          echo "Starting NFL Webcast Scraper..."
+          echo "Starting NFL Web Updater..."
           python nfl_webcast.py
 
       - name: Show outputs
@@ -58,7 +58,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Update NFL Webcast playlists [auto]"
+          git commit -m "Update NFL Web playlists [auto]"
 
           git pull --rebase origin main
           git push origin main
