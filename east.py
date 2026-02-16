@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import asyncio
 import os
-from functools import partial
 from urllib.parse import urljoin, quote
 
 from playwright.async_api import async_playwright
+from selectolax.parser import HTMLParser
 
-from utils import Cache, Time, get_logger, leagues
+from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
@@ -34,7 +34,7 @@ SPORT_ENDPOINTS = ["mma", "nba", "nhl", "soccer", "wwe"]
 urls: dict[str, dict] = {}
 
 
-# ---------------- PLAYWRIGHT STREAM CAPTURE ----------------
+# ---------------- PLAYWRIGHT CAPTURE ----------------
 async def capture_stream(event_url: str, url_num: int):
 
     if not event_url.startswith("http"):
@@ -56,14 +56,25 @@ async def capture_stream(event_url: str, url_num: int):
 
         try:
             await page.goto(event_url, timeout=30000)
+
+            # wait for player container
+            await page.wait_for_timeout(4000)
+
+            # Momentum click pattern
+            await page.mouse.click(600, 400)
+            await page.wait_for_timeout(2000)
+            await page.mouse.click(600, 400)
+
+            # Wait for network requests
             await page.wait_for_timeout(8000)
+
         except Exception as e:
-            log.warning(f"URL {url_num}) Page load failed: {e}")
+            log.warning(f"URL {url_num}) Page interaction failed: {e}")
 
         await browser.close()
 
     if stream_url:
-        log.info(f"URL {url_num}) Captured M3U8 via network")
+        log.info(f"URL {url_num}) Captured M3U8")
         return stream_url, event_url
 
     log.warning(f"URL {url_num}) No M3U8 captured from network")
@@ -71,10 +82,7 @@ async def capture_stream(event_url: str, url_num: int):
 
 
 # ---------------- EVENTS ----------------
-async def get_events():
-    from selectolax.parser import HTMLParser
-    from utils import network
-
+async def get_events(cached_keys):
     tasks = [
         network.request(urljoin(BASE_URL, f"categories/{sport}/"), log=log)
         for sport in SPORT_ENDPOINTS
@@ -106,13 +114,17 @@ async def get_events():
             if not href:
                 continue
 
+            if not href.startswith("http"):
+                href = urljoin(BASE_URL, href)
+
             key = f"[{sport}] {name} ({TAG})"
+            if key in cached_keys:
+                continue
 
             events.append({
                 "sport": sport,
                 "event": name,
                 "link": href,
-                "key": key,
             })
 
     return events
@@ -126,16 +138,12 @@ async def scrape():
     log.info(f"Loaded {len(urls)} event(s) from cache")
     log.info(f'Scraping from "{BASE_URL}"')
 
-    events = await get_events()
+    events = await get_events(cached.keys())
     log.info(f"Processing {len(events)} new URL(s)")
 
     now = Time.clean(Time.now()).timestamp()
 
     for i, ev in enumerate(events, 1):
-
-        if ev["key"] in cached:
-            continue
-
         stream, referer = await capture_stream(ev["link"], i)
 
         if not stream:
@@ -143,7 +151,9 @@ async def scrape():
 
         tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
-        urls[ev["key"]] = cached[ev["key"]] = {
+        key = f"[{ev['sport']}] {ev['event']} ({TAG})"
+
+        urls[key] = cached[key] = {
             "url": stream,
             "base": referer,
             "logo": logo,
