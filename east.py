@@ -2,6 +2,7 @@
 import asyncio
 import os
 import re
+import base64
 from functools import partial
 from urllib.parse import urljoin, quote
 
@@ -29,73 +30,81 @@ USER_AGENT = (
 ENCODED_UA = quote(USER_AGENT, safe="")
 
 CACHE_FILE = Cache(TAG, exp=10_800)
-
 SPORT_ENDPOINTS = ["mma", "nba", "nhl", "soccer", "wwe"]
 
 urls: dict[str, dict] = {}
 
 
-# ---------------- SCRAPER ----------------
-async def process_event(url: str, url_num: int) -> tuple[str | None, str | None]:
+# ---------------- STREAM EXTRACTION ----------------
+def extract_m3u8(text: str) -> str | None:
 
-    # 🔧 FIX 1 — Ensure absolute URL
+    # 1️⃣ Direct m3u8 link
+    direct = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\']*', text)
+    if direct:
+        return direct.group(0)
+
+    # 2️⃣ Hex encoded
+    hex_match = re.search(r'=\s*"([0-9a-fA-F]{100,})"', text)
+    if hex_match:
+        try:
+            return bytes.fromhex(hex_match.group(1)).decode()
+        except:
+            pass
+
+    # 3️⃣ Base64 encoded
+    b64_match = re.search(r'atob\("([^"]+)"\)', text)
+    if b64_match:
+        try:
+            decoded = base64.b64decode(b64_match.group(1)).decode()
+            if ".m3u8" in decoded:
+                return decoded
+        except:
+            pass
+
+    return None
+
+
+# ---------------- SCRAPER ----------------
+async def process_event(url: str, url_num: int):
+
     if not url.startswith("http"):
         url = urljoin(BASE_URL, url)
 
-    valid_m3u8 = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
-    nones = None, None
-
     if not (html := await network.request(url, log=log)):
         log.warning(f"URL {url_num}) Failed to load event page")
-        return nones
+        return None, None
+
+    # 🔥 FIRST: try extracting directly from main page
+    stream = extract_m3u8(html.text)
+    if stream:
+        log.info(f"URL {url_num}) Captured M3U8 (direct)")
+        return stream, url
 
     soup = HTMLParser(html.content)
 
-    # 🔧 FIX 2 — Iterate ALL iframes (not just first)
-    iframes = soup.css("iframe")
-
-    if not iframes:
-        log.warning(f"URL {url_num}) No iframe found")
-        return nones
-
-    for iframe in iframes:
+    # 🔥 SECOND: try all iframes
+    for iframe in soup.css("iframe"):
 
         iframe_src = iframe.attributes.get("src")
-
-        if (
-            not iframe_src
-            or iframe_src == "about:blank"
-            or "ads" in iframe_src
-            or "doubleclick" in iframe_src
-        ):
+        if not iframe_src or iframe_src == "about:blank":
             continue
 
-        # 🔧 FIX 3 — Normalize iframe src
         if iframe_src.startswith("//"):
             iframe_src = "https:" + iframe_src
-        elif iframe_src.startswith("/"):
-            iframe_src = urljoin(url, iframe_src)
         elif not iframe_src.startswith("http"):
             iframe_src = urljoin(url, iframe_src)
 
-        if not (iframe_html := await network.request(iframe_src, log=log)):
+        iframe_html = await network.request(iframe_src, log=log)
+        if not iframe_html:
             continue
 
-        if not (m := valid_m3u8.search(iframe_html.text)):
-            continue
+        stream = extract_m3u8(iframe_html.text)
+        if stream:
+            log.info(f"URL {url_num}) Captured M3U8 (iframe)")
+            return stream, iframe_src
 
-        encoded = m.group(2)
-
-        try:
-            stream = bytes.fromhex(encoded).decode("utf-8")
-        except Exception:
-            continue
-
-        log.info(f"URL {url_num}) Captured M3U8")
-        return stream, iframe_src
-
-    log.warning(f"URL {url_num}) No valid player iframe found")
-    return nones
+    log.warning(f"URL {url_num}) Stream not found in page or iframes")
+    return None, None
 
 
 # ---------------- EVENTS ----------------
@@ -132,7 +141,6 @@ async def get_events(cached_keys):
             if not href:
                 continue
 
-            # 🔧 FIX 4 — Normalize event link
             if not href.startswith("http"):
                 href = urljoin(BASE_URL, href)
 
@@ -163,19 +171,8 @@ async def scrape():
     now = Time.clean(Time.now()).timestamp()
 
     for i, ev in enumerate(events, 1):
-        handler = partial(process_event, ev["link"], i)
+        url, referer = await process_event(ev["link"], i)
 
-        result = await network.safe_process(
-            handler,
-            url_num=i,
-            semaphore=network.HTTP_S,
-            log=log,
-        )
-
-        if not result:
-            continue
-
-        url, iframe = result
         if not url:
             continue
 
@@ -184,7 +181,7 @@ async def scrape():
         key = f"[{ev['sport']}] {ev['event']} ({TAG})"
         urls[key] = cached[key] = {
             "url": url,
-            "base": iframe,
+            "base": referer,
             "logo": logo,
             "id": tvg_id or "Live.Event.us",
             "sport": ev["sport"],
