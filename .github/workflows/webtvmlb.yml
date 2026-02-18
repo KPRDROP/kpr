@@ -1,0 +1,48 @@
+name: WEBTV MLB Updater
+
+on:
+  schedule:
+    # Runs every hour
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install playwright selectolax httpx[http2] pytz
+          playwright install chromium
+
+      - name: Run WEBTV MLB updater
+        env:
+          WEBTV_MLB_BASE_URL: ${{ secrets.WEBTV_MLB_BASE_URL }}
+        run: |
+          python webtvmlb.py
+
+      - name: Commit & push playlists
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add webtvmlb_vlc.m3u8 webtvmlb_tivimate.m3u8
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "Update WEBTV MLB playlists"
+          git push
