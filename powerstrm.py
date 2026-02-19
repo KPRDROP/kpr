@@ -72,7 +72,7 @@ async def capture_stream(page, url, index):
 
     page.on("response", handle_response)
 
-    await page.goto(url, wait_until="networkidle", timeout=30000)
+    await page.goto(url, wait_until="domcontentloaded", timeout=30000)
     await page.wait_for_timeout(5000)
 
     if stream_url:
@@ -101,7 +101,7 @@ async def scrape():
             context = await browser.new_context()
             page = await context.new_page()
 
-            await page.goto(BASE_URL, wait_until="networkidle", timeout=30000)
+            await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=30000)
             await page.wait_for_timeout(5000)
 
             # Collect ALL match-card links globally
