@@ -1,7 +1,7 @@
 import asyncio
 import re
 from pathlib import Path
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import quote_plus
 
 from playwright.async_api import async_playwright
 
@@ -39,12 +39,12 @@ def build_playlist(data: dict) -> str:
     lines = ["#EXTM3U"]
     chno = 1
 
-    for key, info in data.items():
+    for info in data.values():
         lines.append(
             f'#EXTINF:-1 tvg-chno="{chno}" '
             f'tvg-id="{info["id"]}" '
             f'tvg-name="{info["name"]}" '
-            f'tvg-logo="{info["logo"]}" '
+            f'tvg-logo="" '
             f'group-title="Live Events",{info["name"]}'
         )
         lines.append(
@@ -59,81 +59,28 @@ def build_playlist(data: dict) -> str:
 
 
 # -------------------------------------------------
-# Extract events from DOM
+# Capture m3u8 from network
 # -------------------------------------------------
 
-async def get_events(page):
-    events = []
+async def capture_stream(page, url, index):
+    stream_url = None
 
-    await page.goto(BASE_URL, wait_until="networkidle", timeout=30000)
-    await page.wait_for_timeout(3000)
+    def handle_response(response):
+        nonlocal stream_url
+        if ".m3u8" in response.url:
+            stream_url = response.url
 
-    categories = await page.locator(".category-title").all()
+    page.on("response", handle_response)
 
-    for cat in categories:
-        category = (await cat.inner_text()).strip()
+    await page.goto(url, wait_until="networkidle", timeout=30000)
+    await page.wait_for_timeout(5000)
 
-        if category not in TVG_MAP:
-            continue
+    if stream_url:
+        log.info(f"URL {index}) captured stream")
+    else:
+        log.warning(f"URL {index}) no m3u8 captured")
 
-        # Go up to parent container
-        parent = cat.locator("xpath=..")
-
-        cards = await parent.locator(".match-card").all()
-
-        for card in cards:
-            link_el = card.locator("a.match-content")
-            href = await link_el.get_attribute("href")
-
-            team_names = await card.locator(".team-name").all_text_contents()
-            if len(team_names) < 2:
-                continue
-
-            team1 = team_names[0].strip()
-            team2 = team_names[1].strip()
-
-            date_raw = await card.locator(".match-date").inner_text()
-            date_clean = date_raw.replace(",", "").strip()
-
-            title = f"[{category}] {team1} at {team2} ({TAG})"
-
-            events.append(
-                {
-                    "id": href,
-                    "title": title,
-                    "url": href,
-                    "category": category,
-                    "date": date_clean,
-                }
-            )
-
-    return events
-
-
-# -------------------------------------------------
-# Extract m3u8 from event page
-# -------------------------------------------------
-
-async def extract_stream(context, event_url, index):
-    async with network.event_page(context) as page:
-        await page.goto(event_url, wait_until="networkidle", timeout=30000)
-        await page.wait_for_timeout(3000)
-
-        html = await page.content()
-
-        match = re.search(
-            r'(https?:\/\/[^\s"\'<>]+\.m3u8[^\s"\'<>]*)',
-            html,
-            re.IGNORECASE,
-        )
-
-        if match:
-            stream = match.group(1)
-            log.info(f"URL {index}) captured stream")
-            return stream
-
-        log.warning(f"URL {index}) no m3u8 found")
-        return None
+    return stream_url
 
 
 # -------------------------------------------------
@@ -151,41 +98,77 @@ async def scrape():
         )
 
         try:
-            async with network.event_context(browser, stealth=False) as context:
-                async with network.event_page(context) as page:
-                    events = await get_events(page)
+            context = await browser.new_context()
+            page = await context.new_page()
 
-                log.info(f"Found {len(events)} events")
+            await page.goto(BASE_URL, wait_until="networkidle", timeout=30000)
+            await page.wait_for_timeout(5000)
 
-                if not events:
-                    OUTPUT_FILE.write_text(
-                        build_playlist(cached),
-                        encoding="utf-8",
-                    )
-                    log.info(f"Wrote {len(cached)} cached entries")
-                    return
+            # Collect ALL match-card links globally
+            cards = await page.locator(".match-card a.match-content").all()
 
-                now_ts = Time.clean(Time.now()).timestamp()
+            log.info(f"Detected {len(cards)} match cards")
 
-                for i, ev in enumerate(events, start=1):
-                    stream = await extract_stream(context, ev["url"], i)
-                    if not stream:
-                        continue
+            events = []
 
-                    cached[ev["id"]] = {
-                        "name": ev["title"],
-                        "url": stream,
-                        "logo": "",
-                        "timestamp": now_ts,
-                        "id": TVG_MAP.get(ev["category"]),
+            for card in cards:
+                href = await card.get_attribute("href")
+                if not href:
+                    continue
+
+                teams = await card.locator("..").locator(".team-name").all_text_contents()
+
+                if len(teams) < 2:
+                    continue
+
+                team1 = teams[0].strip()
+                team2 = teams[1].strip()
+
+                # Try detect category by nearby category-title (best guess)
+                category = "Other Sports"
+                for key in TVG_MAP.keys():
+                    if key.lower() in (await page.content()).lower():
+                        category = key
+                        break
+
+                title = f"[{category}] {team1} at {team2} ({TAG})"
+
+                events.append(
+                    {
+                        "id": href,
+                        "title": title,
+                        "url": href,
+                        "category": category,
                     }
+                )
+
+            log.info(f"Found {len(events)} events")
+
+            if not events:
+                OUTPUT_FILE.write_text(build_playlist(cached), encoding="utf-8")
+                log.info(f"Wrote {len(cached)} cached entries")
+                return
+
+            now_ts = Time.clean(Time.now()).timestamp()
+
+            for i, ev in enumerate(events, start=1):
+                stream = await capture_stream(page, ev["url"], i)
+                if not stream:
+                    continue
+
+                cached[ev["id"]] = {
+                    "name": ev["title"],
+                    "url": stream,
+                    "timestamp": now_ts,
+                    "id": TVG_MAP.get(ev["category"], "Live.Event.us"),
+                }
 
         finally:
             await browser.close()
 
     CACHE_FILE.write(cached)
-
     OUTPUT_FILE.write_text(build_playlist(cached), encoding="utf-8")
+
     log.info(f"Successfully wrote {len(cached)} entries to powerstrm.m3u8")
 
 
