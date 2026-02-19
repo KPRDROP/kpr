@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # IMPORTANT for rebase
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -45,7 +45,13 @@ jobs:
 
           git commit -m "Auto update powerstrm playlist"
 
-          # Pull latest changes and rebase to avoid push rejection
-          git pull --rebase origin main
-
-          git push origin main
+          # FIX: stash before rebase
+          if ! git push origin main; then
+            echo "Push rejected — rebasing safely..."
+            git stash
+            git pull --rebase origin main
+            git stash pop
+            git add powerstrm.m3u8 powerstrm.json
+            git commit -m "Update powerstrm playlist (rebased)" || true
+            git push origin main
+          fi
