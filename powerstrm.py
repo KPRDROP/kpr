@@ -13,7 +13,7 @@ BASE_URL = "https://powerstreams.online/"
 REFERER = "https://streams.center/"
 ORIGIN = "https://streams.center"
 
-CACHE_FILE = Cache("powerstrm.json", exp=10_800)
+CACHE_FILE = Cache(f"{TAG.lower()}.json", exp=10_800)
 OUTPUT_FILE = Path("powerstrm.m3u8")
 
 # -------------------------------------------------
