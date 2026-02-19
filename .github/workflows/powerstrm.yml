@@ -1,0 +1,44 @@
+name: POWERSTRM Updater
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install httpx[http2] pytz
+
+      - name: Run updater
+        run: python powerstrm.py
+
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+
+          git add powerstrm.m3u8 powerstrm.json
+
+          if git diff --cached --quiet; then
+            echo "No changes detected"
+          else
+            git commit -m "Auto update powerstrm playlist"
+            git push
+          fi
