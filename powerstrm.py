@@ -30,10 +30,10 @@ TVG_MAP = {
 }
 
 LOGO_MAP = {
-    "Soccer.Dummy.us": "https://i.postimg.cc/vH3CwsWN/hd-yellow-and-black-classic-football-soccer-ball-png-7040816948787976l8sriy2gf.png",
-    "NBA.Basketball.Dummy.us": "https://i.postimg.cc/vBt37rhW/c-HJpdm-F0ZS9sci9pb-WFn-ZXMvd2Vic2l0ZS8y-MDIz-LTA1L2pv-Yjk2My1h-LTEw-MS1w-Ln-Bu-Zw.jpg",
-    "NHL.Hockey.Dummy.us": "https://i.postimg.cc/Vvb5QRhM/field-hockey-male-player-11548793248f7jrqkhesn.png",
-    "Sports.Dummy.us": "https://i.postimg.cc/Bnh8FX2S/sporting-goods-volleyball-coach-badminton.jpg",
+    "Football": "https://i.postimg.cc/vH3CwsWN/hd-yellow-and-black-classic-football-soccer-ball-png-7040816948787976l8sriy2gf.png",
+    "Basketball": "https://i.postimg.cc/vBt37rhW/c-HJpdm-F0ZS9sci9pb-WFn-ZXMvd2Vic2l0ZS8y-MDIz-LTA1L2pv-Yjk2My1h-LTEw-MS1w-Ln-Bu-Zw.jpg",
+    "Hockey": "https://i.postimg.cc/Vvb5QRhM/field-hockey-male-player-11548793248f7jrqkhesn.png",
+    "Other Sports": "https://i.postimg.cc/Bnh8FX2S/sporting-goods-volleyball-coach-badminton.jpg",
 }
 
 
