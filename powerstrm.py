@@ -1,11 +1,10 @@
 import asyncio
-import re
 from pathlib import Path
 from urllib.parse import quote_plus
 
 from playwright.async_api import async_playwright
 
-from utils import Cache, Time, get_logger, network
+from utils import Cache, Time, get_logger
 
 log = get_logger(__name__)
 
@@ -23,11 +22,20 @@ UA = (
 )
 UA_ENC = quote_plus(UA)
 
+# Correct category IDs
 TVG_MAP = {
     "Football": "Soccer.Dummy.us",
     "Basketball": "NBA.Basketball.Dummy.us",
     "Hockey": "NHL.Hockey.Dummy.us",
     "Other Sports": "Sports.Dummy.us",
+}
+
+# Correct logos
+LOGO_MAP = {
+    "Football": "https://i.postimg.cc/vH3CwsWN/hd-yellow-and-black-classic-football-soccer-ball-png-7040816948787976l8sriy2gf.png",
+    "Basketball": "https://i.postimg.cc/vBt37rhW/c-HJpdm-F0ZS9sci9pb-WFn-ZXMvd2Vic2l0ZS8y-MDIz-LTA1L2pv-Yjk2My1h-LTEw-MS1w-Ln-Bu-Zw.jpg",
+    "Hockey": "https://i.postimg.cc/Vvb5QRhM/field-hockey-male-player-11548793248f7jrqkhesn.png",
+    "Other Sports": "https://i.postimg.cc/Bnh8FX2S/sporting-goods-volleyball-coach-badminton.jpg",
 }
 
 
@@ -44,8 +52,8 @@ def build_playlist(data: dict) -> str:
             f'#EXTINF:-1 tvg-chno="{chno}" '
             f'tvg-id="{info["id"]}" '
             f'tvg-name="{info["name"]}" '
-            f'tvg-logo="" '
-            f'group-title="Live Events",{info["name"]}'
+            f'tvg-logo="{info["logo"]}" '
+            f'group-title="{info["group"]}",{info["name"]}'
         )
         lines.append(
             f'{info["url"]}'
@@ -59,7 +67,7 @@ def build_playlist(data: dict) -> str:
 
 
 # -------------------------------------------------
-# Capture m3u8 from network
+# Capture m3u8 from network (UNCHANGED)
 # -------------------------------------------------
 
 async def capture_stream(page, url, index):
@@ -67,13 +75,17 @@ async def capture_stream(page, url, index):
 
     def handle_response(response):
         nonlocal stream_url
-        if ".m3u8" in response.url:
+        if ".m3u8" in response.url and not stream_url:
             stream_url = response.url
 
     page.on("response", handle_response)
 
-    await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-    await page.wait_for_timeout(5000)
+    try:
+        await page.goto(url, wait_until="domcontentloaded", timeout=20000)
+        await page.wait_for_timeout(4000)
+    except Exception:
+        log.warning(f"URL {index}) navigation timeout — skipping")
+        return None
 
     if stream_url:
         log.info(f"URL {index}) captured stream")
@@ -104,43 +116,40 @@ async def scrape():
             await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=30000)
             await page.wait_for_timeout(5000)
 
-            # Collect ALL match-card links globally
-            cards = await page.locator(".match-card a.match-content").all()
-
-            log.info(f"Detected {len(cards)} match cards")
-
             events = []
 
-            for card in cards:
-                href = await card.get_attribute("href")
-                if not href:
-                    continue
+            # PROPER CATEGORY EXTRACTION
+            category_blocks = await page.locator(".category-title").all()
+            log.info(f"Detected {len(category_blocks)} sport categories")
 
-                teams = await card.locator("..").locator(".team-name").all_text_contents()
+            for cat in category_blocks:
+                category = (await cat.inner_text()).strip()
 
-                if len(teams) < 2:
-                    continue
+                # container after category title
+                container = cat.locator("xpath=following-sibling::*[1]")
 
-                team1 = teams[0].strip()
-                team2 = teams[1].strip()
+                cards = await container.locator(".match-card").all()
 
-                # Try detect category by nearby category-title (best guess)
-                category = "Other Sports"
-                for key in TVG_MAP.keys():
-                    if key.lower() in (await page.content()).lower():
-                        category = key
-                        break
+                for card in cards:
+                    link = await card.locator("a.match-content").get_attribute("href")
+                    if not link:
+                        continue
 
-                title = f"[{category}] {team1} at {team2} ({TAG})"
+                    teams = await card.locator(".team-name").all_text_contents()
+                    if len(teams) < 2:
+                        continue
 
-                events.append(
-                    {
-                        "id": href,
+                    team1 = teams[0].strip()
+                    team2 = teams[1].strip()
+
+                    title = f"[{category}] {team1} vs {team2} ({TAG})"
+
+                    events.append({
+                        "id": link,
                         "title": title,
-                        "url": href,
+                        "url": link,
                         "category": category,
-                    }
-                )
+                    })
 
             log.info(f"Found {len(events)} events")
 
@@ -156,11 +165,15 @@ async def scrape():
                 if not stream:
                     continue
 
+                category = ev["category"]
+
                 cached[ev["id"]] = {
                     "name": ev["title"],
                     "url": stream,
                     "timestamp": now_ts,
-                    "id": TVG_MAP.get(ev["category"], "Live.Event.us"),
+                    "id": TVG_MAP.get(category, "Live.Event.us"),
+                    "logo": LOGO_MAP.get(category, ""),
+                    "group": category,
                 }
 
         finally:
