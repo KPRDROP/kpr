@@ -62,7 +62,7 @@ def build_vlc_playlist(data: dict) -> None:
         chno += 1
 
     VLC_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    log.info(f"✅ Wrote {len(data)} entries to pixnine_vlc.m3u8")
+    log.info(f"Wrote {len(data)} entries to pixnine_vlc.m3u8")
 
 
 def build_tivimate_playlist(data: dict) -> None:
@@ -89,7 +89,7 @@ def build_tivimate_playlist(data: dict) -> None:
         chno += 1
 
     TIVIMATE_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    log.info(f"✅ Wrote {len(data)} entries to pixnine_tivimate.m3u8")
+    log.info(f"Wrote {len(data)} entries to pixnine_tivimate.m3u8")
 
 
 # -------------------------------------------------
@@ -98,13 +98,13 @@ def build_tivimate_playlist(data: dict) -> None:
 
 async def get_api_data(page: Page) -> dict:
     try:
-        # 1️⃣ Warm up homepage
-        await page.goto(BASE_URL, wait_until="networkidle", timeout=20000)
+        # Warm up homepage
+        await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=6_000)
         await page.wait_for_timeout(3000)
 
         context = page.context
 
-        # 2️⃣ Real browser-like headers
+        # Real browser-like headers
         headers = {
             "Accept": "application/json, text/plain, */*",
             "Accept-Language": "en-US,en;q=0.9",
@@ -205,7 +205,7 @@ async def main():
         finally:
             await browser.close()
 
-    log.info("✅ PIXNINE scraper finished")
+    log.info("PIXNINE scraper finished")
 
 
 if __name__ == "__main__":
