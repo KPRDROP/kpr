@@ -116,41 +116,41 @@ async def scrape():
 
             events = []
 
-            # Get ALL category titles
-            categories = await page.locator(".category-title").all()
-            log.info(f"Detected {len(categories)} sport categories")
+            # Get all match cards globally
+            cards = await page.locator(".match-card").all()
+            log.info(f"Detected {len(cards)} match cards")
 
-            for idx, cat in enumerate(categories):
+            for card in cards:
 
-                category_name = (await cat.inner_text()).strip()
-
-                # XPath: get all match-card siblings UNTIL next category-title
-                cards = cat.locator(
-                    "xpath=following-sibling::div[not(contains(@class,'category-title')) and contains(@class,'match-card')]"
+                # 🔥 Find closest previous category-title
+                category_locator = card.locator(
+                    "xpath=preceding::div[contains(@class,'category-title')][1]"
                 )
 
-                card_elements = await cards.all()
+                if await category_locator.count() > 0:
+                    category_name = (await category_locator.inner_text()).strip()
+                else:
+                    category_name = "Other Sports"
 
-                for card in card_elements:
-                    link = await card.locator("a.match-content").get_attribute("href")
-                    if not link:
-                        continue
+                link = await card.locator("a.match-content").get_attribute("href")
+                if not link:
+                    continue
 
-                    teams = await card.locator(".team-name").all_text_contents()
-                    if len(teams) < 2:
-                        continue
+                teams = await card.locator(".team-name").all_text_contents()
+                if len(teams) < 2:
+                    continue
 
-                    team1 = teams[0].strip()
-                    team2 = teams[1].strip()
+                team1 = teams[0].strip()
+                team2 = teams[1].strip()
 
-                    title = f"[{category_name}] {team1} vs {team2} ({TAG})"
+                title = f"[{category_name}] {team1} vs {team2} ({TAG})"
 
-                    events.append({
-                        "id": link,
-                        "title": title,
-                        "url": link,
-                        "category": category_name,
-                    })
+                events.append({
+                    "id": link,
+                    "title": title,
+                    "url": link,
+                    "category": category_name,
+                })
 
             log.info(f"Found {len(events)} events")
 
