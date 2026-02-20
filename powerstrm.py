@@ -22,7 +22,6 @@ UA = (
 )
 UA_ENC = quote_plus(UA)
 
-# Correct category IDs
 TVG_MAP = {
     "Football": "Soccer.Dummy.us",
     "Basketball": "NBA.Basketball.Dummy.us",
@@ -30,7 +29,6 @@ TVG_MAP = {
     "Other Sports": "Sports.Dummy.us",
 }
 
-# Correct logos
 LOGO_MAP = {
     "Football": "https://i.postimg.cc/vH3CwsWN/hd-yellow-and-black-classic-football-soccer-ball-png-7040816948787976l8sriy2gf.png",
     "Basketball": "https://i.postimg.cc/vBt37rhW/c-HJpdm-F0ZS9sci9pb-WFn-ZXMvd2Vic2l0ZS8y-MDIz-LTA1L2pv-Yjk2My1h-LTEw-MS1w-Ln-Bu-Zw.jpg",
@@ -67,7 +65,7 @@ def build_playlist(data: dict) -> str:
 
 
 # -------------------------------------------------
-# Capture m3u8 from network (UNCHANGED)
+# Capture m3u8
 # -------------------------------------------------
 
 async def capture_stream(page, url, index):
@@ -118,19 +116,22 @@ async def scrape():
 
             events = []
 
-            # PROPER CATEGORY EXTRACTION
-            category_blocks = await page.locator(".category-title").all()
-            log.info(f"Detected {len(category_blocks)} sport categories")
+            # Get ALL category titles
+            categories = await page.locator(".category-title").all()
+            log.info(f"Detected {len(categories)} sport categories")
 
-            for cat in category_blocks:
-                category = (await cat.inner_text()).strip()
+            for idx, cat in enumerate(categories):
 
-                # container after category title
-                container = cat.locator("xpath=following-sibling::*[1]")
+                category_name = (await cat.inner_text()).strip()
 
-                cards = await container.locator(".match-card").all()
+                # XPath: get all match-card siblings UNTIL next category-title
+                cards = cat.locator(
+                    "xpath=following-sibling::div[not(contains(@class,'category-title')) and contains(@class,'match-card')]"
+                )
 
-                for card in cards:
+                card_elements = await cards.all()
+
+                for card in card_elements:
                     link = await card.locator("a.match-content").get_attribute("href")
                     if not link:
                         continue
@@ -142,13 +143,13 @@ async def scrape():
                     team1 = teams[0].strip()
                     team2 = teams[1].strip()
 
-                    title = f"[{category}] {team1} vs {team2} ({TAG})"
+                    title = f"[{category_name}] {team1} vs {team2} ({TAG})"
 
                     events.append({
                         "id": link,
                         "title": title,
                         "url": link,
-                        "category": category,
+                        "category": category_name,
                     })
 
             log.info(f"Found {len(events)} events")
@@ -184,10 +185,6 @@ async def scrape():
 
     log.info(f"Successfully wrote {len(cached)} entries to powerstrm.m3u8")
 
-
-# -------------------------------------------------
-# Run
-# -------------------------------------------------
 
 if __name__ == "__main__":
     asyncio.run(scrape())
