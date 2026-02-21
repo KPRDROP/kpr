@@ -149,7 +149,7 @@ def build_tivimate(data):
 # MAIN
 # --------------------------------------------------
 async def main():
-    log.info("🚀 Starting EmbedHD scraper...")
+    log.info("Starting EmbedHD updater...")
 
     cached = CACHE.load() or {}
     events_cache.update(cached)
