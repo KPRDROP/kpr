@@ -16,7 +16,7 @@ API_FILE = Cache(f"{TAG.lower()}-api.json", exp=7_200)
 
 OUTPUT_FILE = Path("centerstrm.m3u")
 
-# 🔐 API URL FROM SECRET
+# API URL FROM SECRET
 BASE_URL = os.environ["CENTERSTRM_API"]
 EMBED_BASE = "https://streams.center/"
 
@@ -206,5 +206,5 @@ async def scrape() -> None:
 # ENTRY POINT
 # -------------------------------------------------
 if __name__ == "__main__":
-    log.info("🚀 Starting StreamCenter scraper...")
+    log.info("Starting StreamCenter scraper...")
     asyncio.run(scrape())
