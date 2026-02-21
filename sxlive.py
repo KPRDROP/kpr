@@ -15,7 +15,7 @@ CACHE_FILE = Cache(TAG, exp=10_800)
 XML_CACHE = Cache(f"{TAG}-xml", exp=28_000)
 
 # -------------------------------------------------
-# ✅ SECRETS FROM ENVIRONMENT (GitHub Actions)
+# SECRETS FROM ENVIRONMENT
 # -------------------------------------------------
 SXLIVE_BASE_URL = os.environ.get("SXLIVE_BASE_URL")
 SXLIVE_BASE_REF = os.environ.get("SXLIVE_BASE_REF")
