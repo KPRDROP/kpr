@@ -195,7 +195,7 @@ async def scrape(browser: Browser) -> None:
 # -------------------------------------------------
 
 async def main():
-    log.info("🚀 PIXNINE scraper starting")
+    log.info("PIXNINE updater starting")
 
     async with async_playwright() as p:
         browser = await network.browser(p)
