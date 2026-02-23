@@ -55,7 +55,7 @@ def fetch(url, timeout=12):
         soup = BeautifulSoup(text, "html.parser")
         return soup, text
     except Exception as e:
-        print(f"  ❌ fetch failed: {url} -> {e}")
+        print(f"fetch failed: {url} -> {e}")
         return None, ""
 
 def abs_url(base, href):
@@ -313,7 +313,7 @@ def write_playlists(streams):
             f.write(f'{url}|referer={REFERER}|user-agent={ua_enc}\n\n')
 
 def main():
-    print("▶️ Starting RoxieStreams playlist generation...")
+    print("Starting RoxieStreams playlist generation...")
     all_streams = []
     seen_urls = set()
 
@@ -321,7 +321,7 @@ def main():
         try:
             candidates = get_category_event_candidates(cat)
         except Exception as e:
-            print(f"  ❌ Failed to parse category {cat}: {e}")
+            print(f"Failed to parse category {cat}: {e}")
             continue
 
         for anchor_text, href in candidates:
@@ -353,14 +353,14 @@ def main():
                 all_streams.append(((cat or "misc"), display_name, clean))
 
     if not all_streams:
-        print("⚠️ No streams found.")
+        print("No streams found.")
     else:
-        print(f"✅ Found {len(all_streams)} streams.")
+        print(f"Found {len(all_streams)} streams.")
 
     write_playlists(all_streams)
     print(f"VLC: {VLC_OUTPUT}")
     print(f"TiviMate: {TIVIMATE_OUTPUT}")
-    print("✅ Finished generating playlists.")
+    print("Finished generating playlists.")
 
 if __name__ == "__main__":
     main()
