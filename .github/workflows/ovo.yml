@@ -40,7 +40,7 @@ jobs:
         env:
           STGATE_BASE_URL: ${{ secrets.OVO_BASE_URL }}
         run: |
-          python -m stgate
+          python -m ovo
 
       - name: Commit & Push playlists
         run: |
