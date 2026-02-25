@@ -36,7 +36,7 @@ jobs:
         run: |
           git pull origin main --rebase || true
 
-      - name: Run STGATE scraper
+      - name: Run STGATE updater
         env:
           STGATE_BASE_URL: ${{ secrets.STGATE_BASE_URL }}
         run: |
