@@ -1,0 +1,60 @@
+name: OVO Updater
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # Every hour
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stgate-updater
+  cancel-in-progress: true
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install playwright httpx[http2] pytz
+          playwright install chromium
+
+      - name: Pull latest changes
+        run: |
+          git pull origin main --rebase || true
+
+      - name: Run OVO updater
+        env:
+          STGATE_BASE_URL: ${{ secrets.OVO_BASE_URL }}
+        run: |
+          python -m stgate
+
+      - name: Commit & Push playlists
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+          git add ovo_vlc.m3u8 ovo_tivimate.m3u8 || true
+
+          if git diff --cached --quiet; then
+            echo "No playlist changes"
+            exit 0
+          fi
+
+          git commit -m "Update OVO playlists [auto]"
+
+          # Safe force push (prevents merge conflicts on generated files)
+          git push origin main --force-with-lease
