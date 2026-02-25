@@ -27,7 +27,7 @@ jobs:
         run: |
           pip install playwright httpx[http2] pytz
           pip install selectolax
-          playwright install --with-deps chromium
+          playwright install chromium
 
       - name: Run updater
         run: python ovo.py
@@ -44,7 +44,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Auto update powerstrm playlist"
+          git commit -m "Auto update OVO playlist"
 
           # FIX: stash before rebase
           if ! git push origin main; then
@@ -53,6 +53,6 @@ jobs:
             git pull --rebase origin main
             git stash pop
             git add ovo_vlc.m3u8 ovo_tivimate.m3u8
-            git commit -m "Update powerstrm playlist (rebased)" || true
+            git commit -m "Update OVO playlist (rebased)" || true
             git push origin main
           fi
