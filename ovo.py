@@ -64,7 +64,7 @@ def generate_vlc_playlist(urls: dict, output_file="ovo_vlc.m3u8"):
         f.write("\n".join(lines))
 
 
-def generate_tivimate_playlist(urls: dict, output_file="ovo.tivimate.m3u8"):
+def generate_tivimate_playlist(urls: dict, output_file="ovo_tivimate.m3u8"):
     encoded_ua = urllib.parse.quote(USER_AGENT, safe="")
 
     lines = ["#EXTM3U"]
@@ -282,7 +282,7 @@ async def scrape() -> None:
 
     # GENERATE PLAYLIST FILES
     generate_all_playlists(cached_urls)
-    log.info("Generated ovo_vlc.m3u8 and ovo.tivimate.m3u8")
+    log.info("Generated ovo_vlc.m3u8 and ovo_tivimate.m3u8")
 
 if __name__ == "__main__":
     asyncio.run(scrape())
