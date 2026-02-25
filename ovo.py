@@ -206,14 +206,9 @@ async def get_events(cached_keys):
 
     live = []
 
-    start_ts = now.delta(minutes=-30).timestamp()
-    end_ts = now.delta(minutes=30).timestamp()
-
+    # REMOVE TIME FILTER — process everything not cached
     for k, v in events.items():
         if k in cached_keys:
-            continue
-
-        if not start_ts <= v["event_ts"] <= end_ts:
             continue
 
         live.append(v)
@@ -286,7 +281,7 @@ async def scrape() -> None:
     CACHE_FILE.write(cached_urls)
 
     # GENERATE PLAYLIST FILES
-    generate_all_playlists(urls)
+    generate_all_playlists(cached_urls)
     log.info("Generated ovo_vlc.m3u8 and ovo.tivimate.m3u8")
 
 if __name__ == "__main__":
