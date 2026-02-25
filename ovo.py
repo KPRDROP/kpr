@@ -1,10 +1,8 @@
 import asyncio
 import re
+import urllib.parse
 from functools import partial
 from urllib.parse import urljoin
-from pathlib import Path
-from urllib.parse import quote
-import os
 
 from selectolax.parser import HTMLParser
 
@@ -17,32 +15,89 @@ urls: dict[str, dict[str, str | float]] = {}
 TAG = "VOLOKIT"
 
 CACHE_FILE = Cache(TAG, exp=10_800)
-
 HTML_CACHE = Cache(f"{TAG}-html", exp=28_800)
 
-BASE_URL = os.environ.get("OVO_BASE_URL")
-if not BASE_URL:
-    raise RuntimeError("Missing OVO_BASE_URL secret")
-
-REFERER = BASE_URL if BASE_URL.endswith("/") else BASE_URL + "/"
-ORIGIN = BASE_URL.rstrip("/")
+BASE_URL = "http://volokit.xyz"
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) "
     "Gecko/20100101 Firefox/147.0"
 )
 
-UA_ENC = quote(USER_AGENT, safe="")
-
-OUT_VLC = Path("ovo_vlc.m3u8")
-OUT_TIVI = Path("ovo.tivimate.m3u8")
-
 SPORT_ENDPOINTS = {
     "mlb": "MLB",
-    # "nfl": "NFL",
-    # "nhl": "NHL",
 }
 
+
+# =========================
+# PLAYLIST GENERATOR
+# =========================
+
+def _format_extinf(key: str, entry: dict) -> str:
+    tvg_id = entry.get("id", "")
+    logo = entry.get("logo", "")
+    group = entry.get("sport", "Live")
+
+    return (
+        f'#EXTINF:-1 tvg-id="{tvg_id}" '
+        f'tvg-logo="{logo}" '
+        f'group-title="{group}",{key}'
+    )
+
+
+def generate_vlc_playlist(urls: dict, output_file="ovo_vlc.m3u8"):
+    lines = ["#EXTM3U"]
+
+    for key, entry in sorted(urls.items()):
+        stream_url = entry.get("url")
+        if not stream_url:
+            continue
+
+        lines.append(_format_extinf(key, entry))
+        lines.append(f"#EXTVLCOPT:http-referrer={BASE_URL}/")
+        lines.append(f"#EXTVLCOPT:http-origin={BASE_URL}")
+        lines.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
+        lines.append(stream_url)
+        lines.append("")
+
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+
+def generate_tivimate_playlist(urls: dict, output_file="ovo.tivimate.m3u8"):
+    encoded_ua = urllib.parse.quote(USER_AGENT, safe="")
+
+    lines = ["#EXTM3U"]
+
+    for key, entry in sorted(urls.items()):
+        stream_url = entry.get("url")
+        if not stream_url:
+            continue
+
+        lines.append(_format_extinf(key, entry))
+
+        header_string = (
+            f"{stream_url}|"
+            f"referer={BASE_URL}/&"
+            f"origin={BASE_URL}&"
+            f"user-agent={encoded_ua}"
+        )
+
+        lines.append(header_string)
+        lines.append("")
+
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+
+def generate_all_playlists(urls: dict):
+    generate_vlc_playlist(urls)
+    generate_tivimate_playlist(urls)
+
+
+# =========================
+# SCRAPER LOGIC
+# =========================
 
 def fix_event(s: str) -> str:
     return " ".join(x.capitalize() for x in s.split())
@@ -51,19 +106,16 @@ def fix_event(s: str) -> str:
 async def process_event(url: str, url_num: int) -> str | None:
     if not (event_data := await network.request(url, log=log)):
         log.info(f"URL {url_num}) Failed to load url.")
-
         return
 
     soup = HTMLParser(event_data.content)
 
     if not (iframe := soup.css_first('iframe[height="100%"]')):
         log.warning(f"URL {url_num}) No iframe element found.")
-
         return
 
     if not (iframe_src := iframe.attributes.get("src")):
         log.warning(f"URL {url_num}) No iframe source found.")
-
         return
 
     if not (
@@ -74,14 +126,12 @@ async def process_event(url: str, url_num: int) -> str | None:
         )
     ):
         log.info(f"URL {url_num}) Failed to load iframe source.")
-
         return
 
     pattern = re.compile(r'source:\s+"([^"]*)"', re.I)
 
     if not (match := pattern.search(iframe_src_data.text)):
-        log.warning(f"URL {url_num}) No Clappr source found.")
-
+        log.warning(f"URL {url_num}) No source found.")
         return
 
     log.info(f"URL {url_num}) Captured M3U8")
@@ -89,12 +139,7 @@ async def process_event(url: str, url_num: int) -> str | None:
     return match[1]
 
 
-async def refresh_html_cache(
-    url: str,
-    sport: str,
-    now: Time,
-) -> dict[str, dict[str, str | float]]:
-
+async def refresh_html_cache(url: str, sport: str, now: Time):
     events = {}
 
     if not (html_data := await network.request(url, log=log)):
@@ -105,23 +150,22 @@ async def refresh_html_cache(
     date = now.date()
 
     if date_node := soup.css_first("tr.date"):
-        date = date_node.text(strip=True)
+        date = date_node.text(strip=True).replace(",", "")
 
     for card in soup.css("#events .table .vevent.theevent"):
         if not (href := card.css_first("a").attributes.get("href")):
             continue
 
         name_node = card.css_first(".teamtd.event")
-
         time_node = card.css_first(".time")
 
         if not (name_node and time_node):
             continue
 
-        name, time = name_node.text(strip=True), time_node.text(strip=True)
+        name = name_node.text(strip=True).replace("@", "vs")
+        time = time_node.text(strip=True)
 
         event_sport = SPORT_ENDPOINTS[sport]
-
         event_name = fix_event(name)
 
         event_dt = Time.from_str(f"{date} {time}", timezone="UTC")
@@ -139,27 +183,23 @@ async def refresh_html_cache(
     return events
 
 
-async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
+async def get_events(cached_keys):
     now = Time.clean(Time.now())
 
     if not (events := HTML_CACHE.load()):
         log.info("Refreshing HTML cache")
 
         sport_urls = {
-            sport: urljoin(BASE_URL, f"sport/{sport}") for sport in SPORT_ENDPOINTS
+            sport: urljoin(BASE_URL, f"sport/{sport}")
+            for sport in SPORT_ENDPOINTS
         }
 
         tasks = [
-            refresh_html_cache(
-                url,
-                sport,
-                now,
-            )
+            refresh_html_cache(url, sport, now)
             for sport, url in sport_urls.items()
         ]
 
         results = await asyncio.gather(*tasks)
-
         events = {k: v for data in results for k, v in data.items()}
 
         HTML_CACHE.write(events)
@@ -191,7 +231,6 @@ async def scrape() -> None:
     urls.update(valid_urls)
 
     log.info(f"Loaded {cached_count} event(s) from cache")
-
     log.info(f'Scraping from "{BASE_URL}"')
 
     events = await get_events(cached_urls.keys())
@@ -230,58 +269,22 @@ async def scrape() -> None:
                 "timestamp": ts,
                 "id": tvg_id or "Live.Event.us",
                 "link": link,
+                "sport": sport,
             }
 
             cached_urls[key] = entry
 
             if url:
                 valid_count += 1
-
                 urls[key] = entry
 
     if new_count := valid_count - cached_count:
         log.info(f"Collected and cached {new_count} new event(s)")
-
     else:
         log.info("No new events found")
 
     CACHE_FILE.write(cached_urls)
-  
-build_playlists(cached_urls)
 
-def build_playlists(data: dict[str, dict]):
-
-    vlc = ["#EXTM3U"]
-    tivi = ["#EXTM3U"]
-
-    for name, e in data.items():
-
-        if not e.get("url"):
-            continue
-
-        extinf = (
-            f'#EXTINF:-1 tvg-id="{e["id"]}" '
-            f'tvg-name="{name}" '
-            f'tvg-logo="{e["logo"]}" '
-            f'group-title="Live Events",{name}'
-        )
-
-        # VLC FORMAT
-        vlc.extend([
-            extinf,
-            f"#EXTVLCOPT:http-referrer={REFERER}",
-            f"#EXTVLCOPT:http-origin={ORIGIN}",
-            f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
-            e["url"],
-        ])
-
-        # TIVIMATE FORMAT (PIPE STYLE)
-        tivi.extend([
-            extinf,
-            f'{e["url"]}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}',
-        ])
-
-    OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
-    OUT_TIVI.write_text("\n".join(tivi), encoding="utf-8")
-
-    log.info("ovo_vlc.m3u8 and ovo.tivimate.m3u8 generated")
+    # GENERATE PLAYLIST FILES
+    generate_all_playlists(urls)
+    log.info("Generated ovo_vlc.m3u8 and ovo.tivimate.m3u8")
