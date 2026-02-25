@@ -288,3 +288,6 @@ async def scrape() -> None:
     # GENERATE PLAYLIST FILES
     generate_all_playlists(urls)
     log.info("Generated ovo_vlc.m3u8 and ovo.tivimate.m3u8")
+
+if __name__ == "__main__":
+    asyncio.run(scrape())
