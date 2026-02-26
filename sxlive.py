@@ -263,7 +263,7 @@ async def scrape():
 
     CACHE_FILE.write(cached)
 
-    # 🔥 GENERATE FILES
+    # GENERATE FILES
     generate_playlists(cached)
     log.info("Generated sxlive_vlc.m3u8 and sxlive_tivimate.m3u8")
 
