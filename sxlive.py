@@ -1,5 +1,6 @@
 import asyncio
 import os
+import urllib.parse
 from functools import partial
 
 import feedparser
@@ -15,15 +16,21 @@ CACHE_FILE = Cache(TAG, exp=10_800)
 XML_CACHE = Cache(f"{TAG}-xml", exp=28_000)
 
 # -------------------------------------------------
-# SECRETS FROM ENVIRONMENT
+# SECRETS
 # -------------------------------------------------
+
 SXLIVE_BASE_URL = os.environ.get("SXLIVE_BASE_URL")
 SXLIVE_BASE_REF = os.environ.get("SXLIVE_BASE_REF")
 
 if not SXLIVE_BASE_URL or not SXLIVE_BASE_REF:
-    raise RuntimeError(
-        "Missing required secrets: SXLIVE_BASE_URL and/or SXLIVE_BASE_REF"
-    )
+    raise RuntimeError("Missing required secrets")
+
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) "
+    "Gecko/20100101 Firefox/147.0"
+)
+
+urls: dict[str, dict] = {}
 
 VALID_SPORTS = [
     "MLB. Preseason",
@@ -33,76 +40,84 @@ VALID_SPORTS = [
     "Ice Hockey",
 ]
 
-urls = {}
-
+# -------------------------------------------------
+# PROCESS EVENT (FIXED USING ORIGINAL LOGIC)
 # -------------------------------------------------
 
 async def process_event(url: str, url_num: int, page: Page) -> str | None:
-    captured = set()
+    captured = []
     got_one = asyncio.Event()
 
-    def capture(req):
-        try:
-            if ".m3u8" in req.url.lower():
-                captured.add(req.url)
-                got_one.set()
-        except Exception:
-            pass
+    handler = partial(
+        network.capture_req,
+        captured=captured,
+        got_one=got_one,
+    )
 
-    page.context.on("requestfinished", capture)
-    page.context.on("response", lambda r: capture(r.request))
+    page.on("request", handler)
 
     try:
-        await page.goto(url, timeout=30_000, wait_until="domcontentloaded")
-        await page.wait_for_timeout(4_000)
+        await page.goto(url, wait_until="domcontentloaded", timeout=15_000)
+        await page.wait_for_timeout(1500)
 
-        # Trigger playback multiple times
-        for _ in range(3):
-            for frame in page.frames:
-                try:
-                    await frame.evaluate("""
-                        () => {
-                            const v = document.querySelector('video');
-                            if (v) {
-                                v.muted = true;
-                                v.play();
-                            }
-                            document.body?.click();
-                        }
-                    """)
-                except Exception:
-                    pass
-            await page.wait_for_timeout(2_000)
+        buttons = await page.query_selector_all(".lnktbj a[href*='webplayer']")
+
+        labels = await page.eval_on_selector_all(
+            ".lnktyt span",
+            "els => els.map(e => e.textContent.trim().toLowerCase())",
+        )
+
+        target_href = None
+
+        for btn, label in zip(buttons, labels):
+            if label in ["web", "youtube"]:
+                continue
+
+            href = await btn.get_attribute("href")
+            if href:
+                target_href = href
+                break
+
+        if not target_href:
+            log.warning(f"URL {url_num}) No valid webplayer found")
+            return None
+
+        if not target_href.startswith("http"):
+            target_href = f"https:{target_href}"
+
+        target_href = target_href.replace("livetv.sx", "livetv873.me")
+
+        await page.goto(target_href, wait_until="domcontentloaded", timeout=10_000)
 
         try:
-            await asyncio.wait_for(got_one.wait(), timeout=30)
+            await asyncio.wait_for(got_one.wait(), timeout=10)
         except asyncio.TimeoutError:
             log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
             return None
 
         if captured:
-            stream = sorted(captured)[0]
             log.info(f"URL {url_num}) Captured M3U8")
-            return stream
+            return captured[0]
 
-        log.warning(f"URL {url_num}) No valid source")
         return None
 
     except Exception as e:
-        log.warning(f"URL {url_num}) Exception: {e}")
+        log.warning(f"URL {url_num}) {e}")
         return None
 
     finally:
-        page.context.remove_listener("requestfinished", capture)
+        page.remove_listener("request", handler)
 
+# -------------------------------------------------
+# XML CACHE
 # -------------------------------------------------
 
 async def refresh_xml_cache(now_ts: float):
     log.info("Refreshing XML cache")
 
     events = {}
-    xml = await network.request(SXLIVE_BASE_URL, log=log)
 
+    xml = await network.request(SXLIVE_BASE_URL, log=log)
     if not xml:
         return events
 
@@ -117,12 +132,14 @@ async def refresh_xml_cache(now_ts: float):
         if not all([title, link, summary, date]):
             continue
 
-        sport, *league = summary.split(".", 1)
-        if sport not in VALID_SPORTS:
+        sprt = summary.split(".", 1)
+        sport = sprt[0]
+        league = sprt[1].strip() if len(sprt) > 1 else ""
+
+        if sport not in VALID_SPORTS and league not in VALID_SPORTS:
             continue
 
-        event_ts = Time.from_str(date).timestamp()
-        league = league[0].strip() if league else ""
+        event_dt = Time.from_str(date)
 
         key = f"[{sport} - {league}] {title} ({TAG})"
 
@@ -130,13 +147,15 @@ async def refresh_xml_cache(now_ts: float):
             "sport": sport,
             "league": league,
             "event": title,
-            "link": link,
-            "event_ts": event_ts,
+            "link": link.replace("livetv.sx", "livetv873.me"),
+            "event_ts": event_dt.timestamp(),
             "timestamp": now_ts,
         }
 
     return events
 
+# -------------------------------------------------
+# GET EVENTS
 # -------------------------------------------------
 
 async def get_events(cached_keys):
@@ -148,17 +167,57 @@ async def get_events(cached_keys):
         XML_CACHE.write(events)
 
     live = []
-    start_ts = now.delta(hours=-1).timestamp()
-    end_ts = now.delta(minutes=5).timestamp()
 
     for k, v in events.items():
         if k in cached_keys:
             continue
-        if start_ts <= v["event_ts"] <= end_ts:
-            live.append(v)
+        live.append(v)
 
     return live
 
+# -------------------------------------------------
+# PLAYLIST GENERATOR
+# -------------------------------------------------
+
+def generate_playlists(data: dict):
+    encoded_ua = urllib.parse.quote(USER_AGENT, safe="")
+
+    vlc_lines = ["#EXTM3U"]
+    tivimate_lines = ["#EXTM3U"]
+
+    for key, entry in sorted(data.items()):
+        url = entry.get("url")
+        if not url:
+            continue
+
+        extinf = (
+            f'#EXTINF:-1 tvg-id="{entry.get("id")}" '
+            f'tvg-logo="{entry.get("logo")}" '
+            f'group-title="{entry.get("sport")}",{key}'
+        )
+
+        # VLC
+        vlc_lines.append(extinf)
+        vlc_lines.append(f"#EXTVLCOPT:http-referrer={SXLIVE_BASE_REF}")
+        vlc_lines.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
+        vlc_lines.append(url)
+        vlc_lines.append("")
+
+        # TiviMate
+        tivimate_lines.append(extinf)
+        tivimate_lines.append(
+            f"{url}|referer={SXLIVE_BASE_REF}&user-agent={encoded_ua}"
+        )
+        tivimate_lines.append("")
+
+    with open("sxlive_vlc.m3u8", "w", encoding="utf-8") as f:
+        f.write("\n".join(vlc_lines))
+
+    with open("sxlive_tivimate.m3u8", "w", encoding="utf-8") as f:
+        f.write("\n".join(tivimate_lines))
+
+# -------------------------------------------------
+# SCRAPER
 # -------------------------------------------------
 
 async def scrape():
@@ -173,7 +232,12 @@ async def scrape():
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(ignore_https_errors=True)
+
+        context = await browser.new_context(
+            ignore_https_errors=True,
+            user_agent=USER_AGENT,
+        )
+
         page = await context.new_page()
 
         for i, ev in enumerate(events, 1):
@@ -189,6 +253,7 @@ async def scrape():
                 "timestamp": ev["event_ts"],
                 "id": tvg_id or "Live.Event.us",
                 "link": ev["link"],
+                "sport": ev["sport"],
             }
 
             if stream:
@@ -197,6 +262,10 @@ async def scrape():
         await browser.close()
 
     CACHE_FILE.write(cached)
+
+    # 🔥 GENERATE FILES
+    generate_playlists(cached)
+    log.info("Generated sxlive_vlc.m3u8 and sxlive_tivimate.m3u8")
 
 # -------------------------------------------------
 
