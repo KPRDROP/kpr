@@ -170,18 +170,29 @@ async def refresh_xml_cache(now_ts: float):
 
 async def get_events(cached_keys):
     now = Time.clean(Time.now())
+    now_ts = now.timestamp()
 
     events = XML_CACHE.load()
     if not events:
-        events = await refresh_xml_cache(now.timestamp())
+        events = await refresh_xml_cache(now_ts)
         XML_CACHE.write(events)
 
     live = []
 
+    # Only process events within ±2 hours
+    start_ts = now_ts - 7200
+    end_ts = now_ts + 7200
+
     for k, v in events.items():
         if k in cached_keys:
             continue
-        live.append(v)
+
+        event_ts = v.get("event_ts")
+        if not event_ts:
+            continue
+
+        if start_ts <= event_ts <= end_ts:
+            live.append(v)
 
     return live
 
