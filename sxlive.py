@@ -25,11 +25,13 @@ if not SXLIVE_BASE_URL or not SXLIVE_BASE_REF:
         "Missing required secrets: SXLIVE_BASE_URL and/or SXLIVE_BASE_REF"
     )
 
-VALID_SPORTS = {
-    "Football",
+VALID_SPORTS = [
+    "MLB. Preseason",
+    "MLB",
     "Basketball",
+    "Football",
     "Ice Hockey",
-}
+]
 
 urls = {}
 
