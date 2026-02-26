@@ -297,4 +297,4 @@ async def scrape(browser: Browser):
 # -------------------------------------------------
 
 if __name__ == "__main__":
-    async def scrape(browser: Browser)
+    async def scrape(browser: Browser):
