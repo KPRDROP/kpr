@@ -58,41 +58,51 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
 
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=15_000)
-        await page.wait_for_timeout(1500)
+        await page.wait_for_timeout(2000)
 
-        buttons = await page.query_selector_all(".lnktbj a[href*='webplayer']")
+        # -------------------------------------------------
+        # NEW ROBUST WEBPLAYER DETECTION
+        # -------------------------------------------------
 
-        labels = await page.eval_on_selector_all(
-            ".lnktyt span",
-            "els => els.map(e => e.textContent.trim().toLowerCase())",
-        )
+        anchors = await page.query_selector_all("a")
 
         target_href = None
 
-        for btn, label in zip(buttons, labels):
-            if label in ["web", "youtube"]:
+        for a in anchors:
+            href = await a.get_attribute("href")
+            if not href:
                 continue
 
-            href = await btn.get_attribute("href")
-            if href:
+            href_lower = href.lower()
+
+            if "youtube" in href_lower:
+                continue
+
+            if any(x in href_lower for x in ["webplayer", "player", "iframe"]):
                 target_href = href
                 break
 
         if not target_href:
-            log.warning(f"URL {url_num}) No valid webplayer found")
+            log.warning(f"URL {url_num}) Invalid or missing webplayer")
             return None
 
-        if not target_href.startswith("http"):
-            target_href = f"https:{target_href}"
+        # Fix relative URLs
+        if target_href.startswith("//"):
+            target_href = "https:" + target_href
+        elif target_href.startswith("/"):
+            from urllib.parse import urljoin
+            target_href = urljoin(url, target_href)
 
         target_href = target_href.replace("livetv.sx", "livetv873.me")
+
+        # -------------------------------------------------
 
         await page.goto(target_href, wait_until="domcontentloaded", timeout=10_000)
 
         try:
             await asyncio.wait_for(got_one.wait(), timeout=10)
         except asyncio.TimeoutError:
-            log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
+            log.warning(f"URL {url_num}) Timed out waiting for M3U8")
             return None
 
         if captured:
