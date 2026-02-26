@@ -1,9 +1,9 @@
 name: SXLive Updater
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes
+    - cron: '0 */1 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
