@@ -45,35 +45,63 @@ VALID_SPORTS = [
 # -------------------------------------------------
 
 async def process_event(url: str, url_num: int, context) -> str | None:
-    page = await context.new_page()
-
     captured_url = None
 
     async def handle_response(response):
         nonlocal captured_url
-
-        if ".m3u8" in response.url.lower():
+        if ".m3u8" in response.url and response.status == 200:
             captured_url = response.url
 
     context.on("response", handle_response)
 
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=15000)
+        page = await context.new_page()
 
-        # Wait for iframe to load (player is inside iframe now)
+        # Step 1 — open event page
+        await page.goto(url, wait_until="domcontentloaded", timeout=15000)
+        await page.wait_for_timeout(2000)
+
+        # Step 2 — try clicking any button that might start player
+        buttons = await page.query_selector_all("a, button")
+
+        for b in buttons:
+            try:
+                text = (await b.inner_text()).lower()
+            except:
+                continue
+
+            if any(x in text for x in ["watch", "player", "stream", "play"]):
+                try:
+                    await b.click(timeout=2000)
+                    await page.wait_for_timeout(2000)
+                except:
+                    pass
+
+        # Step 3 — detect iframe and open it
+        frames = page.frames
+        for frame in frames:
+            if frame.url != page.url:
+                try:
+                    await frame.wait_for_load_state("networkidle", timeout=8000)
+                except:
+                    pass
+
+        # Step 4 — wait for network activity
         try:
-            await page.wait_for_selector("iframe", timeout=8000)
+            await page.wait_for_load_state("networkidle", timeout=10000)
         except:
             pass
 
-        # Give JS time to execute and player to request stream
-        await page.wait_for_timeout(10000)
+        # Step 5 — give time for stream request
+        await page.wait_for_timeout(5000)
 
         if captured_url:
             log.info(f"URL {url_num}) Captured M3U8")
+            await page.close()
             return captured_url
 
         log.warning(f"URL {url_num}) No stream detected")
+        await page.close()
         return None
 
     except Exception as e:
@@ -81,7 +109,6 @@ async def process_event(url: str, url_num: int, context) -> str | None:
         return None
 
     finally:
-        await page.close()
         context.remove_listener("response", handle_response)
 
 # -------------------------------------------------
@@ -227,8 +254,6 @@ async def scrape():
             ignore_https_errors=True,
             user_agent=USER_AGENT,
         )
-
-        page = await context.new_page()
 
         for i, ev in enumerate(events, 1):
             stream = await process_event(ev["link"], i, context)
