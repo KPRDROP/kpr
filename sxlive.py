@@ -44,71 +44,36 @@ VALID_SPORTS = [
 # PROCESS EVENT (FIXED USING ORIGINAL LOGIC)
 # -------------------------------------------------
 
-async def process_event(url: str, url_num: int, page: Page) -> str | None:
-    captured = []
-    got_one = asyncio.Event()
+async def process_event(url: str, url_num: int, context) -> str | None:
+    page = await context.new_page()
 
-    handler = partial(
-        network.capture_req,
-        captured=captured,
-        got_one=got_one,
-    )
+    captured_url = None
 
-    page.on("request", handler)
+    async def handle_response(response):
+        nonlocal captured_url
+
+        if ".m3u8" in response.url.lower():
+            captured_url = response.url
+
+    context.on("response", handle_response)
 
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=15_000)
-        await page.wait_for_timeout(2000)
+        await page.goto(url, wait_until="domcontentloaded", timeout=15000)
 
-        # -------------------------------------------------
-        # NEW ROBUST WEBPLAYER DETECTION
-        # -------------------------------------------------
-
-        anchors = await page.query_selector_all("a")
-
-        target_href = None
-
-        for a in anchors:
-            href = await a.get_attribute("href")
-            if not href:
-                continue
-
-            href_lower = href.lower()
-
-            if "youtube" in href_lower:
-                continue
-
-            if any(x in href_lower for x in ["webplayer", "player", "iframe"]):
-                target_href = href
-                break
-
-        if not target_href:
-            log.warning(f"URL {url_num}) Invalid or missing webplayer")
-            return None
-
-        # Fix relative URLs
-        if target_href.startswith("//"):
-            target_href = "https:" + target_href
-        elif target_href.startswith("/"):
-            from urllib.parse import urljoin
-            target_href = urljoin(url, target_href)
-
-        target_href = target_href.replace("livetv.sx", "livetv873.me")
-
-        # -------------------------------------------------
-
-        await page.goto(target_href, wait_until="domcontentloaded", timeout=10_000)
-
+        # Wait for iframe to load (player is inside iframe now)
         try:
-            await asyncio.wait_for(got_one.wait(), timeout=10)
-        except asyncio.TimeoutError:
-            log.warning(f"URL {url_num}) Timed out waiting for M3U8")
-            return None
+            await page.wait_for_selector("iframe", timeout=8000)
+        except:
+            pass
 
-        if captured:
+        # Give JS time to execute and player to request stream
+        await page.wait_for_timeout(10000)
+
+        if captured_url:
             log.info(f"URL {url_num}) Captured M3U8")
-            return captured[0]
+            return captured_url
 
+        log.warning(f"URL {url_num}) No stream detected")
         return None
 
     except Exception as e:
@@ -116,7 +81,8 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
         return None
 
     finally:
-        page.remove_listener("request", handler)
+        await page.close()
+        context.remove_listener("response", handle_response)
 
 # -------------------------------------------------
 # XML CACHE
@@ -265,7 +231,7 @@ async def scrape():
         page = await context.new_page()
 
         for i, ev in enumerate(events, 1):
-            stream = await process_event(ev["link"], i, page)
+            stream = await process_event(ev["link"], i, context)
 
             key = f"[{ev['sport']} - {ev['league']}] {ev['event']} ({TAG})"
             tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
