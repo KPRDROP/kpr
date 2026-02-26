@@ -149,7 +149,10 @@ async def refresh_xml_cache(now_ts: float):
         if sport not in VALID_SPORTS and league not in VALID_SPORTS:
             continue
 
-        event_dt = Time.from_str(date)
+        try:
+             event_dt = Time.from_str(date)
+        except Exception:
+            continue
 
         key = f"[{sport} - {league}] {title} ({TAG})"
 
