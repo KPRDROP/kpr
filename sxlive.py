@@ -296,5 +296,22 @@ async def scrape(browser: Browser):
 
 # -------------------------------------------------
 
+from playwright.async_api import async_playwright
+
+# -------------------------------------------------
+
+async def main():
+    async with async_playwright() as p:
+        browser = await p.firefox.launch(
+            headless=True
+        )
+
+        try:
+            await scrape(browser)
+        finally:
+            await browser.close()
+
+# -------------------------------------------------
+
 if __name__ == "__main__":
-    async def scrape(browser: Browser):
+    asyncio.run(main())
