@@ -4,11 +4,13 @@ import urllib.parse
 from functools import partial
 
 import feedparser
-from playwright.async_api import async_playwright, Page
+from playwright.async_api import Browser, Page
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
+
+urls: dict[str, dict[str, str | float]] = {}
 
 TAG = "SXLIVE"
 
@@ -30,8 +32,6 @@ USER_AGENT = (
     "Gecko/20100101 Firefox/147.0"
 )
 
-urls: dict[str, dict] = {}
-
 VALID_SPORTS = [
     "MLB. Preseason",
     "MLB",
@@ -41,67 +41,68 @@ VALID_SPORTS = [
 ]
 
 # -------------------------------------------------
-# PROCESS EVENT (FIXED USING ORIGINAL LOGIC)
+# PROCESS EVENT (ORIGINAL WORKING LOGIC)
 # -------------------------------------------------
 
-async def process_event(url: str, url_num: int, context) -> str | None:
-    captured_url = None
+async def process_event(url: str, url_num: int, page: Page) -> str | None:
+    captured = []
+    got_one = asyncio.Event()
 
-    async def handle_response(response):
-        nonlocal captured_url
-        if ".m3u8" in response.url and response.status == 200:
-            captured_url = response.url
+    handler = partial(
+        network.capture_req,
+        captured=captured,
+        got_one=got_one,
+    )
 
-    context.on("response", handle_response)
+    page.on("request", handler)
 
     try:
-        page = await context.new_page()
+        await page.goto(url, wait_until="domcontentloaded", timeout=10_000)
+        await page.wait_for_timeout(1500)
 
-        # Step 1 — open event page
-        await page.goto(url, wait_until="domcontentloaded", timeout=15000)
-        await page.wait_for_timeout(2000)
+        buttons = await page.query_selector_all(".lnktbj a[href*='webplayer']")
 
-        # Step 2 — try clicking any button that might start player
-        buttons = await page.query_selector_all("a, button")
+        labels = await page.eval_on_selector_all(
+            ".lnktyt span",
+            "elements => elements.map(el => el.textContent.trim().toLowerCase())",
+        )
 
-        for b in buttons:
-            try:
-                text = (await b.inner_text()).lower()
-            except:
+        for btn, label in zip(buttons, labels):
+            if label in ["web", "youtube"]:
                 continue
 
-            if any(x in text for x in ["watch", "player", "stream", "play"]):
-                try:
-                    await b.click(timeout=2000)
-                    await page.wait_for_timeout(2000)
-                except:
-                    pass
+            href = await btn.get_attribute("href")
+            if href:
+                break
+        else:
+            log.warning(f"URL {url_num}) No valid sources found.")
+            return None
 
-        # Step 3 — detect iframe and open it
-        frames = page.frames
-        for frame in frames:
-            if frame.url != page.url:
-                try:
-                    await frame.wait_for_load_state("networkidle", timeout=8000)
-                except:
-                    pass
+        href = href if href.startswith("http") else f"https:{href}"
+        href = href.replace("livetv.sx", "livetv873.me")
 
-        # Step 4 — wait for network activity
+        await page.goto(href, wait_until="domcontentloaded", timeout=5_000)
+
+        wait_task = asyncio.create_task(got_one.wait())
+
         try:
-            await page.wait_for_load_state("networkidle", timeout=10000)
-        except:
-            pass
+            await asyncio.wait_for(wait_task, timeout=6)
+        except asyncio.TimeoutError:
+            log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
+            return None
+        finally:
+            if not wait_task.done():
+                wait_task.cancel()
+                try:
+                    await wait_task
+                except asyncio.CancelledError:
+                    pass
 
-        # Step 5 — give time for stream request
-        await page.wait_for_timeout(5000)
-
-        if captured_url:
+        if captured:
             log.info(f"URL {url_num}) Captured M3U8")
-            await page.close()
-            return captured_url
+            return captured[0]
 
-        log.warning(f"URL {url_num}) No stream detected")
-        await page.close()
+        log.warning(f"URL {url_num}) No M3U8 captured.")
         return None
 
     except Exception as e:
@@ -109,7 +110,8 @@ async def process_event(url: str, url_num: int, context) -> str | None:
         return None
 
     finally:
-        context.remove_listener("response", handle_response)
+        page.remove_listener("request", handler)
+
 
 # -------------------------------------------------
 # XML CACHE
@@ -120,32 +122,24 @@ async def refresh_xml_cache(now_ts: float):
 
     events = {}
 
-    xml = await network.request(SXLIVE_BASE_URL, log=log)
-    if not xml:
+    if not (xml_data := await network.request(SXLIVE_BASE_URL, log=log)):
         return events
 
-    feed = feedparser.parse(xml.content)
+    feed = feedparser.parse(xml_data.content)
 
     for entry in feed.entries:
-        title = entry.get("title")
-        link = entry.get("link")
-        summary = entry.get("summary")
         date = entry.get("published")
+        link = entry.get("link")
+        title = entry.get("title")
+        summary = entry.get("summary")
 
-        if not all([title, link, summary, date]):
+        if not all([date, link, title, summary]):
             continue
 
         sprt = summary.split(".", 1)
-        sport = sprt[0]
-        league = sprt[1].strip() if len(sprt) > 1 else ""
+        sport, league = sprt[0], "".join(sprt[1:]).strip()
 
-        if sport not in VALID_SPORTS and league not in VALID_SPORTS:
-            continue
-
-        try:
-             event_dt = Time.from_str(date)
-        except Exception:
-            continue
+        event_dt = Time.from_str(date)
 
         key = f"[{sport} - {league}] {title} ({TAG})"
 
@@ -160,51 +154,50 @@ async def refresh_xml_cache(now_ts: float):
 
     return events
 
-# -------------------------------------------------
-# GET EVENTS
-# -------------------------------------------------
 
 async def get_events(cached_keys):
     now = Time.clean(Time.now())
-    now_ts = now.timestamp()
 
-    events = XML_CACHE.load()
-    if not events:
-        events = await refresh_xml_cache(now_ts)
+    if not (events := XML_CACHE.load()):
+        events = await refresh_xml_cache(now.timestamp())
         XML_CACHE.write(events)
 
-    live = []
+    start_ts = now.delta(hours=-1).timestamp()
+    end_ts = now.delta(minutes=5).timestamp()
 
-    # Only process events within ±2 hours
-    start_ts = now_ts - 7200
-    end_ts = now_ts + 7200
+    live = []
 
     for k, v in events.items():
         if k in cached_keys:
             continue
 
-        event_ts = v.get("event_ts")
-        if not event_ts:
+        if (
+            v["sport"] not in VALID_SPORTS
+            and v["league"] not in VALID_SPORTS
+            and v["event"].lower() != "olympic games"
+        ):
             continue
 
-        if start_ts <= event_ts <= end_ts:
-            live.append(v)
+        if not start_ts <= v["event_ts"] <= end_ts:
+            continue
+
+        live.append(v)
 
     return live
 
+
 # -------------------------------------------------
-# PLAYLIST GENERATOR
+# PLAYLIST GENERATION
 # -------------------------------------------------
 
 def generate_playlists(data: dict):
     encoded_ua = urllib.parse.quote(USER_AGENT, safe="")
 
-    vlc_lines = ["#EXTM3U"]
-    tivimate_lines = ["#EXTM3U"]
+    vlc = ["#EXTM3U"]
+    tivimate = ["#EXTM3U"]
 
     for key, entry in sorted(data.items()):
-        url = entry.get("url")
-        if not url:
+        if not entry.get("url"):
             continue
 
         extinf = (
@@ -214,75 +207,88 @@ def generate_playlists(data: dict):
         )
 
         # VLC
-        vlc_lines.append(extinf)
-        vlc_lines.append(f"#EXTVLCOPT:http-referrer={SXLIVE_BASE_REF}")
-        vlc_lines.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
-        vlc_lines.append(url)
-        vlc_lines.append("")
+        vlc.append(extinf)
+        vlc.append(f"#EXTVLCOPT:http-referrer={SXLIVE_BASE_REF}")
+        vlc.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
+        vlc.append(entry["url"])
+        vlc.append("")
 
         # TiviMate
-        tivimate_lines.append(extinf)
-        tivimate_lines.append(
-            f"{url}|referer={SXLIVE_BASE_REF}&user-agent={encoded_ua}"
+        tivimate.append(extinf)
+        tivimate.append(
+            f'{entry["url"]}|referer={SXLIVE_BASE_REF}&user-agent={encoded_ua}'
         )
-        tivimate_lines.append("")
+        tivimate.append("")
 
     with open("sxlive_vlc.m3u8", "w", encoding="utf-8") as f:
-        f.write("\n".join(vlc_lines))
+        f.write("\n".join(vlc))
 
     with open("sxlive_tivimate.m3u8", "w", encoding="utf-8") as f:
-        f.write("\n".join(tivimate_lines))
+        f.write("\n".join(tivimate))
+
 
 # -------------------------------------------------
-# SCRAPER
+# SCRAPER (RESTORED ORIGINAL STRUCTURE)
 # -------------------------------------------------
 
-async def scrape():
-    cached = CACHE_FILE.load()
-    valid = {k: v for k, v in cached.items() if v.get("url")}
-    urls.update(valid)
+async def scrape(browser: Browser):
+    cached_urls = CACHE_FILE.load()
+    valid_urls = {k: v for k, v in cached_urls.items() if v["url"]}
 
-    log.info(f"Loaded {len(valid)} cached events")
+    urls.update(valid_urls)
 
-    events = await get_events(cached.keys())
-    log.info(f"Processing {len(events)} event(s)")
+    log.info(f"Loaded {len(valid_urls)} cached events")
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+    events = await get_events(cached_urls.keys())
 
-        context = await browser.new_context(
-            ignore_https_errors=True,
-            user_agent=USER_AGENT,
-        )
+    if events:
+        log.info(f"Processing {len(events)} new URL(s)")
 
-        for i, ev in enumerate(events, 1):
-            stream = await process_event(ev["link"], i, context)
+        async with network.event_context(browser, ignore_https=True) as context:
+            for i, ev in enumerate(events, start=1):
+                async with network.event_page(context) as page:
+                    handler = partial(
+                        process_event,
+                        url=ev["link"],
+                        url_num=i,
+                        page=page,
+                    )
 
-            key = f"[{ev['sport']} - {ev['league']}] {ev['event']} ({TAG})"
-            tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
+                    stream = await network.safe_process(
+                        handler,
+                        url_num=i,
+                        semaphore=network.PW_S,
+                        log=log,
+                        timeout=20,
+                    )
 
-            cached[key] = {
-                "url": stream,
-                "logo": logo,
-                "base": SXLIVE_BASE_REF,
-                "timestamp": ev["event_ts"],
-                "id": tvg_id or "Live.Event.us",
-                "link": ev["link"],
-                "sport": ev["sport"],
-            }
+                    sport, league, event, ts = (
+                        ev["sport"],
+                        ev["league"],
+                        ev["event"],
+                        ev["event_ts"],
+                    )
 
-            if stream:
-                urls[key] = cached[key]
+                    key = f"[{sport} - {league}] {event} ({TAG})"
+                    tvg_id, logo = leagues.get_tvg_info(sport, event)
 
-        await browser.close()
+                    entry = {
+                        "url": stream,
+                        "logo": logo,
+                        "base": SXLIVE_BASE_REF,
+                        "timestamp": ts,
+                        "id": tvg_id or "Live.Event.us",
+                        "link": ev["link"],
+                        "sport": sport,
+                    }
 
-    CACHE_FILE.write(cached)
+                    cached_urls[key] = entry
 
-    # GENERATE FILES
-    generate_playlists(cached)
+                    if stream:
+                        urls[key] = entry
+
+    CACHE_FILE.write(cached_urls)
+
+    generate_playlists(cached_urls)
+
     log.info("Generated sxlive_vlc.m3u8 and sxlive_tivimate.m3u8")
-
-# -------------------------------------------------
-
-if __name__ == "__main__":
-    asyncio.run(scrape())
