@@ -288,7 +288,13 @@ async def scrape(browser: Browser):
                         urls[key] = entry
 
     CACHE_FILE.write(cached_urls)
-
+    
+# GENERATE FILES
     generate_playlists(cached_urls)
 
     log.info("Generated sxlive_vlc.m3u8 and sxlive_tivimate.m3u8")
+
+# -------------------------------------------------
+
+if __name__ == "__main__":
+    asyncio.run(scrape())
