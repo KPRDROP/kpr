@@ -270,12 +270,12 @@ async def scrape(browser: Browser):
                         page=page,
                     )
 
-                    stream = await network.safe_process(
+                    url = await network.safe_process(
                         handler,
                         url_num=i,
                         semaphore=network.PW_S,
                         log=log,
-                        timeout=30,
+                        timeout=20,
                     )
 
                     sport, league, event, ts = (
