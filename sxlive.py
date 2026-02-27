@@ -48,61 +48,81 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
     captured = []
     got_one = asyncio.Event()
 
-    handler = partial(
-        network.capture_req,
-        captured=captured,
-        got_one=got_one,
-    )
+    # -------------------------------------------------
+    # BETTER REQUEST CAPTURE (more aggressive)
+    # -------------------------------------------------
+    async def handle_request(request):
+        req_url = request.url.lower()
+        if ".m3u8" in req_url:
+            captured.append(request.url)
+            got_one.set()
 
-    page.on("request", handler)
+    page.on("request", handle_request)
 
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=10_000)
-        await page.wait_for_timeout(1500)
+        await page.goto(url, wait_until="domcontentloaded", timeout=15_000)
+        await page.wait_for_timeout(2500)
 
-        buttons = await page.query_selector_all(".lnktbj a[href*='webplayer']")
-
-        labels = await page.eval_on_selector_all(
-            ".lnktyt span",
-            "elements => elements.map(el => el.textContent.trim().toLowerCase())",
-        )
-
-        for btn, label in zip(buttons, labels):
-            if label in ["web", "youtube"]:
-                continue
-
-            href = await btn.get_attribute("href")
-            if href:
-                break
-        else:
-            log.warning(f"URL {url_num}) No valid sources found.")
-            return None
-
-        href = href if href.startswith("http") else f"https:{href}"
-        href = href.replace("livetv.sx", "livetv873.me")
-
-        await page.goto(href, wait_until="domcontentloaded", timeout=5_000)
-
-        wait_task = asyncio.create_task(got_one.wait())
-
-        try:
-            await asyncio.wait_for(wait_task, timeout=6)
-        except asyncio.TimeoutError:
-            log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
-            return None
-        finally:
-            if not wait_task.done():
-                wait_task.cancel()
-                try:
-                    await wait_task
-                except asyncio.CancelledError:
-                    pass
-
+        # -------------------------------------------------
+        # FIRST: Check if m3u8 already loaded
+        # -------------------------------------------------
         if captured:
-            log.info(f"URL {url_num}) Captured M3U8")
+            log.info(f"URL {url_num}) M3U8 found without clicking")
             return captured[0]
 
-        log.warning(f"URL {url_num}) No M3U8 captured.")
+        # -------------------------------------------------
+        # CLICK ANY LINK THAT LOOKS LIKE PLAYER
+        # -------------------------------------------------
+        links = await page.query_selector_all("a")
+
+        for link in links:
+            href = await link.get_attribute("href")
+            if not href:
+                continue
+
+            href_low = href.lower()
+
+            if any(x in href_low for x in ["player", "webplayer", "embed", "stream"]):
+                full = href if href.startswith("http") else f"https:{href}"
+
+                try:
+                    await page.goto(full, wait_until="domcontentloaded", timeout=10_000)
+                    await page.wait_for_timeout(3000)
+                except:
+                    continue
+
+                break
+
+        # -------------------------------------------------
+        # CHECK IFRAMES
+        # -------------------------------------------------
+        frames = page.frames
+
+        for frame in frames:
+            try:
+                html = await frame.content()
+                if ".m3u8" in html:
+                    import re
+                    match = re.search(r'https?://[^"\']+\.m3u8[^"\']*', html)
+                    if match:
+                        log.info(f"URL {url_num}) M3U8 found inside iframe")
+                        return match.group(0)
+            except:
+                continue
+
+        # -------------------------------------------------
+        # WAIT FOR NETWORK CAPTURE
+        # -------------------------------------------------
+        try:
+            await asyncio.wait_for(got_one.wait(), timeout=10)
+        except asyncio.TimeoutError:
+            pass
+
+        if captured:
+            log.info(f"URL {url_num}) Captured M3U8 via network")
+            return captured[0]
+
+        log.warning(f"URL {url_num}) No valid sources found.")
         return None
 
     except Exception as e:
@@ -110,7 +130,7 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
         return None
 
     finally:
-        page.remove_listener("request", handler)
+        page.remove_listener("request", handle_request)
 
 
 # -------------------------------------------------
