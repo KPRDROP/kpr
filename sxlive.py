@@ -48,13 +48,10 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
     captured: list[str] = []
     got_one = asyncio.Event()
 
-    # --------------------------------------------
-    # CAPTURE ON RESPONSE (MORE RELIABLE)
-    # --------------------------------------------
+    # Capture m3u8 on ANY response
     async def handle_response(response):
         try:
-            res_url = response.url.lower()
-            if ".m3u8" in res_url:
+            if ".m3u8" in response.url.lower():
                 captured.append(response.url)
                 got_one.set()
         except:
@@ -63,46 +60,51 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
     page.on("response", handle_response)
 
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=20000)
-        await page.wait_for_timeout(3000)
+        # Faster navigation strategy for CI
+        await page.goto(
+            url,
+            wait_until="commit",   # do NOT wait for full DOM
+            timeout=15000
+        )
 
-        # Sometimes player loads automatically
+        await page.wait_for_timeout(2000)
+
+        # Detect Cloudflare block
+        content = await page.content()
+        if "cloudflare" in content.lower():
+            log.warning(f"URL {url_num}) Blocked by Cloudflare")
+            return None
+
+        # If m3u8 fired already
         if captured:
-            log.info(f"URL {url_num}) M3U8 found immediately")
             return captured[0]
 
-        # Click any potential player link
-        links = await page.query_selector_all("a")
+        # Click only first likely player link (avoid loops)
+        link = await page.query_selector(
+            "a[href*='player'], a[href*='embed'], a[href*='stream']"
+        )
 
-        for link in links:
+        if link:
             href = await link.get_attribute("href")
-            if not href:
-                continue
-
-            href_low = href.lower()
-
-            if any(x in href_low for x in ["player", "webplayer", "embed", "stream"]):
+            if href:
                 full = href if href.startswith("http") else f"https:{href}"
 
+                await page.goto(
+                    full,
+                    wait_until="commit",
+                    timeout=15000
+                )
+
                 try:
-                    await page.goto(full, wait_until="domcontentloaded", timeout=15000)
-                    await page.wait_for_timeout(4000)
-                except:
-                    continue
-
-                break
-
-        # Wait for network capture
-        try:
-            await asyncio.wait_for(got_one.wait(), timeout=15)
-        except asyncio.TimeoutError:
-            pass
+                    await asyncio.wait_for(got_one.wait(), timeout=10)
+                except asyncio.TimeoutError:
+                    pass
 
         if captured:
             log.info(f"URL {url_num}) Captured M3U8")
             return captured[0]
 
-        log.warning(f"URL {url_num}) No valid sources found.")
+        log.warning(f"URL {url_num}) No stream found")
         return None
 
     except Exception as e:
@@ -259,7 +261,7 @@ async def scrape(browser: Browser):
                         url_num=i,
                         semaphore=network.PW_S,
                         log=log,
-                        timeout=20,
+                        timeout=35,
                     )
 
                     sport, league, event, ts = (
@@ -301,11 +303,10 @@ from playwright.async_api import async_playwright
 # -------------------------------------------------
 
 async def main():
-    async with async_playwright() as p:
-        browser = await p.firefox.launch(
-            headless=True,
-            args=["--no-sandbox"]
-        )
+    browser = await p.chromium.launch(
+    headless=True,
+    args=["--no-sandbox", "--disable-blink-features=AutomationControlled"]
+)
 
         context = await browser.new_context(
             user_agent=USER_AGENT,
