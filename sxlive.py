@@ -54,13 +54,22 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
     page.on("request", handler)
 
     try:
+        # Use commit instead of domcontentloaded (prevents hanging)
         await page.goto(
-            url,
-            wait_until="domcontentloaded",
-            timeout=10_000,
+            url.replace("http://", "https://"),
+            wait_until="commit",
+            timeout=15_000,
         )
 
-        await page.wait_for_timeout(1_500)
+        # Small delay for JS redirect
+        await page.wait_for_timeout(1500)
+
+        # Try to load eventinfo page DOM safely
+        try:
+            await page.wait_for_selector(".lnktbj", timeout=5000)
+        except:
+            log.warning(f"URL {url_num}) Event page not fully loaded.")
+            return None
 
         buttons = await page.query_selector_all(".lnktbj a[href*='webplayer']")
 
@@ -84,16 +93,17 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
         href = href if href.startswith("http") else f"https:{href}"
         href = href.replace("livetv.sx", "livetv873.me")
 
+        # Use commit here too
         await page.goto(
             href,
-            wait_until="domcontentloaded",
-            timeout=5_000,
+            wait_until="commit",
+            timeout=10_000,
         )
 
         wait_task = asyncio.create_task(got_one.wait())
 
         try:
-            await asyncio.wait_for(wait_task, timeout=6)
+            await asyncio.wait_for(wait_task, timeout=8)
         except asyncio.TimeoutError:
             log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
             return None
@@ -118,7 +128,6 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
 
     finally:
         page.remove_listener("request", handler)
-
 # -------------------------------------------------
 # XML CACHE
 # -------------------------------------------------
