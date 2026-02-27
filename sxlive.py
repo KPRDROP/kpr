@@ -45,34 +45,33 @@ VALID_SPORTS = [
 # -------------------------------------------------
 
 async def process_event(url: str, url_num: int, page: Page) -> str | None:
-    captured = []
+    captured: list[str] = []
     got_one = asyncio.Event()
 
-    # -------------------------------------------------
-    # BETTER REQUEST CAPTURE (more aggressive)
-    # -------------------------------------------------
-    async def handle_request(request):
-        req_url = request.url.lower()
-        if ".m3u8" in req_url:
-            captured.append(request.url)
-            got_one.set()
+    # --------------------------------------------
+    # CAPTURE ON RESPONSE (MORE RELIABLE)
+    # --------------------------------------------
+    async def handle_response(response):
+        try:
+            res_url = response.url.lower()
+            if ".m3u8" in res_url:
+                captured.append(response.url)
+                got_one.set()
+        except:
+            pass
 
-    page.on("request", handle_request)
+    page.on("response", handle_response)
 
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=15_000)
-        await page.wait_for_timeout(2500)
+        await page.goto(url, wait_until="domcontentloaded", timeout=20000)
+        await page.wait_for_timeout(3000)
 
-        # -------------------------------------------------
-        # FIRST: Check if m3u8 already loaded
-        # -------------------------------------------------
+        # Sometimes player loads automatically
         if captured:
-            log.info(f"URL {url_num}) M3U8 found without clicking")
+            log.info(f"URL {url_num}) M3U8 found immediately")
             return captured[0]
 
-        # -------------------------------------------------
-        # CLICK ANY LINK THAT LOOKS LIKE PLAYER
-        # -------------------------------------------------
+        # Click any potential player link
         links = await page.query_selector_all("a")
 
         for link in links:
@@ -86,40 +85,21 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
                 full = href if href.startswith("http") else f"https:{href}"
 
                 try:
-                    await page.goto(full, wait_until="domcontentloaded", timeout=10_000)
-                    await page.wait_for_timeout(3000)
+                    await page.goto(full, wait_until="domcontentloaded", timeout=15000)
+                    await page.wait_for_timeout(4000)
                 except:
                     continue
 
                 break
 
-        # -------------------------------------------------
-        # CHECK IFRAMES
-        # -------------------------------------------------
-        frames = page.frames
-
-        for frame in frames:
-            try:
-                html = await frame.content()
-                if ".m3u8" in html:
-                    import re
-                    match = re.search(r'https?://[^"\']+\.m3u8[^"\']*', html)
-                    if match:
-                        log.info(f"URL {url_num}) M3U8 found inside iframe")
-                        return match.group(0)
-            except:
-                continue
-
-        # -------------------------------------------------
-        # WAIT FOR NETWORK CAPTURE
-        # -------------------------------------------------
+        # Wait for network capture
         try:
-            await asyncio.wait_for(got_one.wait(), timeout=10)
+            await asyncio.wait_for(got_one.wait(), timeout=15)
         except asyncio.TimeoutError:
             pass
 
         if captured:
-            log.info(f"URL {url_num}) Captured M3U8 via network")
+            log.info(f"URL {url_num}) Captured M3U8")
             return captured[0]
 
         log.warning(f"URL {url_num}) No valid sources found.")
@@ -130,7 +110,7 @@ async def process_event(url: str, url_num: int, page: Page) -> str | None:
         return None
 
     finally:
-        page.remove_listener("request", handle_request)
+        page.remove_listener("response", handle_response)
 
 
 # -------------------------------------------------
@@ -323,11 +303,18 @@ from playwright.async_api import async_playwright
 async def main():
     async with async_playwright() as p:
         browser = await p.firefox.launch(
-            headless=True
+            headless=True,
+            args=["--no-sandbox"]
+        )
+
+        context = await browser.new_context(
+            user_agent=USER_AGENT,
+            viewport={"width": 1366, "height": 768},
+            ignore_https_errors=True
         )
 
         try:
-            await scrape(browser)
+            await scrape(context.browser)
         finally:
             await browser.close()
 
