@@ -20,7 +20,7 @@ TAG = "SHARK"
 
 BASE_URL = os.getenv("SHARK_BASE_URL")
 if not BASE_URL:
-    raise RuntimeError("❌ SHARK_BASE_URL secret not set")
+    raise RuntimeError("SHARK_BASE_URL secret not set")
 
 OUTPUT_FILE = "strmshark_tivimate.m3u8"
 
@@ -37,7 +37,7 @@ CACHE_FILE = Cache("shark.json", exp=10800)
 # ---------------- JS RENDER ----------------
 
 async def fetch_rendered_html() -> str:
-    log.info("🌐 Launching browser for JS-rendered HTML")
+    log.info("Launching browser for JS-rendered HTML")
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
@@ -167,7 +167,7 @@ async def main():
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write(playlist)
 
-    log.info(f"✅ Saved {OUTPUT_FILE} ({len(cached)} entries)")
+    log.info(f"Saved {OUTPUT_FILE} ({len(cached)} entries)")
 
 
 if __name__ == "__main__":
