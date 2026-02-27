@@ -275,7 +275,7 @@ async def scrape(browser: Browser):
                         url_num=i,
                         semaphore=network.PW_S,
                         log=log,
-                        timeout=20,
+                        timeout=30,
                     )
 
                     sport, league, event, ts = (
