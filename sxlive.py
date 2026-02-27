@@ -302,20 +302,28 @@ from playwright.async_api import async_playwright
 
 # -------------------------------------------------
 
+from playwright.async_api import async_playwright
+
+# -------------------------------------------------
+
 async def main():
-    browser = await p.chromium.launch(
-    headless=True,
-    args=["--no-sandbox", "--disable-blink-features=AutomationControlled"]
-)
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-blink-features=AutomationControlled",
+            ],
+        )
 
         context = await browser.new_context(
             user_agent=USER_AGENT,
             viewport={"width": 1366, "height": 768},
-            ignore_https_errors=True
+            ignore_https_errors=True,
         )
 
         try:
-            await scrape(context.browser)
+            await scrape(browser)
         finally:
             await browser.close()
 
