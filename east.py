@@ -138,8 +138,8 @@ async def scrape():
     log.info(f"Loaded {len(urls)} event(s) from cache")
     log.info(f'Scraping from "{BASE_URL}"')
 
-    events = await get_events(cached.keys())
-    log.info(f"Processing {len(events)} new URL(s)")
+    if events := await get_events(cached_urls.keys()):
+        log.info(f"Processing {len(events)} new URL(s)")
 
     now = Time.clean(Time.now()).timestamp()
 
