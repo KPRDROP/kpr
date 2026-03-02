@@ -166,6 +166,8 @@ async def scrape():
     CACHE_FILE.write(cached)
     write_playlists()
 
+log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
+
 
 # ---------------- PLAYLISTS ----------------
 def write_playlists():
