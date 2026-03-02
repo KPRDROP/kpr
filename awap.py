@@ -7,7 +7,6 @@ from functools import partial
 import feedparser
 from selectolax.parser import HTMLParser
 
-# 🔧 allow running as script OR package
 try:
     from .utils import Cache, Time, get_logger, leagues, network
 except ImportError:
@@ -15,7 +14,7 @@ except ImportError:
 
 log = get_logger(__name__)
 
-urls: dict[str, dict] = {}
+urls: dict[str, dict[str, str | float]] = {}
 
 TAG = "PAWA"
 CACHE_FILE = Cache(TAG, exp=10_800)
@@ -37,27 +36,28 @@ USER_AGENT = (
 async def process_event(url: str, url_num: int) -> str | None:
 
     if not (event_data := await network.request(url, log=log)):
-        log.info(f"URL {url_num}) Failed to load url.")
+        log.info(f"URL {url_num}) Failed to load event page.")
         return None
 
     soup = HTMLParser(event_data.content)
 
     iframe = soup.css_first("iframe")
     if not iframe:
-        log.warning(f"URL {url_num}) No iframe element found.")
+        log.warning(f"URL {url_num}) No iframe found.")
         return None
 
     iframe_src = iframe.attributes.get("src")
     if not iframe_src:
-        log.warning(f"URL {url_num}) No iframe source found.")
+        log.warning(f"URL {url_num}) No iframe src.")
         return None
 
     iframe_data = await network.request(iframe_src, log=log)
     if not iframe_data:
-        log.info(f"URL {url_num}) Failed to load iframe source.")
+        log.warning(f"URL {url_num}) Failed loading iframe.")
         return None
 
-    pattern = re.compile(r"window\.atob\(\s*'([^']+)'\s*\)", re.I)
+    # Base64 Clappr pattern
+    pattern = re.compile(r"source:\s*window\.atob\(\s*'([^']+)'\s*\)", re.I)
     match = pattern.search(iframe_data.text)
 
     if not match:
@@ -66,16 +66,15 @@ async def process_event(url: str, url_num: int) -> str | None:
 
     try:
         decoded = base64.b64decode(match[1]).decode("utf-8")
+        log.info(f"URL {url_num}) Captured M3U8")
+        return decoded
     except Exception:
         log.warning(f"URL {url_num}) Base64 decode failed.")
         return None
 
-    log.info(f"URL {url_num}) Captured M3U8")
-    return decoded
-
 
 # --------------------------------------------------
-async def get_events(cached_keys: list[str]) -> list[dict]:
+async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
     events = []
 
@@ -86,7 +85,6 @@ async def get_events(cached_keys: list[str]) -> list[dict]:
     feed = feedparser.parse(html_data.content)
 
     for entry in feed.entries:
-
         link = entry.get("link")
         title = entry.get("title")
 
@@ -147,6 +145,7 @@ async def scrape() -> None:
 
         sport, event, link = ev["sport"], ev["event"], ev["link"]
         key = f"[{sport}] {event} ({TAG})"
+
         tvg_id, logo = leagues.get_tvg_info(sport, event)
 
         entry = {
@@ -164,16 +163,14 @@ async def scrape() -> None:
     CACHE_FILE.write(cached_urls)
     write_playlists(cached_urls)
 
-    log.info(
-        f"Collected and cached {len(cached_urls) - cached_count} new event(s)"
-    )
+    log.info(f"Collected and cached {len(cached_urls) - cached_count} new event(s)")
 
 
 # --------------------------------------------------
 def write_playlists(entries: dict):
 
-    vlc = ["#EXTM3U"]
-    tivi = ["#EXTM3U"]
+    vlc = ['#EXTM3U']
+    tivi = ['#EXTM3U']
 
     encoded_ua = urllib.parse.quote(USER_AGENT, safe="")
 
