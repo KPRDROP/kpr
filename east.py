@@ -29,7 +29,7 @@ ENCODED_UA = quote(USER_AGENT, safe="")
 
 CACHE_FILE = Cache(TAG, exp=10_800)
 
-SPORT_ENDPOINTS = ["mma", "nba", "nhl", "soccer", "wwe"]
+SPORT_ENDPOINTS = ["nba", "mlb", "f1", "mma", "wwe", "soccer"]
 
 urls: dict[str, dict] = {}
 
@@ -56,16 +56,13 @@ async def capture_stream(event_url: str, url_num: int):
 
         try:
             await page.goto(event_url, timeout=30000)
-
-            # wait for player container
             await page.wait_for_timeout(4000)
 
-            # Momentum click pattern
+            # Momentum click
             await page.mouse.click(600, 400)
             await page.wait_for_timeout(2000)
             await page.mouse.click(600, 400)
 
-            # Wait for network requests
             await page.wait_for_timeout(8000)
 
         except Exception as e:
@@ -132,22 +129,25 @@ async def get_events(cached_keys):
 
 # ---------------- MAIN ----------------
 async def scrape():
-    cached = CACHE_FILE.load()
-    urls.update({k: v for k, v in cached.items() if v.get("url")})
+    cached = CACHE_FILE.load() or {}
 
-    valid_urls = {k: v for k, v in cached_urls.items() if v["url"]}
-
-    valid_count = cached_count = len(valid_urls)
-
+    # Keep only valid cached entries
+    valid_urls = {k: v for k, v in cached.items() if v.get("url")}
     urls.update(valid_urls)
 
-    log.info(f"Loaded {cached_count} event(s) from cache")
+    cached_count = len(valid_urls)
 
-    log.info(f"Loaded {len(urls)} event(s) from cache")
+    log.info(f"Loaded {cached_count} event(s) from cache")
     log.info(f'Scraping from "{BASE_URL}"')
 
-    if events := await get_events(cached_urls.keys()):
+    events = await get_events(cached.keys())
+
+    if events:
         log.info(f"Processing {len(events)} new URL(s)")
+    else:
+        CACHE_FILE.write(cached)
+        write_playlists()
+        return
 
     now = Time.clean(Time.now()).timestamp()
 
@@ -161,7 +161,7 @@ async def scrape():
 
         key = f"[{ev['sport']}] {ev['event']} ({TAG})"
 
-        urls[key] = cached[key] = {
+        entry = {
             "url": stream,
             "base": referer,
             "logo": logo,
@@ -170,25 +170,20 @@ async def scrape():
             "event": ev["event"],
             "timestamp": now,
         }
-        
 
-CACHE_FILE.write(cached)
+        cached[key] = entry
+        urls[key] = entry
+
+    CACHE_FILE.write(cached)
     write_playlists()
 
-    
-    cached_urls[key] = entry
-
-            if url:
-                valid_count += 1
-
-                urls[key] = entry
-
-log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
+    log.info(f"Collected and cached {len(cached) - cached_count} new event(s)")
 
 
 # ---------------- PLAYLISTS ----------------
 def write_playlists():
-    vlc, tivi = ["#EXTM3U"], ["#EXTM3U"]
+    vlc = ["#EXTM3U"]
+    tivi = ["#EXTM3U"]
 
     for key, e in urls.items():
         title = f"[{e['sport']}] {e['event']} ({TAG})"
