@@ -230,7 +230,7 @@ def build_playlists(data: dict[str, dict]):
 
 # --------------------------------------------------
 async def main():
-    log.info("🚀 Starting STGATE scraper")
+    log.info("Starting STGATE updater")
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
