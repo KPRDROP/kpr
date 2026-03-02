@@ -135,6 +135,14 @@ async def scrape():
     cached = CACHE_FILE.load()
     urls.update({k: v for k, v in cached.items() if v.get("url")})
 
+    valid_urls = {k: v for k, v in cached_urls.items() if v["url"]}
+
+    valid_count = cached_count = len(valid_urls)
+
+    urls.update(valid_urls)
+
+    log.info(f"Loaded {cached_count} event(s) from cache")
+
     log.info(f"Loaded {len(urls)} event(s) from cache")
     log.info(f'Scraping from "{BASE_URL}"')
 
