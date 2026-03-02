@@ -165,7 +165,7 @@ async def scrape():
         }
 
         cached[key] = entry
-        urls[key] = entry   # ✅ FIXED indentation
+        urls[key] = entry   # FIXED indentation
 
     CACHE_FILE.write(cached)
     write_playlists()
