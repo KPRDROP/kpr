@@ -170,8 +170,12 @@ async def scrape():
             "event": ev["event"],
             "timestamp": now,
         }
+        
 
+CACHE_FILE.write(cached)
+    write_playlists()
 
+    
     cached_urls[key] = entry
 
             if url:
@@ -180,9 +184,6 @@ async def scrape():
                 urls[key] = entry
 
 log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
-
-    CACHE_FILE.write(cached)
-    write_playlists()
 
 
 # ---------------- PLAYLISTS ----------------
