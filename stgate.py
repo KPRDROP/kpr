@@ -154,8 +154,8 @@ async def scrape(browser: Browser) -> None:
     log.info(f"Loaded {cached_count} cached event(s)")
     log.info(f'Scraping JSON from "{BASE_URL}/data"')
 
-    events = await get_events(list(cached_urls.keys()))
-    log.info(f"Processing {len(events)} new stream URL(s)")
+    if events := await get_events(cached_urls.keys()):
+        log.info(f"Processing {len(events)} new URL(s)")
 
     if not events:
         CACHE_FILE.write(cached_urls)
@@ -197,7 +197,7 @@ async def scrape(browser: Browser) -> None:
     CACHE_FILE.write(cached_urls)
     build_playlists(cached_urls)
 
-    log.info(f"Collected {len(cached_urls) - cached_count} new event(s)")
+    log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
 
 # --------------------------------------------------
 def build_playlists(data: dict[str, dict]):
