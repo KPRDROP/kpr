@@ -106,7 +106,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, Any]]:
         API_FILE.write(api_data)
 
     events = []
-    start_dt = now.delta(hours=-6)
+    start_dt = now.delta(hours=-24)
     end_dt = now.delta(minutes=12)
 
     for ev in api_data:
@@ -154,8 +154,8 @@ async def scrape(browser: Browser) -> None:
     log.info(f"Loaded {cached_count} cached event(s)")
     log.info(f'Scraping JSON from "{BASE_URL}/data"')
 
-    if events := await get_events(cached_urls.keys()):
-        log.info(f"Processing {len(events)} new URL(s)")
+    events = await get_events(list(cached_urls.keys()))
+    log.info(f"Processing {len(events)} new stream URL(s)")
 
     if not events:
         CACHE_FILE.write(cached_urls)
@@ -197,7 +197,7 @@ async def scrape(browser: Browser) -> None:
     CACHE_FILE.write(cached_urls)
     build_playlists(cached_urls)
 
-    log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
+    log.info(f"Collected and cached {len(cached_urls) - cached_count} new event(s)")
 
 # --------------------------------------------------
 def build_playlists(data: dict[str, dict]):
@@ -230,7 +230,7 @@ def build_playlists(data: dict[str, dict]):
 
 # --------------------------------------------------
 async def main():
-    log.info("Starting STGATE updater")
+    log.info("🚀 Starting STGATE scraper")
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
