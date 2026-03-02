@@ -139,8 +139,13 @@ async def scrape() -> None:
                 "event": event,
             }
 
-    CACHE_FILE.write(cached_urls)
-    write_playlists(cached_urls)
+    cached[key] = entry
+        urls[key] = entry
+
+    CACHE_FILE.write(cached)
+    write_playlists()
+
+    log.info(f"Collected and cached {len(cached) - cached_count} new event(s)")
 
 
 def write_playlists(entries: dict):
