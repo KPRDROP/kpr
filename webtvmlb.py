@@ -157,36 +157,52 @@ async def scrape(browser: Browser) -> None:
     log.info(f"Loaded {cached_count} cached event(s)")
     log.info(f'Scraping from "{BASE_URL}"')
 
-    events = HTML_CACHE.load()
+    events := await get_events(browser, list(cached_urls.keys()))
 
     if not events:
-        log.info("Refreshing HTML cache")
-        events = await refresh_html_cache(browser)
-        HTML_CACHE.write(events)
+        CACHE_FILE.write(cached_urls)
+        log.info("No new events found")
+        return
 
-    new_events = [
-        v for k, v in events.items()
-        if k not in cached_urls
-    ]
+    log.info(f"Processing {len(events)} new URL(s)")
 
-    log.info(f"Processing {len(new_events)} new URL(s)")
+    # 🔥 Disable stealth & adblock for this site
+    async with network.event_context(browser, stealth=False) as context:
+        for i, ev in enumerate(events, start=1):
 
-    for i, ev in enumerate(new_events, start=1):
+            async with network.event_page(context) as page:
 
-        stream_url = await capture_m3u8(browser, ev["link"], i)
+                handler = partial(
+                    network.process_event,
+                    url=ev["link"],
+                    url_num=i,
+                    page=page,
+                    log=log,
+                )
 
-        if not stream_url:
-            continue
+                stream_url = await network.safe_process(
+                    handler,
+                    url_num=i,
+                    semaphore=network.PW_S,
+                    log=log,
+                )
 
-        key = f"[{ev['sport']}] {ev['event']} ({TAG})"
-        tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
+                if not stream_url:
+                    continue
 
-        cached_urls[key] = {
-            "url": stream_url,
-            "logo": logo,
-            "timestamp": ev["event_ts"],
-            "id": tvg_id or "MLB.Baseball.Dummy.us",
-        }
+                key = f"[{ev['sport']}] {ev['event']} ({TAG})"
+                tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
+
+                entry = {
+                    "url": stream_url,
+                    "logo": logo,
+                    "base": BASE_URL,
+                    "timestamp": ev["event_ts"],
+                    "id": tvg_id or "MLB.Baseball.Dummy.us",
+                    "link": ev["link"],
+                }
+
+                cached_urls[key] = entry
 
     CACHE_FILE.write(cached_urls)
     build_playlists(cached_urls)
