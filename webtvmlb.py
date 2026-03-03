@@ -157,7 +157,7 @@ async def scrape(browser: Browser) -> None:
     log.info(f"Loaded {cached_count} cached event(s)")
     log.info(f'Scraping from "{BASE_URL}"')
 
-    events := await get_events(browser, list(cached_urls.keys()))
+    events = await get_events(browser, list(cached_urls.keys()))
 
     if not events:
         CACHE_FILE.write(cached_urls)
@@ -166,7 +166,7 @@ async def scrape(browser: Browser) -> None:
 
     log.info(f"Processing {len(events)} new URL(s)")
 
-    # 🔥 Disable stealth & adblock for this site
+    # Disable stealth & adblock for this site
     async with network.event_context(browser, stealth=False) as context:
         for i, ev in enumerate(events, start=1):
 
