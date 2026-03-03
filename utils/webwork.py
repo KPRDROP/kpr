@@ -250,11 +250,16 @@ class Network:
         page.on("request", handler)
 
         try:
-            await page.goto(
+            resp = await page.goto(
                 url,
                 wait_until="domcontentloaded",
                 timeout=6_000,
             )
+
+            if resp.status != 200:
+                log.warning(f"URL {url_num}) Status Code: {resp.status}")
+
+                return
 
             wait_task = asyncio.create_task(got_one.wait())
 
