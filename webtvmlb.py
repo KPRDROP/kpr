@@ -33,7 +33,16 @@ USER_AGENT = (
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/145.0.0.0 Safari/537.36"
 )
+
 UA_ENC = quote(USER_AGENT)
+
+BROWSER_HEADERS = {
+    "User-Agent": USER_AGENT,
+    "Referer": REFERER,
+    "Origin": ORIGIN,
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
 
 OUT_VLC = Path("webtv_vlc.m3u8")
 OUT_TIVI = Path("webtv_tivimate.m3u8")
@@ -49,8 +58,27 @@ def fix_event(s: str) -> str:
 
 # --------------------------------------------------
 
+async def safe_request(url: str):
+    """
+    Adds browser headers and retries once if 403.
+    """
+    response = await network.request(url, headers=BROWSER_HEADERS, log=log)
+
+    if not response:
+        return None
+
+    if response.status_code == 403:
+        log.warning("403 detected. Retrying with fresh headers...")
+        await asyncio.sleep(1)
+        return await network.request(url, headers=BROWSER_HEADERS, log=log)
+
+    return response
+
+# --------------------------------------------------
+
 async def process_event(url: str, url_num: int) -> str | None:
-    if not (event_data := await network.request(url, log=log)):
+
+    if not (event_data := await safe_request(url)):
         log.info(f"URL {url_num}) Failed to load url.")
         return
 
@@ -67,7 +95,10 @@ async def process_event(url: str, url_num: int) -> str | None:
     if not (
         iframe_src_data := await network.request(
             iframe_src,
-            headers={"Referer": url},
+            headers={
+                **BROWSER_HEADERS,
+                "Referer": url,
+            },
             log=log,
         )
     ):
@@ -86,20 +117,27 @@ async def process_event(url: str, url_num: int) -> str | None:
 # --------------------------------------------------
 
 async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
-    tasks = [network.request(url, log=log) for url in BASE_URLS.values()]
+
+    tasks = [safe_request(url) for url in BASE_URLS.values()]
     results = await asyncio.gather(*tasks)
 
     events = []
 
-    if not (
-        soups := [(HTMLParser(html.content), html.url) for html in results if html]
-    ):
+    soups = [
+        (HTMLParser(html.content), html.url)
+        for html in results
+        if html
+    ]
+
+    if not soups:
         return events
 
     for soup, url in soups:
+
         sport = next((k for k, v in BASE_URLS.items() if v == url), "Live Event")
 
         for row in soup.css("tr.singele_match_date"):
+
             if not (vs_node := row.css_first("td.teamvs a")):
                 continue
 
@@ -145,7 +183,6 @@ def build_playlists(data: dict[str, dict]):
 
         channel_number += 1
 
-        # VLC FORMAT
         vlc.extend([
             f'#EXTINF:-1 tvg-chno="{channel_number}" tvg-id="{e["id"]}" '
             f'tvg-name="{name}" tvg-logo="{e["logo"]}" '
@@ -156,7 +193,6 @@ def build_playlists(data: dict[str, dict]):
             e["url"],
         ])
 
-        # TIVIMATE FORMAT
         tivimate.extend([
             f'#EXTINF:-1 tvg-chno="{channel_number}" tvg-id="{e["id"]}" '
             f'tvg-name="{name}" tvg-logo="{e["logo"]}" '
