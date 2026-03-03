@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from selectolax.parser import HTMLParser
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 from utils import Cache, Time, get_logger, leagues, network
 
