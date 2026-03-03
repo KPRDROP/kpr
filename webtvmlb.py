@@ -114,25 +114,42 @@ async def refresh_html_cache(browser: Browser) -> dict[str, dict]:
 # --------------------------------------------------
 async def capture_m3u8(browser: Browser, url: str, url_num: int):
 
-    context = await browser.new_context(user_agent=USER_AGENT)
-    page = await context.new_page()
+    context = await browser.new_context(
+        user_agent=USER_AGENT,
+        extra_http_headers={
+            "Referer": REFERER,
+            "Origin": ORIGIN,
+        },
+    )
 
     m3u8_url = None
     done = asyncio.Event()
 
+    # Capture at CONTEXT level (iframe safe)
     async def handle_response(response):
         nonlocal m3u8_url
-        if ".m3u8" in response.url and response.status == 200:
-            if not m3u8_url:
-                m3u8_url = response.url
-                log.info(f"URL {url_num}) Captured M3U8")
-                done.set()
+        try:
+            if ".m3u8" in response.url and response.status == 200:
+                if not m3u8_url:
+                    m3u8_url = response.url
+                    log.info(f"URL {url_num}) Captured M3U8")
+                    done.set()
+        except:
+            pass
 
-    page.on("response", handle_response)
+    context.on("response", handle_response)
+
+    page = await context.new_page()
 
     try:
-        await page.goto(url, timeout=30000)
-        await asyncio.wait_for(done.wait(), timeout=20)
+        await page.goto(url, timeout=30000, wait_until="domcontentloaded")
+
+        # Wait network settle
+        await page.wait_for_load_state("networkidle")
+
+        # Give player extra time to fire HLS
+        await asyncio.wait_for(done.wait(), timeout=25)
+
     except asyncio.TimeoutError:
         log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
     except Exception as e:
