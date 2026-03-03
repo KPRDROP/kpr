@@ -155,6 +155,25 @@ async def scrape(browser: Browser) -> None:
 
             async with network.event_page(context) as page:
 
+                try:
+                    await page.goto(ev["link"], timeout=30000)
+                    await page.wait_for_timeout(4000)
+
+                    # Try iframe switch (most MLBWebcast streams are inside iframe)
+                    iframe = page.frame_locator("iframe")
+                    if await page.locator("iframe").count() > 0:
+                        frame = page.frames[-1]
+                    else:
+                        frame = page
+
+                    # ---- Momentum Click Pattern ----
+                    for _ in range(2):
+                        await frame.mouse.click(600, 400)
+                        await page.wait_for_timeout(2000)
+
+                except Exception as e:
+                    log.warning(f"URL {i}) Page interaction failed: {e}")
+
                 handler = partial(
                     network.process_event,
                     url=ev["link"],
