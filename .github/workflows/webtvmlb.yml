@@ -2,7 +2,6 @@ name: WEBTV MLB Updater
 
 on:
   schedule:
-    # Runs every 2 hours
     - cron: "0 */2 * * *"
   workflow_dispatch:
 
@@ -16,6 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -39,10 +40,15 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git add webtvmlb_vlc.m3u8 webtvmlb_tivimate.m3u8
+
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
           fi
 
           git commit -m "Update WEBTV MLB playlists"
-          git push
+
+          # sync with remote before push
+          git pull --rebase origin main
+
+          git push origin main
