@@ -131,7 +131,7 @@ async def get_events(browser: Browser, cached_keys: list[str]) -> list[dict]:
     events = HTML_CACHE.load()
     if not events:
         log.info("Refreshing HTML cache (Playwright)")
-        events := await refresh_html_cache(browser)
+        events = await refresh_html_cache(browser)
         HTML_CACHE.write(events)
 
     live = []
