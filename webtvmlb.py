@@ -29,7 +29,7 @@ ORIGIN = BASE_URL.rstrip("/")
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/122.0.0.0 Safari/537.36"
+    "Chrome/143.0.0.0 Safari/537.36"
 )
 UA_ENC = quote(USER_AGENT)
 
@@ -52,6 +52,7 @@ def parse_event_time(date_text: str, time_text: str) -> float:
             timezone="EST"
         ).timestamp()
     except Exception:
+        log.warning(f"Time parse failed: {date_text} {time_text}")
         return Time.now().timestamp()
 
 # --------------------------------------------------
@@ -59,21 +60,15 @@ async def refresh_html_cache(browser: Browser) -> dict[str, dict]:
 
     events = {}
 
-    context = await browser.new_context(
-        user_agent=USER_AGENT,
-        locale="en-US",
-        timezone_id="America/New_York",
-        viewport={"width": 1366, "height": 768},
-    )
-
+    context = await browser.new_context(user_agent=USER_AGENT)
     page = await context.new_page()
 
     try:
         await page.goto(BASE_URL, timeout=30000)
-        await page.wait_for_timeout(5000)
+        await page.wait_for_timeout(4000)
         html = await page.content()
     except Exception as e:
-        log.error(f"Failed loading page: {e}")
+        log.error(f"Failed loading page via Playwright: {e}")
         await context.close()
         return events
 
@@ -97,8 +92,8 @@ async def refresh_html_cache(browser: Browser) -> dict[str, dict]:
 
         time_text = time_node.text(strip=True)
         raw_event = vs_node.text(strip=True)
-        href = vs_node.attributes.get("href")
 
+        href = vs_node.attributes.get("href")
         if not href:
             continue
 
@@ -114,6 +109,7 @@ async def refresh_html_cache(browser: Browser) -> dict[str, dict]:
             "event": event,
             "link": href,
             "event_ts": event_ts,
+            "timestamp": now.timestamp(),
         }
 
     return events
@@ -124,14 +120,17 @@ async def get_events(browser: Browser, cached_keys: list[str]) -> list[dict]:
     events = HTML_CACHE.load()
 
     if not events:
-        log.info("Refreshing HTML cache")
+        log.info("Refreshing HTML cache (Playwright)")
         events = await refresh_html_cache(browser)
         HTML_CACHE.write(events)
 
-    return [
-        v for k, v in events.items()
-        if k not in cached_keys
-    ]
+    live = []
+    for k, v in events.items():
+        if k in cached_keys:
+            continue
+        live.append(v)
+
+    return live
 
 # --------------------------------------------------
 async def scrape(browser: Browser) -> None:
@@ -150,20 +149,14 @@ async def scrape(browser: Browser) -> None:
         return
 
     log.info(f"Processing {len(events)} new URL(s)")
-
-    # 🔥 Disable stealth & adblock
+    
+     # 🔥 Disable stealth & adblock
     async with network.event_context(browser, stealth=False) as context:
 
-        # Make context realistic (important for 403 fix)
-        await context.add_init_script("""
-            Object.defineProperty(navigator, 'webdriver', {get: () => undefined})
-        """)
-
+    async with network.event_context(browser) as context:
         for i, ev in enumerate(events, start=1):
 
             async with network.event_page(context) as page:
-
-                await page.wait_for_timeout(2000)
 
                 handler = partial(
                     network.process_event,
@@ -186,7 +179,7 @@ async def scrape(browser: Browser) -> None:
                 key = f"[{ev['sport']}] {ev['event']} ({TAG})"
                 tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
-                cached_urls[key] = {
+                entry = {
                     "url": stream_url,
                     "logo": logo,
                     "base": BASE_URL,
@@ -194,6 +187,8 @@ async def scrape(browser: Browser) -> None:
                     "id": tvg_id or "MLB.Baseball.Dummy.us",
                     "link": ev["link"],
                 }
+
+                cached_urls[key] = entry
 
     CACHE_FILE.write(cached_urls)
     build_playlists(cached_urls)
@@ -236,13 +231,8 @@ async def main():
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-blink-features=AutomationControlled",
-            ],
+            args=["--no-sandbox", "--disable-dev-shm-usage"],
         )
-
         await scrape(browser)
         await browser.close()
 
