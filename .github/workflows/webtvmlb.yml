@@ -34,17 +34,25 @@ jobs:
         run: |
           python webtvmlb.py
 
-      - name: Commit and push if changed
+      - name: Commit & push
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@users.noreply.github.com"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
 
-          git add webtvmlb_vlc.m3u8 webtvmlb_tivimate.m3u8 || true
+          git add webtvmlb_vlc.m3u8 webtvmlb_tivimate.m3u8
 
           if git diff --cached --quiet; then
-            echo "No changes detected"
+            echo "No changes"
             exit 0
           fi
 
-          git commit -m "Update WEBTV MLB playlists"
-          git push origin main
+          git commit -m "Update WEBTV MLB Playlist"
+
+          if ! git push origin main; then
+            git stash
+            git pull --rebase origin main
+            git stash pop
+            git add webtvmlb_vlc.m3u8 webtvmlb_tivimate.m3u8
+            git commit -m "Update WEBTV MLB Playlist (rebased)" || true
+            git push origin main
+          fi
