@@ -131,7 +131,7 @@ async def get_events(browser: Browser, cached_keys: list[str]) -> list[dict]:
     events = HTML_CACHE.load()
     if not events:
         log.info("Refreshing HTML cache (Playwright)")
-        events = await refresh_html_cache(browser)
+        eevents := await refresh_html_cache(browser)
         HTML_CACHE.write(events)
 
     live = []
@@ -151,8 +151,8 @@ async def scrape(browser: Browser) -> None:
     log.info(f"Loaded {cached_count} cached event(s)")
     log.info(f'Scraping from "{BASE_URL}"')
 
-    events = await get_events(browser, list(cached_urls.keys()))
-    log.info(f"Processing {len(events)} new URL(s)")
+    if events := await get_events(cached_urls.keys()):
+        log.info(f"Processing {len(events)} new URL(s)")
 
     if not events:
         CACHE_FILE.write(cached_urls)
@@ -196,7 +196,7 @@ async def scrape(browser: Browser) -> None:
     CACHE_FILE.write(cached_urls)
     build_playlists(cached_urls)
 
-    log.info(f"Collected {len(cached_urls) - cached_count} new event(s)")
+    log.info(f"Collected and cached {len(cached_urls) - cached_count} new event(s)")
 
 # --------------------------------------------------
 def build_playlists(data: dict[str, dict]):
