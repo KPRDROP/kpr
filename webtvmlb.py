@@ -29,7 +29,7 @@ ORIGIN = BASE_URL.rstrip("/")
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/143.0.0.0 Safari/537.36"
+    "Chrome/122.0.0.0 Safari/537.36"
 )
 UA_ENC = quote(USER_AGENT)
 
@@ -59,12 +59,18 @@ async def refresh_html_cache(browser: Browser) -> dict[str, dict]:
 
     events = {}
 
-    context = await browser.new_context(user_agent=USER_AGENT)
+    context = await browser.new_context(
+        user_agent=USER_AGENT,
+        locale="en-US",
+        timezone_id="America/New_York",
+        viewport={"width": 1366, "height": 768},
+    )
+
     page = await context.new_page()
 
     try:
         await page.goto(BASE_URL, timeout=30000)
-        await page.wait_for_timeout(4000)
+        await page.wait_for_timeout(5000)
         html = await page.content()
     except Exception as e:
         log.error(f"Failed loading page: {e}")
@@ -145,11 +151,19 @@ async def scrape(browser: Browser) -> None:
 
     log.info(f"Processing {len(events)} new URL(s)")
 
-    # Disable stealth & adblock
+    # 🔥 Disable stealth & adblock
     async with network.event_context(browser, stealth=False) as context:
+
+        # Make context realistic (important for 403 fix)
+        await context.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {get: () => undefined})
+        """)
+
         for i, ev in enumerate(events, start=1):
 
             async with network.event_page(context) as page:
+
+                await page.wait_for_timeout(2000)
 
                 handler = partial(
                     network.process_event,
@@ -222,8 +236,13 @@ async def main():
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage"],
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-blink-features=AutomationControlled",
+            ],
         )
+
         await scrape(browser)
         await browser.close()
 
