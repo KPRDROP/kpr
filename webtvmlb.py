@@ -80,7 +80,7 @@ async def extract_stream(page, url: str, url_num: int) -> str | None:
 
         iframe_html = await page.content()
 
-        match = re.search(r"source:\s*['\"](.*?)['\"]", iframe_html, re.I)
+        pattern = re.compile(r"source:\s+(\'|\")(.*)(\'|\")", re.I)
         if not match:
             log.warning(f"URL {url_num}) No Clappr source found.")
             return None
