@@ -39,8 +39,6 @@ OUT_TIVI = Path("webtvmlb_tivimate.m3u8")
 CACHE_FILE = Cache(TAG, exp=10_800)
 HTML_CACHE = Cache(f"{TAG}-html", exp=3_600)
 
-urls: dict[str, dict] = {}
-
 # --------------------------------------------------
 def fix_event(s: str) -> str:
     return " vs ".join(map(str.strip, s.split("@")))
@@ -62,9 +60,7 @@ async def refresh_html_cache(browser: Browser) -> dict[str, dict]:
 
     events = {}
 
-    context = await browser.new_context(
-        user_agent=USER_AGENT
-    )
+    context = await browser.new_context(user_agent=USER_AGENT)
     page = await context.new_page()
 
     try:
@@ -81,12 +77,8 @@ async def refresh_html_cache(browser: Browser) -> dict[str, dict]:
     now = Time.clean(Time.now())
     soup = HTMLParser(html)
 
-    title_node = soup.css_first("title")
     sport = "MLB"
-
     date_text = now.strftime("%B %d, %Y")
-    if row := soup.css_first("tr.mdatetitle span.mtdate"):
-        date_text = row.text(strip=True)
 
     rows = soup.css("tr.singele_match_date")
     log.info(f"Found {len(rows)} raw event row(s)")
@@ -100,9 +92,6 @@ async def refresh_html_cache(browser: Browser) -> dict[str, dict]:
 
         time_text = time_node.text(strip=True)
         raw_event = vs_node.text(strip=True)
-
-        for span in vs_node.css("span"):
-            raw_event = raw_event.replace(span.text(strip=True), "").strip()
 
         href = vs_node.attributes.get("href")
         if not href:
@@ -129,6 +118,7 @@ async def refresh_html_cache(browser: Browser) -> dict[str, dict]:
 async def get_events(browser: Browser, cached_keys: list[str]) -> list[dict]:
 
     events = HTML_CACHE.load()
+
     if not events:
         log.info("Refreshing HTML cache (Playwright)")
         events = await refresh_html_cache(browser)
@@ -151,12 +141,14 @@ async def scrape(browser: Browser) -> None:
     log.info(f"Loaded {cached_count} cached event(s)")
     log.info(f'Scraping from "{BASE_URL}"')
 
-    if events := await get_events(cached_urls.keys()):
-        log.info(f"Processing {len(events)} new URL(s)")
+    events = await get_events(browser, list(cached_urls.keys()))
 
     if not events:
         CACHE_FILE.write(cached_urls)
+        log.info("No new events found")
         return
+
+    log.info(f"Processing {len(events)} new URL(s)")
 
     async with network.event_context(browser) as context:
         for i, ev in enumerate(events, start=1):
@@ -184,7 +176,7 @@ async def scrape(browser: Browser) -> None:
                 key = f"[{ev['sport']}] {ev['event']} ({TAG})"
                 tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
-                cached_urls[key] = {
+                entry = {
                     "url": stream_url,
                     "logo": logo,
                     "base": BASE_URL,
@@ -195,15 +187,10 @@ async def scrape(browser: Browser) -> None:
 
                 cached_urls[key] = entry
 
-            if url:
-                valid_count += 1
-
-                urls[key] = entry
-
     CACHE_FILE.write(cached_urls)
     build_playlists(cached_urls)
 
-    log.info(f"Collected and cached {len(cached_urls) - cached_count} new event(s)")
+    log.info(f"Collected {len(cached_urls) - cached_count} new event(s)")
 
 # --------------------------------------------------
 def build_playlists(data: dict[str, dict]):
@@ -212,6 +199,7 @@ def build_playlists(data: dict[str, dict]):
     tm = ["#EXTM3U"]
 
     for name, e in data.items():
+
         vlc.extend([
             f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-name="{name}" '
             f'tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
