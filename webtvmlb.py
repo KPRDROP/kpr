@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import asyncio
 import os
 import re
@@ -16,14 +15,14 @@ log = get_logger(__name__)
 # CONFIG
 # --------------------------------------------------
 
-TAG = "MLBCAST"
+TAG = "WEBCAST"
 
 BASE_URL = os.environ.get("WEBTV_MLB_BASE_URL")
 if not BASE_URL:
     raise RuntimeError("Missing WEBTV_MLB_BASE_URL secret")
 
 BASE_URLS = {
-    "MLB": BASE_URL,
+    "MLB": BASE_URL
 }
 
 REFERER = BASE_URL
@@ -32,24 +31,25 @@ ORIGIN = BASE_URL.rstrip("/")
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/143.0.0.0 Safari/537.36"
+    "Chrome/145.0.0.0 Safari/537.36"
 )
 UA_ENC = quote(USER_AGENT)
 
-OUT_VLC = Path("webtvmlb_vlc.m3u8")
-OUT_TIVI = Path("webtvmlb_tivimate.m3u8")
+OUT_VLC = Path("webtv_vlc.m3u8")
+OUT_TIVI = Path("webtv_tivimate.m3u8")
 
 CACHE_FILE = Cache(TAG, exp=19_800)
+
+urls: dict[str, dict[str, str | float]] = {}
 
 # --------------------------------------------------
 
 def fix_event(s: str) -> str:
-    return " vs ".join(s.split("@"))
+    return " vs ".join(map(str.strip, s.split("@")))
 
 # --------------------------------------------------
 
 async def process_event(url: str, url_num: int) -> str | None:
-
     if not (event_data := await network.request(url, log=log)):
         log.info(f"URL {url_num}) Failed to load url.")
         return
@@ -81,13 +81,11 @@ async def process_event(url: str, url_num: int) -> str | None:
         return
 
     log.info(f"URL {url_num}) Captured M3U8")
-
     return match[2]
 
 # --------------------------------------------------
 
-async def get_events(cached_keys: list[str]) -> list[dict]:
-
+async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
     tasks = [network.request(url, log=log) for url in BASE_URLS.values()]
     results = await asyncio.gather(*tasks)
 
@@ -133,12 +131,54 @@ async def get_events(cached_keys: list[str]) -> list[dict]:
 
 # --------------------------------------------------
 
+def build_playlists(data: dict[str, dict]):
+
+    vlc = ["#EXTM3U"]
+    tivimate = ["#EXTM3U"]
+
+    channel_number = 200
+
+    for name, e in data.items():
+
+        if not e.get("url"):
+            continue
+
+        channel_number += 1
+
+        # VLC FORMAT
+        vlc.extend([
+            f'#EXTINF:-1 tvg-chno="{channel_number}" tvg-id="{e["id"]}" '
+            f'tvg-name="{name}" tvg-logo="{e["logo"]}" '
+            f'group-title="Live Events",{name}',
+            f"#EXTVLCOPT:http-referrer={REFERER}",
+            f"#EXTVLCOPT:http-origin={ORIGIN}",
+            f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
+            e["url"],
+        ])
+
+        # TIVIMATE FORMAT
+        tivimate.extend([
+            f'#EXTINF:-1 tvg-chno="{channel_number}" tvg-id="{e["id"]}" '
+            f'tvg-name="{name}" tvg-logo="{e["logo"]}" '
+            f'group-title="Live Events",{name}',
+            f'{e["url"]}|referer={REFERER}/|origin={ORIGIN}|user-agent={UA_ENC}',
+        ])
+
+    OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
+    OUT_TIVI.write_text("\n".join(tivimate), encoding="utf-8")
+
+    log.info("Playlists written successfully")
+
+# --------------------------------------------------
+
 async def scrape() -> None:
 
     cached_urls = CACHE_FILE.load() or {}
 
     valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
     valid_count = cached_count = len(valid_urls)
+
+    urls.update(valid_urls)
 
     log.info(f"Loaded {cached_count} event(s) from cache")
     log.info(f'Scraping from "{BASE_URL}"')
@@ -153,7 +193,7 @@ async def scrape() -> None:
 
             handler = partial(
                 process_event,
-                url=ev["link"],
+                url=(link := ev["link"]),
                 url_num=i,
             )
 
@@ -175,53 +215,22 @@ async def scrape() -> None:
                 "base": BASE_URL,
                 "timestamp": now.timestamp(),
                 "id": tvg_id or "MLB.Baseball.Dummy.us",
-                "link": ev["link"],
+                "link": link,
             }
 
             cached_urls[key] = entry
 
             if stream_url:
                 valid_count += 1
+                urls[key] = entry
 
-        log.info(f"Collected {valid_count - cached_count} new event(s)")
+        log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
 
     else:
         log.info("No new events found")
 
     CACHE_FILE.write(cached_urls)
     build_playlists(cached_urls)
-
-# --------------------------------------------------
-
-def build_playlists(data: dict):
-
-    vlc = ["#EXTM3U"]
-    tm = ["#EXTM3U"]
-
-    for name, e in data.items():
-
-        if not e.get("url"):
-            continue
-
-        vlc.extend([
-            f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-name="{name}" '
-            f'tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
-            f"#EXTVLCOPT:http-referrer={REFERER}",
-            f"#EXTVLCOPT:http-origin={ORIGIN}",
-            f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
-            e["url"],
-        ])
-
-        tm.extend([
-            f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-name="{name}" '
-            f'tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
-            f'{e["url"]}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}',
-        ])
-
-    OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
-    OUT_TIVI.write_text("\n".join(tm), encoding="utf-8")
-
-    log.info("Playlists written successfully")
 
 # --------------------------------------------------
 
