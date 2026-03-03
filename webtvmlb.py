@@ -193,6 +193,13 @@ async def scrape(browser: Browser) -> None:
                     "link": ev["link"],
                 }
 
+                cached_urls[key] = entry
+
+            if url:
+                valid_count += 1
+
+                urls[key] = entry
+
     CACHE_FILE.write(cached_urls)
     build_playlists(cached_urls)
 
