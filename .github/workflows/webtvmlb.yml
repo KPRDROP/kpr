@@ -26,6 +26,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install playwright selectolax httpx[http2] pytz
+          pip install playwright
+          playwright install
           playwright install chromium
 
       - name: Run WEBTV MLB updater
