@@ -54,7 +54,7 @@ def get_logger(name: str | None = None) -> logging.Logger:
         LOG_DIR / "fetch.log",
         when="midnight",
         interval=1,
-        backupCount=3,
+        backupCount=1,
         encoding="utf-8",
         utc=False,
     )
