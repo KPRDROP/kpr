@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import asyncio
-from functools import partial
 from pathlib import Path
 from urllib.parse import quote, urljoin
 import os
@@ -9,7 +8,7 @@ import re
 from playwright.async_api import async_playwright, Browser
 from selectolax.parser import HTMLParser
 
-from utils import Cache, Time, get_logger, leagues, network
+from utils import Cache, Time, get_logger, leagues
 
 log = get_logger(__name__)
 
@@ -52,7 +51,6 @@ def parse_event_time(date_text: str, time_text: str) -> float:
             timezone="EST"
         ).timestamp()
     except Exception:
-        log.warning(f"Time parse failed: {date_text} {time_text}")
         return Time.now().timestamp()
 
 # --------------------------------------------------
@@ -68,7 +66,7 @@ async def refresh_html_cache(browser: Browser) -> dict[str, dict]:
         await page.wait_for_timeout(4000)
         html = await page.content()
     except Exception as e:
-        log.error(f"Failed loading page via Playwright: {e}")
+        log.error(f"Failed loading page: {e}")
         await context.close()
         return events
 
@@ -92,8 +90,8 @@ async def refresh_html_cache(browser: Browser) -> dict[str, dict]:
 
         time_text = time_node.text(strip=True)
         raw_event = vs_node.text(strip=True)
-
         href = vs_node.attributes.get("href")
+
         if not href:
             continue
 
@@ -109,28 +107,39 @@ async def refresh_html_cache(browser: Browser) -> dict[str, dict]:
             "event": event,
             "link": href,
             "event_ts": event_ts,
-            "timestamp": now.timestamp(),
         }
 
     return events
 
 # --------------------------------------------------
-async def get_events(browser: Browser, cached_keys: list[str]) -> list[dict]:
+async def capture_m3u8(browser: Browser, url: str, url_num: int):
 
-    events = HTML_CACHE.load()
+    context = await browser.new_context(user_agent=USER_AGENT)
+    page = await context.new_page()
 
-    if not events:
-        log.info("Refreshing HTML cache (Playwright)")
-        events = await refresh_html_cache(browser)
-        HTML_CACHE.write(events)
+    m3u8_url = None
+    done = asyncio.Event()
 
-    live = []
-    for k, v in events.items():
-        if k in cached_keys:
-            continue
-        live.append(v)
+    async def handle_response(response):
+        nonlocal m3u8_url
+        if ".m3u8" in response.url and response.status == 200:
+            if not m3u8_url:
+                m3u8_url = response.url
+                log.info(f"URL {url_num}) Captured M3U8")
+                done.set()
 
-    return live
+    page.on("response", handle_response)
+
+    try:
+        await page.goto(url, timeout=30000)
+        await asyncio.wait_for(done.wait(), timeout=20)
+    except asyncio.TimeoutError:
+        log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
+    except Exception as e:
+        log.warning(f"URL {url_num}) Error: {e}")
+
+    await context.close()
+    return m3u8_url
 
 # --------------------------------------------------
 async def scrape(browser: Browser) -> None:
@@ -141,51 +150,35 @@ async def scrape(browser: Browser) -> None:
     log.info(f"Loaded {cached_count} cached event(s)")
     log.info(f'Scraping from "{BASE_URL}"')
 
-    events = await get_events(browser, list(cached_urls.keys()))
-
+    events = HTML_CACHE.load()
     if not events:
-        CACHE_FILE.write(cached_urls)
-        log.info("No new events found")
-        return
+        log.info("Refreshing HTML cache")
+        events = await refresh_html_cache(browser)
+        HTML_CACHE.write(events)
 
-    log.info(f"Processing {len(events)} new URL(s)")
+    new_events = [
+        v for k, v in events.items()
+        if k not in cached_urls
+    ]
 
-    async with network.event_context(browser) as context:
-        for i, ev in enumerate(events, start=1):
+    log.info(f"Processing {len(new_events)} new URL(s)")
 
-            async with network.event_page(context) as page:
+    for i, ev in enumerate(new_events, start=1):
 
-                handler = partial(
-                    network.process_event,
-                    url=ev["link"],
-                    url_num=i,
-                    page=page,
-                    log=log,
-                )
+        stream_url = await capture_m3u8(browser, ev["link"], i)
 
-                stream_url = await network.safe_process(
-                    handler,
-                    url_num=i,
-                    semaphore=network.PW_S,
-                    log=log,
-                )
+        if not stream_url:
+            continue
 
-                if not stream_url:
-                    continue
+        key = f"[{ev['sport']}] {ev['event']} ({TAG})"
+        tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
-                key = f"[{ev['sport']}] {ev['event']} ({TAG})"
-                tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
-
-                entry = {
-                    "url": stream_url,
-                    "logo": logo,
-                    "base": BASE_URL,
-                    "timestamp": ev["event_ts"],
-                    "id": tvg_id or "MLB.Baseball.Dummy.us",
-                    "link": ev["link"],
-                }
-
-                cached_urls[key] = entry
+        cached_urls[key] = {
+            "url": stream_url,
+            "logo": logo,
+            "timestamp": ev["event_ts"],
+            "id": tvg_id or "MLB.Baseball.Dummy.us",
+        }
 
     CACHE_FILE.write(cached_urls)
     build_playlists(cached_urls)
