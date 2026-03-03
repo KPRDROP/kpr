@@ -7,7 +7,6 @@ from urllib.parse import quote, urljoin
 import os
 
 from selectolax.parser import HTMLParser
-
 from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
@@ -32,6 +31,12 @@ USER_AGENT = (
 )
 UA_ENC = quote(USER_AGENT)
 
+HEADERS = {
+    "User-Agent": USER_AGENT,
+    "Referer": REFERER,
+    "Origin": ORIGIN,
+}
+
 OUT_VLC = Path("webtvmlb_vlc.m3u8")
 OUT_TIVI = Path("webtvmlb_tivimate.m3u8")
 
@@ -44,7 +49,8 @@ def fix_event(s: str) -> str:
 # --------------------------------------------------
 async def process_event(url: str, url_num: int) -> str | None:
 
-    if not (event_data := await network.request(url, log=log)):
+    event_data = await network.request(url, headers=HEADERS, log=log)
+    if not event_data:
         log.warning(f"URL {url_num}) Failed to load event page.")
         return
 
@@ -64,7 +70,7 @@ async def process_event(url: str, url_num: int) -> str | None:
 
     iframe_data = await network.request(
         iframe_src,
-        headers={"Referer": url},
+        headers=HEADERS,
         log=log,
     )
 
@@ -86,14 +92,18 @@ async def process_event(url: str, url_num: int) -> str | None:
 # --------------------------------------------------
 async def get_events(cached_keys: list[str]) -> list[dict]:
 
-    if not (resp := await network.request(BASE_URL, log=log)):
+    resp = await network.request(BASE_URL, headers=HEADERS, log=log)
+    if not resp:
         return []
 
     soup = HTMLParser(resp.content)
 
     events = []
 
-    for row in soup.css("tr.singele_match_date"):
+    rows = soup.css("tr.singele_match_date")
+    log.info(f"Found {len(rows)} raw event row(s)")
+
+    for row in rows:
 
         vs_node = row.css_first("td.teamvs a")
         if not vs_node:
@@ -131,7 +141,9 @@ async def scrape() -> None:
     log.info(f"Loaded {cached_count} cached event(s)")
     log.info(f'Scraping from "{BASE_URL}"')
 
-    if not (events := await get_events(cached_urls.keys())):
+    events = await get_events(cached_urls.keys())
+
+    if not events:
         log.info("No new events found")
         CACHE_FILE.write(cached_urls)
         return
@@ -175,7 +187,6 @@ async def scrape() -> None:
         cached_urls[key] = entry
 
     CACHE_FILE.write(cached_urls)
-
     build_playlists(cached_urls)
 
     log.info(f"Collected {len(cached_urls) - cached_count} new event(s)")
