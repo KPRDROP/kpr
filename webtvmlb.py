@@ -152,6 +152,10 @@ async def scrape(browser: Browser) -> None:
     
      # 🔥 Disable stealth & adblock
     async with network.event_context(browser, stealth=False) as context:
+        # Make context realistic (important for 403 fix)
+        await context.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {get: () => undefined})
+        """)
 
     async with network.event_context(browser) as context:
         for i, ev in enumerate(events, start=1):
