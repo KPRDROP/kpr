@@ -263,4 +263,4 @@ async def scrape(browser: Browser) -> None:
 # --------------------------------------------------
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(scrape())
+    asyncio.run(scrape(browser))
