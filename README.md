@@ -13,7 +13,6 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 &nbsp;
 [![SportsWeb Updater](https://github.com/KPRDROP/kpr/actions/workflows/castwebsports.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/castwebsports.yml)
 &nbsp;
-[![EmbedHD Updater](https://github.com/KPRDROP/kpr/actions/workflows/embedhd.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/embedhd.yml)
 </div>
 
   
