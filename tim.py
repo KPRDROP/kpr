@@ -258,3 +258,9 @@ async def scrape(browser: Browser) -> None:
 
     # WRITE PLAYLISTS
     write_playlists(urls)
+
+
+# --------------------------------------------------
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(scrape(browser: Browser))
