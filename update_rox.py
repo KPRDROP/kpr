@@ -20,7 +20,7 @@ TIVIMATE_OUTPUT = "Roxiestreams_TiviMate.m3u8"
 
 HEADERS = {"User-Agent": USER_AGENT, "Referer": REFERER, "Accept-Language": "en-US,en;q=0.9"}
 
-# Logo / Metadata Dictionary (as you provided)
+# Logo / Metadata Dictionary
 TV_INFO = {
     "soccer": ("Soccer.Dummy.us", "https://i.postimg.cc/HsWHFvV0/Soccer.png", "Soccer"),
     "mlb": ("MLB.Baseball.Dummy.us", "https://i.postimg.cc/FsFmwC7K/Baseball3.png", "MLB"),
