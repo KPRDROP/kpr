@@ -1,5 +1,13 @@
 {
   "leagues": {
+    "Baseball.Dummy.us": [
+      {
+        "BASEBALL": {
+          "logo": "https://i.gyazo.com/3e1119df65dee3290afdad55b84ac332.webp",
+          "names": ["WBC", "WORLD BASEBALL CLASSIC"]
+        }
+      }
+    ],
     "Basketball.Dummy.us": [
       {
         "BASKETBALL": {
@@ -40,7 +48,7 @@
       {
         "MLB": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png",
-          "names": ["BASEBALL", "MAJOR LEAGUE BASEBALL", "MLB PLAYOFFS"]
+          "names": ["MAJOR LEAGUE BASEBALL", "MLB PLAYOFFS"]
         }
       }
     ],
@@ -827,6 +835,102 @@
     ]
   },
   "teams": {
+    "MLB": [
+      "Angels",
+      "Arizona",
+      "Arizona Diamondbacks",
+      "Astros",
+      "Athletics",
+      "Atlanta",
+      "Atlanta Braves",
+      "Baltimore",
+      "Baltimore Orioles",
+      "Blue Jays",
+      "Boston",
+      "Boston Red Sox",
+      "Braves",
+      "Cardinals",
+      "Chicago",
+      "Chicago Cubs",
+      "Chicago White Sox",
+      "Cincinnati",
+      "Cincinnati Reds",
+      "Cleveland Guardians",
+      "Colorado",
+      "Colorado Rockies",
+      "Cubs",
+      "D-Backs",
+      "DBacks",
+      "Detroit",
+      "Detroit Tigers",
+      "Diamondbacks",
+      "Dodgers",
+      "Giants",
+      "Guardians",
+      "Houston",
+      "Houston Astros",
+      "Jays",
+      "KC Royals",
+      "Kansas City",
+      "Kansas City Royals",
+      "LA Angels",
+      "LA Dodgers",
+      "Los Angeles Angels",
+      "Los Angeles Dodgers",
+      "Mariners",
+      "Marlins",
+      "Mets",
+      "Miami",
+      "Miami Marlins",
+      "Minnesota",
+      "Minnesota Twins",
+      "NY Mets",
+      "NY Yankees",
+      "NYM",
+      "NYY",
+      "Nationals",
+      "New York",
+      "New York Mets",
+      "New York Yankees",
+      "Oakland",
+      "Oakland Athletics",
+      "Orioles",
+      "Padres",
+      "Philadelphia",
+      "Philadelphia Phillies",
+      "Phillies",
+      "Pirates",
+      "Pittsburgh",
+      "Pittsburgh Pirates",
+      "Rangers",
+      "Rays",
+      "Red Sons",
+      "Reds",
+      "Rockies",
+      "Royals",
+      "San Diego",
+      "San Diego Padres",
+      "San Francisco",
+      "San Francisco Giants",
+      "Seattle",
+      "Seattle Mariners",
+      "St Louis",
+      "St Louis Cardinals",
+      "St. Louis",
+      "St. Louis Cardinals",
+      "Tampa Bay",
+      "Tampa Bay Rays",
+      "Texas",
+      "Texas Rangers",
+      "Tigers",
+      "Toronto",
+      "Toronto Blue Jays",
+      "Twins",
+      "Washington",
+      "Washington Nationals",
+      "White Sox",
+      "Yankees"
+    ],
     "NBA": [
       "76ers",
       "Atlanta",
