@@ -259,8 +259,31 @@ async def scrape(browser: Browser) -> None:
     # WRITE PLAYLISTS
     write_playlists(urls)
 
+# -------------------------------------------------
+# MAIN ENTRYPOINT
+# -------------------------------------------------
 
-# --------------------------------------------------
+async def main():
+
+    log.info("Starting TIM Streams updater")
+
+    from playwright.async_api import async_playwright
+
+    async with async_playwright() as p:
+
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+            ],
+        )
+
+        await scrape(browser)
+
+        await browser.close()
+
+
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(scrape(browser))
+    asyncio.run(main())
