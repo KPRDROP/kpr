@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import asyncio
+import os
 from functools import partial
 from pathlib import Path
 from urllib.parse import quote
-import os
 
-from playwright.async_api import async_playwright, Browser
+from playwright.async_api import async_playwright
 
-from utils import Cache, Time, get_logger, leagues, network
+from utils import Cache, Time, get_logger, leagues
 
 log = get_logger(__name__)
 
@@ -38,7 +38,6 @@ OUT_VLC = Path("tim_vlc.m3u8")
 OUT_TIVI = Path("tim_tivimate.m3u8")
 
 CACHE_FILE = Cache(TAG, exp=10800)
-API_FILE = Cache(f"{TAG}-api", exp=19800)
 
 urls: dict[str, dict] = {}
 
@@ -59,13 +58,10 @@ SPORT_GENRES = {
     10: "Tennis",
     11: "Hockey",
     12: "Darts",
-    13: "Cricket",
-    14: "Cycling",
-    15: "Rugby",
 }
 
 # --------------------------------------------------
-# PLAYLIST BUILDER
+# PLAYLIST WRITER
 # --------------------------------------------------
 
 def build_playlists(data: dict):
@@ -74,6 +70,9 @@ def build_playlists(data: dict):
     tiv = ["#EXTM3U"]
 
     for name, e in data.items():
+
+        if not e.get("url"):
+            continue
 
         vlc.extend([
             f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-name="{name}" tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
@@ -97,137 +96,146 @@ def build_playlists(data: dict):
 # API EVENTS
 # --------------------------------------------------
 
-async def get_events(cached_keys):
+async def get_events():
 
-    now = Time.clean(Time.now())
+    import requests
 
-    if not (api_data := API_FILE.load(per_entry=False, index=-1)):
-        log.info("Refreshing API cache")
+    log.info("Fetching TIM API")
 
-        if r := await network.request(API_URL, log=log):
-            api_data = r.json()
-            api_data[-1]["timestamp"] = now.timestamp()
-
-            API_FILE.write(api_data)
+    r = requests.get(API_URL, timeout=20)
+    api_data = r.json()
 
     events = []
 
-    start_dt = now.delta(minutes=-60)
-    end_dt = now.delta(hours=6)
+    for block in api_data:
 
-    for info in api_data:
-
-        if info.get("category") != "Events":
+        if block.get("category") != "Events":
             continue
 
-        for ev in info.get("events", []):
+        for ev in block.get("events", []):
 
+            name = ev.get("name")
             genre = ev.get("genre")
 
             sport = SPORT_GENRES.get(genre, "Live Event")
 
-            event_dt = Time.from_str(ev["time"], timezone="EST")
-
-            if not start_dt <= event_dt <= end_dt:
-                continue
-
-            name = ev["name"]
-
-            embed_url = ev["streams"][0]["url"]
-
             logo = ev.get("logo")
 
-            key = f"[{sport}] {name} ({TAG})"
-
-            if key in cached_keys:
-                continue
+            embed_url = ev["streams"][0]["url"]
 
             events.append({
                 "sport": sport,
                 "event": name,
                 "link": embed_url,
                 "logo": logo,
-                "timestamp": event_dt.timestamp(),
+                "timestamp": Time.now().timestamp(),
             })
 
     return events
 
 # --------------------------------------------------
+# NETWORK M3U8 CAPTURE
+# --------------------------------------------------
+
+async def capture_stream(page, url, url_num):
+
+    captured = None
+
+    def interceptor(request):
+        nonlocal captured
+        if ".m3u8" in request.url and not captured:
+            captured = request.url
+
+    page.context.on("request", interceptor)
+
+    try:
+
+        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+
+        await page.wait_for_timeout(5000)
+
+        # trigger players
+        for _ in range(2):
+            try:
+                await page.mouse.click(400, 300)
+                await asyncio.sleep(1)
+            except:
+                pass
+
+        waited = 0
+
+        while waited < 20 and not captured:
+            await asyncio.sleep(1)
+            waited += 1
+
+    finally:
+        try:
+            page.context.remove_listener("request", interceptor)
+        except:
+            pass
+
+    if captured:
+        log.info(f"URL {url_num}) Captured M3U8")
+
+    else:
+        log.warning(f"URL {url_num}) Stream not found")
+
+    return captured
+
+# --------------------------------------------------
 # SCRAPER
 # --------------------------------------------------
 
-async def scrape(browser: Browser):
+async def scrape(browser):
 
     cached_urls = CACHE_FILE.load() or {}
 
-    valid_urls = {k: v for k, v in cached_urls.items() if v["url"]}
-
-    valid_count = cached_count = len(valid_urls)
-
-    urls.update(valid_urls)
-
-    log.info(f"Loaded {cached_count} event(s) from cache")
+    log.info(f"Loaded {len(cached_urls)} event(s) from cache")
     log.info(f'Scraping from "{BASE_URL}"')
 
-    events = await get_events(cached_urls.keys())
+    events = await get_events()
 
     if not events:
-        log.info("No new events found")
+        log.info("No events from API")
         build_playlists(cached_urls)
         return
 
-    log.info(f"Processing {len(events)} new URL(s)")
+    log.info(f"Processing {len(events)} events")
 
-    async with network.event_context(browser, stealth=False) as context:
+    context = await browser.new_context(user_agent=USER_AGENT)
 
-        for i, ev in enumerate(events, start=1):
+    for i, ev in enumerate(events, start=1):
 
-            async with network.event_page(context) as page:
+        page = await context.new_page()
 
-                handler = partial(
-                    network.process_event,
-                    url=ev["link"],
-                    url_num=i,
-                    page=page,
-                    log=log,
-                )
+        stream = await capture_stream(page, ev["link"], i)
 
-                url = await network.safe_process(
-                    handler,
-                    url_num=i,
-                    semaphore=network.PW_S,
-                    log=log,
-                )
+        await page.close()
 
-                sport = ev["sport"]
-                event = ev["event"]
-                logo = ev["logo"]
-                ts = ev["timestamp"]
+        if not stream:
+            continue
 
-                key = f"[{sport}] {event} ({TAG})"
+        sport = ev["sport"]
+        event = ev["event"]
+        logo = ev["logo"]
 
-                tvg_id, pic = leagues.get_tvg_info(sport, event)
+        key = f"[{sport}] {event} ({TAG})"
 
-                entry = {
-                    "url": url,
-                    "logo": logo or pic,
-                    "base": ev["link"],
-                    "timestamp": ts,
-                    "id": tvg_id or "Live.Event.us",
-                    "link": ev["link"],
-                }
+        tvg_id, pic = leagues.get_tvg_info(sport, event)
 
-                cached_urls[key] = entry
+        cached_urls[key] = {
+            "url": stream,
+            "logo": logo or pic,
+            "base": ev["link"],
+            "timestamp": ev["timestamp"],
+            "id": tvg_id or "Live.Event.us",
+        }
 
-                if url:
-                    valid_count += 1
-                    urls[key] = entry
+    await context.close()
 
     CACHE_FILE.write(cached_urls)
 
     build_playlists(cached_urls)
-
-    log.info(f"Collected {valid_count - cached_count} new event(s)")
 
 # --------------------------------------------------
 # MAIN
