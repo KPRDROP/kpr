@@ -1,0 +1,45 @@
+name: TIM Playlist Updater
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install playwright selectolax httpx[http2] pytz
+          playwright install chromium
+
+      - name: Run scraper
+        env:
+          TIM_API_URL: ${{ secrets.TIM_API_URL }}
+          TIM_BASE_URL: ${{ secrets.TIM_BASE_URL }}
+        run: |
+          python tim.py
+
+      - name: Commit playlists
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add tim_vlc.m3u8 tim_tivimate.m3u8
+
+          git commit -m "Update TIM playlists" || echo "No changes"
+
+          git push
