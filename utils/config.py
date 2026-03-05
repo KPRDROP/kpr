@@ -149,7 +149,7 @@ class Leagues:
         league: str,
     ) -> bool:
 
-        pattern = re.compile(r"\s+(?:-|vs\.?|at|@)\s+", re.IGNORECASE)
+        pattern = re.compile(r"\s+(?:-|vs\.?|at|@)\s+", re.I)
 
         if pattern.search(event):
             t1, t2 = re.split(pattern, event)
@@ -192,6 +192,13 @@ class Leagues:
                     self.info("NHL")
                     if self.is_valid(event, "NHL")
                     else self.info("Hockey")
+                )
+
+            case "Baseball" | "MLB":
+                return (
+                    self.info("MLB")
+                    if self.is_valid(event, "MLB")
+                    else self.info("Baseball")
                 )
 
             case _:
