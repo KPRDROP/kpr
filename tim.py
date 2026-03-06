@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import asyncio
 import os
+from typing import Any
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urljoin
 
 from playwright.async_api import async_playwright
 
@@ -146,97 +147,47 @@ async def get_events():
     return events
 
 # --------------------------------------------------
-# NETWORK M3U8 CAPTURE (ADVANCED)
+# NETWORK M3U8 CAPTURE
 # --------------------------------------------------
 
 async def capture_stream(page, url, url_num):
 
     captured = None
 
-    # capture ANY m3u8 from context
-    def handle_request(req):
+    def interceptor(request):
         nonlocal captured
+        if ".m3u8" in request.url and not captured:
+            captured = request.url
 
-        u = req.url.lower()
-
-        if captured:
-            return
-
-        if ".m3u8" in u or ".m3u" in u:
-            captured = req.url
-
-    def handle_response(res):
-        nonlocal captured
-
-        if captured:
-            return
-
-        u = res.url.lower()
-
-        if ".m3u8" in u or ".m3u" in u:
-            captured = res.url
-
-    page.context.on("request", handle_request)
-    page.context.on("response", handle_response)
+    page.context.on("request", interceptor)
 
     try:
 
-        await page.goto(url, wait_until="domcontentloaded", timeout=60000)
+        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
 
-        # allow iframe players to initialize
-        await page.wait_for_timeout(4000)
+        await page.wait_for_timeout(5000)
 
-        # --------------------------------------------------
-        # MOMENTUM CLICK SEQUENCE
-        # --------------------------------------------------
-
-        for _ in range(3):
-
+        for _ in range(2):
             try:
-                await page.mouse.click(640, 360)
+                await page.mouse.click(400, 300)
+                await asyncio.sleep(1)
             except:
                 pass
 
-            await asyncio.sleep(2)
-
-            # close popup tabs
-            pages = page.context.pages
-            for p in pages:
-                if p != page:
-                    try:
-                        await p.close()
-                    except:
-                        pass
-
-        # --------------------------------------------------
-        # WAIT FOR STREAM
-        # --------------------------------------------------
-
         waited = 0
 
-        while waited < 35:
-
-            if captured:
-                break
-
+        while waited < 20 and not captured:
             await asyncio.sleep(1)
             waited += 1
 
     finally:
-
         try:
-            page.context.remove_listener("request", handle_request)
-        except:
-            pass
-
-        try:
-            page.context.remove_listener("response", handle_response)
+            page.context.remove_listener("request", interceptor)
         except:
             pass
 
     if captured:
         log.info(f"URL {url_num}) Captured M3U8")
-
     else:
         log.warning(f"URL {url_num}) Stream not found")
 
