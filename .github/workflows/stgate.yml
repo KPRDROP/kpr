@@ -61,6 +61,6 @@ jobs:
             git pull --rebase origin main
             git stash pop
             git add stgate_vlc.m3u8 stgate_tivimate.m3u8
-            git commit -m "Update STRMSGATE playlists (rebased)" || true
+            git commit -m "Update XEAST playlists (rebased)" || true
             git push origin main
           fi
