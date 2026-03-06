@@ -3,7 +3,6 @@ import json
 import logging
 from urllib.parse import quote
 
-import requests
 from playwright.async_api import async_playwright
 
 API_URL = "https://stra.viaplus.site/main"
