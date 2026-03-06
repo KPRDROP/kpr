@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 import asyncio
 import os
-from typing import Any
-from functools import partial
 from pathlib import Path
 from urllib.parse import quote
-from urllib.parse import urljoin
 
 from playwright.async_api import async_playwright
 
-from utils import Cache, Time, get_logger, leagues
+from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
@@ -95,15 +92,24 @@ def build_playlists(data: dict):
     log.info("Playlists written successfully")
 
 # --------------------------------------------------
-# API EVENTS
+# API EVENTS (FIXED)
 # --------------------------------------------------
 
 async def get_events():
 
     log.info("Fetching TIM API")
 
-    r = requests.get(API_URL, timeout=20)
-    api_data = r.json()
+    r = await network.request(API_URL, log=log)
+
+    if not r:
+        log.warning("API request failed")
+        return []
+
+    try:
+        api_data = r.json()
+    except Exception:
+        log.error("Failed parsing API JSON")
+        return []
 
     events = []
 
@@ -121,7 +127,13 @@ async def get_events():
 
             logo = ev.get("logo")
 
-            embed_url = ev["streams"][0]["url"]
+            streams = ev.get("streams")
+            if not streams:
+                continue
+
+            embed_url = streams[0].get("url")
+            if not embed_url:
+                continue
 
             events.append({
                 "sport": sport,
@@ -154,7 +166,6 @@ async def capture_stream(page, url, url_num):
 
         await page.wait_for_timeout(5000)
 
-        # trigger players
         for _ in range(2):
             try:
                 await page.mouse.click(400, 300)
@@ -176,7 +187,6 @@ async def capture_stream(page, url, url_num):
 
     if captured:
         log.info(f"URL {url_num}) Captured M3U8")
-
     else:
         log.warning(f"URL {url_num}) Stream not found")
 
