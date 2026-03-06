@@ -3,7 +3,7 @@ import asyncio
 import os
 from functools import partial
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote urljoin
 
 from playwright.async_api import async_playwright
 
