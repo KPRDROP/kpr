@@ -1,326 +1,151 @@
-#!/usr/bin/env python3
 import asyncio
-import os
-from typing import Any
-from pathlib import Path
-from urllib.parse import quote, urljoin
+import json
+import logging
+from urllib.parse import quote
 
+import requests
 from playwright.async_api import async_playwright
 
-from utils import Cache, Time, get_logger, leagues, network
+API_URL = "https://stra.viaplus.site/main"
 
-log = get_logger(__name__)
+OUTPUT_VLC = "tim_vlc.m3u8"
+OUTPUT_TIVIMATE = "tim_tivimate.m3u8"
 
-# --------------------------------------------------
-# CONFIG
-# --------------------------------------------------
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
 
-TAG = "TIMSTRMS"
-
-API_URL = os.environ.get("TIM_API_URL")
-BASE_URL = os.environ.get("TIM_BASE_URL")
-
-if not API_URL:
-    raise RuntimeError("Missing TIM_API_URL secret")
-
-if not BASE_URL:
-    raise RuntimeError("Missing TIM_BASE_URL secret")
-
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/143.0.0.0 Safari/537.36"
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] %(levelname)-8s [%(name)s] %(message)s",
+    datefmt="%Y-%m-%d | %H:%M:%S"
 )
 
-UA_ENC = quote(USER_AGENT)
+log = logging.getLogger(__name__)
 
-OUT_VLC = Path("tim_vlc.m3u8")
-OUT_TIVI = Path("tim_tivimate.m3u8")
 
-CACHE_FILE = Cache(TAG, exp=10800)
-
-urls: dict[str, dict] = {}
-
-# --------------------------------------------------
-# GENRES
-# --------------------------------------------------
-
-SPORT_GENRES = {
-    1: "Soccer",
-    2: "Motorsport",
-    3: "MMA",
-    4: "Fight",
-    5: "Boxing",
-    6: "Wrestling",
-    7: "Basketball",
-    8: "American Football",
-    9: "Baseball",
-    10: "Tennis",
-    11: "Hockey",
-    12: "Darts",
-}
-
-# --------------------------------------------------
-# PLAYLIST WRITER
-# --------------------------------------------------
-
-def build_playlists(data: dict):
-
-    vlc = ["#EXTM3U"]
-    tiv = ["#EXTM3U"]
-
-    for name, e in data.items():
-
-        if not e.get("url"):
-            continue
-
-        vlc.extend([
-            f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-name="{name}" tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
-            f"#EXTVLCOPT:http-referrer={e['base']}",
-            f"#EXTVLCOPT:http-origin={e['base']}",
-            f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
-            e["url"],
-        ])
-
-        tiv.extend([
-            f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-name="{name}" tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
-            f'{e["url"]}|referer={e["base"]}|origin={e["base"]}|user-agent={UA_ENC}',
-        ])
-
-    OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
-    OUT_TIVI.write_text("\n".join(tiv), encoding="utf-8")
-
-    log.info("Playlists written successfully")
-
-# --------------------------------------------------
-# API EVENTS (FIXED)
-# --------------------------------------------------
-
-async def get_events():
-
+# ---------------------------------------------------
+# Fetch API events
+# ---------------------------------------------------
+def fetch_events():
     log.info("Fetching TIM API")
 
-    r = await network.request(API_URL, log=log)
+    r = requests.get(API_URL, timeout=30)
+    r.raise_for_status()
 
-    if not r:
-        log.warning("API request failed")
-        return []
-
-    try:
-        api_data = r.json()
-    except Exception:
-        log.error("Failed parsing API JSON")
-        return []
+    data = r.json()
 
     events = []
-
-    for block in api_data:
-
-        if block.get("category") != "Events":
-            continue
-
-        for ev in block.get("events", []):
-
-            name = ev.get("name")
-            genre = ev.get("genre")
-
-            sport = SPORT_GENRES.get(genre, "Live Event")
-
-            logo = ev.get("logo")
-
-            streams = ev.get("streams")
-            if not streams:
-                continue
-
-            embed_url = streams[0].get("url")
-            if not embed_url:
-                continue
-
-            events.append({
-                "sport": sport,
-                "event": name,
-                "link": embed_url,
-                "logo": logo,
-                "timestamp": Time.now().timestamp(),
-            })
+    for item in data:
+        if item.get("category") == "Events":
+            events = item.get("events", [])
 
     return events
 
-# --------------------------------------------------
-# NETWORK M3U8 CAPTURE
-# --------------------------------------------------
 
-# --------------------------------------------------
-# NETWORK M3U8 CAPTURE (ADVANCED)
-# --------------------------------------------------
+# ---------------------------------------------------
+# Capture m3u8 from embed
+# ---------------------------------------------------
+async def capture_stream(embed_url):
+    async with async_playwright() as p:
 
-async def capture_stream(page, url, url_num):
+        browser = await p.chromium.launch(headless=True)
 
-    captured = None
-
-    # capture ANY m3u8 from context
-    def handle_request(req):
-        nonlocal captured
-
-        u = req.url.lower()
-
-        if captured:
-            return
-
-        if ".m3u8" in u or ".m3u" in u:
-            captured = req.url
-
-    def handle_response(res):
-        nonlocal captured
-
-        if captured:
-            return
-
-        u = res.url.lower()
-
-        if ".m3u8" in u or ".m3u" in u:
-            captured = res.url
-
-    page.context.on("request", handle_request)
-    page.context.on("response", handle_response)
-
-    try:
-
-        await page.goto(url, wait_until="domcontentloaded", timeout=60000)
-
-        # allow iframe players to initialize
-        await page.wait_for_timeout(4000)
-
-        # --------------------------------------------------
-        # MOMENTUM CLICK SEQUENCE
-        # --------------------------------------------------
-
-        for _ in range(3):
-
-            try:
-                await page.mouse.click(640, 360)
-            except:
-                pass
-
-            await asyncio.sleep(2)
-
-            # close popup tabs
-            pages = page.context.pages
-            for p in pages:
-                if p != page:
-                    try:
-                        await p.close()
-                    except:
-                        pass
-
-        # --------------------------------------------------
-        # WAIT FOR STREAM
-        # --------------------------------------------------
-
-        waited = 0
-
-        while waited < 35:
-
-            if captured:
-                break
-
-            await asyncio.sleep(1)
-            waited += 1
-
-    finally:
-
-        try:
-            page.context.remove_listener("request", handle_request)
-        except:
-            pass
-
-        try:
-            page.context.remove_listener("response", handle_response)
-        except:
-            pass
-
-    if captured:
-        log.info(f"URL {url_num}) Captured M3U8")
-
-    else:
-        log.warning(f"URL {url_num}) Stream not found")
-
-    return captured
-
-# --------------------------------------------------
-# SCRAPER
-# --------------------------------------------------
-
-async def scrape(browser):
-
-    cached_urls = CACHE_FILE.load() or {}
-
-    log.info(f"Loaded {len(cached_urls)} event(s) from cache")
-    log.info(f'Scraping from "{BASE_URL}"')
-
-    events = await get_events()
-
-    if not events:
-        log.info("No events from API")
-        build_playlists(cached_urls)
-        return
-
-    log.info(f"Processing {len(events)} events")
-
-    context = await browser.new_context(user_agent=USER_AGENT)
-
-    for i, ev in enumerate(events, start=1):
+        context = await browser.new_context(
+            user_agent=USER_AGENT
+        )
 
         page = await context.new_page()
 
-        stream = await capture_stream(page, ev["link"], i)
+        stream_url = None
 
-        await page.close()
+        def handle_request(request):
+            nonlocal stream_url
 
-        if not stream:
-            continue
+            url = request.url
 
-        sport = ev["sport"]
-        event = ev["event"]
-        logo = ev["logo"]
+            if ".m3u8" in url:
+                stream_url = url
 
-        key = f"[{sport}] {event} ({TAG})"
+        page.on("request", handle_request)
 
-        tvg_id, pic = leagues.get_tvg_info(sport, event)
+        try:
+            await page.goto(embed_url, timeout=60000)
 
-        cached_urls[key] = {
-            "url": stream,
-            "logo": logo or pic,
-            "base": ev["link"],
-            "timestamp": ev["timestamp"],
-            "id": tvg_id or "Live.Event.us",
-        }
+            # wait player to start
+            await page.wait_for_timeout(10000)
 
-    await context.close()
+        except Exception as e:
+            log.warning(f"Embed error: {e}")
 
-    CACHE_FILE.write(cached_urls)
+        await browser.close()
 
-    build_playlists(cached_urls)
+        return stream_url
 
-# --------------------------------------------------
-# MAIN
-# --------------------------------------------------
 
+# ---------------------------------------------------
+# Write playlists
+# ---------------------------------------------------
+def write_playlists(entries):
+
+    with open(OUTPUT_VLC, "w", encoding="utf-8") as f1, \
+         open(OUTPUT_TIVIMATE, "w", encoding="utf-8") as f2:
+
+        f1.write("#EXTM3U\n")
+        f2.write("#EXTM3U\n")
+
+        for name, logo, url in entries:
+
+            f1.write(f'#EXTINF:-1 tvg-logo="{logo}",{name}\n')
+            f1.write(f"{url}\n")
+
+            encoded = quote(USER_AGENT)
+
+            f2.write(f'#EXTINF:-1 tvg-logo="{logo}",{name}\n')
+            f2.write(f"{url}|user-agent={encoded}\n")
+
+
+# ---------------------------------------------------
+# Main
+# ---------------------------------------------------
 async def main():
 
     log.info("Starting TIM Streams updater")
 
-    async with async_playwright() as p:
+    events = fetch_events()
 
-        browser = await p.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage"],
-        )
+    log.info(f"Processing {len(events)} events")
 
-        await scrape(browser)
+    playlist_entries = []
 
-        await browser.close()
+    for i, ev in enumerate(events, 1):
 
+        name = ev.get("name")
+        logo = ev.get("logo")
+
+        streams = ev.get("streams", [])
+
+        if not streams:
+            continue
+
+        embed = streams[0]["url"]
+
+        log.info(f"URL {i}) Opening embed")
+
+        m3u8 = await capture_stream(embed)
+
+        if not m3u8:
+            log.warning(f"URL {i}) Stream not found")
+            continue
+
+        log.info(f"URL {i}) Stream captured")
+
+        playlist_entries.append((name, logo, m3u8))
+
+    write_playlists(playlist_entries)
+
+    log.info("Playlists written successfully")
+
+
+# ---------------------------------------------------
 
 if __name__ == "__main__":
     asyncio.run(main())
