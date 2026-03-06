@@ -167,16 +167,22 @@ async def capture_stream(page, url, url_num):
 
         await page.wait_for_timeout(6000)
 
-        # trigger player
+        # momentum click
         for _ in range(2):
             try:
-                await page.mouse.click(400, 300)
+                await page.mouse.click(500, 350)
                 await asyncio.sleep(1)
-            except:
+            except Exception:
+                pass
+
+        for frame in page.frames:
+            try:
+                await frame.click("body", timeout=1500)
+                await asyncio.sleep(1)
+            except Exception:
                 pass
 
         waited = 0
-
         while waited < 20 and not captured:
             await asyncio.sleep(1)
             waited += 1
