@@ -46,7 +46,7 @@ def build_playlist(data: dict) -> None:
         chno += 1
 
     OUT_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    log.info(f"✅ Wrote {len(data)} entries to str_tivimate.m3u8")
+    log.info(f"Wrote {len(data)} entries to str_tivimate.m3u8")
 
 
 # --------------------------------------------------
@@ -101,7 +101,7 @@ async def scrape():
                 nonlocal m3u8_url
                 if ".m3u8" in req.url and not m3u8_url:
                     m3u8_url = req.url
-                    log.info(f"🎯 Captured m3u8 → {m3u8_url}")
+                    log.info(f"Captured m3u8 → {m3u8_url}")
 
             page.on("request", on_request)
 
