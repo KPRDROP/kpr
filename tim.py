@@ -1,23 +1,20 @@
 import os
-import json
-import asyncio
-import logging
-import urllib.request
+from functools import partial
+from typing import Any
 from urllib.parse import urljoin, quote
 
-from playwright.async_api import async_playwright
+from playwright.async_api import Browser
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s [%(name)s] %(message)s",
-    datefmt="%Y-%m-%d | %H:%M:%S",
-)
+log = get_logger(__name__)
 
-log = logging.getLogger(__name__)
+urls: dict[str, dict[str, str | float]] = {}
 
 TAG = "TIMSTRMS"
+
+CACHE_FILE = Cache(TAG, exp=10_800)
+API_FILE = Cache(f"{TAG}-api", exp=19_800)
 
 API_URL = os.environ.get("TIM_API_URL")
 BASE_URL = os.environ.get("TIM_BASE_URL")
@@ -42,37 +39,25 @@ SPORT_GENRES = {
     11: "Hockey",
 }
 
-OUTPUT_VLC = "tim_vlc.m3u8"
-OUTPUT_TIVIMATE = "tim_tivimate.m3u8"
 
+# -------------------------------------------------
+# GET EVENTS
+# -------------------------------------------------
 
-# ---------------------------------------------------
-# API FETCH (FIXED 403)
-# ---------------------------------------------------
+async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
-def fetch_api():
+    now = Time.clean(Time.now())
 
-    log.info("Fetching TIM API")
+    if not (api_data := API_FILE.load(per_entry=False, index=-1)):
+        log.info("Refreshing API cache")
 
-    headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "application/json,text/plain,*/*",
-        "Referer": BASE_URL,
-    }
+        api_data = [{"timestamp": now.timestamp()}]
 
-    req = urllib.request.Request(API_URL, headers=headers)
+        if r := await network.request(API_URL, log=log):
+            api_data: list[dict] = r.json()
+            api_data[-1]["timestamp"] = now.timestamp()
 
-    with urllib.request.urlopen(req) as r:
-        data = json.loads(r.read().decode())
-
-    return data
-
-
-# ---------------------------------------------------
-# PARSE EVENTS
-# ---------------------------------------------------
-
-def parse_events(api_data):
+        API_FILE.write(api_data)
 
     events = []
 
@@ -81,144 +66,181 @@ def parse_events(api_data):
         if info.get("category") != "Events":
             continue
 
-        for ev in info.get("events", []):
+        stream_events: list[dict[str, Any]] = info["events"]
 
-            genre = ev.get("genre")
+        for ev in stream_events:
 
-            if genre not in SPORT_GENRES:
+            if (genre := ev["genre"]) not in SPORT_GENRES:
                 continue
 
-            streams = ev.get("streams")
+            name: str = ev["name"]
+            url_id: str = ev["URL"]
+            logo: str | None = ev.get("logo")
 
-            if not streams:
+            sport = SPORT_GENRES[genre]
+
+            if f"[{sport}] {name} ({TAG})" in cached_keys:
                 continue
 
-            embed = streams[0].get("url")
-
-            if not embed:
+            if not (streams := ev["streams"]) or not (url := streams[0].get("url")):
                 continue
 
             events.append(
                 {
-                    "sport": SPORT_GENRES[genre],
-                    "event": ev.get("name"),
-                    "logo": ev.get("logo"),
-                    "embed": embed,
-                    "page": urljoin(BASE_URL, f"watch?id={ev.get('URL')}"),
+                    "sport": sport,
+                    "event": name,
+                    "link": urljoin(BASE_URL, f"watch?id={url_id}"),
+                    "ref": url,
+                    "logo": logo,
+                    "timestamp": now.timestamp(),
                 }
             )
 
     return events
 
 
-# ---------------------------------------------------
-# CAPTURE M3U8
-# ---------------------------------------------------
+# -------------------------------------------------
+# SCRAPER
+# -------------------------------------------------
 
-async def capture_stream(browser, embed_url, num):
+async def scrape(browser: Browser) -> None:
 
-    context = await browser.new_context()
+    cached_urls = CACHE_FILE.load()
 
-    page = await context.new_page()
+    valid_urls = {k: v for k, v in cached_urls.items() if v["url"]}
 
-    stream_url = None
+    valid_count = cached_count = len(valid_urls)
 
-    def handle_response(resp):
-        nonlocal stream_url
-        url = resp.url
+    urls.update(valid_urls)
 
-        if ".m3u8" in url and not stream_url:
-            stream_url = url
-            log.info(f"URL {num}) Stream captured")
+    log.info(f"Loaded {cached_count} event(s) from cache")
 
-    page.on("response", handle_response)
+    log.info(f'Scraping from "{BASE_URL}"')
 
-    try:
+    if events := await get_events(cached_urls.keys()):
 
-        await page.goto(embed_url, timeout=60000)
+        log.info(f"Processing {len(events)} new URL(s)")
 
-        # player autoplay delay
-        await page.wait_for_timeout(12000)
+        async with network.event_context(browser, stealth=False) as context:
 
-    except Exception as e:
-        log.warning(f"URL {num}) error: {e}")
+            for i, ev in enumerate(events, start=1):
 
-    await context.close()
+                async with network.event_page(context) as page:
 
-    if not stream_url:
-        log.warning(f"URL {num}) Stream not found")
+                    handler = partial(
+                        network.process_event,
+                        url=(link := ev["link"]),
+                        url_num=i,
+                        page=page,
+                        log=log,
+                    )
 
-    return stream_url
+                    url = await network.safe_process(
+                        handler,
+                        url_num=i,
+                        semaphore=network.PW_S,
+                        log=log,
+                    )
+
+                    sport, event, logo, ref, ts = (
+                        ev["sport"],
+                        ev["event"],
+                        ev["logo"],
+                        ev["ref"],
+                        ev["timestamp"],
+                    )
+
+                    key = f"[{sport}] {event} ({TAG})"
+
+                    tvg_id, pic = leagues.get_tvg_info(sport, event)
+
+                    entry = {
+                        "url": url,
+                        "logo": logo or pic,
+                        "base": ref,
+                        "timestamp": ts,
+                        "id": tvg_id or "Live.Event.us",
+                        "link": link,
+                    }
+
+                    cached_urls[key] = entry
+
+                    if url:
+                        valid_count += 1
+                        urls[key] = entry
+
+        log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
+
+    else:
+        log.info("No new events found")
+
+    CACHE_FILE.write(cached_urls)
+
+    write_playlists(urls)
 
 
-# ---------------------------------------------------
-# WRITE PLAYLISTS
-# ---------------------------------------------------
+# -------------------------------------------------
+# PLAYLIST GENERATOR
+# -------------------------------------------------
 
-def write_playlists(entries):
+def write_playlists(entries: dict):
+
+    log.info("Writing playlists")
 
     ua = quote(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0"
     )
 
-    with open(OUTPUT_VLC, "w", encoding="utf8") as vlc, open(
-        OUTPUT_TIVIMATE, "w", encoding="utf8"
-    ) as tivimate:
+    referer = "https://hmembeds.one/"
+    origin = "https://hmembeds.one"
+
+    with open("tim_vlc.m3u8", "w", encoding="utf8") as vlc, \
+         open("tim_tivimate.m3u8", "w", encoding="utf8") as tivimate:
 
         vlc.write("#EXTM3U\n")
         tivimate.write("#EXTM3U\n")
 
-        for e in entries:
+        for name, data in entries.items():
 
-            if not e["stream"]:
+            url = data["url"]
+            logo = data["logo"]
+            tvg_id = data["id"]
+
+            if not url:
                 continue
 
-            name = f"[{e['sport']}] {e['event']} ({TAG})"
-
-            logo = e["logo"] or ""
-
             vlc.write(
-                f'#EXTINF:-1 tvg-logo="{logo}",{name}\n{e["stream"]}\n'
+                f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}",{name}\n{url}\n'
+            )
+
+            tivimate_url = (
+                f"{url}|referer={referer}|origin={origin}|user-agent={ua}"
             )
 
             tivimate.write(
-                f'#EXTINF:-1 tvg-logo="{logo}",{name}\n{e["stream"]}|user-agent={ua}\n'
+                f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}",{name}\n{tivimate_url}\n'
             )
 
     log.info("Playlists written successfully")
 
-
-# ---------------------------------------------------
+# --------------------------------------------------
 # MAIN
-# ---------------------------------------------------
+# --------------------------------------------------
 
 async def main():
 
     log.info("Starting TIM Streams updater")
 
-    api_data = fetch_api()
-
-    events = parse_events(api_data)
-
-    log.info(f"Processing {len(events)} events")
-
-    results = []
-
     async with async_playwright() as p:
 
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-dev-shm-usage"],
+        )
 
-        for i, ev in enumerate(events, start=1):
-
-            stream = await capture_stream(browser, ev["embed"], i)
-
-            ev["stream"] = stream
-
-            results.append(ev)
+        await scrape(browser)
 
         await browser.close()
-
-    write_playlists(results)
 
 
 if __name__ == "__main__":
