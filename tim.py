@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import asyncio
 import os
+from typing import Any
 from functools import partial
 from pathlib import Path
 from urllib.parse import quote urljoin
