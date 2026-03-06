@@ -42,19 +42,35 @@ SPORT_GENRES = {
     11: "Hockey",
 }
 
-
 OUTPUT_VLC = "tim_vlc.m3u8"
 OUTPUT_TIVIMATE = "tim_tivimate.m3u8"
 
 
+# ---------------------------------------------------
+# API FETCH (FIXED 403)
+# ---------------------------------------------------
+
 def fetch_api():
+
     log.info("Fetching TIM API")
 
-    with urllib.request.urlopen(API_URL) as r:
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json,text/plain,*/*",
+        "Referer": BASE_URL,
+    }
+
+    req = urllib.request.Request(API_URL, headers=headers)
+
+    with urllib.request.urlopen(req) as r:
         data = json.loads(r.read().decode())
 
     return data
 
+
+# ---------------------------------------------------
+# PARSE EVENTS
+# ---------------------------------------------------
 
 def parse_events(api_data):
 
@@ -95,9 +111,14 @@ def parse_events(api_data):
     return events
 
 
+# ---------------------------------------------------
+# CAPTURE M3U8
+# ---------------------------------------------------
+
 async def capture_stream(browser, embed_url, num):
 
     context = await browser.new_context()
+
     page = await context.new_page()
 
     stream_url = None
@@ -116,8 +137,8 @@ async def capture_stream(browser, embed_url, num):
 
         await page.goto(embed_url, timeout=60000)
 
-        # autoplay delay
-        await page.wait_for_timeout(15000)
+        # player autoplay delay
+        await page.wait_for_timeout(12000)
 
     except Exception as e:
         log.warning(f"URL {num}) error: {e}")
@@ -130,7 +151,15 @@ async def capture_stream(browser, embed_url, num):
     return stream_url
 
 
+# ---------------------------------------------------
+# WRITE PLAYLISTS
+# ---------------------------------------------------
+
 def write_playlists(entries):
+
+    ua = quote(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+    )
 
     with open(OUTPUT_VLC, "w", encoding="utf8") as vlc, open(
         OUTPUT_TIVIMATE, "w", encoding="utf8"
@@ -152,16 +181,16 @@ def write_playlists(entries):
                 f'#EXTINF:-1 tvg-logo="{logo}",{name}\n{e["stream"]}\n'
             )
 
-            ua = quote(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
-            )
-
             tivimate.write(
                 f'#EXTINF:-1 tvg-logo="{logo}",{name}\n{e["stream"]}|user-agent={ua}\n'
             )
 
     log.info("Playlists written successfully")
 
+
+# ---------------------------------------------------
+# MAIN
+# ---------------------------------------------------
 
 async def main():
 
