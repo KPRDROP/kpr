@@ -100,8 +100,6 @@ def build_playlists(data: dict):
 
 async def get_events():
 
-    import requests
-
     log.info("Fetching TIM API")
 
     r = requests.get(API_URL, timeout=20)
