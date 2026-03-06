@@ -253,7 +253,7 @@ class Network:
             resp = await page.goto(
                 url,
                 wait_until="domcontentloaded",
-                timeout=6_000,
+                timeout=30000,
             )
 
             if resp.status != 200:
