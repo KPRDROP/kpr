@@ -1,9 +1,11 @@
 import os
+import asyncio
+from typing import Any
 from functools import partial
 from typing import Any
 from urllib.parse import urljoin, quote
 
-from playwright.async_api import Browser
+from playwright.async_api import Browser, async_playwright
 
 from utils import Cache, Time, get_logger, leagues, network
 
