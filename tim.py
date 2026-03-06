@@ -4,7 +4,8 @@ import os
 from typing import Any
 from functools import partial
 from pathlib import Path
-from urllib.parse import quote urljoin
+from urllib.parse import quote
+from urllib.parse import urljoin
 
 from playwright.async_api import async_playwright
 
