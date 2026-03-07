@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import asyncio
 import os
 from functools import partial
@@ -17,7 +15,6 @@ TAG = "TIMSTRMS"
 CACHE_FILE = Cache(TAG, exp=10800)
 API_FILE = Cache(f"{TAG}-api", exp=19800)
 
-# secrets
 API_URL = os.environ.get("TIM_API_URL")
 BASE_URL = os.environ.get("TIM_BASE_URL")
 
@@ -47,7 +44,7 @@ SPORT_GENRES = {
 
 
 # --------------------------------------------------
-# PLAYLIST WRITER
+# PLAYLISTS
 # --------------------------------------------------
 
 def write_playlists(data):
@@ -65,16 +62,16 @@ def write_playlists(data):
         base = e["base"]
 
         vlc.extend([
-            f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-name="{name}" tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
+            f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-logo="{e["logo"]}" group-title="Live",{name}',
             f"#EXTVLCOPT:http-referrer={base}",
             f"#EXTVLCOPT:http-origin={base}",
             f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
-            e["url"],
+            e["url"]
         ])
 
         tiv.extend([
-            f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-name="{name}" tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
-            f'{e["url"]}|referer={base}|origin={base}|user-agent={UA_ENC}',
+            f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-logo="{e["logo"]}" group-title="Live",{name}',
+            f'{e["url"]}|referer={base}|origin={base}|user-agent={UA_ENC}'
         ])
 
     with open("tim_vlc.m3u8", "w", encoding="utf-8") as f:
@@ -90,7 +87,7 @@ def write_playlists(data):
 # EVENTS
 # --------------------------------------------------
 
-async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
+async def get_events(cached_keys):
 
     now = Time.clean(Time.now())
 
@@ -101,9 +98,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
         api_data = [{"timestamp": now.timestamp()}]
 
         if r := await network.request(API_URL, log=log):
-
-            api_data: list[dict] = r.json()
-
+            api_data = r.json()
             api_data[-1]["timestamp"] = now.timestamp()
 
         API_FILE.write(api_data)
@@ -124,7 +119,6 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
             name = ev["name"]
             logo = ev.get("logo")
-
             url_id = ev["URL"]
 
             streams = ev.get("streams")
@@ -147,7 +141,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                 "link": urljoin(BASE_URL, f"watch?id={url_id}"),
                 "ref": embed,
                 "logo": logo,
-                "timestamp": now.timestamp(),
+                "timestamp": now.timestamp()
             })
 
     return events
@@ -159,25 +153,36 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
 async def trigger_player(page):
 
-    # allow hmembeds autoplay delay
-    await page.wait_for_timeout(6000)
+    await page.wait_for_timeout(8000)
 
-    # momentum click
+    # click main page
+    for _ in range(3):
+        try:
+            await page.mouse.click(640, 360)
+            await asyncio.sleep(1)
+        except:
+            pass
+
+    # trigger iframe player
+    for frame in page.frames:
+
+        if "embed" in frame.url or "player" in frame.url:
+
+            try:
+                await frame.click("body", timeout=3000)
+                await asyncio.sleep(1)
+
+                await frame.dblclick("body")
+                await asyncio.sleep(1)
+
+                await frame.press("body", "Space")
+
+            except:
+                pass
+
+    # scroll to activate focus
     try:
-        await page.mouse.click(640, 360)
-        await asyncio.sleep(1)
-
-        await page.mouse.click(640, 360)
-        await asyncio.sleep(1)
-
-        await page.mouse.dblclick(640, 360)
-
-    except:
-        pass
-
-    # scroll trick
-    try:
-        await page.mouse.wheel(0, 400)
+        await page.mouse.wheel(0, 800)
     except:
         pass
 
@@ -211,7 +216,6 @@ async def scrape(browser: Browser):
 
                     await page.goto(ev["ref"], wait_until="domcontentloaded")
 
-                    # trigger player
                     await trigger_player(page)
 
                     handler = partial(
@@ -219,16 +223,16 @@ async def scrape(browser: Browser):
                         url=ev["ref"],
                         url_num=i,
                         page=page,
-                        log=log,
-                        timeout=25,   # longer wait for autoplay
+                        timeout=35,
+                        log=log
                     )
 
                     url = await network.safe_process(
                         handler,
                         url_num=i,
                         semaphore=network.PW_S,
-                        timeout=40,
-                        log=log,
+                        timeout=50,
+                        log=log
                     )
 
                     sport, event, logo, ref, ts = (
@@ -236,7 +240,7 @@ async def scrape(browser: Browser):
                         ev["event"],
                         ev["logo"],
                         ev["ref"],
-                        ev["timestamp"],
+                        ev["timestamp"]
                     )
 
                     key = f"[{sport}] {event} ({TAG})"
@@ -249,7 +253,7 @@ async def scrape(browser: Browser):
                         "base": ref,
                         "timestamp": ts,
                         "id": tvg_id or "Live.Event.us",
-                        "link": ev["link"],
+                        "link": ev["link"]
                     }
 
                     cached_urls[key] = entry
