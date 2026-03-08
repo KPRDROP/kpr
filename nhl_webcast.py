@@ -142,9 +142,9 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
         except PlaywrightTimeoutError:
-            log(f"⚠️ Timeout loading {url} -- continuing to capture network events")
+            log(f"Timeout loading {url} -- continuing to capture network events")
         except Exception as e:
-            log(f"⚠️ Error navigating {url}: {e}")
+            log(f"Error navigating {url}: {e}")
 
         content = await page.content()
         page_title_html = content
@@ -246,18 +246,18 @@ def write_playlists(entries):
             t = title or ""
             f.write(f'#EXTINF:-1,{t}\n')
             f.write(f"{url}|referer={referer}|origin={origin}|user-agent={ua_enc}\n")
-    log(f"✅ TiviMate playlist generated: {OUTPUT_TIVI}")
+    log(f"TiviMate playlist generated: {OUTPUT_TIVI}")
 
 
 async def main():
-    log("🚀 Starting NHL Webcast scraper (rebuilt)...")
+    log("Starting NHL Webcast updater (rebuilt)...")
 
     try:
         resp = requests.get(BASE, headers={"User-Agent": USER_AGENT}, timeout=15)
         resp.raise_for_status()
         homepage_html = resp.text
     except Exception as e:
-        log(f"❌ Failed to fetch homepage {BASE}: {e}")
+        log(f"Failed to fetch homepage {BASE}: {e}")
         homepage_html = ""
 
     event_links = find_event_links_from_homepage(homepage_html, base=BASE)
@@ -267,9 +267,9 @@ async def main():
         fallback = set(re.findall(r'https?://slapstreams\.com/[-\w/]+', homepage_html))
         if fallback:
             event_links = [(u, "") for u in fallback]
-            log(f"ℹ️ Found {len(event_links)} fallback links via regex.")
+            log(f"Found {len(event_links)} fallback links via regex.")
     if not event_links:
-        log("❌ No streams captured.")
+        log("No streams captured.")
         return
 
     found_entries = []
@@ -279,7 +279,7 @@ async def main():
             try:
                 m3u8, page_html = await capture_m3u8_from_page(p, url, timeout_ms=20000)
             except Exception as e:
-                log(f"⚠️ Error during capture for {url}: {e}")
+                log(f"Error during capture for {url}: {e}")
                 m3u8 = None
                 page_html = None
 
@@ -290,17 +290,17 @@ async def main():
                 title = clean_event_title(title)  # <-- PATCHED FUNCTION USED HERE
                 if not m3u8.lower().startswith("http"):
                     m3u8 = urljoin(url, m3u8)
-                log(f"✅ Captured m3u8 for {url}: {m3u8}")
+                log(f"Captured m3u8 for {url}: {m3u8}")
                 found_entries.append((title, m3u8))
             else:
-                log(f"⚠️ No m3u8 found for {url}")
+                log(f"No m3u8 found for {url}")
 
     if not found_entries:
-        log("❌ No streams captured.")
+        log("No streams captured.")
         return
 
     write_playlists(found_entries)
-    log("✅ Done — playlists written.")
+    log("Done — playlists written.")
 
 
 if __name__ == "__main__":
