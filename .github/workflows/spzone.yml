@@ -1,0 +1,42 @@
+name: SportZone Playlist Updater
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install playwright httpx[http2] pytz
+          playwright install firefox
+
+      - name: Run updater
+        env:
+          SPZONE_API_URL: ${{ secrets.SPZONE_API_URL }}
+        run: python spzone.py
+
+      - name: Commit playlists
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add spzone_vlc.m3u8 spzone_tivimate.m3u8
+          git commit -m "Auto update SportZone playlists" || exit 0
+          git push
