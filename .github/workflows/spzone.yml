@@ -26,6 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install playwright httpx[http2] pytz
+          pip install requests
           playwright install chromium
 
       - name: Run updater
