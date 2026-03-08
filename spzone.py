@@ -1,16 +1,15 @@
 import asyncio
 import os
 from functools import partial
-from typing import Any
 from urllib.parse import quote
 
-from playwright.async_api import async_playwright, Browser
+from playwright.async_api import async_playwright
 
 from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
-urls: dict[str, dict[str, str | float]] = {}
+urls = {}
 
 TAG = "SPZONE"
 
@@ -25,11 +24,12 @@ if not API_URL:
 USER_AGENT = network.UA
 UA_ENC = quote(USER_AGENT)
 
+
 # -------------------------------------------------
 # PLAYLIST WRITER
 # -------------------------------------------------
 
-def write_playlists(entries: dict):
+def write_playlists(entries):
 
     log.info("Writing playlists")
 
@@ -59,8 +59,11 @@ def write_playlists(entries: dict):
             f"{url}|referer={base}|origin={base}|user-agent={UA_ENC}"
         ])
 
-    open("spzone_vlc.m3u8","w",encoding="utf8").write("\n".join(vlc))
-    open("spzone_tivimate.m3u8","w",encoding="utf8").write("\n".join(tiv))
+    with open("spzone_vlc.m3u8","w",encoding="utf8") as f:
+        f.write("\n".join(vlc))
+
+    with open("spzone_tivimate.m3u8","w",encoding="utf8") as f:
+        f.write("\n".join(tiv))
 
     log.info("Playlists written successfully")
 
@@ -69,12 +72,13 @@ def write_playlists(entries: dict):
 # API REFRESH
 # -------------------------------------------------
 
-async def refresh_api_cache(now_ts: float):
+async def refresh_api_cache(now_ts):
 
     api_data = [{"timestamp": now_ts}]
 
-    if r := await network.request(API_URL, log=log):
+    r = await network.request(API_URL, log=log)
 
+    if r:
         api_data = r.json().get("matches", [])
 
         if api_data:
@@ -104,14 +108,12 @@ async def get_events(cached_keys):
 
     events = []
 
-    # 🔧 FIXED WINDOW (sportzone streams appear early)
     start_dt = now.delta(hours=-12)
     end_dt = now.delta(hours=12)
 
     for g in api_data:
 
         sport = g.get("league")
-
         t1 = g.get("team1")
         t2 = g.get("team2")
 
@@ -152,7 +154,7 @@ async def get_events(cached_keys):
 # SCRAPER
 # -------------------------------------------------
 
-async def scrape(browser: Browser):
+async def scrape(browser):
 
     cached_urls = CACHE_FILE.load()
 
@@ -178,38 +180,36 @@ async def scrape(browser: Browser):
 
                 async with network.event_page(context) as page:
 
-    link = ev["link"]
+                    link = ev["link"]
 
-    # open page first
-    await page.goto(link, wait_until="domcontentloaded")
+                    try:
+                        await page.goto(link, wait_until="domcontentloaded")
 
-    # trigger player start (SportZone requires interaction)
-    try:
-        await page.mouse.move(400, 300)
-        await page.mouse.click(400, 300)
-        await page.wait_for_timeout(3000)
+                        await page.mouse.move(400,300)
+                        await page.mouse.click(400,300)
 
-        await page.mouse.click(400, 300)
-        await page.wait_for_timeout(5000)
-    except:
-        pass
+                        await page.wait_for_timeout(4000)
 
-    handler = partial(
-        network.process_event,
-        url=link,
-        url_num=i,
-        page=page,
-        log=log
-    )
+                    except:
+                        pass
 
-    url = await network.safe_process(
-        handler,
-        url_num=i,
-        semaphore=network.PW_S,
-        log=log
-    )
+                    handler = partial(
+                        network.process_event,
+                        url=link,
+                        url_num=i,
+                        page=page,
+                        log=log
+                    )
 
-                    sport,event = ev["sport"],ev["event"]
+                    url = await network.safe_process(
+                        handler,
+                        url_num=i,
+                        semaphore=network.PW_S,
+                        log=log
+                    )
+
+                    sport = ev["sport"]
+                    event = ev["event"]
 
                     key = f"[{sport}] {event} ({TAG})"
 
