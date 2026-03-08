@@ -41,12 +41,12 @@ async def fetch_events_via_playwright(playwright):
     context = await browser.new_context(user_agent=USER_AGENT)
     page = await context.new_page()
 
-    log("🌐 Loading homepage…")
+    log("Loading homepage…")
 
     try:
         await page.goto(HOMEPAGE, wait_until="domcontentloaded", timeout=30000)
 
-        # ⏳ allow JS to inject content
+        # allow JS to inject content
         for _ in range(6):
             await page.wait_for_timeout(1000)
             anchors = await page.locator("a[href]").count()
@@ -127,7 +127,7 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
 
     captured = None
 
-    # 🔥 CRITICAL: capture from ALL frames
+    # CRITICAL: capture from ALL frames
     def on_request(req):
         nonlocal captured
         try:
@@ -144,11 +144,11 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
         except PlaywrightTimeoutError:
             pass
 
-        # ⏳ Allow iframe + delayed JS
+        # Allow iframe + delayed JS
         await page.wait_for_timeout(5000)
 
         # -------------------------------
-        # 1️⃣ CLICK MAIN PAGE
+        # CLICK MAIN PAGE
         # -------------------------------
         for _ in range(2):
             try:
@@ -158,7 +158,7 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
                 pass
 
         # -------------------------------
-        # 2️⃣ CLICK INSIDE IFRAMES
+        # CLICK INSIDE IFRAMES
         # -------------------------------
         for frame in page.frames:
             try:
@@ -168,7 +168,7 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
                 pass
 
         # -------------------------------
-        # 3️⃣ WAIT FOR STREAM (LONGER)
+        # WAIT FOR STREAM (LONGER)
         # -------------------------------
         waited = 0.0
         while waited < 25 and not captured:
@@ -176,7 +176,7 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
             waited += 0.8
 
         # -------------------------------
-        # 4️⃣ HTML FALLBACK (PAGE + IFRAMES)
+        # HTML FALLBACK (PAGE + IFRAMES)
         # -------------------------------
         if not captured:
             html = await page.content()
@@ -196,7 +196,7 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
                     pass
 
         # -------------------------------
-        # 5️⃣ BASE64 FALLBACK (NFLWebcast uses this)
+        # BASE64 FALLBACK (NFLWebcast uses this)
         # -------------------------------
         if not captured:
             blobs = re.findall(r'["\']([A-Za-z0-9+/=]{40,200})["\']', html)
@@ -253,35 +253,35 @@ def write_playlists(entries):
                 f"{e['m3u8']}|referer={HOMEPAGE}|origin={HOMEPAGE}|user-agent={ua}\n"
             )
 
-    log("✅ Playlists saved")
+    log("Playlists saved")
 
 # -------------------------------------------------
 async def main():
-    log("🏈 Starting NFL Webcast Scraper...")
+    log("Starting NFL Webcast Updater...")
 
     async with async_playwright() as p:
         events = await fetch_events_via_playwright(p)
-        log(f"📌 Found {len(events)} events")
+        log(f"Found {len(events)} events")
 
         if not events:
-            log("❌ No events detected")
+            log("No events detected")
             return
 
         collected = []
 
         for i, ev in enumerate(events, 1):
-            log(f"🔎 [{i}/{len(events)}] {ev['event']}")
+            log(f"[{i}/{len(events)}] {ev['event']}")
             m3u8 = await capture_m3u8_from_page(p, ev["url"])
 
             if m3u8:
-                log(f"  ✅ STREAM FOUND: {m3u8}")
+                log(f"STREAM FOUND: {m3u8}")
                 ev["m3u8"] = m3u8
                 collected.append(ev)
             else:
-                log("  ⚠️ No streams found")
+                log("No streams found")
 
     if not collected:
-        log("❌ No streams captured.")
+        log("No streams captured.")
         return
 
     write_playlists(collected)
