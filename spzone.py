@@ -1,8 +1,8 @@
 import asyncio
 import os
-import re
 import json
 from urllib.parse import quote
+from urllib.request import Request, urlopen
 
 from playwright.async_api import async_playwright
 
@@ -12,9 +12,22 @@ HOME_URL = os.environ.get("HOME_URL")
 if not API_URL:
     raise RuntimeError("Missing SPZONE_API_URL secret")
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
-
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 UA_ENC = quote(USER_AGENT)
+
+
+# ------------------------------------------------
+# FETCH JSON
+# ------------------------------------------------
+
+def fetch_json(url):
+
+    req = Request(url, headers={"User-Agent": USER_AGENT})
+
+    with urlopen(req, timeout=20) as r:
+        data = r.read().decode()
+
+    return json.loads(data)
 
 
 # ------------------------------------------------
@@ -35,42 +48,39 @@ def write_playlists(entries):
         vlc.append(
             f'#EXTINF:-1 tvg-id="{league}" group-title="{league}",{name}'
         )
-
+        vlc.append(
+            f'#EXTVLCOPT:http-user-agent={USER_AGENT}'
+        )
         vlc.append(url)
 
         tiv.append(
             f'#EXTINF:-1 tvg-id="{league}" group-title="{league}",{name}'
         )
+        tiv.append(
+            f"{url}|user-agent={UA_ENC}"
+        )
 
-        tiv.append(url)
-
-    with open("spzone_vlc.m3u8","w") as f:
+    with open("spzone_vlc.m3u8","w",encoding="utf8") as f:
         f.write("\n".join(vlc))
 
-    with open("spzone_tivimate.m3u8","w") as f:
+    with open("spzone_tivimate.m3u8","w",encoding="utf8") as f:
         f.write("\n".join(tiv))
 
 
 # ------------------------------------------------
-# GET API EVENTS
+# GET EVENTS FROM API
 # ------------------------------------------------
 
 async def get_events():
 
-    import requests
-
-    r = requests.get(API_URL,timeout=10)
-
-    data = r.json()
+    data = fetch_json(API_URL)
 
     events = []
 
     for match in data:
 
         league = match.get("league")
-
         links = match.get("links")
-
         team1 = match.get("team1")
         team2 = match.get("team2")
 
@@ -91,37 +101,34 @@ async def get_events():
 
 
 # ------------------------------------------------
-# CAPTURE M3U8
+# CAPTURE M3U8 FROM PLAYER
 # ------------------------------------------------
 
-async def capture_stream(page,url):
+async def capture_stream(page, url):
 
-    m3u8_url = None
+    found = None
 
     def handle_response(resp):
 
-        nonlocal m3u8_url
+        nonlocal found
 
         rurl = resp.url
 
-        if ".m3u8" in rurl:
+        if ".m3u8" in rurl and not found:
+            found = rurl
 
-            if not m3u8_url:
-                m3u8_url = rurl
-
-    page.on("response",handle_response)
+    page.on("response", handle_response)
 
     try:
-
-        await page.goto(url,timeout=60000)
-
+        await page.goto(url, timeout=60000)
     except:
         return None
 
+    # wait up to 12 seconds
     for _ in range(12):
 
-        if m3u8_url:
-            return m3u8_url
+        if found:
+            return found
 
         await asyncio.sleep(1)
 
@@ -162,7 +169,7 @@ async def scrape():
 
             print(f"{i}) Opening {link}")
 
-            stream = await capture_stream(page,link)
+            stream = await capture_stream(page, link)
 
             if stream:
 
