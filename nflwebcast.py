@@ -201,7 +201,7 @@ async def write_playlist(validated_urls):
             # TiviMate pipe headers
             headers = f"referer={START_URL}|origin={START_URL}|user-agent=Mozilla%2F5.0"
             f.write(f"{u}|{headers}\n")
-    print(f"✅ Playlist written: {OUTPUT_FILE} | streams: {len(validated_urls)}")
+    print(f"Playlist written: {OUTPUT_FILE} | streams: {len(validated_urls)}")
 
 
 async def main():
