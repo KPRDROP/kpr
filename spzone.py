@@ -2,6 +2,7 @@ import asyncio
 import os
 import re
 import json
+import requests
 from urllib.parse import quote
 
 from playwright.async_api import async_playwright
