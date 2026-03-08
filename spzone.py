@@ -178,35 +178,36 @@ async def scrape(browser: Browser):
 
                 async with network.event_page(context) as page:
 
-                    link = ev["link"]
+    link = ev["link"]
 
-                    # 🔧 PLAYER TRIGGER (very important)
-                    async def trigger():
-                        try:
-                            await page.mouse.move(400,300)
-                            await page.mouse.click(400,300)
-                            await page.wait_for_timeout(3000)
+    # open page first
+    await page.goto(link, wait_until="domcontentloaded")
 
-                            await page.mouse.click(400,300)
-                            await page.wait_for_timeout(5000)
-                        except:
-                            pass
+    # trigger player start (SportZone requires interaction)
+    try:
+        await page.mouse.move(400, 300)
+        await page.mouse.click(400, 300)
+        await page.wait_for_timeout(3000)
 
-                    handler = partial(
-                        network.process_event,
-                        url=link,
-                        url_num=i,
-                        page=page,
-                        log=log,
-                        trigger=trigger
-                    )
+        await page.mouse.click(400, 300)
+        await page.wait_for_timeout(5000)
+    except:
+        pass
 
-                    url = await network.safe_process(
-                        handler,
-                        url_num=i,
-                        semaphore=network.PW_S,
-                        log=log
-                    )
+    handler = partial(
+        network.process_event,
+        url=link,
+        url_num=i,
+        page=page,
+        log=log
+    )
+
+    url = await network.safe_process(
+        handler,
+        url_num=i,
+        semaphore=network.PW_S,
+        log=log
+    )
 
                     sport,event = ev["sport"],ev["event"]
 
