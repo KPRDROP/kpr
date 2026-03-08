@@ -1,264 +1,205 @@
 import asyncio
 import os
-from functools import partial
+import re
+import json
 from urllib.parse import quote
 
 from playwright.async_api import async_playwright
 
-from utils import Cache, Time, get_logger, leagues, network
-
-log = get_logger(__name__)
-
-urls = {}
-
-TAG = "SPZONE"
-
-CACHE_FILE = Cache(TAG, exp=5400)
-API_FILE = Cache(f"{TAG}-api", exp=28800)
-
 API_URL = os.environ.get("SPZONE_API_URL")
+HOME_URL = os.environ.get("HOME_URL")
 
 if not API_URL:
     raise RuntimeError("Missing SPZONE_API_URL secret")
 
-USER_AGENT = network.UA
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+
 UA_ENC = quote(USER_AGENT)
 
 
-# -------------------------------------------------
-# PLAYLIST WRITER
-# -------------------------------------------------
+# ------------------------------------------------
+# WRITE PLAYLISTS
+# ------------------------------------------------
 
 def write_playlists(entries):
-
-    log.info("Writing playlists")
 
     vlc = ["#EXTM3U"]
     tiv = ["#EXTM3U"]
 
-    for name, e in entries.items():
+    for e in entries:
 
-        if not e.get("url"):
-            continue
-
-        base = e["base"]
-        logo = e["logo"]
-        tvg_id = e["id"]
+        name = e["name"]
+        league = e["league"]
         url = e["url"]
 
-        vlc.extend([
-            f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="{name}" tvg-logo="{logo}" group-title="Live Events",{name}',
-            f"#EXTVLCOPT:http-referrer={base}",
-            f"#EXTVLCOPT:http-origin={base}",
-            f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
-            url
-        ])
+        vlc.append(
+            f'#EXTINF:-1 tvg-id="{league}" group-title="{league}",{name}'
+        )
 
-        tiv.extend([
-            f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="{name}" tvg-logo="{logo}" group-title="Live Events",{name}',
-            f"{url}|referer={base}|origin={base}|user-agent={UA_ENC}"
-        ])
+        vlc.append(url)
 
-    with open("spzone_vlc.m3u8","w",encoding="utf8") as f:
+        tiv.append(
+            f'#EXTINF:-1 tvg-id="{league}" group-title="{league}",{name}'
+        )
+
+        tiv.append(url)
+
+    with open("spzone_vlc.m3u8","w") as f:
         f.write("\n".join(vlc))
 
-    with open("spzone_tivimate.m3u8","w",encoding="utf8") as f:
+    with open("spzone_tivimate.m3u8","w") as f:
         f.write("\n".join(tiv))
 
-    log.info("Playlists written successfully")
 
+# ------------------------------------------------
+# GET API EVENTS
+# ------------------------------------------------
 
-# -------------------------------------------------
-# API REFRESH
-# -------------------------------------------------
+async def get_events():
 
-async def refresh_api_cache(now_ts):
+    import requests
 
-    api_data = [{"timestamp": now_ts}]
+    r = requests.get(API_URL,timeout=10)
 
-    r = await network.request(API_URL, log=log)
-
-    if r:
-        api_data = r.json().get("matches", [])
-
-        if api_data:
-            for event in api_data:
-                event["ts"] = event.pop("timestamp")
-
-        api_data[-1]["timestamp"] = now_ts
-
-    return api_data
-
-
-# -------------------------------------------------
-# EVENTS
-# -------------------------------------------------
-
-async def get_events(cached_keys):
-
-    now = Time.clean(Time.now())
-
-    if not (api_data := API_FILE.load(per_entry=False,index=-1)):
-
-        log.info("Refreshing API cache")
-
-        api_data = await refresh_api_cache(now.timestamp())
-
-        API_FILE.write(api_data)
+    data = r.json()
 
     events = []
 
-    start_dt = now.delta(hours=-12)
-    end_dt = now.delta(hours=12)
+    for match in data:
 
-    for g in api_data:
+        league = match.get("league")
 
-        sport = g.get("league")
-        t1 = g.get("team1")
-        t2 = g.get("team2")
+        links = match.get("links")
 
-        if not (sport and t1 and t2):
+        team1 = match.get("team1")
+        team2 = match.get("team2")
+
+        if not links:
             continue
 
-        event = f"{t1} vs {t2}"
+        name = f"{team1} vs {team2}"
 
-        if f"[{sport}] {event} ({TAG})" in cached_keys:
-            continue
+        for link in links:
 
-        if not (event_ts := g.get("ts")):
-            continue
-
-        event_dt = Time.from_ts(int(str(event_ts)[:-3]))
-
-        if not start_dt <= event_dt <= end_dt:
-            continue
-
-        if not (channels := g.get("channels")):
-            continue
-
-        if not (links := channels[0].get("links")):
-            continue
-
-        url = links[0]
-
-        events.append({
-            "sport": sport,
-            "event": event,
-            "link": url
-        })
+            events.append({
+                "name": name,
+                "league": league,
+                "link": link
+            })
 
     return events
 
 
-# -------------------------------------------------
-# SCRAPER
-# -------------------------------------------------
+# ------------------------------------------------
+# CAPTURE M3U8
+# ------------------------------------------------
 
-async def scrape(browser):
+async def capture_stream(page,url):
 
-    cached_urls = CACHE_FILE.load()
+    m3u8_url = None
 
-    valid_urls = {k:v for k,v in cached_urls.items() if v["url"]}
+    def handle_response(resp):
 
-    valid_count = cached_count = len(valid_urls)
+        nonlocal m3u8_url
 
-    urls.update(valid_urls)
+        rurl = resp.url
 
-    log.info(f"Loaded {cached_count} event(s) from cache")
+        if ".m3u8" in rurl:
 
-    log.info('Scraping from "sportzone"')
+            if not m3u8_url:
+                m3u8_url = rurl
 
-    if events := await get_events(cached_urls.keys()):
+    page.on("response",handle_response)
 
-        log.info(f"Processing {len(events)} new URL(s)")
+    try:
 
-        now = Time.clean(Time.now())
+        await page.goto(url,timeout=60000)
 
-        async with network.event_context(browser, stealth=False) as context:
+    except:
+        return None
 
-            for i,ev in enumerate(events,start=1):
+    for _ in range(12):
 
-                async with network.event_page(context) as page:
+        if m3u8_url:
+            return m3u8_url
 
-                    link = ev["link"]
+        await asyncio.sleep(1)
 
-                    try:
-                        await page.goto(link, wait_until="domcontentloaded")
-
-                        await page.mouse.move(400,300)
-                        await page.mouse.click(400,300)
-
-                        await page.wait_for_timeout(4000)
-
-                    except:
-                        pass
-
-                    handler = partial(
-                        network.process_event,
-                        url=link,
-                        url_num=i,
-                        page=page,
-                        log=log
-                    )
-
-                    url = await network.safe_process(
-                        handler,
-                        url_num=i,
-                        semaphore=network.PW_S,
-                        log=log
-                    )
-
-                    sport = ev["sport"]
-                    event = ev["event"]
-
-                    key = f"[{sport}] {event} ({TAG})"
-
-                    tvg_id,logo = leagues.get_tvg_info(sport,event)
-
-                    entry = {
-                        "url": url,
-                        "logo": logo,
-                        "base": "https://vividmosaica.com/",
-                        "timestamp": now.timestamp(),
-                        "id": tvg_id or "Live.Event.us",
-                        "link": link
-                    }
-
-                    cached_urls[key] = entry
-
-                    if url:
-                        valid_count += 1
-                        urls[key] = entry
-
-        log.info(f"Collected and cached {valid_count-cached_count} new event(s)")
-
-    else:
-        log.info("No new events found")
-
-    CACHE_FILE.write(cached_urls)
-
-    write_playlists(cached_urls)
+    return None
 
 
-# -------------------------------------------------
-# MAIN
-# -------------------------------------------------
+# ------------------------------------------------
+# MAIN SCRAPER
+# ------------------------------------------------
 
-async def main():
+async def scrape():
 
-    log.info("Starting SportZone updater")
+    events = await get_events()
+
+    print(f"Processing {len(events)} streams")
+
+    results = []
 
     async with async_playwright() as p:
 
         browser = await p.chromium.launch(
             headless=True,
-            args=["--no-sandbox","--disable-dev-shm-usage"]
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage"
+            ]
         )
 
-        await scrape(browser)
+        context = await browser.new_context(
+            user_agent=USER_AGENT
+        )
+
+        page = await context.new_page()
+
+        for i,e in enumerate(events,1):
+
+            link = e["link"]
+
+            print(f"{i}) Opening {link}")
+
+            stream = await capture_stream(page,link)
+
+            if stream:
+
+                print("   M3U8 FOUND")
+
+                results.append({
+                    "name": e["name"],
+                    "league": e["league"],
+                    "url": stream
+                })
+
+            else:
+
+                print("   timeout")
 
         await browser.close()
 
+    return results
+
+
+# ------------------------------------------------
+# MAIN
+# ------------------------------------------------
+
+async def main():
+
+    print("Starting SportZone scraper")
+
+    streams = await scrape()
+
+    print(f"Found {len(streams)} streams")
+
+    write_playlists(streams)
+
+    print("Playlists written")
+
 
 if __name__ == "__main__":
+
     asyncio.run(main())
