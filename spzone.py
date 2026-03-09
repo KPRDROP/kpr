@@ -13,6 +13,7 @@ if not API_URL:
     raise RuntimeError("Missing SPZONE_API_URL secret")
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+
 UA_ENC = quote(USER_AGENT)
 
 
@@ -48,17 +49,15 @@ def write_playlists(entries):
         vlc.append(
             f'#EXTINF:-1 tvg-id="{league}" group-title="{league}",{name}'
         )
-        vlc.append(
-            f'#EXTVLCOPT:http-user-agent={USER_AGENT}'
-        )
+
+        vlc.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
         vlc.append(url)
 
         tiv.append(
             f'#EXTINF:-1 tvg-id="{league}" group-title="{league}",{name}'
         )
-        tiv.append(
-            f"{url}|user-agent={UA_ENC}"
-        )
+
+        tiv.append(f"{url}|user-agent={UA_ENC}")
 
     with open("spzone_vlc.m3u8","w",encoding="utf8") as f:
         f.write("\n".join(vlc))
@@ -75,21 +74,32 @@ async def get_events():
 
     data = fetch_json(API_URL)
 
+    # Fix API structure
+    if isinstance(data, dict):
+        matches = data.get("matches", [])
+    else:
+        matches = data
+
     events = []
 
-    for match in data:
+    for match in matches:
 
-        league = match.get("league")
-        links = match.get("links")
-        team1 = match.get("team1")
-        team2 = match.get("team2")
-
-        if not links:
+        if not isinstance(match, dict):
             continue
 
-        name = f"{team1} vs {team2}"
+        league = match.get("league", "Sports")
+
+        team1 = match.get("team1", "")
+        team2 = match.get("team2", "")
+
+        name = f"{team1} vs {team2}".strip()
+
+        links = match.get("links") or []
 
         for link in links:
+
+            if not link.startswith("http"):
+                continue
 
             events.append({
                 "name": name,
@@ -101,14 +111,14 @@ async def get_events():
 
 
 # ------------------------------------------------
-# CAPTURE M3U8 FROM PLAYER
+# CAPTURE M3U8
 # ------------------------------------------------
 
 async def capture_stream(page, url):
 
     found = None
 
-    def handle_response(resp):
+    def handler(resp):
 
         nonlocal found
 
@@ -117,7 +127,7 @@ async def capture_stream(page, url):
         if ".m3u8" in rurl and not found:
             found = rurl
 
-    page.on("response", handle_response)
+    page.on("response", handler)
 
     try:
         await page.goto(url, timeout=60000)
@@ -136,7 +146,7 @@ async def capture_stream(page, url):
 
 
 # ------------------------------------------------
-# MAIN SCRAPER
+# SCRAPER
 # ------------------------------------------------
 
 async def scrape():
@@ -163,7 +173,7 @@ async def scrape():
 
         page = await context.new_page()
 
-        for i,e in enumerate(events,1):
+        for i, e in enumerate(events, start=1):
 
             link = e["link"]
 
@@ -204,7 +214,7 @@ async def main():
 
     write_playlists(streams)
 
-    print("Playlists written")
+    print("Playlists written successfully")
 
 
 if __name__ == "__main__":
