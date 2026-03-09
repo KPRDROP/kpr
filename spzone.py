@@ -1,8 +1,8 @@
 import asyncio
-import os
-import re
 from functools import partial
 from typing import Any
+import os
+import re
 
 from playwright.async_api import async_playwright, Browser
 
@@ -13,14 +13,12 @@ log = get_logger(__name__)
 
 urls: dict[str, dict[str, str | float]] = {}
 
-TAG = "SPZONE"
+TAG = "SPRTZONE"
 
 CACHE_FILE = Cache(TAG, exp=5400)
-
 API_FILE = Cache(f"{TAG}-api", exp=28800)
 
 API_URL = os.environ.get("SPZONE_API_URL")
-
 HOME_URL = os.environ.get("HOME_URL")
 
 
@@ -69,6 +67,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
     for stream_group in api_data:
 
         sport = stream_group.get("league")
+
         team_1 = stream_group.get("team1")
         team_2 = stream_group.get("team2")
 
@@ -94,11 +93,13 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
         if not (event_links := event_channels[0].get("links")):
             continue
 
+        event_url: str = event_links[0]
+
         events.append(
             {
                 "sport": sport,
                 "event": event_name,
-                "link": event_links[0],
+                "link": event_url,
             }
         )
 
@@ -106,31 +107,36 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
 
 # ---------------------------------------------------------
-# DOM FALLBACK
+# M3U8 DETECTOR
 # ---------------------------------------------------------
 
-async def extract_m3u8_dom(page):
+async def detect_m3u8(page, timeout=40):
 
-    try:
-        content = await page.content()
+    stream_url = None
 
-        match = re.search(r"https?://[^\"']+\.m3u8[^\"']*", content)
+    async def handle_response(response):
+        nonlocal stream_url
 
-        if match:
-            return match.group(0)
+        url = response.url.lower()
 
-        video_src = await page.evaluate(
-            """() => {
-                const v = document.querySelector("video");
-                return v ? v.src : null;
-            }"""
-        )
+        if ".m3u8" in url:
+            stream_url = response.url
 
-        if video_src and ".m3u8" in video_src:
-            return video_src
+        try:
+            ct = response.headers.get("content-type", "")
+            if "mpegurl" in ct:
+                stream_url = response.url
+        except:
+            pass
 
-    except Exception:
-        pass
+    page.on("response", handle_response)
+
+    for _ in range(timeout):
+
+        if stream_url:
+            return stream_url
+
+        await asyncio.sleep(1)
 
     return None
 
@@ -151,88 +157,100 @@ async def scrape(browser: Browser) -> None:
 
     log.info(f"Loaded {cached_count} event(s) from cache")
 
-    log.info(f'Scraping from "{HOME_URL}"')
+    if events := await get_events(cached_urls.keys()):
 
-    events = await get_events(cached_urls.keys())
+        log.info(f"Processing {len(events)} new URL(s)")
 
-    if not events:
-        log.info("No new events found")
-        CACHE_FILE.write(cached_urls)
-        return
+        now = Time.clean(Time.now())
 
-    log.info(f"Processing {len(events)} new URL(s)")
-
-    now = Time.clean(Time.now())
-
-    async with network.event_context(browser, stealth=False) as context:
+        context = await browser.new_context()
 
         for i, ev in enumerate(events, start=1):
 
-            async with network.event_page(context) as page:
+            page = await context.new_page()
 
-                link = ev["link"]
+            link = ev["link"]
 
-                handler = partial(
-                    network.process_event,
-                    url=link,
-                    url_num=i,
-                    page=page,
-                    log=log,
-                )
+            log.info(f"URL {i}) Opening {link}")
 
-                url = await network.safe_process(
-                    handler,
-                    url_num=i,
-                    semaphore=network.PW_S,
-                    log=log,
-                )
+            try:
 
-                if not url:
+                await page.goto(link, wait_until="domcontentloaded")
+
+                await page.wait_for_timeout(5000)
+
+                # user interaction required
+                for _ in range(3):
+
                     try:
-                        await page.goto(link, wait_until="domcontentloaded")
-                        await page.wait_for_timeout(4000)
-
-                        url = await extract_m3u8_dom(page)
-
-                        if url:
-                            log.info(f"URL {i}) M3U8 found via DOM fallback")
-
-                    except Exception:
+                        await page.mouse.click(500, 400)
+                        await page.wait_for_timeout(1500)
+                    except:
                         pass
 
-                sport = ev["sport"]
-                event = ev["event"]
+                # click iframe players
+                for frame in page.frames:
 
-                key = f"[{sport}] {event} ({TAG})"
+                    try:
+                        await frame.click("body", timeout=2000)
+                        await page.wait_for_timeout(1500)
+                    except:
+                        pass
 
-                tvg_id, logo = leagues.get_tvg_info(sport, event)
+                # detect stream
+                url = await detect_m3u8(page)
 
-                entry = {
-                    "url": url,
-                    "logo": logo,
-                    "base": "https://vividmosaica.com/",
-                    "timestamp": now.timestamp(),
-                    "id": tvg_id or "Live.Event.us",
-                    "link": link,
-                }
+            except Exception as e:
 
-                cached_urls[key] = entry
+                log.warning(f"URL {i}) Failed: {e}")
 
-                if url:
-                    valid_count += 1
-                    urls[key] = entry
-                    log.info(f"URL {i}) Stream captured")
-                else:
-                    log.warning(f"URL {i}) No stream found")
+                url = None
 
-    log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
+            sport, event = ev["sport"], ev["event"]
+
+            key = f"[{sport}] {event} ({TAG})"
+
+            tvg_id, logo = leagues.get_tvg_info(sport, event)
+
+            entry = {
+                "url": url,
+                "logo": logo,
+                "base": "https://vividmosaica.com/",
+                "timestamp": now.timestamp(),
+                "id": tvg_id or "Live.Event.us",
+                "link": link,
+            }
+
+            cached_urls[key] = entry
+
+            if url:
+
+                log.info(f"URL {i}) Stream detected")
+
+                valid_count += 1
+
+                urls[key] = entry
+
+            else:
+
+                log.warning(f"URL {i}) No stream found")
+
+            await page.close()
+
+        await context.close()
+
+        log.info(f"Collected {valid_count - cached_count} new events")
+
+    else:
+
+        log.info("No new events found")
 
     CACHE_FILE.write(cached_urls)
 
 
-# ------------------------------------------------
+# ---------------------------------------------------------
 # MAIN
-# ------------------------------------------------
+# ---------------------------------------------------------
 
 async def main():
 
@@ -240,14 +258,17 @@ async def main():
 
         browser = await p.chromium.launch(
             headless=True,
-            args=["--disable-blink-features=AutomationControlled"],
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--no-sandbox",
+            ],
         )
 
-        try:
-            await scrape(browser)
-        finally:
-            await browser.close()
+        await scrape(browser)
+
+        await browser.close()
 
 
 if __name__ == "__main__":
+
     asyncio.run(main())
