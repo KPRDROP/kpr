@@ -25,7 +25,15 @@ USER_AGENT = (
 )
 
 SPORT_ENDPOINTS = {
+    "boxing": "BOXING",
     "mlb": "MLB",
+    "nba": "NBA",
+    "mls": "MLS",
+    "nba": "NBA",
+    "nhl": "NHL",
+    "race": "RACE",
+    "ufc": "UFC",
+    "wbc": "WBC",
 }
 
 
