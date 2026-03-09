@@ -220,6 +220,13 @@ async def scrape(browser: Browser) -> None:
                         if url:
                             log.info(f"URL {i}) M3U8 found via DOM fallback")
 
+                    url = await network.safe_process(
+                        handler,
+                        url_num=i,
+                        semaphore=network.PW_S,
+                        log=log,
+                    )
+
                     sport, event = ev["sport"], ev["event"]
 
                     key = f"[{sport}] {event} ({TAG})"
