@@ -13,7 +13,7 @@ log = get_logger(__name__)
 
 urls: dict[str, dict[str, str | float]] = {}
 
-TAG = "SPRTZONE"
+TAG = "SPZONE"
 
 CACHE_FILE = Cache(TAG, exp=5400)
 
