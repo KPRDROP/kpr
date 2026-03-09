@@ -1,7 +1,6 @@
 import asyncio
 import os
 import re
-import request
 from functools import partial
 from typing import Any
 
