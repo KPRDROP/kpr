@@ -1,8 +1,11 @@
+import asyncio
+import os
 from functools import partial
 from typing import Any
-import os
+from urllib.parse import quote
 
-from playwright.async_api import Browser
+
+from playwright.async_api import async_playwright, Browser
 
 from utils import Cache, Time, get_logger, leagues, network
 
@@ -218,18 +221,14 @@ async def scrape(browser: Browser) -> None:
 # ------------------------------------------------
 
 async def main():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
 
-    print("Starting SportZone updater")
-
-    streams = await scrape()
-
-    print(f"Found {len(streams)} streams")
-
-    write_playlists(streams)
-
-    print("Playlists written successfully")
+        try:
+            await scrape(browser)
+        finally:
+            await browser.close()
 
 
 if __name__ == "__main__":
-
     asyncio.run(main())
