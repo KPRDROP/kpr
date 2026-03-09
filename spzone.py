@@ -165,20 +165,17 @@ async def scrape(browser: Browser) -> None:
 
             for i, ev in enumerate(events, start=1):
 
+                async with network.event_context(browser, stealth=False) as context:
+            for i, ev in enumerate(events, start=1):
                 async with network.event_page(context) as page:
-
-                    link = ev["link"]
-
-                    captured = []
-
-                    got_one = asyncio.Event()
-
                     handler = partial(
-                        network.capture_req,
-                        captured=captured,
-                        got_one=got_one,
+                        network.process_event,
+                        url=(link := ev["link"]),
+                        url_num=i,
+                        page=page,
+                        log=log,
                     )
-
+                    
                     page.on("request", handler)
 
                     try:
