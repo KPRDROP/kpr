@@ -1,222 +1,214 @@
-import asyncio
+from functools import partial
+from typing import Any
 import os
-import json
-from urllib.parse import quote
-from urllib.request import Request, urlopen
 
-from playwright.async_api import async_playwright
+from playwright.async_api import Browser
+
+from utils import Cache, Time, get_logger, leagues, network
+
+
+log = get_logger(__name__)
+
+urls: dict[str, dict[str, str | float]] = {}
+
+TAG = "SPRTZONE"
+
+CACHE_FILE = Cache(TAG, exp=5400)
+
+API_FILE = Cache(f"{TAG}-api", exp=28800)
 
 API_URL = os.environ.get("SPZONE_API_URL")
+
 HOME_URL = os.environ.get("HOME_URL")
 
-if not API_URL:
-    raise RuntimeError("Missing SPZONE_API_URL secret")
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+# ---------------------------------------------------------
+# API CACHE
+# ---------------------------------------------------------
 
-UA_ENC = quote(USER_AGENT)
+async def refresh_api_cache(now_ts: float) -> list[dict[str, Any]]:
 
+    api_data = [{"timestamp": now_ts}]
 
-# ------------------------------------------------
-# FETCH JSON
-# ------------------------------------------------
+    if r := await network.request(API_URL, log=log):
 
-def fetch_json(url):
+        api_data: list[dict] = r.json().get("matches", [])
 
-    req = Request(url, headers={"User-Agent": USER_AGENT})
+        if api_data:
 
-    with urlopen(req, timeout=20) as r:
-        data = r.read().decode()
+            for event in api_data:
+                event["ts"] = event.pop("timestamp")
 
-    return json.loads(data)
+        api_data[-1]["timestamp"] = now_ts
 
-
-# ------------------------------------------------
-# WRITE PLAYLISTS
-# ------------------------------------------------
-
-def write_playlists(entries):
-
-    vlc = ["#EXTM3U"]
-    tiv = ["#EXTM3U"]
-
-    for e in entries:
-
-        name = e["name"]
-        league = e["league"]
-        url = e["url"]
-
-        vlc.append(
-            f'#EXTINF:-1 tvg-id="{league}" group-title="{league}",{name}'
-        )
-
-        vlc.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
-        vlc.append(url)
-
-        tiv.append(
-            f'#EXTINF:-1 tvg-id="{league}" group-title="{league}",{name}'
-        )
-
-        tiv.append(f"{url}|user-agent={UA_ENC}")
-
-    with open("spzone_vlc.m3u8","w",encoding="utf8") as f:
-        f.write("\n".join(vlc))
-
-    with open("spzone_tivimate.m3u8","w",encoding="utf8") as f:
-        f.write("\n".join(tiv))
+    return api_data
 
 
-# ------------------------------------------------
-# GET EVENTS FROM API
-# ------------------------------------------------
+# ---------------------------------------------------------
+# EVENT DISCOVERY
+# ---------------------------------------------------------
 
-async def get_events():
+async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
-    data = fetch_json(API_URL)
+    now = Time.clean(Time.now())
 
-    # Fix API structure
-    if isinstance(data, dict):
-        matches = data.get("matches", [])
-    else:
-        matches = data
+    if not (api_data := API_FILE.load(per_entry=False, index=-1)):
+
+        log.info("Refreshing API cache")
+
+        api_data = await refresh_api_cache(now.timestamp())
+
+        API_FILE.write(api_data)
 
     events = []
 
-    for match in matches:
+    # SportZone publishes streams many hours early
+    start_dt = now.delta(hours=-12)
+    end_dt = now.delta(hours=12)
 
-        if not isinstance(match, dict):
+    for stream_group in api_data:
+
+        sport = stream_group.get("league")
+
+        team_1 = stream_group.get("team1")
+        team_2 = stream_group.get("team2")
+
+        if not (sport and team_1 and team_2):
             continue
 
-        league = match.get("league", "Sports")
+        event_name = f"{team_1} vs {team_2}"
 
-        team1 = match.get("team1", "")
-        team2 = match.get("team2", "")
+        if f"[{sport}] {event_name} ({TAG})" in cached_keys:
+            continue
 
-        name = f"{team1} vs {team2}".strip()
+        if not (event_ts := stream_group.get("ts")):
+            continue
 
-        links = match.get("links") or []
+        # FIXED timestamp conversion
+        event_dt = Time.from_ts(int(event_ts / 1000))
 
-        for link in links:
+        if not start_dt <= event_dt <= end_dt:
+            continue
 
-            if not link.startswith("http"):
-                continue
+        if not (event_channels := stream_group.get("channels")):
+            continue
 
-            events.append({
-                "name": name,
-                "league": league,
-                "link": link
-            })
+        if not (event_links := event_channels[0].get("links")):
+            continue
+
+        event_url: str = event_links[0]
+
+        events.append(
+            {
+                "sport": sport,
+                "event": event_name,
+                "link": event_url,
+            }
+        )
 
     return events
 
 
-# ------------------------------------------------
-# CAPTURE M3U8
-# ------------------------------------------------
-
-async def capture_stream(page, url):
-
-    found = None
-
-    def handler(resp):
-
-        nonlocal found
-
-        rurl = resp.url
-
-        if ".m3u8" in rurl and not found:
-            found = rurl
-
-    page.on("response", handler)
-
-    try:
-        await page.goto(url, timeout=60000)
-    except:
-        return None
-
-    # wait up to 12 seconds
-    for _ in range(12):
-
-        if found:
-            return found
-
-        await asyncio.sleep(1)
-
-    return None
-
-
-# ------------------------------------------------
+# ---------------------------------------------------------
 # SCRAPER
-# ------------------------------------------------
+# ---------------------------------------------------------
 
-async def scrape():
+async def scrape(browser: Browser) -> None:
 
-    events = await get_events()
+    cached_urls = CACHE_FILE.load()
 
-    print(f"Processing {len(events)} streams")
+    valid_urls = {k: v for k, v in cached_urls.items() if v["url"]}
 
-    results = []
+    valid_count = cached_count = len(valid_urls)
 
-    async with async_playwright() as p:
+    urls.update(valid_urls)
 
-        browser = await p.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-dev-shm-usage"
-            ]
-        )
+    log.info(f"Loaded {cached_count} event(s) from cache")
 
-        context = await browser.new_context(
-            user_agent=USER_AGENT
-        )
+    log.info(f'Scraping from "{HOME_URL}"')
 
-        page = await context.new_page()
+    if events := await get_events(cached_urls.keys()):
 
-        for i, e in enumerate(events, start=1):
+        log.info(f"Processing {len(events)} new URL(s)")
 
-            link = e["link"]
+        now = Time.clean(Time.now())
 
-            print(f"{i}) Opening {link}")
+        async with network.event_context(browser, stealth=False) as context:
 
-            stream = await capture_stream(page, link)
+            for i, ev in enumerate(events, start=1):
 
-            if stream:
+                async with network.event_page(context) as page:
 
-                print("   M3U8 FOUND")
+                    link = ev["link"]
 
-                results.append({
-                    "name": e["name"],
-                    "league": e["league"],
-                    "url": stream
-                })
+                    try:
 
-            else:
+                        await page.goto(link, wait_until="domcontentloaded")
 
-                print("   timeout")
+                        # allow iframe + JS player to initialize
+                        await page.wait_for_timeout(5000)
 
-        await browser.close()
+                        # click main page (virazo requires interaction)
+                        for _ in range(2):
+                            try:
+                                await page.mouse.click(400, 300)
+                                await page.wait_for_timeout(1000)
+                            except:
+                                pass
 
-    return results
+                        # click inside iframe players
+                        for frame in page.frames:
+                            try:
+                                await frame.click("body", timeout=1500)
+                                await page.wait_for_timeout(1000)
+                            except:
+                                pass
 
+                    except Exception:
+                        log.warning(f"URL {i}) Failed to initialize player")
 
-# ------------------------------------------------
-# MAIN
-# ------------------------------------------------
+                    handler = partial(
+                        network.process_event,
+                        url=link,
+                        url_num=i,
+                        page=page,
+                        log=log,
+                    )
 
-async def main():
+                    url = await network.safe_process(
+                        handler,
+                        url_num=i,
+                        semaphore=network.PW_S,
+                        log=log,
+                    )
 
-    print("Starting SportZone scraper")
+                    sport, event = ev["sport"], ev["event"]
 
-    streams = await scrape()
+                    key = f"[{sport}] {event} ({TAG})"
 
-    print(f"Found {len(streams)} streams")
+                    tvg_id, logo = leagues.get_tvg_info(sport, event)
 
-    write_playlists(streams)
+                    entry = {
+                        "url": url,
+                        "logo": logo,
+                        "base": "https://vividmosaica.com/",
+                        "timestamp": now.timestamp(),
+                        "id": tvg_id or "Live.Event.us",
+                        "link": link,
+                    }
 
-    print("Playlists written successfully")
+                    cached_urls[key] = entry
 
+                    if url:
 
-if __name__ == "__main__":
+                        valid_count += 1
 
-    asyncio.run(main())
+                        urls[key] = entry
+
+        log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
+
+    else:
+
+        log.info("No new events found")
+
+    CACHE_FILE.write(cached_urls)
