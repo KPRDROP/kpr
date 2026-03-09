@@ -112,7 +112,6 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 async def extract_m3u8_dom(page):
 
     try:
-
         content = await page.content()
 
         match = re.search(r"https?://[^\"']+\.m3u8[^\"']*", content)
@@ -130,7 +129,7 @@ async def extract_m3u8_dom(page):
         if video_src and ".m3u8" in video_src:
             return video_src
 
-    except:
+    except Exception:
         pass
 
     return None
@@ -154,110 +153,79 @@ async def scrape(browser: Browser) -> None:
 
     log.info(f'Scraping from "{HOME_URL}"')
 
-    if events := await get_events(cached_urls.keys()):
+    events = await get_events(cached_urls.keys())
 
-        log.info(f"Processing {len(events)} new URL(s)")
+    if not events:
+        log.info("No new events found")
+        CACHE_FILE.write(cached_urls)
+        return
 
-        now = Time.clean(Time.now())
+    log.info(f"Processing {len(events)} new URL(s)")
 
-        async with network.event_context(browser, stealth=False) as context:
+    now = Time.clean(Time.now())
 
-            for i, ev in enumerate(events, start=1):
+    async with network.event_context(browser, stealth=False) as context:
 
-                async with network.event_context(browser, stealth=False) as context:
-            for i, ev in enumerate(events, start=1):
-                async with network.event_page(context) as page:
-                    handler = partial(
-                        network.process_event,
-                        url=(link := ev["link"]),
-                        url_num=i,
-                        page=page,
-                        log=log,
-                    )
-                    
-                    page.on("request", handler)
+        for i, ev in enumerate(events, start=1):
 
+            async with network.event_page(context) as page:
+
+                link = ev["link"]
+
+                handler = partial(
+                    network.process_event,
+                    url=link,
+                    url_num=i,
+                    page=page,
+                    log=log,
+                )
+
+                url = await network.safe_process(
+                    handler,
+                    url_num=i,
+                    semaphore=network.PW_S,
+                    log=log,
+                )
+
+                if not url:
                     try:
-
                         await page.goto(link, wait_until="domcontentloaded")
+                        await page.wait_for_timeout(4000)
 
-                        await page.wait_for_timeout(6000)
-
-                        # interaction triggers player start
-                        for _ in range(2):
-                            try:
-                                await page.mouse.click(400, 300)
-                                await page.wait_for_timeout(1200)
-                            except:
-                                pass
-
-                        for frame in page.frames:
-                            try:
-                                await frame.click("body", timeout=1500)
-                                await page.wait_for_timeout(1000)
-                            except:
-                                pass
-
-                        try:
-                            await asyncio.wait_for(got_one.wait(), timeout=20)
-                        except asyncio.TimeoutError:
-                            log.warning(f"URL {i}) M3U8 not captured via network")
-
-                    except Exception:
-                        log.warning(f"URL {i}) Player initialization failed")
-
-                    finally:
-                        page.remove_listener("request", handler)
-
-                    url = captured[0] if captured else None
-
-                    if not url:
                         url = await extract_m3u8_dom(page)
 
                         if url:
                             log.info(f"URL {i}) M3U8 found via DOM fallback")
 
-                    url = await network.safe_process(
-                        handler,
-                        url_num=i,
-                        semaphore=network.PW_S,
-                        log=log,
-                    )
+                    except Exception:
+                        pass
 
-                    sport, event = ev["sport"], ev["event"]
+                sport = ev["sport"]
+                event = ev["event"]
 
-                    key = f"[{sport}] {event} ({TAG})"
+                key = f"[{sport}] {event} ({TAG})"
 
-                    tvg_id, logo = leagues.get_tvg_info(sport, event)
+                tvg_id, logo = leagues.get_tvg_info(sport, event)
 
-                    entry = {
-                        "url": url,
-                        "logo": logo,
-                        "base": "https://vividmosaica.com/",
-                        "timestamp": now.timestamp(),
-                        "id": tvg_id or "Live.Event.us",
-                        "link": link,
-                    }
+                entry = {
+                    "url": url,
+                    "logo": logo,
+                    "base": "https://vividmosaica.com/",
+                    "timestamp": now.timestamp(),
+                    "id": tvg_id or "Live.Event.us",
+                    "link": link,
+                }
 
-                    cached_urls[key] = entry
+                cached_urls[key] = entry
 
-                    if url:
+                if url:
+                    valid_count += 1
+                    urls[key] = entry
+                    log.info(f"URL {i}) Stream captured")
+                else:
+                    log.warning(f"URL {i}) No stream found")
 
-                        valid_count += 1
-
-                        urls[key] = entry
-
-                        log.info(f"URL {i}) Stream captured")
-
-                    else:
-
-                        log.warning(f"URL {i}) No stream found")
-
-        log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
-
-    else:
-
-        log.info("No new events found")
+    log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
 
     CACHE_FILE.write(cached_urls)
 
