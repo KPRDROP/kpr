@@ -1,9 +1,8 @@
 import asyncio
 import os
+import re
 from functools import partial
 from typing import Any
-from urllib.parse import quote
-
 
 from playwright.async_api import async_playwright, Browser
 
@@ -38,7 +37,6 @@ async def refresh_api_cache(now_ts: float) -> list[dict[str, Any]]:
         api_data: list[dict] = r.json().get("matches", [])
 
         if api_data:
-
             for event in api_data:
                 event["ts"] = event.pop("timestamp")
 
@@ -65,14 +63,12 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
     events = []
 
-    # SportZone publishes streams many hours early
     start_dt = now.delta(hours=-12)
     end_dt = now.delta(hours=12)
 
     for stream_group in api_data:
 
         sport = stream_group.get("league")
-
         team_1 = stream_group.get("team1")
         team_2 = stream_group.get("team2")
 
@@ -87,7 +83,6 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
         if not (event_ts := stream_group.get("ts")):
             continue
 
-        # FIXED timestamp conversion
         event_dt = Time.from_ts(int(event_ts / 1000))
 
         if not start_dt <= event_dt <= end_dt:
@@ -99,17 +94,46 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
         if not (event_links := event_channels[0].get("links")):
             continue
 
-        event_url: str = event_links[0]
-
         events.append(
             {
                 "sport": sport,
                 "event": event_name,
-                "link": event_url,
+                "link": event_links[0],
             }
         )
 
     return events
+
+
+# ---------------------------------------------------------
+# DOM FALLBACK
+# ---------------------------------------------------------
+
+async def extract_m3u8_dom(page):
+
+    try:
+
+        content = await page.content()
+
+        match = re.search(r"https?://[^\"']+\.m3u8[^\"']*", content)
+
+        if match:
+            return match.group(0)
+
+        video_src = await page.evaluate(
+            """() => {
+                const v = document.querySelector("video");
+                return v ? v.src : null;
+            }"""
+        )
+
+        if video_src and ".m3u8" in video_src:
+            return video_src
+
+    except:
+        pass
+
+    return None
 
 
 # ---------------------------------------------------------
@@ -136,7 +160,7 @@ async def scrape(browser: Browser) -> None:
 
         now = Time.clean(Time.now())
 
-        async with network.event_context(browser, stealth=False) as context:
+        async with network.event_context(browser, stealth=True) as context:
 
             for i, ev in enumerate(events, start=1):
 
@@ -144,22 +168,32 @@ async def scrape(browser: Browser) -> None:
 
                     link = ev["link"]
 
+                    captured = []
+
+                    got_one = asyncio.Event()
+
+                    handler = partial(
+                        network.capture_req,
+                        captured=captured,
+                        got_one=got_one,
+                    )
+
+                    page.on("request", handler)
+
                     try:
 
                         await page.goto(link, wait_until="domcontentloaded")
 
-                        # allow iframe + JS player to initialize
-                        await page.wait_for_timeout(5000)
+                        await page.wait_for_timeout(6000)
 
-                        # click main page (virazo requires interaction)
+                        # interaction triggers player start
                         for _ in range(2):
                             try:
                                 await page.mouse.click(400, 300)
-                                await page.wait_for_timeout(1000)
+                                await page.wait_for_timeout(1200)
                             except:
                                 pass
 
-                        # click inside iframe players
                         for frame in page.frames:
                             try:
                                 await frame.click("body", timeout=1500)
@@ -167,23 +201,24 @@ async def scrape(browser: Browser) -> None:
                             except:
                                 pass
 
+                        try:
+                            await asyncio.wait_for(got_one.wait(), timeout=20)
+                        except asyncio.TimeoutError:
+                            log.warning(f"URL {i}) M3U8 not captured via network")
+
                     except Exception:
-                        log.warning(f"URL {i}) Failed to initialize player")
+                        log.warning(f"URL {i}) Player initialization failed")
 
-                    handler = partial(
-                        network.process_event,
-                        url=link,
-                        url_num=i,
-                        page=page,
-                        log=log,
-                    )
+                    finally:
+                        page.remove_listener("request", handler)
 
-                    url = await network.safe_process(
-                        handler,
-                        url_num=i,
-                        semaphore=network.PW_S,
-                        log=log,
-                    )
+                    url = captured[0] if captured else None
+
+                    if not url:
+                        url = await extract_m3u8_dom(page)
+
+                        if url:
+                            log.info(f"URL {i}) M3U8 found via DOM fallback")
 
                     sport, event = ev["sport"], ev["event"]
 
@@ -208,6 +243,12 @@ async def scrape(browser: Browser) -> None:
 
                         urls[key] = entry
 
+                        log.info(f"URL {i}) Stream captured")
+
+                    else:
+
+                        log.warning(f"URL {i}) No stream found")
+
         log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
 
     else:
@@ -216,13 +257,19 @@ async def scrape(browser: Browser) -> None:
 
     CACHE_FILE.write(cached_urls)
 
+
 # ------------------------------------------------
 # MAIN
 # ------------------------------------------------
 
 async def main():
+
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled"],
+        )
 
         try:
             await scrape(browser)
