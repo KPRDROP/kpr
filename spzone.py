@@ -212,3 +212,24 @@ async def scrape(browser: Browser) -> None:
         log.info("No new events found")
 
     CACHE_FILE.write(cached_urls)
+
+# ------------------------------------------------
+# MAIN
+# ------------------------------------------------
+
+async def main():
+
+    print("Starting SportZone updater")
+
+    streams = await scrape()
+
+    print(f"Found {len(streams)} streams")
+
+    write_playlists(streams)
+
+    print("Playlists written successfully")
+
+
+if __name__ == "__main__":
+
+    asyncio.run(main())
