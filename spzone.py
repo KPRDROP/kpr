@@ -2,7 +2,6 @@ import asyncio
 from functools import partial
 from typing import Any
 import os
-import re
 
 from playwright.async_api import async_playwright, Browser
 
@@ -107,41 +106,6 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
 
 # ---------------------------------------------------------
-# M3U8 DETECTOR
-# ---------------------------------------------------------
-
-async def detect_m3u8(page, timeout=40):
-
-    stream_url = None
-
-    async def handle_response(response):
-        nonlocal stream_url
-
-        url = response.url.lower()
-
-        if ".m3u8" in url:
-            stream_url = response.url
-
-        try:
-            ct = response.headers.get("content-type", "")
-            if "mpegurl" in ct:
-                stream_url = response.url
-        except:
-            pass
-
-    page.on("response", handle_response)
-
-    for _ in range(timeout):
-
-        if stream_url:
-            return stream_url
-
-        await asyncio.sleep(1)
-
-    return None
-
-
-# ---------------------------------------------------------
 # SCRAPER
 # ---------------------------------------------------------
 
@@ -163,81 +127,63 @@ async def scrape(browser: Browser) -> None:
 
         now = Time.clean(Time.now())
 
-        context = await browser.new_context()
+        # Use the network context manager which handles stealth mode and proper stream detection
+        async with network.event_context(browser, stealth=True) as context:
+            
+            for i, ev in enumerate(events, start=1):
+                
+                # Use network.event_page which properly sets up page with response handlers
+                async with network.event_page(context) as page:
+                    
+                    link = ev["link"]
+                    
+                    log.info(f"URL {i}) Opening {link}")
+                    
+                    # Create a partial function with the event processing logic
+                    handler = partial(
+                        network.process_event,
+                        url=link,
+                        url_num=i,
+                        page=page,
+                        log=log,
+                    )
+                    
+                    # Use safe_process to handle the event with proper error handling and concurrency control
+                    url = await network.safe_process(
+                        handler,
+                        url_num=i,
+                        semaphore=network.PW_S,
+                        log=log,
+                    )
 
-        for i, ev in enumerate(events, start=1):
+                    sport, event = ev["sport"], ev["event"]
 
-            page = await context.new_page()
+                    key = f"[{sport}] {event} ({TAG})"
 
-            link = ev["link"]
+                    tvg_id, logo = leagues.get_tvg_info(sport, event)
 
-            log.info(f"URL {i}) Opening {link}")
+                    entry = {
+                        "url": url,
+                        "logo": logo,
+                        "base": HOME_URL or "https://vividmosaica.com/",
+                        "timestamp": now.timestamp(),
+                        "id": tvg_id or "Live.Event.us",
+                        "link": link,
+                    }
 
-            try:
+                    cached_urls[key] = entry
 
-                await page.goto(link, wait_until="domcontentloaded")
+                    if url:
 
-                await page.wait_for_timeout(5000)
+                        log.info(f"URL {i}) Stream detected: {url}")
 
-                # user interaction required
-                for _ in range(3):
+                        valid_count += 1
 
-                    try:
-                        await page.mouse.click(500, 400)
-                        await page.wait_for_timeout(1500)
-                    except:
-                        pass
+                        urls[key] = entry
 
-                # click iframe players
-                for frame in page.frames:
+                    else:
 
-                    try:
-                        await frame.click("body", timeout=2000)
-                        await page.wait_for_timeout(1500)
-                    except:
-                        pass
-
-                # detect stream
-                url = await detect_m3u8(page)
-
-            except Exception as e:
-
-                log.warning(f"URL {i}) Failed: {e}")
-
-                url = None
-
-            sport, event = ev["sport"], ev["event"]
-
-            key = f"[{sport}] {event} ({TAG})"
-
-            tvg_id, logo = leagues.get_tvg_info(sport, event)
-
-            entry = {
-                "url": url,
-                "logo": logo,
-                "base": "https://vividmosaica.com/",
-                "timestamp": now.timestamp(),
-                "id": tvg_id or "Live.Event.us",
-                "link": link,
-            }
-
-            cached_urls[key] = entry
-
-            if url:
-
-                log.info(f"URL {i}) Stream detected")
-
-                valid_count += 1
-
-                urls[key] = entry
-
-            else:
-
-                log.warning(f"URL {i}) No stream found")
-
-            await page.close()
-
-        await context.close()
+                        log.warning(f"URL {i}) No stream found")
 
         log.info(f"Collected {valid_count - cached_count} new events")
 
@@ -261,6 +207,10 @@ async def main():
             args=[
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-web-security",
+                "--disable-features=IsolateOrigins,site-per-process",
+                "--allow-running-insecure-content",
             ],
         )
 
