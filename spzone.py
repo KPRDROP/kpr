@@ -19,7 +19,7 @@ CACHE_FILE = Cache(TAG, exp=5400)
 API_FILE = Cache(f"{TAG}-api", exp=28800)
 
 API_URL = os.environ.get("SPZONE_API_URL")
-HOME_URL = os.environ.get("HOME_URL")
+HOME_URL = os.environ.get("HOME_URL", "https://vividmosaica.com/")
 
 
 # ---------------------------------------------------------
@@ -108,25 +108,26 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
 
 # ---------------------------------------------------------
-# ROBUST M3U8 CAPTURE WITH MULTIPLE STRATEGIES
+# M3U8 CAPTURE WITH IFRAME TRAVERSAL
 # ---------------------------------------------------------
 
-async def capture_m3u8_robust(page, url_num: int, log) -> str | None:
+async def capture_m3u8_from_virazo(page, url_num: int, log) -> str | None:
     """
-    Ultra-robust function that uses multiple strategies to capture m3u8
+    Specialized function to capture m3u8 from virazo.sx pages
     """
     captured = []
     got_one = asyncio.Event()
     
     def handle_response(response):
         url = response.url.lower()
-        # Check URL for m3u8
+        
+        # Look for m3u8 in responses
         if '.m3u8' in url:
-            # Filter out known non-stream URLs
-            if not any(x in url for x in ['amazonaws', 'knitcdn', 'jwpltx', 'analytics', 'tracking']):
+            # Filter out unwanted URLs
+            if not any(x in url for x in ['amazonaws', 'knitcdn', 'jwpltx', 'analytics', 'bvtpk', 'al5sm']):
                 captured.append(response.url)
                 got_one.set()
-                log.info(f"URL {url_num}) Found m3u8 in response: {response.url}")
+                log.info(f"URL {url_num}) Found m3u8: {response.url}")
         
         # Check content-type header
         try:
@@ -142,162 +143,145 @@ async def capture_m3u8_robust(page, url_num: int, log) -> str | None:
     def handle_request(request):
         url = request.url.lower()
         if '.m3u8' in url:
-            if not any(x in url for x in ['amazonaws', 'knitcdn', 'jwpltx', 'analytics', 'tracking']):
+            if not any(x in url for x in ['amazonaws', 'knitcdn', 'jwpltx', 'analytics', 'bvtpk', 'al5sm']):
                 captured.append(request.url)
                 got_one.set()
                 log.info(f"URL {url_num}) Found m3u8 in request: {request.url}")
     
-    # Attach both request and response handlers
+    # Attach handlers
     page.on("response", handle_response)
     page.on("request", handle_request)
     
     try:
-        # Navigate to the page
-        log.info(f"URL {url_num}) Loading page...")
+        # Navigate to the virazo page
+        log.info(f"URL {url_num}) Loading virazo.sx page...")
         await page.goto(page.url, wait_until="domcontentloaded", timeout=15000)
-        await page.wait_for_timeout(5000)  # Wait for initial JavaScript execution
+        await page.wait_for_timeout(3000)
         
-        # STRATEGY 1: Look for and click any play button with comprehensive selectors
-        play_selectors = [
-            # Common button text patterns
-            "button:has-text('Play')",
-            "button:has-text('play')",
-            "button:has-text('PLAY')",
-            "button:has-text('Start')",
-            "button:has-text('Watch')",
-            "button:has-text('Stream')",
-            "button:has-text('Launch')",
-            "button:has-text('►')",
-            "button:has-text('▶')",
-            
-            # Common classes and IDs
-            ".play-button",
-            ".play-btn",
-            ".play",
-            ".vjs-play-button",
-            ".vjs-big-play-button",
-            ".mejs-play",
-            ".mejs-playbutton",
-            ".jw-icon-play",
-            ".fp-play",
-            ".play-icon",
-            ".playpause",
-            "#play-button",
-            "#play",
-            "#playbtn",
-            "#playButton",
-            "#start-button",
-            
-            # Video.js specific
-            ".vjs-big-play-button",
-            ".vjs-play-control",
-            
-            # JW Player specific
-            ".jw-play",
-            ".jw-icon-playback",
-            
-            # MediaElement.js
-            ".mejs-playpause-button",
-            
-            # Flowplayer
-            ".fp-playbtn",
-            
-            # General iframe players
-            "iframe[src*='player']",
-            "iframe[src*='embed']",
-            "iframe[src*='stream']",
-        ]
+        # Look for the main iframe that contains the player
+        log.info(f"URL {url_num}) Looking for player iframe...")
         
-        # Try each selector
-        clicked = False
-        for selector in play_selectors:
+        # Wait for iframe to be present
+        try:
+            await page.wait_for_selector("iframe", timeout=10000)
+        except:
+            log.warning(f"URL {url_num}) No iframe found on page")
+        
+        # Get all iframes
+        frames = page.frames
+        log.info(f"URL {url_num}) Found {len(frames)} frames total")
+        
+        # Look for the vividmosaica iframe specifically
+        vivid_frame = None
+        for frame in frames:
             try:
-                element = await page.wait_for_selector(selector, timeout=2000)
-                if element and await element.is_visible():
-                    log.info(f"URL {url_num}) Found play button with selector: {selector}")
-                    await element.click()
-                    await page.wait_for_timeout(3000)
-                    clicked = True
+                frame_url = frame.url.lower()
+                if 'vividmosaica.com' in frame_url or 'embed2.php' in frame_url:
+                    vivid_frame = frame
+                    log.info(f"URL {url_num}) Found vividmosaica iframe: {frame_url}")
                     break
             except:
                 continue
         
-        # STRATEGY 2: If no button found with selectors, try clicking at strategic positions
-        if not clicked:
-            log.info(f"URL {url_num}) No play button found with selectors, trying position clicks")
-            positions = [
-                (640, 360),  # Center
-                (500, 400),  # Common video area
-                (800, 450),  # Right side
-                (300, 300),  # Top left of video
-                (900, 400),  # Right side of video
+        # If we found the vividmosaica iframe, interact with it
+        if vivid_frame:
+            log.info(f"URL {url_num}) Interacting with vividmosaica iframe...")
+            
+            # Try to click play button in the iframe
+            click_selectors = [
+                "button",
+                ".play-button",
+                ".vjs-big-play-button",
+                ".jw-icon-play",
+                "video",
+                ".fp-playbtn",
+                "[aria-label='Play']",
+                ".mejs-playpause-button",
             ]
-            for x, y in positions:
+            
+            for selector in click_selectors:
                 try:
-                    await page.mouse.click(x, y)
-                    await page.wait_for_timeout(1500)
+                    element = await vivid_frame.wait_for_selector(selector, timeout=2000)
+                    if element:
+                        log.info(f"URL {url_num}) Clicking {selector} in iframe")
+                        await element.click()
+                        await page.wait_for_timeout(2000)
+                        break
                 except:
-                    pass
-        
-        # STRATEGY 3: Check all iframes and try to click inside them
-        frames = page.frames
-        log.info(f"URL {url_num}) Found {len(frames)} frames")
-        
-        for i, frame in enumerate(frames):
-            if i == 0:  # Skip main page frame
-                continue
+                    continue
+            
+            # Try clicking at center of iframe
             try:
-                # Try to click common elements in iframe
-                await frame.click("button", timeout=2000)
-                log.info(f"URL {url_num}) Clicked button in iframe {i}")
+                await vivid_frame.mouse.click(640, 360)
                 await page.wait_for_timeout(2000)
             except:
-                try:
-                    await frame.click("body", timeout=2000)
-                    await page.wait_for_timeout(2000)
-                except:
-                    pass
+                pass
+            
+            # Execute JavaScript in iframe to trigger play
+            try:
+                await vivid_frame.evaluate("""
+                    () => {
+                        // Try to play any video elements
+                        const videos = document.querySelectorAll('video');
+                        videos.forEach(v => {
+                            try { v.play(); } catch(e) {}
+                        });
+                        
+                        // Try to trigger player APIs
+                        if (typeof jwplayer !== 'undefined') {
+                            try { jwplayer().play(); } catch(e) {}
+                        }
+                        if (typeof videojs !== 'undefined') {
+                            try { 
+                                const players = videojs.getAllPlayers();
+                                players.forEach(p => { try { p.play(); } catch(e) {} });
+                            } catch(e) {}
+                        }
+                    }
+                """)
+                log.info(f"URL {url_num}) Executed JavaScript in iframe")
+            except:
+                pass
         
-        # STRATEGY 4: Look for and execute any play() functions in console
-        try:
-            await page.evaluate("""
-                () => {
-                    // Try to find and play video elements
-                    const videos = document.querySelectorAll('video');
-                    videos.forEach(v => {
-                        try { v.play(); } catch(e) {}
-                    });
+        else:
+            # If no vividmosaica iframe, try all iframes
+            log.info(f"URL {url_num}) No vividmosaica iframe found, trying all frames...")
+            for i, frame in enumerate(frames[1:], 1):  # Skip first frame (main page)
+                try:
+                    # Try to click in iframe
+                    await frame.click("body", timeout=2000)
+                    await page.wait_for_timeout(1000)
                     
-                    // Try to trigger play on any player instances
-                    if (typeof jwplayer !== 'undefined') {
-                        try { jwplayer().play(); } catch(e) {}
-                    }
-                    if (typeof videojs !== 'undefined') {
-                        try { 
-                            const players = videojs.getAllPlayers();
-                            players.forEach(p => { try { p.play(); } catch(e) {} });
-                        } catch(e) {}
-                    }
-                    if (typeof flowplayer !== 'undefined') {
-                        try { flowplayer().play(); } catch(e) {}
-                    }
-                }
-            """)
-            log.info(f"URL {url_num}) Executed JavaScript play attempts")
-            await page.wait_for_timeout(3000)
+                    # Try to find and click play button
+                    for selector in [".play-button", "button", "video"]:
+                        try:
+                            element = await frame.wait_for_selector(selector, timeout=1000)
+                            if element:
+                                await element.click()
+                                await page.wait_for_timeout(1000)
+                        except:
+                            continue
+                except:
+                    continue
+        
+        # Also click on main page for good measure
+        try:
+            await page.mouse.click(640, 360)
+            await page.wait_for_timeout(1000)
         except:
             pass
         
-        # Wait for m3u8 request (up to 30 seconds)
+        # Wait for m3u8 (up to 30 seconds)
+        log.info(f"URL {url_num}) Waiting for m3u8 stream...")
         try:
             await asyncio.wait_for(got_one.wait(), timeout=30)
             if captured:
                 return captured[0]
         except asyncio.TimeoutError:
-            log.warning(f"URL {url_num}) Timed out waiting for M3U8 after all strategies")
+            log.warning(f"URL {url_num}) Timed out waiting for M3U8")
             
     except Exception as e:
-        log.error(f"URL {url_num}) Error during capture: {e}")
+        log.error(f"URL {url_num}) Error: {e}")
     finally:
         page.remove_listener("response", handle_response)
         page.remove_listener("request", handle_request)
@@ -327,24 +311,15 @@ async def scrape(browser: Browser) -> None:
 
         now = Time.clean(Time.now())
 
-        # Create context with proper viewport and headers
+        # Create context with proper settings
         context = await browser.new_context(
             viewport={"width": 1280, "height": 720},
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            device_scale_factor=1,
-            has_touch=False,
-            locale="en-US",
-            timezone_id="America/New_York",
-            permissions=["geolocation"],
             extra_http_headers={
                 "Accept-Language": "en-US,en;q=0.9",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
                 "Referer": "https://sportzone.su/",
             }
         )
-        
-        # Enable request/response interception for better capture
-        await context.route("**/*", lambda route: route.continue_())
         
         for i, ev in enumerate(events, start=1):
             
@@ -354,11 +329,11 @@ async def scrape(browser: Browser) -> None:
             log.info(f"URL {i}) Opening {link} - {ev['event']}")
             
             try:
-                # Navigate to the page with longer timeout
-                await page.goto(link, wait_until="domcontentloaded", timeout=30000)
+                # Navigate to virazo page
+                await page.goto(link, wait_until="domcontentloaded", timeout=15000)
                 
-                # Use robust capture with multiple strategies
-                url = await capture_m3u8_robust(page, i, log)
+                # Capture m3u8 using specialized function
+                url = await capture_m3u8_from_virazo(page, i, log)
 
                 sport, event = ev["sport"], ev["event"]
 
@@ -378,14 +353,10 @@ async def scrape(browser: Browser) -> None:
                 cached_urls[key] = entry
 
                 if url:
-
                     log.info(f"URL {i}) Stream detected: {url}")
-
                     valid_count += 1
                     urls[key] = entry
-
                 else:
-
                     log.warning(f"URL {i}) No stream found")
 
             except Exception as e:
@@ -399,7 +370,6 @@ async def scrape(browser: Browser) -> None:
         log.info(f"Collected {valid_count - cached_count} new events")
 
     else:
-
         log.info("No new events found")
 
     CACHE_FILE.write(cached_urls)
@@ -419,12 +389,8 @@ async def main():
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
-                "--disable-web-security",
-                "--disable-features=IsolateOrigins,site-per-process",
                 "--window-size=1280,720",
                 "--autoplay-policy=no-user-gesture-required",
-                "--disable-gpu",
-                "--disable-setuid-sandbox",
             ],
         )
 
