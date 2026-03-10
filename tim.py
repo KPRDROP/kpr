@@ -1,13 +1,13 @@
 import asyncio
 from functools import partial
-from urllib.parse import urljoin, quote
+from urllib.parse import urljoin, quote, urlparse
 import os
 import re
 
 from playwright.async_api import Browser, Page, Response
 from selectolax.parser import HTMLParser
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
@@ -31,19 +31,19 @@ TIVIMATE_UA = quote("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.3
 
 # Sport mapping based on common categories
 SPORT_KEYWORDS = {
-    "Soccer": ["soccer", "football", "fútbol", "calcio", "bundesliga", "premier league", "la liga", "serie a"],
-    "Basketball": ["basketball", "nba", "euroleague", "ncaa"],
-    "Hockey": ["hockey", "nhl", "khl"],
-    "Tennis": ["tennis", "atp", "wta", "grand slam"],
-    "Baseball": ["baseball", "mlb"],
-    "American Football": ["nfl", "football", "super bowl", "ncaa football"],
-    "MMA": ["mma", "ufc", "bellator"],
-    "Boxing": ["boxing", "boxe", "fight"],
-    "Motorsport": ["f1", "formula", "motogp", "nascar", "racing"],
-    "Rugby": ["rugby", "super rugby", "six nations"],
-    "Cricket": ["cricket", "ipl", "ashes"],
-    "Darts": ["darts", "pdc"],
-    "Cycling": ["cycling", "tour de france"],
+    "Soccer": ["soccer", "football", "fútbol", "calcio", "bundesliga", "premier league", "la liga", "serie a", "champions league", "europa league", "galatasaray", "liverpool", "bayern", "atalanta", "newcastle", "barcelona", "atletico madrid", "tottenham"],
+    "Basketball": ["basketball", "nba", "euroleague", "ncaa", "lakers", "celtics", "bulls", "warriors"],
+    "Hockey": ["hockey", "nhl", "khl", "kings", "blue jackets"],
+    "Tennis": ["tennis", "atp", "wta", "grand slam", "us open", "wimbledon", "roland garros", "australian open"],
+    "Baseball": ["baseball", "mlb", "yankees", "red sox", "dodgers"],
+    "American Football": ["nfl", "football", "super bowl", "ncaa football", "chiefs", "eagles", "49ers"],
+    "MMA": ["mma", "ufc", "bellator", "fame mma", "rizin"],
+    "Boxing": ["boxing", "boxe", "fight", "heavyweight"],
+    "Motorsport": ["f1", "formula", "motogp", "nascar", "racing", "speedway", "millbridge"],
+    "Rugby": ["rugby", "super rugby", "six nations", "premiership"],
+    "Cricket": ["cricket", "ipl", "ashes", "big bash"],
+    "Darts": ["darts", "pdc", "premier league darts"],
+    "Wrestling": ["wrestling", "aew", "wwe", "revolution"],
 }
 
 
@@ -52,14 +52,156 @@ def detect_sport(event_name: str) -> str:
     event_lower = event_name.lower()
     for sport, keywords in SPORT_KEYWORDS.items():
         for keyword in keywords:
-            if keyword in event_lower:
+            if keyword.lower() in event_lower:
                 return sport
     return "Other"
 
 
+def clean_event_name(raw_name: str) -> str:
+    """Clean event name by removing extra text and loading indicators"""
+    # Remove common loading text and extra whitespace
+    cleaned = re.sub(r'(Soccer|Loading|Watch Soon|Watch Replay|Replay\d{2}/\d{2}/\d{4})\s*', ' ', raw_name)
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    
+    # If name is too long, try to extract just the team names
+    if len(cleaned) > 50:
+        # Look for pattern "Team vs Team"
+        vs_match = re.search(r'([A-Za-z\s]+?)\s+vs\.?\s+([A-Za-z\s]+)', cleaned)
+        if vs_match:
+            team1 = vs_match.group(1).strip()
+            team2 = vs_match.group(2).strip()
+            if len(team1) < 30 and len(team2) < 30:
+                return f"{team1} vs {team2}"
+    
+    return cleaned
+
+
 def sift_xhr(resp: Response) -> bool:
+    """Check if response is the embed URL we're looking for"""
     resp_url = resp.url
     return "hmembeds.one/embed" in resp_url and resp.status == 200
+
+
+async def capture_m3u8_from_embed(page: Page, embed_url: str, url_num: int) -> str | None:
+    """
+    Navigate to embed URL and capture m3u8 stream
+    """
+    captured = []
+    got_one = asyncio.Event()
+    
+    def handle_request(request):
+        url = request.url.lower()
+        # Look for m3u8 in requests
+        if '.m3u8' in url and 'hmembeds.one' not in url:
+            captured.append(request.url)
+            got_one.set()
+            log.info(f"URL {url_num}) Captured m3u8 request: {request.url}")
+    
+    def handle_response(response):
+        url = response.url.lower()
+        # Check for m3u8 in responses
+        if '.m3u8' in url and 'hmembeds.one' not in url:
+            captured.append(response.url)
+            got_one.set()
+            log.info(f"URL {url_num}) Captured m3u8 response: {response.url}")
+        
+        # Check content-type
+        try:
+            content_type = response.headers.get('content-type', '').lower()
+            if 'mpegurl' in content_type or 'application/vnd.apple.mpegurl' in content_type:
+                if 'hmembeds.one' not in url:
+                    captured.append(response.url)
+                    got_one.set()
+                    log.info(f"URL {url_num}) Found m3u8 by content-type: {response.url}")
+        except:
+            pass
+    
+    page.on("request", handle_request)
+    page.on("response", handle_response)
+    
+    try:
+        # Navigate to embed URL
+        log.info(f"URL {url_num}) Loading embed URL: {embed_url}")
+        await page.goto(embed_url, wait_until="domcontentloaded", timeout=15000)
+        await page.wait_for_timeout(3000)
+        
+        # Try to click any play button in the embed
+        click_selectors = [
+            "button",
+            ".play-button",
+            ".vjs-big-play-button",
+            ".jw-icon-play",
+            ".mejs-playpause-button",
+            "[aria-label='Play']",
+            ".fp-playbtn",
+            "video",
+        ]
+        
+        for selector in click_selectors:
+            try:
+                element = await page.wait_for_selector(selector, timeout=2000)
+                if element:
+                    log.info(f"URL {url_num}) Clicking play button: {selector}")
+                    await element.click()
+                    await page.wait_for_timeout(2000)
+                    break
+            except:
+                continue
+        
+        # Try clicking at center of player
+        try:
+            await page.mouse.click(640, 360)
+            await page.wait_for_timeout(2000)
+        except:
+            pass
+        
+        # Execute JavaScript to trigger play
+        try:
+            await page.evaluate("""
+                () => {
+                    // Try to play any video elements
+                    const videos = document.querySelectorAll('video');
+                    videos.forEach(v => {
+                        try { v.play(); } catch(e) {}
+                    });
+                    
+                    // Try to find and click play buttons by any means
+                    const buttons = document.querySelectorAll('button, [role="button"], .play, .play-button, .vjs-big-play-button');
+                    buttons.forEach(b => {
+                        try { b.click(); } catch(e) {}
+                    });
+                    
+                    // Try to trigger player APIs
+                    if (typeof jwplayer !== 'undefined') {
+                        try { jwplayer().play(); } catch(e) {}
+                    }
+                    if (typeof videojs !== 'undefined') {
+                        try { 
+                            const players = videojs.getAllPlayers();
+                            players.forEach(p => { try { p.play(); } catch(e) {} });
+                        } catch(e) {}
+                    }
+                }
+            """)
+            log.info(f"URL {url_num}) Executed JavaScript play attempts")
+        except:
+            pass
+        
+        # Wait for m3u8 (up to 20 seconds)
+        try:
+            await asyncio.wait_for(got_one.wait(), timeout=20)
+            if captured:
+                return captured[0]
+        except asyncio.TimeoutError:
+            log.warning(f"URL {url_num}) Timed out waiting for M3U8 in embed")
+            
+    except Exception as e:
+        log.error(f"URL {url_num}) Error in embed capture: {e}")
+    finally:
+        page.remove_listener("request", handle_request)
+        page.remove_listener("response", handle_response)
+    
+    return None
 
 
 async def process_event(
@@ -70,74 +212,70 @@ async def process_event(
 
     nones = None, None
 
-    captured: list[str] = []
-
-    got_one = asyncio.Event()
-
-    handler = partial(
-        network.capture_req,
-        captured=captured,
-        got_one=got_one,
-    )
-
-    page.on("request", handler)
-
     try:
-        try:
-            async with page.expect_response(sift_xhr, timeout=5_000) as strm_resp:
-                resp = await page.goto(
-                    url,
-                    wait_until="domcontentloaded",
-                    timeout=10_000,
-                )
+        # Navigate to event page
+        resp = await page.goto(
+            url,
+            wait_until="domcontentloaded",
+            timeout=10000,
+        )
 
-                if not resp or resp.status != 200:
-                    log.warning(
-                        f"URL {url_num}) Status Code: {resp.status if resp else 'None'}"
-                    )
-                    return nones
-
-                response = await strm_resp.value
-                embed_url = response.url
-                log.info(f"URL {url_num}) Found embed URL: {embed_url}")
-                
-        except TimeoutError:
-            log.warning(f"URL {url_num}) No available stream links.")
+        if not resp or resp.status != 200:
+            log.warning(f"URL {url_num}) Status Code: {resp.status if resp else 'None'}")
             return nones
 
-        wait_task = asyncio.create_task(got_one.wait())
+        # Wait for embed URL to appear
+        await page.wait_for_timeout(3000)
+        
+        # Look for iframe with embed URL
+        embed_url = None
+        frames = page.frames
+        for frame in frames:
+            try:
+                frame_url = frame.url
+                if "hmembeds.one/embed" in frame_url:
+                    embed_url = frame_url
+                    log.info(f"URL {url_num}) Found embed URL in iframe: {embed_url}")
+                    break
+            except:
+                continue
+        
+        # If no iframe, check for redirect or direct embed
+        if not embed_url:
+            current_url = page.url
+            if "hmembeds.one/embed" in current_url:
+                embed_url = current_url
+                log.info(f"URL {url_num}) Page redirected to embed: {embed_url}")
+        
+        # If still no embed URL, try to find it in the page HTML
+        if not embed_url:
+            content = await page.content()
+            embed_pattern = r'https?://hmembeds\.one/embed/[^"\']+'
+            matches = re.findall(embed_pattern, content)
+            if matches:
+                embed_url = matches[0]
+                log.info(f"URL {url_num}) Found embed URL in HTML: {embed_url}")
 
-        try:
-            await asyncio.wait_for(wait_task, timeout=15)
-            log.info(f"URL {url_num}) M3U8 capture triggered")
-        except asyncio.TimeoutError:
-            log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
+        if not embed_url:
+            log.warning(f"URL {url_num}) No embed URL found")
             return nones
-        finally:
-            if not wait_task.done():
-                wait_task.cancel()
-                try:
-                    await wait_task
-                except asyncio.CancelledError:
-                    pass
 
-        if captured:
-            log.info(f"URL {url_num}) Captured M3U8: {captured[0]}")
-            return captured[0], embed_url
-
-        log.warning(f"URL {url_num}) No M3U8 captured after waiting.")
+        # Now capture m3u8 from the embed URL
+        m3u8_url = await capture_m3u8_from_embed(page, embed_url, url_num)
+        
+        if m3u8_url:
+            return m3u8_url, embed_url
+        
         return nones
 
     except Exception as e:
         log.warning(f"URL {url_num}) Error: {e}")
         return nones
 
-    finally:
-        page.remove_listener("request", handler)
-
 
 async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
     events = []
+    seen_events = set()  # Track unique events to avoid duplicates
 
     log.info(f"Fetching events from {BASE_URL}")
     
@@ -147,13 +285,8 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
     soup = HTMLParser(html_data.content)
     
-    # Find all event cards - based on actual website structure
-    # The website shows "8 events scheduled" so we need to find those
-    
-    # Look for the events section
+    # Find the Live & Upcoming Events section
     events_section = None
-    
-    # Try to find section containing "Live & Upcoming Events"
     for heading in soup.css("h2, h3, h4"):
         if heading.text() and "Live & Upcoming Events" in heading.text():
             events_section = heading.parent
@@ -161,99 +294,64 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
             break
     
     if not events_section:
-        # Try alternative: look for any container with event cards
         events_section = soup
     
-    # Find event cards - they might be in a grid or list
-    card_selectors = [
-        ".grid > div",
-        ".cards > div",
-        ".event-card",
-        ".match-card",
-        ".game-card",
-        "main > div > div",
-        ".space-y-4 > div",
-        "div[class*='grid'] > div",
-    ]
+    # Find all event cards
+    cards = events_section.css(".grid > div, .cards > div, div[class*='grid'] > div, .space-y-4 > div")
     
-    cards = []
-    for selector in card_selectors:
-        cards = events_section.css(selector)
-        if cards:
-            log.info(f"Found {len(cards)} cards with selector: {selector}")
-            break
-    
-    # If still no cards, try finding by event patterns
     if not cards:
-        # Look for elements containing team names vs team names
-        for element in soup.css("div, span, p, h3, h4"):
-            text = element.text(strip=True)
-            if text and " vs " in text or " vs. " in text:
-                # This might be an event title
-                parent = element.parent
-                if parent and parent not in cards:
-                    cards.append(parent)
-        
-        if cards:
-            log.info(f"Found {len(cards)} potential events by 'vs' pattern")
-    
-    # If still no cards, check for the "8 events scheduled" text and try to find those events
-    if not cards:
-        # Look for the specific count text
-        for element in soup.css("div, span, p"):
-            text = element.text(strip=True)
-            if text and "events scheduled" in text:
-                # The parent might contain the events
-                parent = element.parent
-                # Look for event items in the same container
-                event_items = parent.css("div, a")
-                if event_items:
-                    cards = [item for item in event_items if item.attributes.get("href") or item.css("h3, h4, p")]
-                    log.info(f"Found {len(cards)} events near scheduled text")
-                    break
+        log.warning("No cards found with grid selectors")
+        return events
 
-    # Process found cards
+    log.info(f"Found {len(cards)} potential event cards")
+
     for card in cards:
         try:
-            # Get event name - look for headings or text with vs pattern
+            # Extract event name - look for headings first
             event_name = None
             
             # Try to find heading
-            for heading_selector in ["h3", "h4", "h5", ".title", ".event-title", ".font-bold", "p.font-semibold"]:
-                if heading := card.css_first(heading_selector):
+            for selector in ["h3", "h4", "h5", ".font-bold", "p.font-semibold", ".text-lg"]:
+                if heading := card.css_first(selector):
                     event_name = heading.text(strip=True)
-                    if event_name:
+                    if event_name and len(event_name) > 5:
                         break
             
-            # If no heading, look for any text with vs pattern
+            # If no heading, look for text with "vs" pattern
             if not event_name:
-                for elem in card.css("div, span, p"):
-                    text = elem.text(strip=True)
-                    if text and len(text) > 10 and (" vs " in text or " vs. " in text):
-                        event_name = text
+                text_content = card.text(strip=True)
+                lines = text_content.split('\n')
+                for line in lines:
+                    line = line.strip()
+                    if line and (" vs " in line.lower() or " vs. " in line.lower()) and len(line) < 100:
+                        event_name = line
                         break
             
-            # If still no name, use card text
+            # If still no name, use first non-empty line
             if not event_name:
-                event_name = card.text(strip=True)
-                if len(event_name) > 50:  # Too long, likely contains other elements
-                    # Try to get first meaningful line
-                    lines = event_name.split('\n')
-                    for line in lines:
-                        if line and len(line) > 10 and (" vs " in line or any(team.isupper() for team in line.split())):
-                            event_name = line.strip()
-                            break
+                text_content = card.text(strip=True)
+                lines = text_content.split('\n')
+                for line in lines:
+                    if line.strip() and len(line.strip()) > 10:
+                        event_name = line.strip()
+                        break
             
-            if not event_name or len(event_name) < 10:
+            if not event_name:
                 continue
 
-            # Check if already cached
-            sport = detect_sport(event_name)
-            key = f"[{sport}] {event_name} ({TAG})"
-            if key in cached_keys:
+            # Clean the event name
+            event_name = clean_event_name(event_name)
+            
+            # Skip if too short or looks like replay
+            if len(event_name) < 10 or "Replay" in event_name:
                 continue
 
-            # Find link - look for anchor tags
+            # Check for duplicates
+            if event_name in seen_events:
+                continue
+            seen_events.add(event_name)
+
+            # Find link
             link = None
             if anchor := card.css_first("a[href]"):
                 href = anchor.attributes.get("href")
@@ -263,19 +361,16 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                     elif href.startswith("http"):
                         link = href
             
-            # If no link in card, maybe the whole card is a link
-            if not link and card.tag == "a" and card.attributes.get("href"):
-                href = card.attributes.get("href")
-                if href:
-                    if href.startswith("/"):
-                        link = urljoin(BASE_URL, href)
-                    elif href.startswith("http"):
-                        link = href
-            
             if not link:
                 continue
 
-            # Find logo/image
+            # Check if already cached
+            sport = detect_sport(event_name)
+            key = f"[{sport}] {event_name} ({TAG})"
+            if key in cached_keys:
+                continue
+
+            # Find logo
             logo = None
             if img := card.css_first("img"):
                 src = img.attributes.get("src") or img.attributes.get("data-src")
@@ -298,7 +393,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
             log.debug(f"Error processing card: {e}")
             continue
 
-    log.info(f"Total events found: {len(events)}")
+    log.info(f"Total unique events found: {len(events)}")
     return events
 
 
@@ -316,25 +411,18 @@ def generate_vlc_output(entries: list[tuple], channel_number: int = 1) -> str:
         if not entry.get("url"):
             continue
             
-        # Format: [Sport] Event Name (TAG)
         display_name = key
         
-        # Get tvg_id and logo
         tvg_id = entry.get("id", "Live.Event.us")
         logo = entry.get("logo", "")
         base_url = entry.get("base", "")
         
-        # Add channel number (incrementing)
         output.append(f'#EXTINF:-1 tvg-chno="{channel_number}" tvg-id="{tvg_id}" tvg-name="{display_name}" tvg-logo="{logo}" group-title="Live Events",{display_name}')
-        
-        # Add VLC options
         output.append(f'#EXTVLCOPT:http-referrer={base_url}')
         output.append(f'#EXTVLCOPT:http-origin={base_url}')
         output.append(f'#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0')
-        
-        # Add stream URL
         output.append(entry["url"])
-        output.append("")  # Empty line for readability
+        output.append("")
         
         channel_number += 1
     
@@ -351,22 +439,16 @@ def generate_tivimate_output(entries: list[tuple], channel_number: int = 1) -> s
         if not entry.get("url"):
             continue
             
-        # Format: [Sport] Event Name (TAG)
         display_name = key
         
-        # Get tvg_id and logo
         tvg_id = entry.get("id", "Live.Event.us")
         logo = entry.get("logo", "")
         base_url = entry.get("base", "")
         
-        # Add channel number (incrementing)
         output.append(f'#EXTINF:-1 tvg-chno="{channel_number}" tvg-id="{tvg_id}" tvg-name="{display_name}" tvg-logo="{logo}" group-title="Live Events",{display_name}')
-        
-        # Create Tivimate URL with pipe-separated headers
-        # Format: stream_url|referer=base_url|origin=base_url|user-agent=encoded_ua
         tivimate_url = f'{entry["url"]}|referer={base_url}|origin={base_url}|user-agent={TIVIMATE_UA}'
         output.append(tivimate_url)
-        output.append("")  # Empty line for readability
+        output.append("")
         
         channel_number += 1
     
@@ -381,23 +463,19 @@ def write_output_files():
         log.warning("No URLs to write to output files")
         return
     
-    # Filter entries with valid URLs
     valid_entries = [(k, v) for k, v in urls.items() if v.get("url")]
     
     if not valid_entries:
         log.warning("No valid streams found to write to output files")
         return
     
-    # Sort entries by key for consistent ordering
     sorted_entries = sorted(valid_entries, key=lambda x: x[0])
     
-    # Generate VLC output
     vlc_content = generate_vlc_output(sorted_entries)
     with open(VLC_OUTPUT, "w", encoding="utf-8") as f:
         f.write(vlc_content)
     log.info(f"Written {len(sorted_entries)} streams to {VLC_OUTPUT}")
     
-    # Generate Tivimate output
     tivimate_content = generate_tivimate_output(sorted_entries)
     with open(TIVIMATE_OUTPUT, "w", encoding="utf-8") as f:
         f.write(tivimate_content)
@@ -422,7 +500,7 @@ async def scrape(browser: Browser) -> None:
 
         now = Time.clean(Time.now())
 
-        async with network.event_context(browser, stealth=True) as context:
+        async with network.event_context(browser, stealth=False) as context:
             for i, ev in enumerate(events, start=1):
                 async with network.event_page(context) as page:
                     log.info(f"URL {i}) Processing: {ev['event']}")
@@ -438,7 +516,7 @@ async def scrape(browser: Browser) -> None:
                         handler,
                         url_num=i,
                         semaphore=network.PW_S,
-                        timeout=30,
+                        timeout=45,
                         log=log,
                     )
 
@@ -466,7 +544,7 @@ async def scrape(browser: Browser) -> None:
                     if url:
                         valid_count += 1
                         urls[key] = entry
-                        log.info(f"URL {i}) Stream captured successfully")
+                        log.info(f"URL {i}) Stream captured successfully: {url}")
                     else:
                         log.warning(f"URL {i}) No stream found")
 
@@ -475,13 +553,10 @@ async def scrape(browser: Browser) -> None:
     else:
         log.warning("No new events found - check if website structure has changed")
         
-        # Write any cached URLs to output files even if no new events
         if urls:
             log.info(f"Writing {len(urls)} cached streams to output files")
 
     CACHE_FILE.write(cached_urls)
-    
-    # Write output files after all processing
     write_output_files()
 
 
@@ -495,6 +570,7 @@ async def main():
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
+                "--autoplay-policy=no-user-gesture-required",
             ],
         )
         
