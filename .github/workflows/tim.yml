@@ -28,8 +28,8 @@ jobs:
 
       - name: Run scraper
         env:
-          TIM_API_URL: ${{ secrets.TIM_API_URL }}
           TIM_BASE_URL: ${{ secrets.TIM_BASE_URL }}
+          
         run: |
           python tim.py
 
