@@ -224,53 +224,164 @@ async def process_event(
     page: Page,
 ) -> tuple[str | None, str | None]:
 
-    nones = (None, None)
+    nones = None, None
+
+    captured: list[str] = []
+    embed_url: str | None = None
+
+    got_stream = asyncio.Event()
+
+    # -----------------------------
+    # REQUEST SNIFFER
+    # -----------------------------
+    async def req_listener(req):
+
+        rurl = req.url.lower()
+
+        if ".m3u8" in rurl:
+            captured.append(req.url)
+            got_stream.set()
+
+    page.on("request", req_listener)
+
+    # -----------------------------
+    # RESPONSE SNIFFER
+    # -----------------------------
+    async def resp_listener(resp):
+
+        rurl = resp.url.lower()
+
+        if ".m3u8" in rurl:
+            captured.append(resp.url)
+            got_stream.set()
+
+        try:
+            ct = resp.headers.get("content-type", "")
+            if "mpegurl" in ct:
+                captured.append(resp.url)
+                got_stream.set()
+        except:
+            pass
+
+    page.on("response", resp_listener)
 
     try:
-        # Step 1: Navigate to event page and wait for embed response
-        log.info(f"URL {url_num}) Loading event page: {url}")
-        async with page.expect_response(sift_xhr, timeout=8000) as response_info:
-            resp = await page.goto(
-                url,
-                wait_until="domcontentloaded",
-                timeout=10000,
-            )
 
-            if not resp or resp.status != 200:
-                log.warning(f"URL {url_num}) Status Code: {resp.status if resp else 'None'}")
-                return nones
+        resp = await page.goto(
+            url,
+            wait_until="domcontentloaded",
+            timeout=10000,
+        )
 
-        embed_response = await response_info.value
-        embed_url = embed_response.url
-        log.info(f"URL {url_num}) Found embed URL: {embed_url}")
+        if not resp or resp.status != 200:
+            log.warning(f"URL {url_num}) Bad response")
 
-        # Step 2: Find the frame that contains this embed (if any)
-        embed_frame = None
-        await asyncio.sleep(1)  # Give time for iframe to load
+        await page.wait_for_timeout(3000)
+
+        # -----------------------------
+        # iframe detection
+        # -----------------------------
         for frame in page.frames:
+
+            furl = frame.url
+
+            if "hmembeds" in furl or "embed" in furl:
+                embed_url = furl
+
+        # -----------------------------
+        # interaction trigger
+        # -----------------------------
+        for _ in range(3):
+
             try:
-                if embed_url in frame.url:
-                    embed_frame = frame
-                    log.info(f"URL {url_num}) Found embed frame")
-                    break
+                await page.mouse.click(500, 400)
+                await page.wait_for_timeout(1200)
             except:
-                continue
+                pass
 
-        # If no frame found, maybe the page itself is the embed (redirect)
-        if not embed_frame and embed_url in page.url:
-            embed_frame = page.main_frame
-            log.info(f"URL {url_num}) Main page is embed")
+        # -----------------------------
+        # wait for network stream
+        # -----------------------------
+        try:
 
-        # Step 3: Capture m3u8 with interaction
-        m3u8_url = await capture_m3u8(page, embed_frame, url_num, timeout=30)
+            await asyncio.wait_for(got_stream.wait(), timeout=12)
 
-        if m3u8_url:
-            return m3u8_url, embed_url
+        except asyncio.TimeoutError:
+
+            log.warning(f"URL {url_num}) Network sniff timeout")
+
+        # -----------------------------
+        # iframe deep sniff
+        # -----------------------------
+        if not captured:
+
+            for frame in page.frames:
+
+                try:
+
+                    html = await frame.content()
+
+                    if ".m3u8" in html:
+
+                        import re
+
+                        match = re.search(
+                            r"https?://[^\"']+\.m3u8[^\"']*",
+                            html,
+                        )
+
+                        if match:
+                            captured.append(match.group(0))
+                            break
+
+                except:
+                    pass
+
+        # -----------------------------
+        # DOM fallback
+        # -----------------------------
+        if not captured:
+
+            try:
+
+                html = await page.content()
+
+                import re
+
+                match = re.search(
+                    r"https?://[^\"']+\.m3u8[^\"']*",
+                    html,
+                )
+
+                if match:
+                    captured.append(match.group(0))
+
+            except:
+                pass
+
+        # -----------------------------
+        # RESULT
+        # -----------------------------
+        if captured:
+
+            log.info(f"URL {url_num}) M3U8 captured")
+
+            return captured[0], embed_url or url
+
+        log.warning(f"URL {url_num}) No stream found")
+
         return nones
 
     except Exception as e:
-        log.warning(f"URL {url_num}) Error: {e}")
+
+        log.warning(f"URL {url_num}) {e}")
+
         return nones
+
+    finally:
+
+        page.remove_listener("request", req_listener)
+        page.remove_listener("response", resp_listener)
 
 
 # ---------------------------------------------------------
