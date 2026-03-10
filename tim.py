@@ -2,11 +2,12 @@ import asyncio
 from functools import partial
 from urllib.parse import urljoin, quote
 import os
+import re
 
 from playwright.async_api import Browser, Page, Response
 from selectolax.parser import HTMLParser
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
@@ -51,7 +52,6 @@ SPORT_GENRES = {
 
 def sift_xhr(resp: Response) -> bool:
     resp_url = resp.url
-
     return "hmembeds.one/embed" in resp_url and resp.status == 200
 
 
@@ -77,58 +77,52 @@ async def process_event(
 
     try:
         try:
-            async with page.expect_response(sift_xhr, timeout=3_000) as strm_resp:
+            async with page.expect_response(sift_xhr, timeout=5_000) as strm_resp:
                 resp = await page.goto(
                     url,
                     wait_until="domcontentloaded",
-                    timeout=6_000,
+                    timeout=10_000,
                 )
 
                 if not resp or resp.status != 200:
                     log.warning(
                         f"URL {url_num}) Status Code: {resp.status if resp else 'None'}"
                     )
-
                     return nones
 
                 response = await strm_resp.value
-
                 embed_url = response.url
+                log.info(f"URL {url_num}) Found embed URL: {embed_url}")
+                
         except TimeoutError:
             log.warning(f"URL {url_num}) No available stream links.")
-
             return nones
 
         wait_task = asyncio.create_task(got_one.wait())
 
         try:
-            await asyncio.wait_for(wait_task, timeout=10)  # Increased timeout to 10 seconds
+            await asyncio.wait_for(wait_task, timeout=15)  # Increased timeout
+            log.info(f"URL {url_num}) M3U8 capture triggered")
         except asyncio.TimeoutError:
             log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
-
             return nones
-
         finally:
             if not wait_task.done():
                 wait_task.cancel()
-
                 try:
                     await wait_task
                 except asyncio.CancelledError:
                     pass
 
         if captured:
-            log.info(f"URL {url_num}) Captured M3U8")
-
+            log.info(f"URL {url_num}) Captured M3U8: {captured[0]}")
             return captured[0], embed_url
 
         log.warning(f"URL {url_num}) No M3U8 captured after waiting.")
-
         return nones
 
     except Exception as e:
-        log.warning(f"URL {url_num}) {e}")
-
+        log.warning(f"URL {url_num}) Error: {e}")
         return nones
 
     finally:
@@ -138,53 +132,154 @@ async def process_event(
 async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
     events = []
 
+    log.info(f"Fetching events from {BASE_URL}")
+    
     if not (html_data := await network.request(BASE_URL, log=log)):
+        log.error("Failed to fetch HTML data")
         return events
 
     soup = HTMLParser(html_data.content)
+    
+    # Try multiple selectors to find event cards
+    card_selectors = [
+        "#eventsSection .card",
+        ".card",
+        "[class*='event']",
+        ".event-item",
+        "article",
+        ".match-card",
+        ".game-card",
+    ]
+    
+    cards = []
+    for selector in card_selectors:
+        cards = soup.css(selector)
+        if cards:
+            log.info(f"Found {len(cards)} cards with selector: {selector}")
+            break
+    
+    if not cards:
+        log.error("No cards found on the page")
+        # Debug: Print page structure
+        body = soup.css_first("body")
+        if body:
+            log.debug(f"Page body classes: {body.attributes.get('class', 'None')}")
+        return events
 
-    # Get all events (remove time filtering to get all events)
-    for card in soup.css("#eventsSection .card"):
-        card_attrs = card.attributes
+    for card in cards:
+        try:
+            card_attrs = card.attributes
+            
+            # Try to get sport/genre from data attributes or text
+            sport = None
+            
+            # Method 1: data-genre attribute
+            if sport_id := card_attrs.get("data-genre"):
+                try:
+                    sport = SPORT_GENRES.get(int(sport_id))
+                except (ValueError, TypeError):
+                    pass
+            
+            # Method 2: Look for sport in card text
+            if not sport:
+                card_text = card.text()
+                for genre_name in SPORT_GENRES.values():
+                    if genre_name.lower() in card_text.lower():
+                        sport = genre_name
+                        break
+            
+            # Method 3: Default to "Other" if no sport found
+            if not sport:
+                sport = "Other"
+            
+            # Get event name
+            event_name = None
+            
+            # Try data-search attribute
+            event_name = card_attrs.get("data-search")
+            
+            # Try title attribute
+            if not event_name:
+                event_name = card_attrs.get("title")
+            
+            # Try to find title in card
+            if not event_name:
+                title_selectors = ["h3", "h4", "h5", ".title", ".event-title", ".match-title"]
+                for selector in title_selectors:
+                    if elem := card.css_first(selector):
+                        event_name = elem.text(strip=True)
+                        if event_name:
+                            break
+            
+            if not event_name:
+                continue
 
-        if not (sport_id := card_attrs.get("data-genre")):
-            continue
+            # Check if already cached
+            if f"[{sport}] {event_name} ({TAG})" in cached_keys:
+                continue
 
-        elif not (sport := SPORT_GENRES.get(int(sport_id))):
-            continue
+            # Skip if event has countdown (not started)
+            if badge := card.css_first(".badge"):
+                if "data-countdown" in badge.attributes:
+                    continue
+                # Also check if badge text indicates future event
+                badge_text = badge.text(strip=True).lower()
+                if any(word in badge_text for word in ['start', 'soon', 'later', 'est']):
+                    continue
 
-        if not (event_name := card_attrs.get("data-search")):
-            continue
+            # Find watch button/link
+            link = None
+            link_selectors = [
+                "a.btn-watch",
+                "a[href*='event']",
+                "a[href*='stream']",
+                "a[href*='watch']",
+                "a.button",
+                ".watch-btn a",
+                "a"
+            ]
+            
+            for selector in link_selectors:
+                if watch_btn := card.css_first(selector):
+                    if href := watch_btn.attributes.get("href"):
+                        link = urljoin(BASE_URL, href)
+                        break
+            
+            if not link:
+                continue
 
-        if f"[{sport}] {event_name} ({TAG})" in cached_keys:
-            continue
+            # Get logo/image
+            logo = None
+            img_selectors = [
+                ".card-thumb img",
+                "img",
+                ".event-image img",
+                ".thumb img"
+            ]
+            
+            for selector in img_selectors:
+                if img := card.css_first(selector):
+                    if src := img.attributes.get("src") or img.attributes.get("data-src"):
+                        if src.startswith("http"):
+                            logo = src
+                        else:
+                            logo = urljoin(BASE_URL, src)
+                        break
 
-        if not (badge_elem := card.css_first(".badge")):
-            continue
-
-        # Skip events that have countdown (not started yet)
-        if "data-countdown" in badge_elem.attributes:
-            continue
-
-        if (not (watch_btn := card.css_first("a.btn-watch"))) or (
-            not (href := watch_btn.attributes.get("href"))
-        ):
-            continue
-
-        logo = None
-
-        if card_thumb := card.css_first(".card-thumb img"):
-            logo = card_thumb.attributes.get("src")
-
-        events.append(
-            {
+            events.append({
                 "sport": sport,
                 "event": event_name,
-                "link": urljoin(BASE_URL, href),
+                "link": link,
                 "logo": logo,
-            }
-        )
+            })
+            
+            log.info(f"Found event: {sport} - {event_name}")
 
+        except Exception as e:
+            log.debug(f"Error processing card: {e}")
+            continue
+
+    log.info(f"Total events found: {len(events)}")
     return events
 
 
@@ -267,26 +362,33 @@ def write_output_files():
         log.warning("No URLs to write to output files")
         return
     
+    # Filter entries with valid URLs
+    valid_entries = [(k, v) for k, v in urls.items() if v.get("url")]
+    
+    if not valid_entries:
+        log.warning("No valid streams found to write to output files")
+        return
+    
     # Sort entries by key for consistent ordering
-    sorted_entries = sorted(urls.items(), key=lambda x: x[0])
+    sorted_entries = sorted(valid_entries, key=lambda x: x[0])
     
     # Generate VLC output
     vlc_content = generate_vlc_output(sorted_entries)
     with open(VLC_OUTPUT, "w", encoding="utf-8") as f:
         f.write(vlc_content)
-    log.info(f"Written {len([e for e in urls.values() if e.get('url')])} streams to {VLC_OUTPUT}")
+    log.info(f"Written {len(sorted_entries)} streams to {VLC_OUTPUT}")
     
     # Generate Tivimate output
     tivimate_content = generate_tivimate_output(sorted_entries)
     with open(TIVIMATE_OUTPUT, "w", encoding="utf-8") as f:
         f.write(tivimate_content)
-    log.info(f"Written {len([e for e in urls.values() if e.get('url')])} streams to {TIVIMATE_OUTPUT}")
+    log.info(f"Written {len(sorted_entries)} streams to {TIVIMATE_OUTPUT}")
 
 
 async def scrape(browser: Browser) -> None:
     cached_urls = CACHE_FILE.load()
 
-    valid_urls = {k: v for k, v in cached_urls.items() if v["url"]}
+    valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
 
     valid_count = cached_count = len(valid_urls)
 
@@ -301,9 +403,11 @@ async def scrape(browser: Browser) -> None:
 
         now = Time.clean(Time.now())
 
-        async with network.event_context(browser, stealth=False) as context:
+        async with network.event_context(browser, stealth=True) as context:
             for i, ev in enumerate(events, start=1):
                 async with network.event_page(context) as page:
+                    log.info(f"URL {i}) Processing: {ev['event']}")
+                    
                     handler = partial(
                         process_event,
                         url=(link := ev["link"]),
@@ -315,6 +419,7 @@ async def scrape(browser: Browser) -> None:
                         handler,
                         url_num=i,
                         semaphore=network.PW_S,
+                        timeout=30,  # Overall timeout of 30 seconds
                         log=log,
                     )
 
@@ -349,7 +454,11 @@ async def scrape(browser: Browser) -> None:
         log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
 
     else:
-        log.info("No new events found")
+        log.warning("No new events found - check if website structure has changed")
+        
+        # Write any cached URLs to output files even if no new events
+        if urls:
+            log.info(f"Writing {len(urls)} cached streams to output files")
 
     CACHE_FILE.write(cached_urls)
     
