@@ -108,7 +108,7 @@ async def capture_m3u8(
     page: Page,
     embed_frame: Frame | None,
     url_num: int,
-    timeout: int = 25,
+    timeout: int = 30,
 ) -> str | None:
     """
     Listen for m3u8 requests/responses and interact with the player.
@@ -224,7 +224,7 @@ async def process_event(
     page: Page,
 ) -> tuple[str | None, str | None]:
 
-    nones = None, None
+    nones = (None, None)
 
     try:
         # Step 1: Navigate to event page and wait for embed response
@@ -262,7 +262,7 @@ async def process_event(
             log.info(f"URL {url_num}) Main page is embed")
 
         # Step 3: Capture m3u8 with interaction
-        m3u8_url = await capture_m3u8(page, embed_frame, url_num, timeout=25)
+        m3u8_url = await capture_m3u8(page, embed_frame, url_num, timeout=30)
 
         if m3u8_url:
             return m3u8_url, embed_url
@@ -361,14 +361,19 @@ async def scrape(browser: Browser) -> None:
                         page=page,
                     )
 
-                    # Increased overall timeout to 40 seconds
-                    url, iframe = await network.safe_process(
+                    # Get result from safe_process; it may be None on timeout/error
+                    result = await network.safe_process(
                         handler,
                         url_num=i,
                         semaphore=network.PW_S,
-                        timeout=40,
+                        timeout=60,  # Increased to 60 seconds
                         log=log,
                     )
+
+                    if result is None:
+                        url, iframe = None, None
+                    else:
+                        url, iframe = result
 
                     sport, event, logo = (
                         ev["sport"],
@@ -428,7 +433,7 @@ async def main():
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
-                "--autoplay-policy=no-user-gesture-required",  # Allow autoplay
+                "--autoplay-policy=no-user-gesture-required",
             ],
         )
 
