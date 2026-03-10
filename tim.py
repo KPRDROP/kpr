@@ -1,9 +1,10 @@
 import asyncio
 import os
+import re
 from functools import partial
 from urllib.parse import urljoin, quote
 
-from playwright.async_api import Browser, Page, Response
+from playwright.async_api import Browser, Page, Response, Frame
 from selectolax.parser import HTMLParser
 
 from utils import Cache, Time, get_logger, leagues, network
@@ -100,6 +101,120 @@ def sift_xhr(resp: Response) -> bool:
 
 
 # ---------------------------------------------------------
+# ROBUST M3U8 CAPTURE WITH INTERACTION
+# ---------------------------------------------------------
+
+async def capture_m3u8(
+    page: Page,
+    embed_frame: Frame | None,
+    url_num: int,
+    timeout: int = 25,
+) -> str | None:
+    """
+    Listen for m3u8 requests/responses and interact with the player.
+    """
+    captured = []
+    got_one = asyncio.Event()
+
+    def handle_request(request):
+        req_url = request.url.lower()
+        if ".m3u8" in req_url and not any(
+            x in req_url for x in ["hmembeds.one", "analytics", "tracking"]
+        ):
+            captured.append(request.url)
+            got_one.set()
+            log.info(f"URL {url_num}) M3U8 request: {request.url}")
+
+    def handle_response(response):
+        resp_url = response.url.lower()
+        # Check URL
+        if ".m3u8" in resp_url and not any(
+            x in resp_url for x in ["hmembeds.one", "analytics", "tracking"]
+        ):
+            captured.append(response.url)
+            got_one.set()
+            log.info(f"URL {url_num}) M3U8 response: {response.url}")
+        # Check content-type header
+        try:
+            content_type = response.headers.get("content-type", "").lower()
+            if "mpegurl" in content_type or "application/vnd.apple.mpegurl" in content_type:
+                if not any(x in resp_url for x in ["hmembeds.one", "analytics", "tracking"]):
+                    captured.append(response.url)
+                    got_one.set()
+                    log.info(f"URL {url_num}) M3U8 by content-type: {response.url}")
+        except:
+            pass
+
+    page.on("request", handle_request)
+    page.on("response", handle_response)
+
+    try:
+        # Wait a bit for the player to initialize
+        await asyncio.sleep(2)
+
+        # If we have an embed frame, try to click the play button inside it
+        if embed_frame:
+            try:
+                # Try various play button selectors
+                selectors = [
+                    "button",
+                    ".play-button",
+                    ".vjs-big-play-button",
+                    ".jw-icon-play",
+                    ".mejs-playpause-button",
+                    "[aria-label='Play']",
+                    ".fp-playbtn",
+                    "video",
+                ]
+                for selector in selectors:
+                    try:
+                        btn = await embed_frame.wait_for_selector(selector, timeout=2000)
+                        if btn:
+                            await btn.click()
+                            log.info(f"URL {url_num}) Clicked play button: {selector}")
+                            await asyncio.sleep(1)
+                            break
+                    except:
+                        continue
+
+                # If no button found, click the center of the frame
+                await embed_frame.mouse.click(640, 360)
+                log.info(f"URL {url_num}) Clicked center of embed frame")
+            except Exception as e:
+                log.debug(f"URL {url_num}) Interaction error: {e}")
+
+        # Also try to execute JavaScript to play any video elements
+        await page.evaluate("""
+            () => {
+                const videos = document.querySelectorAll('video');
+                videos.forEach(v => { try { v.play(); } catch(e) {} });
+                const frames = document.querySelectorAll('iframe');
+                frames.forEach(f => {
+                    try {
+                        const doc = f.contentDocument || f.contentWindow.document;
+                        const vids = doc.querySelectorAll('video');
+                        vids.forEach(v => { try { v.play(); } catch(e) {} });
+                    } catch(e) {}
+                });
+            }
+        """)
+        log.info(f"URL {url_num}) Executed JavaScript play attempts")
+
+        # Wait for m3u8 capture
+        try:
+            await asyncio.wait_for(got_one.wait(), timeout=timeout)
+        except asyncio.TimeoutError:
+            log.warning(f"URL {url_num}) Timed out waiting for M3U8 after {timeout}s")
+            return None
+
+        return captured[0] if captured else None
+
+    finally:
+        page.remove_listener("request", handle_request)
+        page.remove_listener("response", handle_response)
+
+
+# ---------------------------------------------------------
 # PROCESS EVENT
 # ---------------------------------------------------------
 
@@ -111,84 +226,51 @@ async def process_event(
 
     nones = None, None
 
-    captured: list[str] = []
-
-    got_one = asyncio.Event()
-
-    handler = partial(
-        network.capture_req,
-        captured=captured,
-        got_one=got_one,
-    )
-
-    page.on("request", handler)
-
     try:
+        # Step 1: Navigate to event page and wait for embed response
+        log.info(f"URL {url_num}) Loading event page: {url}")
+        async with page.expect_response(sift_xhr, timeout=8000) as response_info:
+            resp = await page.goto(
+                url,
+                wait_until="domcontentloaded",
+                timeout=10000,
+            )
 
-        try:
+            if not resp or resp.status != 200:
+                log.warning(f"URL {url_num}) Status Code: {resp.status if resp else 'None'}")
+                return nones
 
-            async with page.expect_response(sift_xhr, timeout=3000) as strm_resp:
+        embed_response = await response_info.value
+        embed_url = embed_response.url
+        log.info(f"URL {url_num}) Found embed URL: {embed_url}")
 
-                resp = await page.goto(
-                    url,
-                    wait_until="domcontentloaded",
-                    timeout=6000,
-                )
+        # Step 2: Find the frame that contains this embed (if any)
+        embed_frame = None
+        await asyncio.sleep(1)  # Give time for iframe to load
+        for frame in page.frames:
+            try:
+                if embed_url in frame.url:
+                    embed_frame = frame
+                    log.info(f"URL {url_num}) Found embed frame")
+                    break
+            except:
+                continue
 
-                if not resp or resp.status != 200:
-                    log.warning(
-                        f"URL {url_num}) Status Code: {resp.status if resp else 'None'}"
-                    )
-                    return nones
+        # If no frame found, maybe the page itself is the embed (redirect)
+        if not embed_frame and embed_url in page.url:
+            embed_frame = page.main_frame
+            log.info(f"URL {url_num}) Main page is embed")
 
-                response = await strm_resp.value
-                embed_url = response.url
+        # Step 3: Capture m3u8 with interaction
+        m3u8_url = await capture_m3u8(page, embed_frame, url_num, timeout=25)
 
-        except TimeoutError:
-
-            log.warning(f"URL {url_num}) No available stream links.")
-            return nones
-
-        wait_task = asyncio.create_task(got_one.wait())
-
-        try:
-
-            await asyncio.wait_for(wait_task, timeout=8)
-
-        except asyncio.TimeoutError:
-
-            log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
-            return nones
-
-        finally:
-
-            if not wait_task.done():
-                wait_task.cancel()
-
-                try:
-                    await wait_task
-                except asyncio.CancelledError:
-                    pass
-
-        if captured:
-
-            log.info(f"URL {url_num}) Captured M3U8")
-
-            return captured[0], embed_url
-
-        log.warning(f"URL {url_num}) No M3U8 captured after waiting.")
-
+        if m3u8_url:
+            return m3u8_url, embed_url
         return nones
 
     except Exception as e:
-
-        log.warning(f"URL {url_num}) {e}")
-
+        log.warning(f"URL {url_num}) Error: {e}")
         return nones
-
-    finally:
-
-        page.remove_listener("request", handler)
 
 
 # ---------------------------------------------------------
@@ -250,7 +332,7 @@ async def scrape(browser: Browser) -> None:
 
     cached_urls = CACHE_FILE.load()
 
-    valid_urls = {k: v for k, v in cached_urls.items() if v["url"]}
+    valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
 
     valid_count = cached_count = len(valid_urls)
 
@@ -279,10 +361,12 @@ async def scrape(browser: Browser) -> None:
                         page=page,
                     )
 
+                    # Increased overall timeout to 40 seconds
                     url, iframe = await network.safe_process(
                         handler,
                         url_num=i,
                         semaphore=network.PW_S,
+                        timeout=40,
                         log=log,
                     )
 
@@ -308,20 +392,22 @@ async def scrape(browser: Browser) -> None:
                     cached_urls[key] = entry
 
                     if url:
-
                         valid_count += 1
                         urls[key] = entry
+                        log.info(f"URL {i}) Stream captured: {url}")
+                    else:
+                        log.warning(f"URL {i}) No stream found")
 
         log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
 
     else:
-
         log.info("No new events found")
 
     CACHE_FILE.write(cached_urls)
 
     # generate playlists
     generate_playlists()
+
 
 # ---------------------------------------------------------
 # MAIN
@@ -342,6 +428,7 @@ async def main():
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
+                "--autoplay-policy=no-user-gesture-required",  # Allow autoplay
             ],
         )
 
