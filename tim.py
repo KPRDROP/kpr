@@ -1,33 +1,32 @@
 import asyncio
-import os
 from functools import partial
-from typing import Any
 from urllib.parse import urljoin, quote
+import os
 
-from playwright.async_api import async_playwright, Browser
+from playwright.async_api import Browser, Page, Response
+from selectolax.parser import HTMLParser
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
+urls: dict[str, dict[str, str | float]] = {}
+
 TAG = "TIMSTRMS"
 
-CACHE_FILE = Cache(TAG, exp=10800)
-API_FILE = Cache(f"{TAG}-api", exp=19800)
+CACHE_FILE = Cache(TAG, exp=10_800)
 
-API_URL = os.environ.get("TIM_API_URL")
+# Base URL from environment variable
 BASE_URL = os.environ.get("TIM_BASE_URL")
-
-if not API_URL:
-    raise RuntimeError("Missing TIM_API_URL secret")
-
 if not BASE_URL:
     raise RuntimeError("Missing TIM_BASE_URL secret")
 
-urls: dict[str, dict[str, str | float]] = {}
+# Output files
+VLC_OUTPUT = "tim_vlc.m3u8"
+TIVIMATE_OUTPUT = "tim_tivimate.m3u8"
 
-USER_AGENT = network.UA
-UA_ENC = quote(USER_AGENT)
+# User agent for Tivimate (encoded)
+TIVIMATE_UA = quote("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36")
 
 SPORT_GENRES = {
     1: "Soccer",
@@ -37,163 +36,255 @@ SPORT_GENRES = {
     5: "Boxing",
     6: "Wrestling",
     7: "Basketball",
+    8: "American Football",
     9: "Baseball",
     10: "Tennis",
     11: "Hockey",
+    12: "Darts",
+    13: "Cricket",
+    14: "Cycling",
+    15: "Rugby",
+    16: "Live Shows",
+    17: "Other",
 }
 
 
-# --------------------------------------------------
-# PLAYLISTS
-# --------------------------------------------------
+def sift_xhr(resp: Response) -> bool:
+    resp_url = resp.url
 
-def write_playlists(data):
-
-    log.info("Writing playlists")
-
-    vlc = ["#EXTM3U"]
-    tiv = ["#EXTM3U"]
-
-    for name, e in data.items():
-
-        if not e.get("url"):
-            continue
-
-        base = e["base"]
-
-        vlc.extend([
-            f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-logo="{e["logo"]}" group-title="Live",{name}',
-            f"#EXTVLCOPT:http-referrer={base}",
-            f"#EXTVLCOPT:http-origin={base}",
-            f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
-            e["url"]
-        ])
-
-        tiv.extend([
-            f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-logo="{e["logo"]}" group-title="Live",{name}',
-            f'{e["url"]}|referer={base}|origin={base}|user-agent={UA_ENC}'
-        ])
-
-    with open("tim_vlc.m3u8", "w", encoding="utf-8") as f:
-        f.write("\n".join(vlc))
-
-    with open("tim_tivimate.m3u8", "w", encoding="utf-8") as f:
-        f.write("\n".join(tiv))
-
-    log.info("Playlists written successfully")
+    return "hmembeds.one/embed" in resp_url and resp.status == 200
 
 
-# --------------------------------------------------
-# EVENTS
-# --------------------------------------------------
+async def process_event(
+    url: str,
+    url_num: int,
+    page: Page,
+) -> tuple[str | None, str | None]:
 
-async def get_events(cached_keys):
+    nones = None, None
 
-    now = Time.clean(Time.now())
+    captured: list[str] = []
 
-    if not (api_data := API_FILE.load(per_entry=False, index=-1)):
+    got_one = asyncio.Event()
 
-        log.info("Refreshing API cache")
+    handler = partial(
+        network.capture_req,
+        captured=captured,
+        got_one=got_one,
+    )
 
-        api_data = [{"timestamp": now.timestamp()}]
+    page.on("request", handler)
 
-        if r := await network.request(API_URL, log=log):
-            api_data = r.json()
-            api_data[-1]["timestamp"] = now.timestamp()
+    try:
+        try:
+            async with page.expect_response(sift_xhr, timeout=3_000) as strm_resp:
+                resp = await page.goto(
+                    url,
+                    wait_until="domcontentloaded",
+                    timeout=6_000,
+                )
 
-        API_FILE.write(api_data)
+                if not resp or resp.status != 200:
+                    log.warning(
+                        f"URL {url_num}) Status Code: {resp.status if resp else 'None'}"
+                    )
 
+                    return nones
+
+                response = await strm_resp.value
+
+                embed_url = response.url
+        except TimeoutError:
+            log.warning(f"URL {url_num}) No available stream links.")
+
+            return nones
+
+        wait_task = asyncio.create_task(got_one.wait())
+
+        try:
+            await asyncio.wait_for(wait_task, timeout=10)  # Increased timeout to 10 seconds
+        except asyncio.TimeoutError:
+            log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
+
+            return nones
+
+        finally:
+            if not wait_task.done():
+                wait_task.cancel()
+
+                try:
+                    await wait_task
+                except asyncio.CancelledError:
+                    pass
+
+        if captured:
+            log.info(f"URL {url_num}) Captured M3U8")
+
+            return captured[0], embed_url
+
+        log.warning(f"URL {url_num}) No M3U8 captured after waiting.")
+
+        return nones
+
+    except Exception as e:
+        log.warning(f"URL {url_num}) {e}")
+
+        return nones
+
+    finally:
+        page.remove_listener("request", handler)
+
+
+async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
     events = []
 
-    for info in api_data:
+    if not (html_data := await network.request(BASE_URL, log=log)):
+        return events
 
-        if info.get("category") != "Events":
+    soup = HTMLParser(html_data.content)
+
+    # Get all events (remove time filtering to get all events)
+    for card in soup.css("#eventsSection .card"):
+        card_attrs = card.attributes
+
+        if not (sport_id := card_attrs.get("data-genre")):
             continue
 
-        for ev in info["events"]:
+        elif not (sport := SPORT_GENRES.get(int(sport_id))):
+            continue
 
-            genre = ev["genre"]
+        if not (event_name := card_attrs.get("data-search")):
+            continue
 
-            if genre not in SPORT_GENRES:
-                continue
+        if f"[{sport}] {event_name} ({TAG})" in cached_keys:
+            continue
 
-            name = ev["name"]
-            logo = ev.get("logo")
-            url_id = ev["URL"]
+        if not (badge_elem := card.css_first(".badge")):
+            continue
 
-            streams = ev.get("streams")
+        # Skip events that have countdown (not started yet)
+        if "data-countdown" in badge_elem.attributes:
+            continue
 
-            if not streams:
-                continue
+        if (not (watch_btn := card.css_first("a.btn-watch"))) or (
+            not (href := watch_btn.attributes.get("href"))
+        ):
+            continue
 
-            embed = streams[0].get("url")
+        logo = None
 
-            sport = SPORT_GENRES[genre]
+        if card_thumb := card.css_first(".card-thumb img"):
+            logo = card_thumb.attributes.get("src")
 
-            key = f"[{sport}] {name} ({TAG})"
-
-            if key in cached_keys:
-                continue
-
-            events.append({
+        events.append(
+            {
                 "sport": sport,
-                "event": name,
-                "link": urljoin(BASE_URL, f"watch?id={url_id}"),
-                "ref": embed,
+                "event": event_name,
+                "link": urljoin(BASE_URL, href),
                 "logo": logo,
-                "timestamp": now.timestamp()
-            })
+            }
+        )
 
     return events
 
 
-# --------------------------------------------------
-# PLAYER TRIGGER
-# --------------------------------------------------
+# ---------------------------------------------------------
+# OUTPUT FILE GENERATORS
+# ---------------------------------------------------------
 
-async def trigger_player(page):
+def generate_vlc_output(entries: list[tuple], channel_number: int = 1) -> str:
+    """
+    Generate VLC format M3U8 with #EXTVLCOPT headers
+    """
+    output = ["#EXTM3U"]
+    
+    for key, entry in entries:
+        if not entry.get("url"):
+            continue
+            
+        # Format: [Sport] Event Name (TAG)
+        display_name = key
+        
+        # Get tvg_id and logo
+        tvg_id = entry.get("id", "Live.Event.us")
+        logo = entry.get("logo", "")
+        base_url = entry.get("base", "")
+        
+        # Add channel number (incrementing)
+        output.append(f'#EXTINF:-1 tvg-chno="{channel_number}" tvg-id="{tvg_id}" tvg-name="{display_name}" tvg-logo="{logo}" group-title="Live Events",{display_name}')
+        
+        # Add VLC options
+        output.append(f'#EXTVLCOPT:http-referrer={base_url}')
+        output.append(f'#EXTVLCOPT:http-origin={base_url}')
+        output.append(f'#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0')
+        
+        # Add stream URL
+        output.append(entry["url"])
+        output.append("")  # Empty line for readability
+        
+        channel_number += 1
+    
+    return "\n".join(output)
 
-    await page.wait_for_timeout(8000)
 
-    # click main page
-    for _ in range(3):
-        try:
-            await page.mouse.click(640, 360)
-            await asyncio.sleep(1)
-        except:
-            pass
+def generate_tivimate_output(entries: list[tuple], channel_number: int = 1) -> str:
+    """
+    Generate Tivimate format M3U8 with pipe-separated headers
+    """
+    output = ["#EXTM3U"]
+    
+    for key, entry in entries:
+        if not entry.get("url"):
+            continue
+            
+        # Format: [Sport] Event Name (TAG)
+        display_name = key
+        
+        # Get tvg_id and logo
+        tvg_id = entry.get("id", "Live.Event.us")
+        logo = entry.get("logo", "")
+        base_url = entry.get("base", "")
+        
+        # Add channel number (incrementing)
+        output.append(f'#EXTINF:-1 tvg-chno="{channel_number}" tvg-id="{tvg_id}" tvg-name="{display_name}" tvg-logo="{logo}" group-title="Live Events",{display_name}')
+        
+        # Create Tivimate URL with pipe-separated headers
+        # Format: stream_url|referer=base_url|origin=base_url|user-agent=encoded_ua
+        tivimate_url = f'{entry["url"]}|referer={base_url}|origin={base_url}|user-agent={TIVIMATE_UA}'
+        output.append(tivimate_url)
+        output.append("")  # Empty line for readability
+        
+        channel_number += 1
+    
+    return "\n".join(output)
 
-    # trigger iframe player
-    for frame in page.frames:
 
-        if "embed" in frame.url or "player" in frame.url:
+def write_output_files():
+    """
+    Write both VLC and Tivimate output files
+    """
+    if not urls:
+        log.warning("No URLs to write to output files")
+        return
+    
+    # Sort entries by key for consistent ordering
+    sorted_entries = sorted(urls.items(), key=lambda x: x[0])
+    
+    # Generate VLC output
+    vlc_content = generate_vlc_output(sorted_entries)
+    with open(VLC_OUTPUT, "w", encoding="utf-8") as f:
+        f.write(vlc_content)
+    log.info(f"Written {len([e for e in urls.values() if e.get('url')])} streams to {VLC_OUTPUT}")
+    
+    # Generate Tivimate output
+    tivimate_content = generate_tivimate_output(sorted_entries)
+    with open(TIVIMATE_OUTPUT, "w", encoding="utf-8") as f:
+        f.write(tivimate_content)
+    log.info(f"Written {len([e for e in urls.values() if e.get('url')])} streams to {TIVIMATE_OUTPUT}")
 
-            try:
-                await frame.click("body", timeout=3000)
-                await asyncio.sleep(1)
 
-                await frame.dblclick("body")
-                await asyncio.sleep(1)
-
-                await frame.press("body", "Space")
-
-            except:
-                pass
-
-    # scroll to activate focus
-    try:
-        await page.mouse.wheel(0, 800)
-    except:
-        pass
-
-
-# --------------------------------------------------
-# SCRAPER
-# --------------------------------------------------
-
-async def scrape(browser: Browser):
-
-    cached_urls = CACHE_FILE.load() or {}
+async def scrape(browser: Browser) -> None:
+    cached_urls = CACHE_FILE.load()
 
     valid_urls = {k: v for k, v in cached_urls.items() if v["url"]}
 
@@ -202,45 +293,35 @@ async def scrape(browser: Browser):
     urls.update(valid_urls)
 
     log.info(f"Loaded {cached_count} event(s) from cache")
+
     log.info(f'Scraping from "{BASE_URL}"')
 
     if events := await get_events(cached_urls.keys()):
-
         log.info(f"Processing {len(events)} new URL(s)")
 
-        async with network.event_context(browser, stealth=True) as context:
+        now = Time.clean(Time.now())
 
+        async with network.event_context(browser, stealth=False) as context:
             for i, ev in enumerate(events, start=1):
-
                 async with network.event_page(context) as page:
-
-                    await page.goto(ev["ref"], wait_until="domcontentloaded")
-
-                    await trigger_player(page)
-
                     handler = partial(
-                        network.process_event,
-                        url=ev["ref"],
+                        process_event,
+                        url=(link := ev["link"]),
                         url_num=i,
                         page=page,
-                        timeout=35,
-                        log=log
                     )
 
-                    url = await network.safe_process(
+                    url, iframe = await network.safe_process(
                         handler,
                         url_num=i,
                         semaphore=network.PW_S,
-                        timeout=50,
-                        log=log
+                        log=log,
                     )
 
-                    sport, event, logo, ref, ts = (
+                    sport, event, logo = (
                         ev["sport"],
                         ev["event"],
                         ev["logo"],
-                        ev["ref"],
-                        ev["timestamp"]
                     )
 
                     key = f"[{sport}] {event} ({TAG})"
@@ -250,10 +331,10 @@ async def scrape(browser: Browser):
                     entry = {
                         "url": url,
                         "logo": logo or pic,
-                        "base": ref,
-                        "timestamp": ts,
+                        "base": iframe,
+                        "timestamp": now.timestamp(),
                         "id": tvg_id or "Live.Event.us",
-                        "link": ev["link"]
+                        "link": link,
                     }
 
                     cached_urls[key] = entry
@@ -261,6 +342,9 @@ async def scrape(browser: Browser):
                     if url:
                         valid_count += 1
                         urls[key] = entry
+                        log.info(f"URL {i}) Stream captured successfully")
+                    else:
+                        log.warning(f"URL {i}) No stream found")
 
         log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
 
@@ -268,27 +352,26 @@ async def scrape(browser: Browser):
         log.info("No new events found")
 
     CACHE_FILE.write(cached_urls)
+    
+    # Write output files after all processing
+    write_output_files()
 
-    write_playlists(cached_urls)
-
-
-# --------------------------------------------------
-# MAIN
-# --------------------------------------------------
 
 async def main():
-
-    log.info("Starting TIM Streams updater")
-
+    from playwright.async_api import async_playwright
+    
     async with async_playwright() as p:
-
-        browser = await p.firefox.launch(
+        browser = await p.chromium.launch(
             headless=True,
-            args=["--no-sandbox"]
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+            ],
         )
-
+        
         await scrape(browser)
-
+        
         await browser.close()
 
 
