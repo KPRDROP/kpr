@@ -7,7 +7,7 @@ import re
 from playwright.async_api import Browser, Page, Response
 from selectolax.parser import HTMLParser
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
@@ -29,25 +29,32 @@ TIVIMATE_OUTPUT = "tim_tivimate.m3u8"
 # User agent for Tivimate (encoded)
 TIVIMATE_UA = quote("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36")
 
-SPORT_GENRES = {
-    1: "Soccer",
-    2: "Motorsport",
-    3: "MMA",
-    4: "Fight",
-    5: "Boxing",
-    6: "Wrestling",
-    7: "Basketball",
-    8: "American Football",
-    9: "Baseball",
-    10: "Tennis",
-    11: "Hockey",
-    12: "Darts",
-    13: "Cricket",
-    14: "Cycling",
-    15: "Rugby",
-    16: "Live Shows",
-    17: "Other",
+# Sport mapping based on common categories
+SPORT_KEYWORDS = {
+    "Soccer": ["soccer", "football", "fútbol", "calcio", "bundesliga", "premier league", "la liga", "serie a"],
+    "Basketball": ["basketball", "nba", "euroleague", "ncaa"],
+    "Hockey": ["hockey", "nhl", "khl"],
+    "Tennis": ["tennis", "atp", "wta", "grand slam"],
+    "Baseball": ["baseball", "mlb"],
+    "American Football": ["nfl", "football", "super bowl", "ncaa football"],
+    "MMA": ["mma", "ufc", "bellator"],
+    "Boxing": ["boxing", "boxe", "fight"],
+    "Motorsport": ["f1", "formula", "motogp", "nascar", "racing"],
+    "Rugby": ["rugby", "super rugby", "six nations"],
+    "Cricket": ["cricket", "ipl", "ashes"],
+    "Darts": ["darts", "pdc"],
+    "Cycling": ["cycling", "tour de france"],
 }
+
+
+def detect_sport(event_name: str) -> str:
+    """Detect sport from event name using keywords"""
+    event_lower = event_name.lower()
+    for sport, keywords in SPORT_KEYWORDS.items():
+        for keyword in keywords:
+            if keyword in event_lower:
+                return sport
+    return "Other"
 
 
 def sift_xhr(resp: Response) -> bool:
@@ -101,7 +108,7 @@ async def process_event(
         wait_task = asyncio.create_task(got_one.wait())
 
         try:
-            await asyncio.wait_for(wait_task, timeout=15)  # Increased timeout
+            await asyncio.wait_for(wait_task, timeout=15)
             log.info(f"URL {url_num}) M3U8 capture triggered")
         except asyncio.TimeoutError:
             log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
@@ -140,131 +147,143 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
 
     soup = HTMLParser(html_data.content)
     
-    # Try multiple selectors to find event cards
+    # Find all event cards - based on actual website structure
+    # The website shows "8 events scheduled" so we need to find those
+    
+    # Look for the events section
+    events_section = None
+    
+    # Try to find section containing "Live & Upcoming Events"
+    for heading in soup.css("h2, h3, h4"):
+        if heading.text() and "Live & Upcoming Events" in heading.text():
+            events_section = heading.parent
+            log.info("Found Live & Upcoming Events section")
+            break
+    
+    if not events_section:
+        # Try alternative: look for any container with event cards
+        events_section = soup
+    
+    # Find event cards - they might be in a grid or list
     card_selectors = [
-        "#eventsSection .card",
-        ".card",
-        "[class*='event']",
-        ".event-item",
-        "article",
+        ".grid > div",
+        ".cards > div",
+        ".event-card",
         ".match-card",
         ".game-card",
+        "main > div > div",
+        ".space-y-4 > div",
+        "div[class*='grid'] > div",
     ]
     
     cards = []
     for selector in card_selectors:
-        cards = soup.css(selector)
+        cards = events_section.css(selector)
         if cards:
             log.info(f"Found {len(cards)} cards with selector: {selector}")
             break
     
+    # If still no cards, try finding by event patterns
     if not cards:
-        log.error("No cards found on the page")
-        # Debug: Print page structure
-        body = soup.css_first("body")
-        if body:
-            log.debug(f"Page body classes: {body.attributes.get('class', 'None')}")
-        return events
+        # Look for elements containing team names vs team names
+        for element in soup.css("div, span, p, h3, h4"):
+            text = element.text(strip=True)
+            if text and " vs " in text or " vs. " in text:
+                # This might be an event title
+                parent = element.parent
+                if parent and parent not in cards:
+                    cards.append(parent)
+        
+        if cards:
+            log.info(f"Found {len(cards)} potential events by 'vs' pattern")
+    
+    # If still no cards, check for the "8 events scheduled" text and try to find those events
+    if not cards:
+        # Look for the specific count text
+        for element in soup.css("div, span, p"):
+            text = element.text(strip=True)
+            if text and "events scheduled" in text:
+                # The parent might contain the events
+                parent = element.parent
+                # Look for event items in the same container
+                event_items = parent.css("div, a")
+                if event_items:
+                    cards = [item for item in event_items if item.attributes.get("href") or item.css("h3, h4, p")]
+                    log.info(f"Found {len(cards)} events near scheduled text")
+                    break
 
+    # Process found cards
     for card in cards:
         try:
-            card_attrs = card.attributes
-            
-            # Try to get sport/genre from data attributes or text
-            sport = None
-            
-            # Method 1: data-genre attribute
-            if sport_id := card_attrs.get("data-genre"):
-                try:
-                    sport = SPORT_GENRES.get(int(sport_id))
-                except (ValueError, TypeError):
-                    pass
-            
-            # Method 2: Look for sport in card text
-            if not sport:
-                card_text = card.text()
-                for genre_name in SPORT_GENRES.values():
-                    if genre_name.lower() in card_text.lower():
-                        sport = genre_name
-                        break
-            
-            # Method 3: Default to "Other" if no sport found
-            if not sport:
-                sport = "Other"
-            
-            # Get event name
+            # Get event name - look for headings or text with vs pattern
             event_name = None
             
-            # Try data-search attribute
-            event_name = card_attrs.get("data-search")
+            # Try to find heading
+            for heading_selector in ["h3", "h4", "h5", ".title", ".event-title", ".font-bold", "p.font-semibold"]:
+                if heading := card.css_first(heading_selector):
+                    event_name = heading.text(strip=True)
+                    if event_name:
+                        break
             
-            # Try title attribute
+            # If no heading, look for any text with vs pattern
             if not event_name:
-                event_name = card_attrs.get("title")
+                for elem in card.css("div, span, p"):
+                    text = elem.text(strip=True)
+                    if text and len(text) > 10 and (" vs " in text or " vs. " in text):
+                        event_name = text
+                        break
             
-            # Try to find title in card
+            # If still no name, use card text
             if not event_name:
-                title_selectors = ["h3", "h4", "h5", ".title", ".event-title", ".match-title"]
-                for selector in title_selectors:
-                    if elem := card.css_first(selector):
-                        event_name = elem.text(strip=True)
-                        if event_name:
+                event_name = card.text(strip=True)
+                if len(event_name) > 50:  # Too long, likely contains other elements
+                    # Try to get first meaningful line
+                    lines = event_name.split('\n')
+                    for line in lines:
+                        if line and len(line) > 10 and (" vs " in line or any(team.isupper() for team in line.split())):
+                            event_name = line.strip()
                             break
             
-            if not event_name:
+            if not event_name or len(event_name) < 10:
                 continue
 
             # Check if already cached
-            if f"[{sport}] {event_name} ({TAG})" in cached_keys:
+            sport = detect_sport(event_name)
+            key = f"[{sport}] {event_name} ({TAG})"
+            if key in cached_keys:
                 continue
 
-            # Skip if event has countdown (not started)
-            if badge := card.css_first(".badge"):
-                if "data-countdown" in badge.attributes:
-                    continue
-                # Also check if badge text indicates future event
-                badge_text = badge.text(strip=True).lower()
-                if any(word in badge_text for word in ['start', 'soon', 'later', 'est']):
-                    continue
-
-            # Find watch button/link
+            # Find link - look for anchor tags
             link = None
-            link_selectors = [
-                "a.btn-watch",
-                "a[href*='event']",
-                "a[href*='stream']",
-                "a[href*='watch']",
-                "a.button",
-                ".watch-btn a",
-                "a"
-            ]
-            
-            for selector in link_selectors:
-                if watch_btn := card.css_first(selector):
-                    if href := watch_btn.attributes.get("href"):
+            if anchor := card.css_first("a[href]"):
+                href = anchor.attributes.get("href")
+                if href:
+                    if href.startswith("/"):
                         link = urljoin(BASE_URL, href)
-                        break
+                    elif href.startswith("http"):
+                        link = href
+            
+            # If no link in card, maybe the whole card is a link
+            if not link and card.tag == "a" and card.attributes.get("href"):
+                href = card.attributes.get("href")
+                if href:
+                    if href.startswith("/"):
+                        link = urljoin(BASE_URL, href)
+                    elif href.startswith("http"):
+                        link = href
             
             if not link:
                 continue
 
-            # Get logo/image
+            # Find logo/image
             logo = None
-            img_selectors = [
-                ".card-thumb img",
-                "img",
-                ".event-image img",
-                ".thumb img"
-            ]
-            
-            for selector in img_selectors:
-                if img := card.css_first(selector):
-                    if src := img.attributes.get("src") or img.attributes.get("data-src"):
-                        if src.startswith("http"):
-                            logo = src
-                        else:
-                            logo = urljoin(BASE_URL, src)
-                        break
+            if img := card.css_first("img"):
+                src = img.attributes.get("src") or img.attributes.get("data-src")
+                if src:
+                    if src.startswith("http"):
+                        logo = src
+                    else:
+                        logo = urljoin(BASE_URL, src)
 
             events.append({
                 "sport": sport,
@@ -419,7 +438,7 @@ async def scrape(browser: Browser) -> None:
                         handler,
                         url_num=i,
                         semaphore=network.PW_S,
-                        timeout=30,  # Overall timeout of 30 seconds
+                        timeout=30,
                         log=log,
                     )
 
