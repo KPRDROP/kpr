@@ -305,7 +305,7 @@ async def main():
     
     # Validate BASE_URL
     if not BASE_URL or BASE_URL == "None":
-        log.error("STREAMHUB_BASE_URL environment variable is not set correctly")
+        log.error("SRTHUB_BASE_URL environment variable is not set correctly")
         return
     
     log.info(f"Using base URL: {BASE_URL}")
