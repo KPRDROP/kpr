@@ -32,7 +32,7 @@ jobs:
         
     - name: Run StreamHub scraper
       env:
-        STREAMHUB_BASE_URL: ${{ secrets.STREAMHUB_BASE_URL }}
+        SRTHUB_BASE_URL: ${{ secrets.SRTHUB_BASE_URL }}
       run: |
         python -c "from srthub import run; run()"
         
