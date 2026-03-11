@@ -1,4 +1,4 @@
-name: StreamHub Scraper
+name: SrtHub Playlist Updater
 
 on:
   schedule:
