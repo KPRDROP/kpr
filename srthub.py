@@ -4,6 +4,7 @@ import re
 import urllib.parse
 from functools import partial
 from urllib.parse import urljoin
+from datetime import datetime, timedelta
 
 from playwright.async_api import Browser
 from selectolax.parser import HTMLParser
@@ -14,7 +15,7 @@ log = get_logger(__name__)
 
 urls: dict[str, dict[str, str | float]] = {}
 
-TAG = "SRTMHUB"
+TAG = "SRTHUB"
 
 CACHE_FILE = Cache(TAG, exp=10_800)
 
@@ -27,19 +28,29 @@ if BASE_URL and not BASE_URL.startswith(('http://', 'https://')):
     BASE_URL = f"https://{BASE_URL}"
 
 # Sports mapping based on actual website content
-SPORT_ENDPOINTS = [
-    f"sport_{sport_id}"
-    for sport_id in [
-        "68c02a446582f",
-        "68c02a4466011",
-        "68c02a4466f56",
-        "68c02a44674e9",
-        "68c02a4467a48",
-        "68c02a4464a38",
-        "68c02a4468cf7",
-        "68c02a4469422",
-    ]
-]
+SPORT_KEYWORDS = {
+    'UEFA Champions League': 'Soccer',
+    'Argentina Liga Profesional': 'Soccer',
+    'Liga Profesional': 'Soccer',
+    'Bayer Leverkusen': 'Soccer',
+    'Arsenal': 'Soccer',
+    'Bodo/Glimt': 'Soccer',
+    'Sporting CP': 'Soccer',
+    'Paris Saint-Germain': 'Soccer',
+    'Chelsea': 'Soccer',
+    'Real Madrid': 'Soccer',
+    'Manchester City': 'Soccer',
+    'Argentinos Juniors': 'Soccer',
+    'Rosario Central': 'Soccer',
+    'Banfield': 'Soccer',
+    'Gimnasia La Plata': 'Soccer',
+    'Boca Juniors': 'Soccer',
+    'San Lorenzo': 'Soccer',
+    'Atlético Tucumán': 'Soccer',
+    'Aldosivi': 'Soccer',
+    'Independiente Rivadavia': 'Soccer',
+    'Barracas Central': 'Soccer',
+}
 
 # Constants for output files
 VLC_OUTPUT_FILE = "srthub_vlc.m3u8"
@@ -58,6 +69,43 @@ def detect_sport(title: str) -> str:
         if keyword.lower() in title.lower():
             return sport
     return "Live Events"
+
+def extract_time_from_text(text: str) -> float:
+    """Extract event time from text (e.g., '04:00', 'starts in: 1 hours 05 min')"""
+    now = datetime.now()
+    
+    # Check for time format like "04:00"
+    time_match = re.search(r'(\d{1,2}):(\d{2})', text)
+    if time_match:
+        hour = int(time_match.group(1))
+        minute = int(time_match.group(2))
+        event_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        
+        # If the time has passed, assume it's for tomorrow
+        if event_time < now:
+            event_time = event_time + timedelta(days=1)
+        
+        return event_time.timestamp()
+    
+    # Check for "starts in: X hours Y min" format
+    hours_match = re.search(r'starts in:\s*(\d+)\s*hours?\s*(\d+)?', text)
+    if hours_match:
+        hours = int(hours_match.group(1))
+        minutes = int(hours_match.group(2)) if hours_match.group(2) else 0
+        event_time = now + timedelta(hours=hours, minutes=minutes)
+        return event_time.timestamp()
+    
+    # Check for "ends in: X hours Y min" format (for live events)
+    ends_match = re.search(r'ends in:\s*(\d+)\s*hours?\s*(\d+)?', text)
+    if ends_match:
+        # These are currently live, so use current time
+        return now.timestamp()
+    
+    # Default to current time for live events
+    if "LIVE" in text:
+        return now.timestamp()
+    
+    return now.timestamp()
 
 def generate_output_files():
     """Generate both VLC and TiviMate M3U8 files"""
@@ -89,6 +137,10 @@ def generate_output_files():
         
         # Clean URL - remove any query parameters that might cause issues
         url = url.split('?')[0] if url else ""
+        
+        # Skip if no URL
+        if not url:
+            continue
         
         # EXTINF line (same for both formats)
         extinf = f'#EXTINF:-1 tvg-chno="{chno}" tvg-id="{tvg_id}" tvg-name="{key}" tvg-logo="{logo}" group-title="{sport}",{event_name}\n'
@@ -136,74 +188,152 @@ async def scrape_live_events(browser: Browser) -> list[dict]:
     
     page = await browser.new_page()
     try:
-        # Set a reasonable timeout and wait for content
-        await page.goto(BASE_URL, wait_until="networkidle", timeout=30000)
+        # Use a more lenient wait condition - don't wait for networkidle
+        # Set a longer timeout and use domcontentloaded which is faster
+        await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=60000)
+        
+        # Wait a bit for dynamic content to load
+        await page.wait_for_timeout(5000)
         
         # Get page content and parse with selectolax
         content = await page.content()
         soup = HTMLParser(content)
         
-        # Look for event containers - based on actual website structure
-        # The site shows events with team names and times
-        event_elements = soup.css("div.flex.items-center.justify-between, div.bg-gray-50, div.rounded-lg")
+        # Look for all text content that might contain events
+        page_text = soup.text()
+        log.info(f"Page title: {soup.css_first('title').text() if soup.css_first('title') else 'No title'}")
+        
+        # Find all elements that might contain event information
+        # Based on the actual site content, events are in divs with specific classes or patterns
+        event_containers = []
+        
+        # Try different selectors that might be present on the site
+        for selector in ['div', 'article', 'section', '.event', '.match', '.game', '.fixture']:
+            elements = soup.css(selector)
+            if elements:
+                event_containers.extend(elements)
+        
+        # If no specific elements found, just look for any element containing "vs." and time
+        if not event_containers:
+            # Get all div elements
+            event_containers = soup.css('div')
         
         current_sport = "Live Events"
+        processed_keys = set()  # To avoid duplicates
         
-        for element in event_elements:
-            text = element.text(strip=True)
-            
-            # Try to detect sport sections
-            if "UEFA Champions League" in text or "Argentina Liga" in text:
-                current_sport = text
+        for element in event_containers:
+            try:
+                text = element.text(strip=True)
+                if not text or len(text) < 10:  # Skip very short text
+                    continue
+                
+                # Check for sport section headers
+                if "UEFA Champions League" in text:
+                    current_sport = "UEFA Champions League"
+                    continue
+                elif "Argentina Liga Profesional" in text:
+                    current_sport = "Argentina Liga Profesional"
+                    continue
+                elif "Liga Profesional" in text:
+                    current_sport = "Liga Profesional"
+                    continue
+                
+                # Look for "vs." which indicates a match
+                if "vs." in text and ("LIVE" in text or "starts in" in text or "ends in" in text or ":" in text):
+                    # Extract team names
+                    parts = text.split("vs.")
+                    if len(parts) >= 2:
+                        home = parts[0].strip()
+                        # Clean up the away team
+                        away_raw = parts[1].strip()
+                        
+                        # Remove time and status information
+                        for pattern in [r'\d{2}:\d{2}', r'LIVE', r'starts in.*', r'ends in.*', r'Event ended']:
+                            away_raw = re.sub(pattern, '', away_raw, flags=re.IGNORECASE).strip()
+                        
+                        # If away_raw is empty, try to extract from the full text
+                        if not away_raw:
+                            # Try to find team names in the full text
+                            teams = re.findall(r'([A-Za-z\s]+)\s+vs\.\s+([A-Za-z\s]+)', text)
+                            if teams:
+                                home, away_raw = teams[0]
+                        
+                        if away_raw:
+                            event_name = f"{home} vs {away_raw}"
+                            
+                            # Create a unique key
+                            key = f"[{current_sport}] {event_name} ({TAG})"
+                            
+                            # Skip if already processed
+                            if key in processed_keys:
+                                continue
+                            
+                            # Extract event time
+                            event_ts = extract_time_from_text(text)
+                            
+                            # Look for links in or near this element
+                            event_url = None
+                            
+                            # Check if element itself has a link
+                            link = element.css_first('a')
+                            if link:
+                                href = link.attributes.get("href", "")
+                                if href:
+                                    event_url = urljoin(BASE_URL, href)
+                            
+                            # If no link found, look for any link in parent
+                            if not event_url:
+                                parent = element.parent
+                                if parent:
+                                    parent_link = parent.css_first('a')
+                                    if parent_link:
+                                        href = parent_link.attributes.get("href", "")
+                                        if href:
+                                            event_url = urljoin(BASE_URL, href)
+                            
+                            # If still no link, look for any link on the page with event in the URL
+                            if not event_url:
+                                all_links = soup.css('a')
+                                for link in all_links:
+                                    href = link.attributes.get("href", "")
+                                    if href and ('event' in href.lower() or 'match' in href.lower() or 'game' in href.lower()):
+                                        # Check if this link is near our event text
+                                        link_text = link.text(strip=True)
+                                        if home in link_text or away_raw in link_text:
+                                            event_url = urljoin(BASE_URL, href)
+                                            break
+                            
+                            if event_url:
+                                # Try to get logo based on sport
+                                tvg_id, logo = leagues.get_tvg_info(current_sport, event_name)
+                                
+                                events.append({
+                                    "key": key,
+                                    "sport": current_sport,
+                                    "event": event_name,
+                                    "link": event_url,
+                                    "event_ts": event_ts,
+                                    "timestamp": datetime.now().timestamp(),
+                                    "tvg_id": tvg_id or "Live.Event.us",
+                                    "logo": logo
+                                })
+                                
+                                processed_keys.add(key)
+                                log.info(f"Found event: {key} at {datetime.fromtimestamp(event_ts)}")
+            except Exception as e:
+                log.debug(f"Error processing element: {e}")
                 continue
-            
-            # Look for vs pattern which indicates a match
-            if "vs." in text and "LIVE" in text:
-                # Extract team names
-                parts = text.split("vs.")
-                if len(parts) >= 2:
-                    home = parts[0].strip()
-                    # Clean up the away team (remove time and status)
-                    away_raw = parts[1].strip()
-                    # Remove common suffixes
-                    for suffix in ["LIVE", "starts in", "ends in", "Event ended"]:
-                        if suffix in away_raw:
-                            away_raw = away_raw.split(suffix)[0].strip()
-                    
-                    event_name = f"{home} vs {away_raw}"
-                    
-                    # Get any links in the event
-                    links = element.css("a")
-                    event_url = None
-                    for link in links:
-                        href = link.attributes.get("href", "")
-                        if href and "event" in href.lower():
-                            event_url = urljoin(BASE_URL, href)
-                            break
-                    
-                    if event_url:
-                        key = f"[{current_sport}] {event_name} ({TAG})"
-                        
-                        # Try to get logo based on sport
-                        tvg_id, logo = leagues.get_tvg_info(current_sport, event_name)
-                        
-                        events.append({
-                            "key": key,
-                            "sport": current_sport,
-                            "event": event_name,
-                            "link": event_url,
-                            "event_ts": Time.now().timestamp(),  # Use current time for live events
-                            "timestamp": Time.now().timestamp(),
-                            "tvg_id": tvg_id or "Live.Event.us",
-                            "logo": logo
-                        })
-                        
-                        log.info(f"Found live event: {key}")
         
-        log.info(f"Found {len(events)} live events on main page")
+        log.info(f"Found {len(events)} events on main page")
         
     except Exception as e:
         log.error(f"Error scraping main page: {e}")
+        # Try to take a screenshot for debugging
+        try:
+            await page.screenshot(path="error_screenshot.png")
+            log.info("Screenshot saved as error_screenshot.png")
+        except:
+            pass
     finally:
         await page.close()
     
@@ -221,12 +351,14 @@ async def scrape_event_urls(browser: Browser, events: list[dict]) -> dict:
     async with network.event_context(browser, stealth=False) as context:
         for i, ev in enumerate(events, start=1):
             async with network.event_page(context) as page:
+                log.info(f"Processing event {i}/{len(events)}: {ev['key']}")
+                
                 handler = partial(
                     network.process_event,
                     url=ev["link"],
                     url_num=i,
                     page=page,
-                    timeout=10,  # Increased timeout
+                    timeout=15,  # Increased timeout
                     log=log,
                 )
                 
@@ -252,6 +384,8 @@ async def scrape_event_urls(browser: Browser, events: list[dict]) -> dict:
                     
                     results[ev["key"]] = entry
                     log.info(f"Successfully got URL for: {ev['key']}")
+                else:
+                    log.warning(f"Failed to get URL for: {ev['key']}")
     
     return results
 
@@ -272,10 +406,15 @@ async def scrape(browser: Browser) -> None:
     
     if live_events:
         # Filter out events we already have cached
-        new_events = [ev for ev in live_events if ev["key"] not in cached_urls]
+        new_events = []
+        for ev in live_events:
+            if ev["key"] not in cached_urls:
+                new_events.append(ev)
+            else:
+                log.info(f"Event already in cache: {ev['key']}")
         
         if new_events:
-            log.info(f"Found {len(new_events)} new live events to process")
+            log.info(f"Found {len(new_events)} new events to process")
             
             # Scrape URLs for new events
             new_urls = await scrape_event_urls(browser, new_events)
@@ -287,9 +426,9 @@ async def scrape(browser: Browser) -> None:
                     urls[key] = entry
                     log.info(f"Added new event: {key}")
         else:
-            log.info("No new live events found")
+            log.info("No new events found - all events already in cache")
     else:
-        log.info("No live events found on main page")
+        log.info("No events found on main page")
     
     # Save updated cache
     CACHE_FILE.write(cached_urls)
@@ -301,7 +440,7 @@ async def scrape(browser: Browser) -> None:
 
 async def main():
     """Main function to run the scraper"""
-    log.info("Starting StreamHub scraper")
+    log.info("Starting SrtHub scraper")
     
     # Validate BASE_URL
     if not BASE_URL or BASE_URL == "None":
