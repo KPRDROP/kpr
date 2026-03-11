@@ -28,29 +28,19 @@ if BASE_URL and not BASE_URL.startswith(('http://', 'https://')):
     BASE_URL = f"https://{BASE_URL}"
 
 # Sports mapping based on actual website content
-SPORT_KEYWORDS = {
-    'UEFA Champions League': 'Soccer',
-    'Argentina Liga Profesional': 'Soccer',
-    'Liga Profesional': 'Soccer',
-    'Bayer Leverkusen': 'Soccer',
-    'Arsenal': 'Soccer',
-    'Bodo/Glimt': 'Soccer',
-    'Sporting CP': 'Soccer',
-    'Paris Saint-Germain': 'Soccer',
-    'Chelsea': 'Soccer',
-    'Real Madrid': 'Soccer',
-    'Manchester City': 'Soccer',
-    'Argentinos Juniors': 'Soccer',
-    'Rosario Central': 'Soccer',
-    'Banfield': 'Soccer',
-    'Gimnasia La Plata': 'Soccer',
-    'Boca Juniors': 'Soccer',
-    'San Lorenzo': 'Soccer',
-    'Atlético Tucumán': 'Soccer',
-    'Aldosivi': 'Soccer',
-    'Independiente Rivadavia': 'Soccer',
-    'Barracas Central': 'Soccer',
-}
+SPORT_ENDPOINTS = [
+    f"sport_{sport_id}"
+    for sport_id in [
+        # "68c02a4465113",  # American Football
+        # "68c02a446582f",  # Baseball
+        "68c02a4466011",  # Basketball
+        "68c02a4466f56",  # Hockey
+        # "68c02a44674e9",  # MMA
+        # "68c02a4467a48",  # Racing
+        "68c02a4464a38",  # Soccer
+        # "68c02a4468cf7",  # Tennis
+    ]
+]
 
 # Constants for output files
 VLC_OUTPUT_FILE = "srthub_vlc.m3u8"
