@@ -8,13 +8,13 @@ from urllib.parse import urljoin
 from playwright.async_api import Browser
 from selectolax.parser import HTMLParser
 
-from .utils import Cache, Time, get_logger, leagues, network
+from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
 urls: dict[str, dict[str, str | float]] = {}
 
-TAG = "STRMHUB"
+TAG = "SRTMHUB"
 
 CACHE_FILE = Cache(TAG, exp=10_800)
 
@@ -27,11 +27,19 @@ if BASE_URL and not BASE_URL.startswith(('http://', 'https://')):
     BASE_URL = f"https://{BASE_URL}"
 
 # Sports mapping based on actual website content
-SPORT_KEYWORDS = {
-    'UEFA Champions League': 'Soccer',
-    'Argentina Liga Profesional': 'Soccer',
-    'vs.': 'Unknown'  # Default fallback
-}
+SPORT_ENDPOINTS = [
+    f"sport_{sport_id}"
+    for sport_id in [
+        "68c02a446582f",
+        "68c02a4466011",
+        "68c02a4466f56",
+        "68c02a44674e9",
+        "68c02a4467a48",
+        "68c02a4464a38",
+        "68c02a4468cf7",
+        "68c02a4469422",
+    ]
+]
 
 # Constants for output files
 VLC_OUTPUT_FILE = "srthub_vlc.m3u8"
