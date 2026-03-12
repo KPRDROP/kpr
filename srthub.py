@@ -40,7 +40,6 @@ SPORT_ENDPOINTS = [
         "sport_68c02a4468624", # Rugby League
         "sport_68c02a4468cf7", # Tennis
         "sport_68c02a4469422", # Volleyball
-    ]
 ]
 
 
