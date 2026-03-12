@@ -1,0 +1,68 @@
+name: CDNTV Updater
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install playwright httpx[http2] pytz
+        
+    - name: Install Playwright browsers
+      run: |
+        playwright install chromium
+        playwright install-deps
+        
+    - name: Verify secrets
+      run: |
+        if [ -z "${{ secrets.CDNTV_API_URL }}" ]; then
+          echo "CDNTV_API_URL secret is not set"
+          exit 1
+        fi
+        echo "CDNTV_API_URL is set"
+        
+    - name: Run CDNTV scraper
+      env:
+        CDNTV_API_URL: ${{ secrets.CDNTV_API_URL }}
+      run: |
+        python -c "from cdntv import run; run()"
+        
+    - name: Check for output files
+      id: check_files
+      run: |
+        if [ -f cdntv_vlc.m3u8 ] && [ -f cdntv_tivimate.m3u8 ]; then
+          echo "files_exist=true" >> $GITHUB_OUTPUT
+          echo "Found output files"
+          echo "VLC file size: $(wc -c < cdntv_vlc.m3u8) bytes"
+          echo "TiviMate file size: $(wc -c < cdntv_tivimate.m3u8) bytes"
+        else
+          echo "files_exist=false" >> $GITHUB_OUTPUT
+          echo "No output files found"
+        fi
+        
+    - name: Commit and push if changes
+      if: steps.check_files.outputs.files_exist == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add cdntv_vlc.m3u8 cdntv_tivimate.m3u8
+        git diff --quiet && git diff --staged --quiet || git commit -m "Update CDNTV playlists [skip ci]"
+        git push
