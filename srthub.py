@@ -30,14 +30,18 @@ REFERRER = "https://storytrench.net/"
 SPORT_ENDPOINTS = [
     f"sport_{sport_id}"
     for sport_id in [
-        "68c02a446582f",
-        "68c02a4466011",
-        "68c02a4466f56",
-        "68c02a44674e9",
-        "68c02a4467a48",
-        "68c02a4464a38",
-        "68c02a4468cf7",
-        "68c02a4469422",
+        "sport_68c02a4464a38", # Soccer
+        "sport_68c02a4465113", # American Football
+        "sport_68c02a446582f", # Baseball
+        "sport_68c02a4466011", # Basketball
+        "sport_68c02a44669f3", # Cricket
+        "sport_68c02a4466f56", # Hockey
+        "sport_68c02a44674e9", # MMA
+        "sport_68c02a4467a48", # Racing
+        "sport_68c02a4467fc1", # Rugby
+        "sport_68c02a4468624", # Rugby League
+        "sport_68c02a4468cf7", # Tennis
+        "sport_68c02a4469422", # Volleyball
     ]
 ]
 
