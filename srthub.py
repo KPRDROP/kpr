@@ -28,8 +28,6 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 REFERRER = "https://storytrench.net/"
 
 SPORT_ENDPOINTS = [
-    f"sport_{sport_id}"
-    for sport_id in [
         "sport_68c02a4464a38", # Soccer
         "sport_68c02a4465113", # American Football
         "sport_68c02a446582f", # Baseball
