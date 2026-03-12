@@ -1,22 +1,17 @@
 import asyncio
 import os
-from functools import partial
-from urllib.parse import urljoin, quote
+from urllib.parse import quote
 
-from playwright.async_api import Browser, async_playwright
+from playwright.async_api import async_playwright
 from selectolax.parser import HTMLParser
 
-from utils import Cache, Time, get_logger, leagues, network
+from utils import Cache, Time, get_logger, leagues
 
 log = get_logger(__name__)
-
-urls: dict[str, dict[str, str | float]] = {}
 
 TAG = "STRHUB"
 
 CACHE_FILE = Cache(TAG, exp=10800)
-
-HTML_CACHE = Cache(f"{TAG}-html", exp=19800)
 
 BASE_URL = os.environ.get("SRTHUB_BASE_URL")
 
@@ -28,19 +23,21 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 REFERRER = "https://storytrench.net/"
 
 SPORT_ENDPOINTS = [
-        "sport_68c02a4464a38", # Soccer
-        "sport_68c02a4465113", # American Football
-        "sport_68c02a446582f", # Baseball
-        "sport_68c02a4466011", # Basketball
-        "sport_68c02a44669f3", # Cricket
-        "sport_68c02a4466f56", # Hockey
-        "sport_68c02a44674e9", # MMA
-        "sport_68c02a4467a48", # Racing
-        "sport_68c02a4467fc1", # Rugby
-        "sport_68c02a4468624", # Rugby League
-        "sport_68c02a4468cf7", # Tennis
-        "sport_68c02a4469422", # Volleyball
+    "sport_68c02a4464a38",
+    "sport_68c02a4465113",
+    "sport_68c02a446582f",
+    "sport_68c02a4466011",
+    "sport_68c02a44669f3",
+    "sport_68c02a4466f56",
+    "sport_68c02a44674e9",
+    "sport_68c02a4467a48",
+    "sport_68c02a4467fc1",
+    "sport_68c02a4468624",
+    "sport_68c02a4468cf7",
+    "sport_68c02a4469422",
 ]
+
+urls = {}
 
 
 # ---------------------------------------------------------
@@ -50,228 +47,206 @@ SPORT_ENDPOINTS = [
 def generate_playlists():
 
     vlc_lines = ["#EXTM3U"]
-    tivimate_lines = ["#EXTM3U"]
+    tiv_lines = ["#EXTM3U"]
 
-    ua_encoded = quote(USER_AGENT, safe="")
+    ua_enc = quote(USER_AGENT, safe="")
 
     for chno, (name, data) in enumerate(urls.items(), start=1):
 
-        url = data.get("url")
-        logo = data.get("logo") or ""
-        tvg_id = data.get("id")
-        base = data.get("base") or REFERRER
-
-        if not url:
-            continue
+        url = data["url"]
+        logo = data["logo"]
+        tvg_id = data["id"]
 
         extinf = (
             f'#EXTINF:-1 tvg-chno="{chno}" tvg-id="{tvg_id}" '
             f'tvg-name="{name}" tvg-logo="{logo}" group-title="Live Events",{name}'
         )
 
-        # VLC playlist
         vlc_lines.append(extinf)
-        vlc_lines.append(f"#EXTVLCOPT:http-referrer={base}")
-        vlc_lines.append(f"#EXTVLCOPT:http-origin={base}")
+        vlc_lines.append(f"#EXTVLCOPT:http-referrer={REFERRER}")
+        vlc_lines.append(f"#EXTVLCOPT:http-origin={REFERRER}")
         vlc_lines.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
         vlc_lines.append(url)
 
-        # TiviMate playlist
-        tivimate_lines.append(extinf)
+        tiv_lines.append(extinf)
 
-        tiv_url = (
-            f"{url}"
-            f"|referer={base}"
-            f"|origin={base}"
-            f"|user-agent={ua_encoded}"
+        tiv_lines.append(
+            f"{url}|referer={REFERRER}|origin={REFERRER}|user-agent={ua_enc}"
         )
-
-        tivimate_lines.append(tiv_url)
 
     with open("srthub_vlc.m3u8", "w", encoding="utf8") as f:
         f.write("\n".join(vlc_lines))
 
     with open("srthub_tivimate.m3u8", "w", encoding="utf8") as f:
-        f.write("\n".join(tivimate_lines))
+        f.write("\n".join(tiv_lines))
 
     log.info("Playlists generated: srthub_vlc.m3u8 / srthub_tivimate.m3u8")
 
 
 # ---------------------------------------------------------
-# HTML CACHE REFRESH
+# M3U8 DETECTION
 # ---------------------------------------------------------
 
-async def refresh_html_cache(date: str, sport_id: str, ts: float):
+async def detect_stream(page):
 
-    events = {}
+    stream = None
 
-    if not (
-        html_data := await network.request(
-            urljoin(BASE_URL, f"events/{date}"),
-            log=log,
-            params={"sport_id": sport_id},
-        )
-    ):
-        return events
+    async def handler(response):
+        nonlocal stream
+        url = response.url
 
-    soup = HTMLParser(html_data.content)
+        if ".m3u8" in url:
+            stream = url
 
-    for section in soup.css(".events-section"):
+    page.on("response", handler)
 
-        if not (sport_node := section.css_first(".section-titlte")):
+    await asyncio.sleep(10)
+
+    return stream
+
+
+# ---------------------------------------------------------
+# EVENT PAGE SCRAPER
+# ---------------------------------------------------------
+
+async def process_event(browser, event):
+
+    page = await browser.new_page()
+
+    await page.set_extra_http_headers(
+        {
+            "referer": REFERRER,
+            "origin": REFERRER,
+            "user-agent": USER_AGENT,
+        }
+    )
+
+    await page.goto(event["link"], timeout=60000)
+
+    await page.wait_for_timeout(8000)
+
+    stream = await detect_stream(page)
+
+    await page.close()
+
+    return stream
+
+
+# ---------------------------------------------------------
+# EVENT DISCOVERY (TODAY ONLY)
+# ---------------------------------------------------------
+
+async def get_events(browser):
+
+    today = Time.now().date()
+
+    events = []
+
+    page = await browser.new_page()
+
+    for sport in SPORT_ENDPOINTS:
+
+        url = f"{BASE_URL}/events/{today}/{sport}"
+
+        try:
+
+            await page.goto(url, timeout=60000)
+
+        except Exception:
             continue
 
-        sport = sport_node.text(strip=True)
+        html = await page.content()
 
-        for event in section.css(".section-event"):
+        soup = HTMLParser(html)
 
-            event_name = "Live Event"
+        sport_name = soup.css_first(".sport-name")
 
-            if teams := event.css_first(".event-competitors"):
-                home, away = teams.text(strip=True).split("vs.")
-                event_name = f"{away} vs {home}"
+        sport_title = sport_name.text(strip=True) if sport_name else "Sport"
 
-            if not (event_button := event.css_first(".event-button a")) or not (
-                href := event_button.attributes.get("href")
-            ):
-                continue
+        for section in soup.css(".events-section"):
 
-            event_date = event.css_first(".event-countdown").attributes.get("data-start")
+            league_node = section.css_first(".section-titlte")
 
-            event_dt = Time.from_str(event_date, timezone="UTC")
+            league = league_node.text(strip=True) if league_node else ""
 
-            key = f"[{sport}] {event_name} ({TAG})"
+            for event in section.css(".section-event"):
 
-            events[key] = {
-                "sport": sport,
-                "event": event_name,
-                "link": href,
-                "event_ts": event_dt.timestamp(),
-                "timestamp": ts,
-            }
+                teams = event.css_first(".event-competitors")
+
+                if not teams:
+                    continue
+
+                name = teams.text(strip=True)
+
+                btn = event.css_first(".event-button a")
+
+                if not btn:
+                    continue
+
+                link = btn.attributes.get("href")
+
+                key = f"[{league}] {name} ({TAG})"
+
+                events.append(
+                    {
+                        "sport": sport_title,
+                        "league": league,
+                        "event": name,
+                        "link": link,
+                        "key": key,
+                    }
+                )
+
+    await page.close()
 
     return events
-
-
-# ---------------------------------------------------------
-# EVENT DISCOVERY
-# ---------------------------------------------------------
-
-async def get_events(cached_keys):
-
-    now = Time.clean(Time.now())
-
-    if not (events := HTML_CACHE.load()):
-
-        log.info("Refreshing HTML cache")
-
-        tasks = [
-            refresh_html_cache(date, sport_id, now.timestamp())
-            for date in [now.date(), now.delta(days=1).date()]
-            for sport_id in SPORT_ENDPOINTS
-        ]
-
-        results = await asyncio.gather(*tasks)
-
-        events = {k: v for data in results for k, v in data.items()}
-
-        HTML_CACHE.write(events)
-
-    live = []
-
-    start_ts = now.delta(hours=-1).timestamp()
-    end_ts = now.delta(minutes=1).timestamp()
-
-    for k, v in events.items():
-
-        if k in cached_keys:
-            continue
-
-        if not start_ts <= v["event_ts"] <= end_ts:
-            continue
-
-        live.append(v)
-
-    return live
 
 
 # ---------------------------------------------------------
 # SCRAPER
 # ---------------------------------------------------------
 
-async def scrape(browser: Browser):
+async def scrape(browser):
 
-    cached_urls = CACHE_FILE.load()
+    cached = CACHE_FILE.load()
 
-    valid_urls = {k: v for k, v in cached_urls.items() if v["url"]}
+    urls.update({k: v for k, v in cached.items() if v.get("url")})
 
-    valid_count = cached_count = len(valid_urls)
-
-    urls.update(valid_urls)
-
-    log.info(f"Loaded {cached_count} event(s) from cache")
+    log.info(f"Loaded {len(urls)} event(s) from cache")
 
     log.info(f'Scraping from "{BASE_URL}"')
 
-    if events := await get_events(cached_urls.keys()):
+    events = await get_events(browser)
 
-        log.info(f"Processing {len(events)} new URL(s)")
+    log.info(f"Processing {len(events)} events")
 
-        async with network.event_context(browser, stealth=False) as context:
+    for ev in events:
 
-            for i, ev in enumerate(events, start=1):
+        key = ev["key"]
 
-                async with network.event_page(context) as page:
+        if key in urls:
+            continue
 
-                    handler = partial(
-                        network.process_event,
-                        url=(link := ev["link"]),
-                        url_num=i,
-                        page=page,
-                        timeout=5,
-                        log=log,
-                    )
+        stream = await process_event(browser, ev)
 
-                    url = await network.safe_process(
-                        handler,
-                        url_num=i,
-                        semaphore=network.PW_S,
-                        log=log,
-                    )
+        if not stream:
+            continue
 
-                    sport, event, ts = (
-                        ev["sport"],
-                        ev["event"],
-                        ev["event_ts"],
-                    )
+        tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
-                    key = f"[{sport}] {event} ({TAG})"
+        entry = {
+            "url": stream.split("?")[0],
+            "logo": logo,
+            "id": tvg_id or "Live.Event.us",
+        }
 
-                    tvg_id, logo = leagues.get_tvg_info(sport, event)
+        urls[key] = entry
 
-                    entry = {
-                        "url": url,
-                        "logo": logo,
-                        "base": REFERRER,
-                        "timestamp": ts,
-                        "id": tvg_id or "Live.Event.us",
-                        "link": link,
-                    }
+        cached[key] = entry
 
-                    cached_urls[key] = entry
+        log.info(f"Captured stream: {key}")
 
-                    if url:
-
-                        valid_count += 1
-                        entry["url"] = url.split("?")[0]
-                        urls[key] = entry
-
-        log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
-
-    else:
-        log.info("No new events found")
-
-    CACHE_FILE.write(cached_urls)
+    CACHE_FILE.write(cached)
 
     generate_playlists()
 
@@ -296,8 +271,11 @@ async def main():
         )
 
         try:
+
             await scrape(browser)
+
         finally:
+
             await browser.close()
 
 
