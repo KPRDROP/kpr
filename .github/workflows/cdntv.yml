@@ -58,11 +58,26 @@ jobs:
           echo "No output files found"
         fi
         
-    - name: Commit and push if changes
+    - name: Commit & push
       if: steps.check_files.outputs.files_exist == 'true'
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add cdntv_vlc.m3u8 cdntv_tivimate.m3u8
-        git diff --quiet && git diff --staged --quiet || git commit -m "Update CDNTV playlists [skip ci]"
-        git push
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+          git add cdntv_vlc.m3u8 cdntv_tivimate.m3u8
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+
+          git commit -m "Update CDN Playlist"
+
+          if ! git push origin main; then
+            git stash
+            git pull --rebase origin main
+            git stash pop
+            git add cdntv_vlc.m3u8 cdntv_tivimate.m3u8
+            git commit -m "Update CDNTV Playlist (rebased)" || true
+            git push origin main
+          fi
