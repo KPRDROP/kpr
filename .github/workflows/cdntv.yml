@@ -15,6 +15,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
       
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -58,26 +61,13 @@ jobs:
           echo "No output files found"
         fi
         
-    - name: Commit & push
+    - name: Commit & push changes
       if: steps.check_files.outputs.files_exist == 'true'
-      run: |
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-
-          git add cdntv_vlc.m3u8 cdntv_tivimate.m3u8
-
-          if git diff --cached --quiet; then
-            echo "No changes"
-            exit 0
-          fi
-
-          git commit -m "Update CDN Playlist"
-
-          if ! git push origin main; then
-            git stash
-            git pull --rebase origin main
-            git stash pop
-            git add cdntv_vlc.m3u8 cdntv_tivimate.m3u8
-            git commit -m "Update CDNTV Playlist (rebased)" || true
-            git push origin main
-          fi
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "Update CDNTV Playlist"
+        file_pattern: cdntv_vlc.m3u8 cdntv_tivimate.m3u8
+        commit_user_name: github-actions[bot]
+        commit_user_email: github-actions[bot]@users.noreply.github.com
+        commit_author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+        push_options: '--force-with-lease'
