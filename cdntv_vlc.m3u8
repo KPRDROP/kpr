@@ -1,31 +1,37 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Serie B] Bari 1908 vs Frosinone (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/99.png" group-title="Serie B",Bari 1908 vs Frosinone
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sport+5+stars&code=il&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[UEFA Champions League] Simulcast vs Simulcast (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2.png" group-title="UEFA Champions League",Simulcast vs Simulcast
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=dazn+2&code=de&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/il-sport-5-stars/playlist.m3u8?token=693bf4b6ba7b90b41dea9e28d873fb715ffc50fb2d22791963fc23069e3cfc19.1773863450.5b25f02d23e0b44a2fbb05ae6e6214d9.6658a8084af933a0b29f19fb962eaaab.694a5a2e65c8b073538a4753b5a3c985&signature=3d4fdef3855aeb5ed878d68435b2e1582cc23c0389192fe0429b7f444c1b7f16
+https://edge.cdn-live.ru/secure/api/v1/de-dazn-2/playlist.m3u8?token=de4e54188fff38dd9b6afaecc02ec1ac86b529896f45de49fa439c86019a070d.1773866313.0f6353b2666655af63a54f1ff864bbb7.c501d1159ba1595aecc18754ac4671fc.9ec6c97fff98c878d005d26163344d1f&signature=bd02bafbe3e7fba99dc8467e3427f53cab82030b814c26690c322350955f3174
 
 #EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[UEFA Champions League] Atalanta vs Bayern München (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2.png" group-title="UEFA Champions League",Atalanta vs Bayern München
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=cbs+sports+network&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=paramount+event+2&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-cbs-sports-network/playlist.m3u8?token=25429a5ced926c21f5accf5aecb83d77c4f8487c3b01b354fa7f16ecf180c53a.1773863452.b62dc02dbe8221a763e87b368e0dd3b6.e5c93ef6eee33aa24f850534293a436e.86e84afda204f49443d682a15c309661&signature=9ab4f5bb688c0f859dd807141d04f670326b270111edbe95110a20daf70e32a9
+https://edge.cdn-live.ru/secure/api/v1/us-paramount-event-2/playlist.m3u8?token=345f6564b6769902d5b4dba6f294b61e3d79c246ed4130933e1d825753e9b66e.1773866314.9b9da7345843452ffc206f5ab01ac1b2.715332394fa4516f5b28bc8d045592c1.0b8b719ce8e41b957732a38fe756b371&signature=54edefbcb60c9c353628ce5124007b70894619cd0310dafdcd0e41331ee1684a
 
 #EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[UEFA Champions League] Atlético Madrid vs Tottenham Hotspur (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2.png" group-title="UEFA Champions League",Atlético Madrid vs Tottenham Hotspur
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=bein+sports+3&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=paramount+event+3&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-bein-sports-3/playlist.m3u8?token=746eafbbadc10c12efb0dd60cdb86e68f1afc7d7852d4d495e0deeee3d044106.1773863453.1d1e5d001c42f3faa3bd7745c012738a.31241c42d69d6dce91c12ed507cc7557.72a2085111b2a3945eb8c9269913814a&signature=2a818f311c6f40c8584d4de6700b357b02a126ed1c8c6654547239c8fd3d362f
+https://edge.cdn-live.ru/secure/api/v1/us-paramount-event-3/playlist.m3u8?token=608ec9df338a27d7e5e15cb10bc5893e063ec6fcd6fdb0bf45dff921c4ee4b97.1773866315.9c6d642f21e16ba7a1f2a8375fd25e01.943855b116c031e966c6952ec6e8b1b7.b265fe2df55b4338d395dae3000f8e01&signature=79949c97e920311ab1619e44618f546707a4f5462b6c3701302d67ec80714318
 
 #EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[UEFA Champions League] Galatasaray vs Liverpool (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2.png" group-title="UEFA Champions League",Galatasaray vs Liverpool
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tudn&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=paramount+event+4&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-tudn/playlist.m3u8?token=cfd7c69990a4793183dd9678466daa183e2ff1025944301e0b694f9ad30b03af.1773863454.8bcbf00a14e5ecdb69fe4383efec4a76.f2b7314ef32ca5dbd09ea6f0a3165af6.af64ffc002ccbc4b5983118e75be2657&signature=06c62b34b024f19024cc255738d6f2f172f5e0e51aa9160ddcbf6cd4f28b673a
+https://edge.cdn-live.ru/secure/api/v1/us-paramount-event-4/playlist.m3u8?token=b321f3f89c612a7631117df169f1ef644653c1d1ce73be270d6a2eae85ecf826.1773866316.9f3f87db6b7b6ae374ea382cdf4b0017.d7720186a46d7e6ac2e1c4ab11f8386a.bf6a8fe67c20f66f8e65ee92eb38fd63&signature=bd7ae21edbd7552a8ea885f0ce06f63327d1402b3b1dea2897d46952b461bfe8
 
 #EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Boyacá Chicó vs Deportivo Pasto (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Boyacá Chicó vs Deportivo Pasto
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=f3ea498b3d205ea4fb78a334e6deff48ef02472a67df46ee89b7f8dd92de5956.1773863455.0135126734b561b6caf51140771fc321.e512b339183deae6bc3eb11525cea685.dc61afb9e9216e6440dc8aa3513dd6ac&signature=519d8911b5957a69da4bd211b8ffc6a4d3d1877a8884be7cffff6634e5cfcf0d
+https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=c2b514fb38885b9abbda5d2c8c292474cca9b0b5604b186c70b2ec7d438b56ee.1773866317.e0dc59b3b33446073dc24caf1561ab7c.a1c791cd21d48040beaf02d1ced7ba6f.b8ebb16ec3a4aaded740467c60f06cfc&signature=a34d05e2f8cbe74dd7e228a6a1f501dc789040fda7e913249a6530a0444963b4
+
+#EXTINF:-1 tvg-chno="6" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Botafogo vs Palmeiras (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Botafogo vs Palmeiras
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=viaplay+sports+1&code=gb&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/gb-viaplay-sports-1/playlist.m3u8?token=92cd42fff16399102ef455b221f50050d9c80f47aae70c50f8767da52293e1d1.1773866318.fcba85e768c1985754f91d443ff421d3.8d4c5822d48930ff17e1696e91944123.4de3e8deca32c7c73d8d73271d94c0a6&signature=357ad55cb444d6fb69fa12875df6ab1505933ae18f5fd6e9c27892c8609ae2b1
 
