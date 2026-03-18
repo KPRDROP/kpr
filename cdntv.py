@@ -63,27 +63,32 @@ def generate_output_files():
         logo = data.get("logo", "")
         tvg_id = data.get("id", "Live.Event.us")
         url = data.get("url", "")
+        link = data.get("link", "")
         
-        # Clean URL - remove any query parameters that might cause issues
-        url = url.split('?')[0] if url else ""
+        # CRITICAL FIX: Keep the full URL with token parameters - do NOT split on '?'
+        # The token and signature are essential for playback
+        full_url = url
         
         # Skip if no URL
-        if not url:
+        if not full_url:
             continue
+        
+        # For VLC referer, use the player page URL which contains the channel info
+        vlc_referer = link if link else REFERER
         
         # EXTINF line (same for both formats)
         extinf = f'#EXTINF:-1 tvg-chno="{chno}" tvg-id="{tvg_id}" tvg-name="{key}" tvg-logo="{logo}" group-title="{sport}",{event_name}\n'
         
         # VLC format
         vlc_content += extinf
-        vlc_content += f"#EXTVLCOPT:http-referrer={REFERER}\n"
+        vlc_content += f"#EXTVLCOPT:http-referrer={vlc_referer}\n"
         vlc_content += f"#EXTVLCOPT:http-origin={ORIGIN}\n"
         vlc_content += f"#EXTVLCOPT:http-user-agent={USER_AGENT}\n"
-        vlc_content += f"{url}\n\n"
+        vlc_content += f"{full_url}\n\n"
         
-        # TiviMate format (with pipe and encoded user agent) - Note: TiviMate doesn't use #EXTVLCOPT lines
+        # TiviMate format (with pipe and encoded user agent)
         encoded_ua = encode_user_agent(USER_AGENT)
-        tivimate_url = f"{url}|referer={REFERER}|origin={ORIGIN}|user-agent={encoded_ua}"
+        tivimate_url = f"{full_url}|referer={REFERER}|origin={ORIGIN}|user-agent={encoded_ua}"
         
         tivimate_content += extinf
         tivimate_content += f"{tivimate_url}\n\n"
@@ -263,9 +268,10 @@ async def scrape(browser: Browser) -> None:
                         url_num=i,
                         page=page,
                         log=log,
-                        timeout=15,  # Increased timeout
+                        timeout=15,
                     )
                     
+                    # CRITICAL FIX: Get the full URL with token from the event page
                     url = await network.safe_process(
                         handler,
                         url_num=i,
@@ -284,16 +290,17 @@ async def scrape(browser: Browser) -> None:
                         
                         tvg_id, logo = leagues.get_tvg_info(sport, event)
                         
-                        # Clean the URL - remove any fragments or query params that might cause issues
-                        url = url.split('#')[0]
+                        # CRITICAL FIX: Keep the full URL with token - do NOT split
+                        # The token and signature are in the URL parameters
+                        full_url = url
                         
                         entry = {
-                            "url": url,
+                            "url": full_url,  # Store the full URL with token
                             "logo": logo,
                             "base": REFERER,
                             "timestamp": ts,
                             "id": tvg_id or "Live.Event.us",
-                            "link": link,
+                            "link": link,  # Store the original channel link for referer
                         }
                         
                         urls[key] = cached_urls[key] = entry
