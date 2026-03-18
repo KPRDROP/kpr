@@ -1,25 +1,43 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Super Lig] Kocaelispor vs Alanyaspor (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/18.png" group-title="Super Lig",Kocaelispor vs Alanyaspor
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/tr-bein-sports-1/playlist.m3u8
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Slovenian Youth League] Aluminij vs Jadran (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Slovenian Youth League",Aluminij vs Jadran
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/rs-sport-klub-3/playlist.m3u8
-
-#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Russian Cup] Dynamo Makhachkala vs Zenit (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Russian Cup",Dynamo Makhachkala vs Zenit
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Russian Cup] Dynamo Makhachkala vs Zenit (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Russian Cup",Dynamo Makhachkala vs Zenit
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
 https://edge.cdn-live.ru/secure/api/v1/ru-match-premier/playlist.m3u8
 
-#EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[UEFA Europa League] Ferencváros vs Sporting Braga (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2310.png" group-title="UEFA Europa League",Ferencváros vs Sporting Braga
+#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[UEFA Europa League] Ferencváros vs Sporting Braga (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2310.png" group-title="UEFA Europa League",Ferencváros vs Sporting Braga
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
 https://edge.cdn-live.ru/secure/api/v1/us-bein-sports-3/playlist.m3u8
+
+#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Super Lig] Trabzonspor vs Eyüpspor (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/18.png" group-title="Super Lig",Trabzonspor vs Eyüpspor
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-bein-sports/playlist.m3u8
+
+#EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[Super Lig] Antalyaspor vs İstanbul Başakşehir (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/18.png" group-title="Super Lig",Antalyaspor vs İstanbul Başakşehir
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/tr-bein-sports-2/playlist.m3u8
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[DStv Premiership] Stellenbosch vs Golden Arrows (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="DStv Premiership",Stellenbosch vs Golden Arrows
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/za-supersport-psl/playlist.m3u8
+
+#EXTINF:-1 tvg-chno="6" tvg-id="Soccer.Dummy.us" tvg-name="[UEFA Champions League] Newcastle United vs Barcelona (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2.png" group-title="UEFA Champions League",Newcastle United vs Barcelona
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-tudn/playlist.m3u8
+
+#EXTINF:-1 tvg-chno="7" tvg-id="Soccer.Dummy.us" tvg-name="[Serie B] Bari 1908 vs Frosinone (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/99.png" group-title="Serie B",Bari 1908 vs Frosinone
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/il-sport-5-stars/playlist.m3u8
 
