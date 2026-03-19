@@ -3,7 +3,6 @@ import re
 import urllib.parse
 from functools import partial
 from urllib.parse import urljoin
-import os
 
 from selectolax.parser import HTMLParser
 
@@ -16,7 +15,6 @@ urls: dict[str, dict[str, str | float]] = {}
 TAG = "VOLOKIT"
 
 CACHE_FILE = Cache(TAG, exp=10_800)
-HTML_CACHE = Cache(f"{TAG}-html", exp=28_800)
 
 BASE_URL = "http://volokit.xyz"
 
@@ -94,7 +92,7 @@ def generate_tivimate_playlist(data: dict, output="ovo_tivimate.m3u8"):
 
 
 # =========================
-# UPDATER
+# SCRAPER
 # =========================
 
 def fix_event(s: str) -> str:
@@ -103,47 +101,43 @@ def fix_event(s: str) -> str:
 
 async def process_event(url: str, url_num: int):
     if not (res := await network.request(url, log=log)):
+        log.warning(f"URL {url_num}) Failed to load url.")
         return None
 
     soup = HTMLParser(res.content)
 
-    iframe = soup.css_first('iframe[height="100%"]')
-    if not iframe:
+    if not (iframe := soup.css_first('iframe[height="100%"]')):
+        log.warning(f"URL {url_num}) No iframe element found.")
         return None
 
-    src = iframe.attributes.get("src")
-    if not src:
+    if not (src := iframe.attributes.get("src")):
+        log.warning(f"URL {url_num}) No iframe source found.")
         return None
 
     iframe_data = await network.request(src, headers={"Referer": url}, log=log)
     if not iframe_data:
+        log.warning(f"URL {url_num}) Failed iframe load.")
         return None
 
-    pattern = re.compile(r'(var|const)\s+\w+\s*=\s*"([^"]+)"', re.I)
+    # WORKING REGEX
+    pattern = re.compile(r'source:\s+"([^"]*)"', re.I)
     match = pattern.search(iframe_data.text)
 
     if not match:
+        log.warning(f"URL {url_num}) No Clappr source found.")
         return None
 
     log.info(f"URL {url_num}) Captured M3U8")
-    return match.group(2)
+    return match[1]
 
 
 async def get_events():
-    now = Time.clean(Time.now())
-
-    log.info("Refreshing HTML cache")
-
     sport_urls = {
         sport: urljoin(BASE_URL, f"sport/{sport}")
         for sport in SPORT_ENDPOINTS
     }
 
-    tasks = [
-        network.request(url, log=log)
-        for url in sport_urls.values()
-    ]
-
+    tasks = [network.request(url, log=log) for url in sport_urls.values()]
     pages = await asyncio.gather(*tasks)
 
     events = []
@@ -182,7 +176,10 @@ async def get_events():
 async def scrape():
     cached_urls = CACHE_FILE.load() or {}
 
-    log.info(f"Loaded {len(cached_urls)} cached events")
+    valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
+    urls.update(valid_urls)
+
+    log.info(f"Loaded {len(valid_urls)} cached events")
 
     events = await get_events()
 
@@ -208,12 +205,11 @@ async def scrape():
             "sport": ev["sport"],
         }
 
-        urls[key] = entry
         cached_urls[key] = entry
+        urls[key] = entry  # CRITICAL
 
     CACHE_FILE.write(cached_urls)
 
-    # NON-EMPTY FILE
     clean = {k: v for k, v in urls.items() if v.get("url")}
 
     vlc = generate_vlc_playlist(clean)
