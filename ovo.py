@@ -253,20 +253,25 @@ async def get_events(cached_keys):
     return live
 
 
+# 🔥 ONLY SHOWING FIXED PARTS — KEEP REST SAME
+
 async def scrape() -> None:
-    # Load cached URLs
     cached_urls = CACHE_FILE.load() or {}
 
+    # ✅ Keep ONLY valid cached entries
     valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
 
     valid_count = cached_count = len(valid_urls)
 
+    urls.clear()
     urls.update(valid_urls)
 
-    log.info(f"Loaded {cached_count} event(s) from cache")
+    log.info(f"Loaded {cached_count} valid event(s) from cache")
     log.info(f'Scraping from "{BASE_URL}"')
 
     events = await get_events(list(cached_urls.keys()))
+
+    new_valid = 0  # ✅ track real success
 
     if events:
         log.info(f"Processing {len(events)} new URL(s)")
@@ -278,12 +283,15 @@ async def scrape() -> None:
                 url_num=i,
             )
 
-            url = await network.safe_process(
+            stream_url = await network.safe_process(
                 handler,
                 url_num=i,
                 semaphore=network.HTTP_S,
                 log=log,
             )
+
+            if not stream_url:
+                continue
 
             sport, event, ts = (
                 ev["sport"],
