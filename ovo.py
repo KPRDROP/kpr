@@ -120,7 +120,7 @@ async def process_event(url: str, url_num: int):
         return None
 
     # WORKING REGEX
-    pattern = re.compile(r'source:\s+"([^"]*)"', re.I)
+    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
     match = pattern.search(iframe_data.text)
 
     if not match:
