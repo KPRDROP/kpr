@@ -119,22 +119,33 @@ async def process_event(url: str, url_num: int):
         log.warning(f"URL {url_num}) Failed iframe load.")
         return None
 
-    # RESTORED ORIGINAL WORKING REGEX
-    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
-    match = pattern.search(iframe_data.text)
-
-    if not match:
-        log.warning(f"URL {url_num}) No Clappr source found.")
-        return None
-
-    # FIXED: Return the third capture group (index 3) which contains the actual URL
-    # match[1] = 'var' or 'const' (variable declaration)
-    # match[2] = variable name (e.g., 'source', 'link', 'url')
-    # match[3] = the actual M3U8 URL with token
-    captured_url = match.group(3)
+    # Try multiple patterns to find the M3U8 URL
+    patterns = [
+        re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I),  # var source = "url"
+        re.compile(r'source:\s*"([^"]*)"', re.I),  # source: "url"
+        re.compile(r'file:\s*"([^"]*)"', re.I),    # file: "url"
+        re.compile(r'url:\s*"([^"]*)"', re.I),     # url: "url"
+        re.compile(r'playlist\.m3u8[^"]*', re.I),  # Direct m3u8 with params
+    ]
     
-    log.info(f"URL {url_num}) Captured M3U8")
-    return captured_url
+    captured_url = None
+    
+    for pattern in patterns:
+        match = pattern.search(iframe_data.text)
+        if match:
+            if pattern == patterns[0]:  # var/const pattern has 3 groups
+                captured_url = match.group(3)
+            elif pattern in [patterns[1], patterns[2], patterns[3]]:  # source/file/url patterns
+                captured_url = match.group(1)
+            else:  # Direct m3u8 pattern
+                captured_url = match.group(0)
+            
+            if captured_url and ('m3u8' in captured_url or captured_url.startswith('http')):
+                log.info(f"URL {url_num}) Captured M3U8")
+                return captured_url
+
+    log.warning(f"URL {url_num}) No Clappr source found.")
+    return None
 
 
 async def get_events():
@@ -148,14 +159,18 @@ async def get_events():
 
     events = []
 
-    for sport, page in zip(SPORT_ENDPOINTS, pages):
+    for sport, page in zip(SPORT_ENDPOINTS.keys(), pages):
         if not page:
             continue
 
         soup = HTMLParser(page.content)
 
         for card in soup.css("#events .table .vevent.theevent"):
-            href = card.css_first("a").attributes.get("href")
+            link_elem = card.css_first("a")
+            if not link_elem:
+                continue
+                
+            href = link_elem.attributes.get("href")
             if not href:
                 continue
 
@@ -175,7 +190,7 @@ async def get_events():
                 "link": href,
             })
 
-    log.info(f"Processing {len(events)} events")
+    log.info(f"Found {len(events)} events to process")
     return events
 
 
@@ -184,16 +199,25 @@ async def get_events():
 # =========================
 
 async def scrape():
+    global urls
     cached_urls = CACHE_FILE.load() or {}
 
+    # Load valid cached URLs
     valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
     urls.update(valid_urls)
 
     log.info(f"Loaded {len(valid_urls)} cached events")
 
     events = await get_events()
+    new_events_count = 0
 
     for i, ev in enumerate(events, 1):
+        # Check if already in cache
+        key = f"[{ev['sport']}] {ev['event']} ({TAG})"
+        if key in urls and urls[key].get("url"):
+            log.debug(f"URL {i}) Already in cache: {key}")
+            continue
+
         url = await network.safe_process(
             partial(process_event, ev["link"], i),
             url_num=i,
@@ -204,8 +228,6 @@ async def scrape():
         if not url:
             continue
 
-        key = f"[{ev['sport']}] {ev['event']} ({TAG})"
-
         tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
         entry = {
@@ -215,18 +237,29 @@ async def scrape():
             "sport": ev["sport"],
         }
 
+        # Update both dictionaries
+        urls[key] = entry
         cached_urls[key] = entry
-        urls[key] = entry  # CRITICAL
+        new_events_count += 1
+        log.info(f"URL {i}) Added to playlist: {key}")
 
+    # Save cache
     CACHE_FILE.write(cached_urls)
 
-    clean = {k: v for k, v in urls.items() if v.get("url")}
-
-    vlc = generate_vlc_playlist(clean)
-    tiv = generate_tivimate_playlist(clean)
-
-    log.info(f"Final playlist size: {len(clean)} events")
-    log.info(f"Total written: {vlc + tiv}")
+    # Generate playlists from urls dictionary (which contains all events)
+    if urls:
+        clean = {k: v for k, v in urls.items() if v.get("url")}
+        log.info(f"Total events with URLs: {len(clean)}")
+        
+        if clean:
+            vlc = generate_vlc_playlist(clean)
+            tiv = generate_tivimate_playlist(clean)
+            log.info(f"Final playlist size: {len(clean)} events")
+            log.info(f"Total written: {vlc + tiv}")
+        else:
+            log.warning("No events with valid URLs found")
+    else:
+        log.warning("No events in urls dictionary")
 
 
 async def main():
