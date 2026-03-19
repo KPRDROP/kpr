@@ -119,7 +119,7 @@ async def process_event(url: str, url_num: int):
         log.warning(f"URL {url_num}) Failed iframe load.")
         return None
 
-    # ✅ RESTORED ORIGINAL WORKING REGEX
+    # RESTORED ORIGINAL WORKING REGEX
     pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
     match = pattern.search(iframe_data.text)
 
@@ -127,8 +127,14 @@ async def process_event(url: str, url_num: int):
         log.warning(f"URL {url_num}) No Clappr source found.")
         return None
 
+    # FIXED: Return the third capture group (index 3) which contains the actual URL
+    # match[1] = 'var' or 'const' (variable declaration)
+    # match[2] = variable name (e.g., 'source', 'link', 'url')
+    # match[3] = the actual M3U8 URL with token
+    captured_url = match.group(3)
+    
     log.info(f"URL {url_num}) Captured M3U8")
-    return match[1]
+    return captured_url
 
 
 async def get_events():
@@ -156,7 +162,11 @@ async def get_events():
             if not href.startswith("http"):
                 href = urljoin(BASE_URL, href)
 
-            name = card.css_first(".teamtd.event").text(strip=True)
+            name_node = card.css_first(".teamtd.event")
+            if not name_node:
+                continue
+                
+            name = name_node.text(strip=True)
             name = fix_event(name.replace("@", "vs"))
 
             events.append({
@@ -206,7 +216,7 @@ async def scrape():
         }
 
         cached_urls[key] = entry
-        urls[key] = entry  # ✅ CRITICAL
+        urls[key] = entry  # CRITICAL
 
     CACHE_FILE.write(cached_urls)
 
