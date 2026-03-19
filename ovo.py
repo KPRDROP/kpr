@@ -114,7 +114,7 @@ def generate_all_playlists(urls: dict):
 
 
 # =========================
-# SCRAPER LOGIC
+# UPDATER LOGIC
 # =========================
 
 def fix_event(s: str) -> str:
@@ -148,7 +148,10 @@ async def process_event(url: str, url_num: int) -> str | None:
 
     # Try multiple regex patterns to find the M3U8 URL
     patterns = [
-        pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
+        re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I),  # Original pattern
+        re.compile(r'source:\s+"([^"]*)"', re.I),  # Alternative pattern
+        re.compile(r'file:\s+"([^"]*)"', re.I),  # Another alternative
+        re.compile(r'url:\s+"([^"]*)"', re.I),  # Another alternative
     ]
     
     for pattern in patterns:
