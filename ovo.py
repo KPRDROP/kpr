@@ -106,11 +106,13 @@ async def process_event(url: str, url_num: int):
 
     soup = HTMLParser(res.content)
 
-    if not (iframe := soup.css_first('iframe[height="100%"]')):
+    iframe = soup.css_first('iframe[height="100%"]')
+    if not iframe:
         log.warning(f"URL {url_num}) No iframe element found.")
         return None
 
-    if not (src := iframe.attributes.get("src")):
+    src = iframe.attributes.get("src")
+    if not src:
         log.warning(f"URL {url_num}) No iframe source found.")
         return None
 
@@ -119,18 +121,34 @@ async def process_event(url: str, url_num: int):
         log.warning(f"URL {url_num}) Failed iframe load.")
         return None
 
-    # WORKING REGEX
-    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
-    match = pattern.search(iframe_data.text)
-    if not match:
-        return None
+    text = iframe_data.text
 
-    if not match:
-        log.warning(f"URL {url_num}) No Clappr source found.")
-        return None
+    # Clappr
+    m = re.search(r'source:\s*"([^"]+\.m3u8[^"]*)"', text, re.I)
+    if m:
+        log.info(f"URL {url_num}) Captured M3U8 (Clappr)")
+        return m.group(1)
 
-    log.info(f"URL {url_num}) Captured M3U8")
-    return match[1]
+    # JWPlayer
+    m = re.search(r'file:\s*"([^"]+\.m3u8[^"]*)"', text, re.I)
+    if m:
+        log.info(f"URL {url_num}) Captured M3U8 (JWPlayer)")
+        return m.group(1)
+
+    # hls.js
+    m = re.search(r'loadSource\(["\']([^"\']+\.m3u8[^"\']*)', text, re.I)
+    if m:
+        log.info(f"URL {url_num}) Captured M3U8 (hls.js)")
+        return m.group(1)
+
+    # direct fallback
+    m = re.search(r'(https?://[^\s"\']+\.m3u8[^\s"\']*)', text, re.I)
+    if m:
+        log.info(f"URL {url_num}) Captured M3U8 (fallback)")
+        return m.group(1)
+
+    log.warning(f"URL {url_num}) No M3U8 found.")
+    return None
 
 
 async def get_events():
@@ -208,7 +226,7 @@ async def scrape():
         }
 
         cached_urls[key] = entry
-        urls[key] = entry  # CRITICAL
+        urls[key] = entry
 
     CACHE_FILE.write(cached_urls)
 
