@@ -160,7 +160,7 @@ async def refresh_html_cache(url: str, sport: str, now: Time):
     if date_node := soup.css_first("tr.date"):
         date = date_node.text(strip=True).replace(",", "")
 
-    for card in soup.css("#events .table .vevent.theevent"):
+    for card in soup.css(".main-content #events .table .vevent.theevent"):
         if not (href := card.css_first("a").attributes.get("href")):
             continue
 
