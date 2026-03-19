@@ -92,7 +92,7 @@ def generate_tivimate_playlist(data: dict, output="ovo_tivimate.m3u8"):
 
 
 # =========================
-# SCRAPER
+# SCRAPER (FIXED)
 # =========================
 
 def fix_event(s: str) -> str:
@@ -106,13 +106,11 @@ async def process_event(url: str, url_num: int):
 
     soup = HTMLParser(res.content)
 
-    iframe = soup.css_first('iframe[height="100%"]')
-    if not iframe:
+    if not (iframe := soup.css_first('iframe[height="100%"]')):
         log.warning(f"URL {url_num}) No iframe element found.")
         return None
 
-    src = iframe.attributes.get("src")
-    if not src:
+    if not (src := iframe.attributes.get("src")):
         log.warning(f"URL {url_num}) No iframe source found.")
         return None
 
@@ -121,33 +119,16 @@ async def process_event(url: str, url_num: int):
         log.warning(f"URL {url_num}) Failed iframe load.")
         return None
 
-    text = iframe_data.text
+    # ✅ RESTORED ORIGINAL WORKING REGEX
+    pattern = re.compile(r'source:\s+"([^"]*)"', re.I)
+    match = pattern.search(iframe_data.text)
 
-    # CORRECTED PATTERN - Original working regex
-    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
+    if not match:
+        log.warning(f"URL {url_num}) No Clappr source found.")
+        return None
 
-    #1. Extract ALL JS variables
-    matches = re.findall(r'(?:var|const)\s+\w+\s*=\s*"([^"]+)"', text, re.I)
-
-    for val in matches:
-        if ".m3u8" in val:
-            log.info(f"URL {url_num}) Captured M3U8 (var)")
-            return val
-
-    #2. Clappr fallback
-    m = re.search(r'source:\s*"([^"]+\.m3u8[^"]*)"', text, re.I)
-    if m:
-        log.info(f"URL {url_num}) Captured M3U8 (Clappr)")
-        return m.group(1)
-
-    #3. direct fallback (LAST)
-    m = re.search(r'(https?://[^\s"\']+\.m3u8[^\s"\']*)', text, re.I)
-    if m:
-        log.info(f"URL {url_num}) Captured M3U8 (fallback)")
-        return m.group(1)
-
-    log.warning(f"URL {url_num}) No M3U8 found.")
-    return None
+    log.info(f"URL {url_num}) Captured M3U8")
+    return match[1]
 
 
 async def get_events():
@@ -225,7 +206,7 @@ async def scrape():
         }
 
         cached_urls[key] = entry
-        urls[key] = entry
+        urls[key] = entry  # ✅ CRITICAL
 
     CACHE_FILE.write(cached_urls)
 
