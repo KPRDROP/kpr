@@ -33,7 +33,6 @@ SPORT_ENDPOINTS = {
     "nhl": "NHL",
     "race": "RACE",
     "ufc": "UFC",
-    "wbc": "WBC",
 }
 
 
