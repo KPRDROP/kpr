@@ -123,30 +123,21 @@ async def process_event(url: str, url_num: int):
 
     text = iframe_data.text
 
-    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
-    match = pattern.search(iframe_data.text)
-    if not match:
-        return None
+    #1. Extract ALL JS variables
+    matches = re.findall(r'(?:var|const)\s+\w+\s*=\s*"([^"]+)"', text, re.I)
 
-    # Clappr
+    for val in matches:
+        if ".m3u8" in val:
+            log.info(f"URL {url_num}) Captured M3U8 (var)")
+            return val
+
+    #2. Clappr fallback
     m = re.search(r'source:\s*"([^"]+\.m3u8[^"]*)"', text, re.I)
     if m:
         log.info(f"URL {url_num}) Captured M3U8 (Clappr)")
         return m.group(1)
 
-    # JWPlayer
-    m = re.search(r'file:\s*"([^"]+\.m3u8[^"]*)"', text, re.I)
-    if m:
-        log.info(f"URL {url_num}) Captured M3U8 (JWPlayer)")
-        return m.group(1)
-
-    # hls.js
-    m = re.search(r'loadSource\(["\']([^"\']+\.m3u8[^"\']*)', text, re.I)
-    if m:
-        log.info(f"URL {url_num}) Captured M3U8 (hls.js)")
-        return m.group(1)
-
-    # direct fallback
+    #3. direct fallback (LAST)
     m = re.search(r'(https?://[^\s"\']+\.m3u8[^\s"\']*)', text, re.I)
     if m:
         log.info(f"URL {url_num}) Captured M3U8 (fallback)")
