@@ -122,6 +122,8 @@ async def process_event(url: str, url_num: int):
     # WORKING REGEX
     pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
     match = pattern.search(iframe_src_data.text)
+    if not match:
+        return None
 
     if not match:
         log.warning(f"URL {url_num}) No Clappr source found.")
