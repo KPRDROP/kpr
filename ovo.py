@@ -3,6 +3,7 @@ import re
 import urllib.parse
 from functools import partial
 from urllib.parse import urljoin
+import os
 
 from selectolax.parser import HTMLParser
 
@@ -53,6 +54,7 @@ def _format_extinf(key: str, entry: dict) -> str:
 
 def generate_vlc_playlist(urls: dict, output_file="ovo_vlc.m3u8"):
     lines = ["#EXTM3U"]
+    count = 0
 
     for key, entry in sorted(urls.items()):
         stream_url = entry.get("url")
@@ -65,15 +67,23 @@ def generate_vlc_playlist(urls: dict, output_file="ovo_vlc.m3u8"):
         lines.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
         lines.append(stream_url)
         lines.append("")
+        count += 1
 
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else '.', exist_ok=True)
+    
     with open(output_file, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
+    
+    if count > 0:
+        log.info(f"Generated {output_file} with {count} events")
+    return count
 
 
 def generate_tivimate_playlist(urls: dict, output_file="ovo_tivimate.m3u8"):
     encoded_ua = urllib.parse.quote(USER_AGENT, safe="")
-
     lines = ["#EXTM3U"]
+    count = 0
 
     for key, entry in sorted(urls.items()):
         stream_url = entry.get("url")
@@ -91,14 +101,25 @@ def generate_tivimate_playlist(urls: dict, output_file="ovo_tivimate.m3u8"):
 
         lines.append(header_string)
         lines.append("")
+        count += 1
 
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else '.', exist_ok=True)
+    
     with open(output_file, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
+    
+    if count > 0:
+        log.info(f"Generated {output_file} with {count} events")
+    return count
 
 
 def generate_all_playlists(urls: dict):
-    generate_vlc_playlist(urls)
-    generate_tivimate_playlist(urls)
+    vlc_count = generate_vlc_playlist(urls)
+    tivimate_count = generate_tivimate_playlist(urls)
+    total = vlc_count + tivimate_count
+    log.info(f"Generated playlists - VLC: {vlc_count} events, TiviMate: {tivimate_count} events")
+    return total
 
 
 # =========================
@@ -134,18 +155,17 @@ async def process_event(url: str, url_num: int) -> str | None:
         log.info(f"URL {url_num}) Failed to load iframe source.")
         return None
 
-    # REGEX: regex pattern
-    # corrected pattern: r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"'
+    # CORRECTED PATTERN - regex
     pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
 
     if not (match := pattern.search(iframe_src_data.text)):
         log.warning(f"URL {url_num}) No source found.")
         return None
 
+    captured_url = match.group(3)
     log.info(f"URL {url_num}) Captured M3U8")
-
-    # Return the captured URL (group 3 contains the URL)
-    return match.group(3)
+    
+    return captured_url
 
 
 async def refresh_html_cache(url: str, sport: str, now: Time):
@@ -177,7 +197,14 @@ async def refresh_html_cache(url: str, sport: str, now: Time):
         event_sport = SPORT_ENDPOINTS.get(sport, "Live Events")
         event_name = fix_event(name)
 
-        event_dt = Time.from_str(f"{date} {time}", timezone="UTC")
+        try:
+            event_dt = Time.from_str(f"{date} {time}", timezone="UTC")
+        except:
+            event_dt = now
+
+        # Ensure href is absolute URL
+        if not href.startswith('http'):
+            href = urljoin(BASE_URL, href)
 
         key = f"[{event_sport}] {event_name} ({TAG})"
 
@@ -215,18 +242,20 @@ async def get_events(cached_keys):
 
     live = []
 
-    # TIME FILTER — process everything not cached
+    # TIME FILTER — process everything
     for k, v in events.items():
         if k in cached_keys:
             continue
 
         live.append(v)
 
+    log.info(f"Found {len(live)} new events to process")
     return live
 
 
 async def scrape() -> None:
-    cached_urls = CACHE_FILE.load()
+    # Load cached URLs
+    cached_urls = CACHE_FILE.load() or {}
 
     valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
 
@@ -288,11 +317,27 @@ async def scrape() -> None:
     else:
         log.info("No new events found")
 
+    # Save updated cache
     CACHE_FILE.write(cached_urls)
 
-    # GENERATE PLAYLIST FILES
-    generate_all_playlists(cached_urls)
-    log.info("Generated ovo_vlc.m3u8 and ovo_tivimate.m3u8")
+    # GENERATE PLAYLIST FILES - Use cached_urls which contains all events
+    total_events = generate_all_playlists(cached_urls)
+    
+    # Verify files were created and have content
+    vlc_exists = os.path.exists("ovo_vlc.m3u8")
+    tivimate_exists = os.path.exists("ovo_tivimate.m3u8")
+    
+    if vlc_exists and tivimate_exists:
+        vlc_size = os.path.getsize("ovo_vlc.m3u8")
+        tivimate_size = os.path.getsize("ovo_tivimate.m3u8")
+        log.info(f"Output files created - VLC: {vlc_size} bytes, TiviMate: {tivimate_size} bytes")
+        
+        if total_events > 0:
+            log.info(f"Successfully created output files with {total_events} total events")
+        else:
+            log.warning("Output files created but contain 0 events")
+    else:
+        log.error(f"Failed to create output files - VLC exists: {vlc_exists}, TiviMate exists: {tivimate_exists}")
 
 
 async def main():
