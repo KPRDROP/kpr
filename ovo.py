@@ -3,6 +3,7 @@ import re
 import urllib.parse
 from functools import partial
 from urllib.parse import urljoin
+import os
 
 from selectolax.parser import HTMLParser
 
@@ -53,6 +54,7 @@ def _format_extinf(key: str, entry: dict) -> str:
 
 def generate_vlc_playlist(urls: dict, output_file="ovo_vlc.m3u8"):
     lines = ["#EXTM3U"]
+    count = 0
 
     for key, entry in sorted(urls.items()):
         stream_url = entry.get("url")
@@ -65,15 +67,19 @@ def generate_vlc_playlist(urls: dict, output_file="ovo_vlc.m3u8"):
         lines.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
         lines.append(stream_url)
         lines.append("")
+        count += 1
 
     with open(output_file, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
+    
+    log.info(f"Generated {output_file} with {count} events")
+    return count
 
 
 def generate_tivimate_playlist(urls: dict, output_file="ovo_tivimate.m3u8"):
     encoded_ua = urllib.parse.quote(USER_AGENT, safe="")
-
     lines = ["#EXTM3U"]
+    count = 0
 
     for key, entry in sorted(urls.items()):
         stream_url = entry.get("url")
@@ -91,14 +97,20 @@ def generate_tivimate_playlist(urls: dict, output_file="ovo_tivimate.m3u8"):
 
         lines.append(header_string)
         lines.append("")
+        count += 1
 
     with open(output_file, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
+    
+    log.info(f"Generated {output_file} with {count} events")
+    return count
 
 
 def generate_all_playlists(urls: dict):
-    generate_vlc_playlist(urls)
-    generate_tivimate_playlist(urls)
+    vlc_count = generate_vlc_playlist(urls)
+    tivimate_count = generate_tivimate_playlist(urls)
+    log.info(f"Generated playlists - VLC: {vlc_count} events, TiviMate: {tivimate_count} events")
+    return vlc_count + tivimate_count
 
 
 # =========================
@@ -134,18 +146,28 @@ async def process_event(url: str, url_num: int) -> str | None:
         log.info(f"URL {url_num}) Failed to load iframe source.")
         return None
 
-    # REGEX: regex pattern
-    # corrected pattern: r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"'
-    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
+    # multiple regex patterns
+    patterns = [
+        re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I),  # Original
+        re.compile(r'source:\s+"([^"]*)"', re.I),  # Alternative pattern
+        re.compile(r'file:\s+"([^"]*)"', re.I),  # Another alternative
+        re.compile(r'url:\s+"([^"]*)"', re.I),  # Another alternative
+    ]
+    
+    for pattern in patterns:
+        if match := pattern.search(iframe_src_data.text):
+            # Return the captured URL - group 1 for source/file/url patterns, group 3 for var/const pattern
+            if pattern == patterns[0]:  # var/const pattern
+                captured_url = match.group(3)
+            else:  # source/file/url patterns
+                captured_url = match.group(1)
+            
+            if captured_url and (captured_url.startswith('http') or captured_url.endswith('.m3u8')):
+                log.info(f"URL {url_num}) Captured M3U8")
+                return captured_url
 
-    if not (match := pattern.search(iframe_src_data.text)):
-        log.warning(f"URL {url_num}) No source found.")
-        return None
-
-    log.info(f"URL {url_num}) Captured M3U8")
-
-    # Return the captured URL (group 3 contains the URL)
-    return match.group(3)
+    log.warning(f"URL {url_num}) No source found.")
+    return None
 
 
 async def refresh_html_cache(url: str, sport: str, now: Time):
@@ -177,14 +199,17 @@ async def refresh_html_cache(url: str, sport: str, now: Time):
         event_sport = SPORT_ENDPOINTS.get(sport, "Live Events")
         event_name = fix_event(name)
 
-        event_dt = Time.from_str(f"{date} {time}", timezone="UTC")
+        try:
+            event_dt = Time.from_str(f"{date} {time}", timezone="UTC")
+        except:
+            event_dt = now
 
         key = f"[{event_sport}] {event_name} ({TAG})"
 
         events[key] = {
             "sport": event_sport,
             "event": event_name,
-            "link": href,
+            "link": urljoin(BASE_URL, href),
             "event_ts": event_dt.timestamp(),
             "timestamp": now.timestamp(),
         }
@@ -226,7 +251,7 @@ async def get_events(cached_keys):
 
 
 async def scrape() -> None:
-    cached_urls = CACHE_FILE.load()
+    cached_urls = CACHE_FILE.load() or {}
 
     valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
 
@@ -291,8 +316,13 @@ async def scrape() -> None:
     CACHE_FILE.write(cached_urls)
 
     # GENERATE PLAYLIST FILES
-    generate_all_playlists(cached_urls)
-    log.info("Generated ovo_vlc.m3u8 and ovo_tivimate.m3u8")
+    total_events = generate_all_playlists(cached_urls)
+    
+    # Verify files were created
+    if os.path.exists("ovo_vlc.m3u8") and os.path.exists("ovo_tivimate.m3u8"):
+        log.info(f"Successfully created output files with {total_events} total events")
+    else:
+        log.error("Failed to create output files")
 
 
 async def main():
