@@ -114,7 +114,7 @@ def generate_all_playlists(urls: dict):
 
 
 # =========================
-# UPDATER LOGIC
+# SCRAPER LOGIC
 # =========================
 
 def fix_event(s: str) -> str:
@@ -146,12 +146,9 @@ async def process_event(url: str, url_num: int) -> str | None:
         log.info(f"URL {url_num}) Failed to load iframe source.")
         return None
 
-    # multiple regex patterns
+    # Try multiple regex patterns to find the M3U8 URL
     patterns = [
-        re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I),  # Original
-        re.compile(r'source:\s+"([^"]*)"', re.I),  # Alternative pattern
-        re.compile(r'file:\s+"([^"]*)"', re.I),  # Another alternative
-        re.compile(r'url:\s+"([^"]*)"', re.I),  # Another alternative
+        pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
     ]
     
     for pattern in patterns:
@@ -240,7 +237,7 @@ async def get_events(cached_keys):
 
     live = []
 
-    # TIME FILTER — process everything not cached
+    # REMOVE TIME FILTER — process everything not cached
     for k, v in events.items():
         if k in cached_keys:
             continue
