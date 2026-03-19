@@ -123,6 +123,9 @@ async def process_event(url: str, url_num: int):
 
     text = iframe_data.text
 
+    # CORRECTED PATTERN - Original working regex
+    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
+
     #1. Extract ALL JS variables
     matches = re.findall(r'(?:var|const)\s+\w+\s*=\s*"([^"]+)"', text, re.I)
 
