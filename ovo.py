@@ -29,7 +29,6 @@ SPORT_ENDPOINTS = {
     "mlb": "MLB",
     "nba": "NBA",
     "mls": "MLS",
-    "nba": "NBA",
     "nhl": "NHL",
     "race": "RACE",
     "ufc": "UFC",
@@ -103,7 +102,7 @@ def generate_all_playlists(urls: dict):
 
 
 # =========================
-# SCRAPER LOGIC
+# UPDATER LOGIC
 # =========================
 
 def fix_event(s: str) -> str:
@@ -113,17 +112,17 @@ def fix_event(s: str) -> str:
 async def process_event(url: str, url_num: int) -> str | None:
     if not (event_data := await network.request(url, log=log)):
         log.info(f"URL {url_num}) Failed to load url.")
-        return
+        return None
 
     soup = HTMLParser(event_data.content)
 
     if not (iframe := soup.css_first('iframe[height="100%"]')):
         log.warning(f"URL {url_num}) No iframe element found.")
-        return
+        return None
 
     if not (iframe_src := iframe.attributes.get("src")):
         log.warning(f"URL {url_num}) No iframe source found.")
-        return
+        return None
 
     if not (
         iframe_src_data := await network.request(
@@ -133,17 +132,20 @@ async def process_event(url: str, url_num: int) -> str | None:
         )
     ):
         log.info(f"URL {url_num}) Failed to load iframe source.")
-        return
+        return None
 
-    pattern = re.compile(r'source:\s+"([^"]*)"', re.I)
+    # REGEX: regex pattern
+    # corrected pattern: r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"'
+    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
 
     if not (match := pattern.search(iframe_src_data.text)):
         log.warning(f"URL {url_num}) No source found.")
-        return
+        return None
 
     log.info(f"URL {url_num}) Captured M3U8")
 
-    return match[1]
+    # Return the captured URL (group 3 contains the URL)
+    return match.group(3)
 
 
 async def refresh_html_cache(url: str, sport: str, now: Time):
@@ -172,7 +174,7 @@ async def refresh_html_cache(url: str, sport: str, now: Time):
         name = name_node.text(strip=True).replace("@", "vs")
         time = time_node.text(strip=True)
 
-        event_sport = SPORT_ENDPOINTS[sport]
+        event_sport = SPORT_ENDPOINTS.get(sport, "Live Events")
         event_name = fix_event(name)
 
         event_dt = Time.from_str(f"{date} {time}", timezone="UTC")
@@ -213,7 +215,7 @@ async def get_events(cached_keys):
 
     live = []
 
-    # REMOVE TIME FILTER — process everything not cached
+    # TIME FILTER — process everything not cached
     for k, v in events.items():
         if k in cached_keys:
             continue
@@ -226,7 +228,7 @@ async def get_events(cached_keys):
 async def scrape() -> None:
     cached_urls = CACHE_FILE.load()
 
-    valid_urls = {k: v for k, v in cached_urls.items() if v["url"]}
+    valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
 
     valid_count = cached_count = len(valid_urls)
 
@@ -235,7 +237,7 @@ async def scrape() -> None:
     log.info(f"Loaded {cached_count} event(s) from cache")
     log.info(f'Scraping from "{BASE_URL}"')
 
-    events = await get_events(cached_urls.keys())
+    events = await get_events(list(cached_urls.keys()))
 
     if events:
         log.info(f"Processing {len(events)} new URL(s)")
@@ -279,6 +281,7 @@ async def scrape() -> None:
             if url:
                 valid_count += 1
                 urls[key] = entry
+                log.info(f"Successfully captured URL for: {key}")
 
     if new_count := valid_count - cached_count:
         log.info(f"Collected and cached {new_count} new event(s)")
@@ -291,5 +294,18 @@ async def scrape() -> None:
     generate_all_playlists(cached_urls)
     log.info("Generated ovo_vlc.m3u8 and ovo_tivimate.m3u8")
 
+
+async def main():
+    """Main function to run the scraper"""
+    log.info("Starting OVO scraper")
+    await scrape()
+    log.info("OVO scraper completed")
+
+
+def run():
+    """Synchronous entry point for the scraper"""
+    asyncio.run(main())
+
+
 if __name__ == "__main__":
-    asyncio.run(scrape())
+    run()
