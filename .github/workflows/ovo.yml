@@ -17,7 +17,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -26,68 +25,33 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
           pip install playwright httpx[http2] pytz selectolax
-          playwright install chromium
-          playwright install-deps
+          playwright install --with-deps chromium
 
       - name: Run updater
         run: python ovo.py
 
-      - name: Check for output files
-        id: check_files
-        run: |
-          if [ -f ovo_vlc.m3u8 ] && [ -f ovo_tivimate.m3u8 ]; then
-            echo "files_exist=true" >> $GITHUB_OUTPUT
-            echo "VLC file size: $(wc -c < ovo_vlc.m3u8) bytes"
-            echo "TiviMate file size: $(wc -c < ovo_tivimate.m3u8) bytes"
-            
-            # Check if files have content
-            VLC_COUNT=$(grep -c "#EXTINF" ovo_vlc.m3u8 || true)
-            TIVIMATE_COUNT=$(grep -c "#EXTINF" ovo_tivimate.m3u8 || true)
-            echo "VLC events: $VLC_COUNT"
-            echo "TiviMate events: $TIVIMATE_COUNT"
-            
-            if [ "$VLC_COUNT" -gt 0 ] || [ "$TIVIMATE_COUNT" -gt 0 ]; then
-              echo "has_content=true" >> $GITHUB_OUTPUT
-            else
-              echo "has_content=false" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "files_exist=false" >> $GITHUB_OUTPUT
-            echo "Output files not found"
-          fi
-
       - name: Commit and push if changed
-        if: steps.check_files.outputs.files_exist == 'true' && steps.check_files.outputs.has_content == 'true'
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          
-          # Add files
+
           git add ovo_vlc.m3u8 ovo_tivimate.m3u8
-          
-          # Check if there are actual changes to commit
+
           if git diff --cached --quiet; then
-            echo "No changes to commit"
+            echo "No changes detected"
             exit 0
           fi
-          
-          # Commit with timestamp
-          git commit -m "Auto update OVO playlist - $(date +'%Y-%m-%d %H:%M:%S')"
-          
-          # Pull with rebase to avoid conflicts, then push
-          git pull --rebase origin main
-          git push origin main
-          
-          echo "Successfully committed and pushed changes"
 
-      - name: Debug - List files
-        if: always()
-        run: |
-          echo "Current directory contents:"
-          ls -la
-          echo "Playlist files:"
-          ls -la *.m3u8 2>/dev/null || echo "No playlist files found"
-          echo "Content of VLC playlist (first 10 lines):"
-          head -10 ovo_vlc.m3u8 2>/dev/null || echo "Cannot read VLC file"
+          git commit -m "Auto update OVO playlist"
+
+          # FIX: stash before rebase
+          if ! git push origin main; then
+            echo "Push rejected — rebasing safely..."
+            git stash
+            git pull --rebase origin main
+            git stash pop
+            git add ovo_vlc.m3u8 ovo_tivimate.m3u8
+            git commit -m "Auto update OVO playlist (rebased)" || true
+            git push origin main
+          fi
