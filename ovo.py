@@ -41,14 +41,10 @@ SPORT_ENDPOINTS = {
 # =========================
 
 def _format_extinf(key: str, entry: dict) -> str:
-    tvg_id = entry.get("id", "")
-    logo = entry.get("logo", "")
-    group = entry.get("sport", "Live")
-
     return (
-        f'#EXTINF:-1 tvg-id="{tvg_id}" '
-        f'tvg-logo="{logo}" '
-        f'group-title="{group}",{key}'
+        f'#EXTINF:-1 tvg-id="{entry.get("id","")}" '
+        f'tvg-logo="{entry.get("logo","")}" '
+        f'group-title="{entry.get("sport","Live")}",{key}'
     )
 
 
@@ -69,14 +65,10 @@ def generate_vlc_playlist(urls: dict, output_file="ovo_vlc.m3u8"):
         lines.append("")
         count += 1
 
-    # Ensure directory exists
-    os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else '.', exist_ok=True)
-    
     with open(output_file, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
-    
-    if count > 0:
-        log.info(f"Generated {output_file} with {count} events")
+
+    log.info(f"Generated {output_file} with {count} events")
     return count
 
 
@@ -92,38 +84,27 @@ def generate_tivimate_playlist(urls: dict, output_file="ovo_tivimate.m3u8"):
 
         lines.append(_format_extinf(key, entry))
 
-        header_string = (
-            f"{stream_url}|"
-            f"referer={BASE_URL}/&"
-            f"origin={BASE_URL}&"
-            f"user-agent={encoded_ua}"
+        lines.append(
+            f"{stream_url}|referer={BASE_URL}/&origin={BASE_URL}&user-agent={encoded_ua}"
         )
-
-        lines.append(header_string)
         lines.append("")
         count += 1
 
-    # Ensure directory exists
-    os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else '.', exist_ok=True)
-    
     with open(output_file, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
-    
-    if count > 0:
-        log.info(f"Generated {output_file} with {count} events")
+
+    log.info(f"Generated {output_file} with {count} events")
     return count
 
 
-def generate_all_playlists(urls: dict):
-    vlc_count = generate_vlc_playlist(urls)
-    tivimate_count = generate_tivimate_playlist(urls)
-    total = vlc_count + tivimate_count
-    log.info(f"Generated playlists - VLC: {vlc_count} events, TiviMate: {tivimate_count} events")
-    return total
+def generate_all_playlists():
+    vlc = generate_vlc_playlist(urls)
+    tiv = generate_tivimate_playlist(urls)
+    return vlc + tiv
 
 
 # =========================
-# UPDATER LOGIC
+# CORE
 # =========================
 
 def fix_event(s: str) -> str:
@@ -132,231 +113,112 @@ def fix_event(s: str) -> str:
 
 async def process_event(url: str, url_num: int) -> str | None:
     if not (event_data := await network.request(url, log=log)):
-        log.info(f"URL {url_num}) Failed to load url.")
         return None
 
     soup = HTMLParser(event_data.content)
 
-    if not (iframe := soup.css_first('iframe[height="100%"]')):
-        log.warning(f"URL {url_num}) No iframe element found.")
+    iframe = soup.css_first('iframe[height="100%"]')
+    if not iframe:
         return None
 
-    if not (iframe_src := iframe.attributes.get("src")):
-        log.warning(f"URL {url_num}) No iframe source found.")
+    iframe_src = iframe.attributes.get("src")
+    if not iframe_src:
         return None
 
-    if not (
-        iframe_src_data := await network.request(
-            iframe_src,
-            headers={"Referer": url},
-            log=log,
-        )
-    ):
-        log.info(f"URL {url_num}) Failed to load iframe source.")
+    iframe_src_data = await network.request(
+        iframe_src,
+        headers={"Referer": url},
+        log=log,
+    )
+    if not iframe_src_data:
         return None
 
-    # CORRECTED PATTERN - regex
-    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
+    pattern = re.compile(r'(https?://[^"\']+\.m3u8[^"\']*)', re.I)
 
-    if not (match := pattern.search(iframe_src_data.text)):
-        log.warning(f"URL {url_num}) No source found.")
+    match = pattern.search(iframe_src_data.text)
+    if not match:
         return None
 
-    captured_url = match.group(3)
     log.info(f"URL {url_num}) Captured M3U8")
-    
-    return captured_url
+    return match.group(1)
 
 
-async def refresh_html_cache(url: str, sport: str, now: Time):
-    events = {}
-
-    if not (html_data := await network.request(url, log=log)):
-        return events
-
-    soup = HTMLParser(html_data.content)
-
-    date = now.date()
-
-    if date_node := soup.css_first("tr.date"):
-        date = date_node.text(strip=True).replace(",", "")
-
-    for card in soup.css("#events .table .vevent.theevent"):
-        if not (href := card.css_first("a").attributes.get("href")):
-            continue
-
-        name_node = card.css_first(".teamtd.event")
-        time_node = card.css_first(".time")
-
-        if not (name_node and time_node):
-            continue
-
-        name = name_node.text(strip=True).replace("@", "vs")
-        time = time_node.text(strip=True)
-
-        event_sport = SPORT_ENDPOINTS.get(sport, "Live Events")
-        event_name = fix_event(name)
-
-        try:
-            event_dt = Time.from_str(f"{date} {time}", timezone="UTC")
-        except:
-            event_dt = now
-
-        # Ensure href is absolute URL
-        if not href.startswith('http'):
-            href = urljoin(BASE_URL, href)
-
-        key = f"[{event_sport}] {event_name} ({TAG})"
-
-        events[key] = {
-            "sport": event_sport,
-            "event": event_name,
-            "link": href,
-            "event_ts": event_dt.timestamp(),
-            "timestamp": now.timestamp(),
-        }
-
-    return events
-
-
-async def get_events(cached_keys):
-    now = Time.clean(Time.now())
-
-    if not (events := HTML_CACHE.load()):
-        log.info("Refreshing HTML cache")
-
-        sport_urls = {
-            sport: urljoin(BASE_URL, f"sport/{sport}")
-            for sport in SPORT_ENDPOINTS
-        }
-
-        tasks = [
-            refresh_html_cache(url, sport, now)
-            for sport, url in sport_urls.items()
-        ]
-
-        results = await asyncio.gather(*tasks)
-        events = {k: v for data in results for k, v in data.items()}
-
-        HTML_CACHE.write(events)
-
-    live = []
-
-    # TIME FILTER — process everything
-    for k, v in events.items():
-        if k in cached_keys:
-            continue
-
-        live.append(v)
-
-    log.info(f"Found {len(live)} new events to process")
-    return live
-
-
-# 🔥 ONLY SHOWING FIXED PARTS — KEEP REST SAME
-
-async def scrape() -> None:
+async def scrape():
     cached_urls = CACHE_FILE.load() or {}
 
-    # ✅ Keep ONLY valid cached entries
-    valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
+    log.info(f"Loaded {len(cached_urls)} cached events")
 
-    valid_count = cached_count = len(valid_urls)
+    now = Time.clean(Time.now())
 
-    urls.clear()
-    urls.update(valid_urls)
+    sport_urls = {
+        sport: urljoin(BASE_URL, f"sport/{sport}")
+        for sport in SPORT_ENDPOINTS
+    }
 
-    log.info(f"Loaded {cached_count} valid event(s) from cache")
-    log.info(f'Scraping from "{BASE_URL}"')
+    tasks = []
+    for sport, url in sport_urls.items():
+        tasks.append(network.request(url, log=log))
 
-    events = await get_events(list(cached_urls.keys()))
+    pages = await asyncio.gather(*tasks)
 
-    new_valid = 0  # ✅ track real success
+    events = []
 
-    if events:
-        log.info(f"Processing {len(events)} new URL(s)")
+    for sport, page in zip(SPORT_ENDPOINTS, pages):
+        if not page:
+            continue
 
-        for i, ev in enumerate(events, start=1):
-            handler = partial(
-                process_event,
-                url=(link := ev["link"]),
-                url_num=i,
-            )
+        soup = HTMLParser(page.content)
 
-            stream_url = await network.safe_process(
-                handler,
-                url_num=i,
-                semaphore=network.HTTP_S,
-                log=log,
-            )
-
-            if not stream_url:
+        for card in soup.css("#events .table .vevent.theevent"):
+            href = card.css_first("a").attributes.get("href")
+            if not href:
                 continue
 
-            sport, event, ts = (
-                ev["sport"],
-                ev["event"],
-                ev["event_ts"],
-            )
+            if not href.startswith("http"):
+                href = urljoin(BASE_URL, href)
 
-            key = f"[{sport}] {event} ({TAG})"
+            name = card.css_first(".teamtd.event").text(strip=True)
+            name = fix_event(name.replace("@", "vs"))
 
-            tvg_id, logo = leagues.get_tvg_info(sport, event)
+            sport_name = SPORT_ENDPOINTS[sport]
 
-            entry = {
-                "url": url,
-                "logo": logo,
-                "base": link,
-                "timestamp": ts,
-                "id": tvg_id or "Live.Event.us",
-                "link": link,
-                "sport": sport,
-            }
+            events.append((sport_name, name, href))
 
-            cached_urls[key] = entry
+    log.info(f"Processing {len(events)} events")
 
-            if url:
-                valid_count += 1
-                urls[key] = entry
-                log.info(f"Successfully captured URL for: {key}")
+    for i, (sport, name, link) in enumerate(events, 1):
+        url = await process_event(link, i)
 
-    if new_count := valid_count - cached_count:
-        log.info(f"Collected and cached {new_count} new event(s)")
-    else:
-        log.info("No new events found")
+        if not url:
+            continue  # skip invalid
 
-    # Save updated cache
+        key = f"[{sport}] {name} ({TAG})"
+
+        tvg_id, logo = leagues.get_tvg_info(sport, name)
+
+        entry = {
+            "url": url,
+            "logo": logo,
+            "id": tvg_id or "Live.Event",
+            "sport": sport,
+        }
+
+        urls[key] = entry
+        cached_urls[key] = entry
+
     CACHE_FILE.write(cached_urls)
 
-    # GENERATE PLAYLIST FILES - Use cached_urls which contains all events
-    total_events = generate_all_playlists(cached_urls)
-    
-    # Verify files were created and have content
-    vlc_exists = os.path.exists("ovo_vlc.m3u8")
-    tivimate_exists = os.path.exists("ovo_tivimate.m3u8")
-    
-    if vlc_exists and tivimate_exists:
-        vlc_size = os.path.getsize("ovo_vlc.m3u8")
-        tivimate_size = os.path.getsize("ovo_tivimate.m3u8")
-        log.info(f"Output files created - VLC: {vlc_size} bytes, TiviMate: {tivimate_size} bytes")
-        
-        if total_events > 0:
-            log.info(f"Successfully created output files with {total_events} total events")
-        else:
-            log.warning("Output files created but contain 0 events")
-    else:
-        log.error(f"Failed to create output files - VLC exists: {vlc_exists}, TiviMate exists: {tivimate_exists}")
+    total = generate_all_playlists()
+
+    log.info(f"Final playlist size: {len(urls)} events")
+    log.info(f"Total written: {total}")
 
 
 async def main():
-    """Main function to run the scraper"""
-    log.info("Starting OVO scraper")
     await scrape()
-    log.info("OVO scraper completed")
 
 
 def run():
-    """Synchronous entry point for the scraper"""
     asyncio.run(main())
 
 
