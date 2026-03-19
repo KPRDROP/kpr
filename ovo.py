@@ -123,6 +123,11 @@ async def process_event(url: str, url_num: int):
 
     text = iframe_data.text
 
+    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
+    match = pattern.search(iframe_data.text)
+    if not match:
+        return None
+
     # Clappr
     m = re.search(r'source:\s*"([^"]+\.m3u8[^"]*)"', text, re.I)
     if m:
