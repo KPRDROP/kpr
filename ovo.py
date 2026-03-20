@@ -119,14 +119,16 @@ async def process_event(url: str, url_num: int):
         log.warning(f"URL {url_num}) Failed iframe load.")
         return None
 
-    # WORKING REGEX
-    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
+    # ✅ RESTORED ORIGINAL WORKING REGEX
+    pattern = re.compile(r'source:\s+"([^"]*)"', re.I)
     match = pattern.search(iframe_data.text)
-    
-    captured_url = None
-    
-    log.warning(f"URL {url_num}) No Clappr source found.")
-    return None
+
+    if not match:
+        log.warning(f"URL {url_num}) No Clappr source found.")
+        return None
+
+    log.info(f"URL {url_num}) Captured M3U8")
+    return match[1]
 
 
 async def get_events():
@@ -140,29 +142,21 @@ async def get_events():
 
     events = []
 
-    for sport, page in zip(SPORT_ENDPOINTS.keys(), pages):
+    for sport, page in zip(SPORT_ENDPOINTS, pages):
         if not page:
             continue
 
         soup = HTMLParser(page.content)
 
         for card in soup.css("#events .table .vevent.theevent"):
-            link_elem = card.css_first("a")
-            if not link_elem:
-                continue
-                
-            href = link_elem.attributes.get("href")
+            href = card.css_first("a").attributes.get("href")
             if not href:
                 continue
 
             if not href.startswith("http"):
                 href = urljoin(BASE_URL, href)
 
-            name_node = card.css_first(".teamtd.event")
-            if not name_node:
-                continue
-                
-            name = name_node.text(strip=True)
+            name = card.css_first(".teamtd.event").text(strip=True)
             name = fix_event(name.replace("@", "vs"))
 
             events.append({
@@ -171,7 +165,7 @@ async def get_events():
                 "link": href,
             })
 
-    log.info(f"Found {len(events)} events to process")
+    log.info(f"Processing {len(events)} events")
     return events
 
 
@@ -180,25 +174,16 @@ async def get_events():
 # =========================
 
 async def scrape():
-    global urls
     cached_urls = CACHE_FILE.load() or {}
 
-    # Load valid cached URLs
     valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
     urls.update(valid_urls)
 
     log.info(f"Loaded {len(valid_urls)} cached events")
 
     events = await get_events()
-    new_events_count = 0
 
     for i, ev in enumerate(events, 1):
-        # Check if already in cache
-        key = f"[{ev['sport']}] {ev['event']} ({TAG})"
-        if key in urls and urls[key].get("url"):
-            log.debug(f"URL {i}) Already in cache: {key}")
-            continue
-
         url = await network.safe_process(
             partial(process_event, ev["link"], i),
             url_num=i,
@@ -209,6 +194,8 @@ async def scrape():
         if not url:
             continue
 
+        key = f"[{ev['sport']}] {ev['event']} ({TAG})"
+
         tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
         entry = {
@@ -218,29 +205,18 @@ async def scrape():
             "sport": ev["sport"],
         }
 
-        # Update both dictionaries
-        urls[key] = entry
         cached_urls[key] = entry
-        new_events_count += 1
-        log.info(f"URL {i}) Added to playlist: {key}")
+        urls[key] = entry  # ✅ CRITICAL
 
-    # Save cache
     CACHE_FILE.write(cached_urls)
 
-    # Generate playlists from urls dictionary (which contains all events)
-    if urls:
-        clean = {k: v for k, v in urls.items() if v.get("url")}
-        log.info(f"Total events with URLs: {len(clean)}")
-        
-        if clean:
-            vlc = generate_vlc_playlist(clean)
-            tiv = generate_tivimate_playlist(clean)
-            log.info(f"Final playlist size: {len(clean)} events")
-            log.info(f"Total written: {vlc + tiv}")
-        else:
-            log.warning("No events with valid URLs found")
-    else:
-        log.warning("No events in urls dictionary")
+    clean = {k: v for k, v in urls.items() if v.get("url")}
+
+    vlc = generate_vlc_playlist(clean)
+    tiv = generate_tivimate_playlist(clean)
+
+    log.info(f"Final playlist size: {len(clean)} events")
+    log.info(f"Total written: {vlc + tiv}")
 
 
 async def main():
