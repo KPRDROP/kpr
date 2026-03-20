@@ -119,14 +119,9 @@ async def process_event(url: str, url_num: int):
         log.warning(f"URL {url_num}) Failed iframe load.")
         return None
 
-    # Try multiple patterns to find the M3U8 URL
-    patterns = [
-        re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I),
-        re.compile(r'source:\s*"([^"]*)"', re.I),  # source: "url"
-        re.compile(r'file:\s*"([^"]*)"', re.I),    # file: "url"
-        re.compile(r'url:\s*"([^"]*)"', re.I),     # url: "url"
-        re.compile(r'playlist\.m3u8[^"]*', re.I),  # Direct m3u8 with params
-    ]
+    # WORKING REGEX
+    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
+    match = pattern.search(iframe_data.text)
     
     captured_url = None
     
