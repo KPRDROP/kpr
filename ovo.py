@@ -7,6 +7,7 @@ import asyncio
 import re
 import base64
 import urllib.parse
+import json
 from functools import partial
 from urllib.parse import urljoin
 
@@ -100,323 +101,210 @@ def generate_tivimate_playlist(data: dict, output="ovo_tivimate.m3u8"):
 # =========================
 # M3U8 EXTRACTOR PATTERNS
 # =========================
-def decode_obfuscated_string(encoded_str: str) -> str:
-    """Decode obfuscated strings found in volokit embeds"""
-    try:
-        # Try base64 decode
-        padding = 4 - (len(encoded_str) % 4)
-        if padding != 4:
-            encoded_str += '=' * padding
-        decoded = base64.b64decode(encoded_str).decode('utf-8')
-        return decoded
-    except:
-        pass
-    
-    # Try to reverse string (common obfuscation)
-    try:
-        if encoded_str.endswith('z') and len(encoded_str) > 10:
-            # Reverse the string
-            reversed_str = encoded_str[::-1]
-            # Check if it looks like a URL
-            if 'http' in reversed_str or '.m3u8' in reversed_str:
-                return reversed_str
-    except:
-        pass
-    
-    return None
 
-
-def extract_m3u8_from_obfuscated_js(content: str, logger) -> str:
-    """Extract M3U8 from obfuscated JavaScript"""
+def extract_m3u8_from_string(text: str, base_url: str = None) -> str:
+    """Extract M3U8 URL from text using multiple patterns"""
     
-    # Look for pattern where variables are defined with obfuscated strings
-    var_patterns = [
-        r'(?:var|const|let)\s+(\w+)\s*=\s*["\']([^"\']+)["\']',
-        r'(\w+)\s*=\s*["\']([^"\']+)["\']',
-    ]
+    # Clean up the text
+    text = text.replace('\\', '')
     
-    variables = {}
-    for pattern in var_patterns:
-        matches = re.findall(pattern, content)
-        for var_name, var_value in matches:
-            variables[var_name] = var_value
-    
-    # Look for concatenation patterns
-    concat_pattern = r'(\w+)\s*\+\s*(\w+)'
-    matches = re.findall(concat_pattern, content)
-    
-    for var1, var2 in matches:
-        if var1 in variables and var2 in variables:
-            combined = variables[var1] + variables[var2]
-            if '.m3u8' in combined:
-                logger.debug(f"[M3U8] Concatenated: {combined}")
-                return combined
-    
-    # Look for split/join patterns
-    split_pattern = r'split\(["\']([^"\']+)["\']\)\.join\(["\']([^"\']*)["\']\)'
-    matches = re.findall(split_pattern, content)
-    for separator, joiner in matches:
-        # Find array definition
-        array_pattern = r'=\s*\[([^\]]+)\]'
-        array_matches = re.findall(array_pattern, content)
-        for array_content in array_matches:
-            parts = [p.strip().strip('"\'') for p in array_content.split(',')]
-            if len(parts) > 1:
-                joined = joiner.join(parts)
-                if '.m3u8' in joined:
-                    logger.debug(f"[M3U8] Split/Join: {joined}")
-                    return joined
-    
-    # Look for string manipulation
-    manip_patterns = [
-        r'(\w+)\s*=\s*(\w+)\.split\(["\']([^"\']+)["\']\)\.reverse\(\)\.join\(["\']([^"\']*)["\']\)',
-        r'(\w+)\s*=\s*(\w+)\.split\(["\']([^"\']+)["\']\)\.reduce\([^\)]+\)',
-    ]
-    
-    for pattern in manip_patterns:
-        matches = re.findall(pattern, content)
-        for match in matches:
-            logger.debug(f"[M3U8] Found manipulation pattern: {match}")
-    
-    return None
-
-
-def extract_m3u8(content: str, embed_url: str, get_page, logger):
-    """Extract M3U8 URL from embed page content"""
-    if not content:
-        return None
-
-    logger.debug(f"[DEBUG] Analyzing embed content length: {len(content)}")
-    
-    # -------------------------
-    # 1. Look for direct M3U8 URLs (including relative paths)
-    # -------------------------
-    m3u8_patterns = [
+    # Pattern 1: Direct full M3U8 URLs with port and parameters
+    patterns = [
+        # Full URL with port and parameters
+        r'(https?://[^\s"\']+:\d+/[^\s"\']+\.m3u8[^\s"\']*)',
+        # Full URL without port
         r'(https?://[^\s"\']+\.m3u8[^\s"\']*)',
-        r'(https?://[^\s"\']+\.m3u8(?:\?[^\s"\']*)?)',
-        r'(https?://[^\s"\']+stream[^\s"\']*\.m3u8[^\s"\']*)',
-        r'(https?://[^\s"\']+playlist[^\s"\']*\.m3u8[^\s"\']*)',
-        r'([/\.][^\s"\']*\.m3u8[^\s"\']*)',  # Relative paths
-        r'(/hls/[^\s"\']+\.m3u8[^\s"\']*)',  # Common hls path
-    ]
-
-    for pattern in m3u8_patterns:
-        matches = re.findall(pattern, content, re.IGNORECASE)
-        for m in matches:
-            if '.m3u8' in m:
-                # Make absolute URL if relative
-                if not m.startswith('http'):
-                    parsed = urllib.parse.urlparse(embed_url)
-                    base_url = f"{parsed.scheme}://{parsed.netloc}"
-                    m = urllib.parse.urljoin(base_url, m)
-                logger.debug(f"[M3U8] Direct: {m}")
-                return m
-
-    # -------------------------
-    # 2. Look for fetch.php and similar endpoints
-    # -------------------------
-    fetch_patterns = [
-        r'fetch\.php\?([^"\']+)',
-        r'source\.php\?([^"\']+)',
-        r'stream\.php\?([^"\']+)',
+        # Full URL with stream path
+        r'(https?://[^\s"\']+/hls/[^\s"\']+\.m3u8[^\s"\']*)',
+        # Full URL with playlist path
+        r'(https?://[^\s"\']+/playlist[^\s"\']*\.m3u8[^\s"\']*)',
+        # URL with md5 and expires parameters
+        r'(https?://[^\s"\']+\.m3u8\?md5=[^&\s"\']+&expires=\d+[^\s"\']*)',
     ]
     
-    for fetch_pattern in fetch_patterns:
-        matches = re.findall(fetch_pattern, content)
+    for pattern in patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
         for match in matches:
-            if 'hd=' in match or 'id=' in match or 'ch=' in match:
-                parsed = urllib.parse.urlparse(embed_url)
-                base_url = f"{parsed.scheme}://{parsed.netloc}"
-                new_url = f"{base_url}/source/fetch.php?{match}"
-                logger.debug(f"[FETCH] Trying: {new_url}")
-                
-                stream_content = get_page(new_url)
-                if stream_content:
-                    for pattern in m3u8_patterns:
-                        stream_matches = re.findall(pattern, stream_content, re.IGNORECASE)
-                        for sm in stream_matches:
-                            if '.m3u8' in sm:
-                                if not sm.startswith('http'):
-                                    sm = urllib.parse.urljoin(base_url, sm)
-                                logger.debug(f"[M3U8] Fetch: {sm}")
-                                return sm
-
-    # -------------------------
-    # 3. Extract from obfuscated JavaScript
-    # -------------------------
-    js_blocks = re.findall(r'<script[^>]*>([\s\S]*?)</script>', content, re.IGNORECASE)
-    for js_block in js_blocks:
-        # Look for .m3u8 in the JS
-        if '.m3u8' in js_block:
-            # Try to find URL patterns
-            url_patterns = [
-                r'["\']([^"\']+\.m3u8[^"\']*)["\']',
-                r'https?://[^\s"\']+\.m3u8[^\s"\']*',
-            ]
-            for pattern in url_patterns:
-                matches = re.findall(pattern, js_block, re.IGNORECASE)
-                for match in matches:
-                    if '.m3u8' in match:
-                        if not match.startswith('http'):
-                            parsed = urllib.parse.urlparse(embed_url)
-                            base_url = f"{parsed.scheme}://{parsed.netloc}"
-                            match = urllib.parse.urljoin(base_url, match)
-                        logger.debug(f"[M3U8] From script: {match}")
-                        return match
-        
-        # Try to decode obfuscated strings
-        obfuscated_match = extract_m3u8_from_obfuscated_js(js_block, logger)
-        if obfuscated_match and '.m3u8' in obfuscated_match:
-            if not obfuscated_match.startswith('http'):
-                parsed = urllib.parse.urlparse(embed_url)
-                base_url = f"{parsed.scheme}://{parsed.netloc}"
-                obfuscated_match = urllib.parse.urljoin(base_url, obfuscated_match)
-            logger.debug(f"[M3U8] From obfuscated JS: {obfuscated_match}")
-            return obfuscated_match
-
-    # -------------------------
-    # 4. Look for HLS.js initialization
-    # -------------------------
-    hls_patterns = [
-        r'loadSource\(["\']([^"\']+\.m3u8[^"\']*)["\']',
-        r'videojs\([^)]*\)\.src\(["\']([^"\']+\.m3u8[^"\']*)["\']',
-        r'player\.load\(["\']([^"\']+\.m3u8[^"\']*)["\']',
-        r'plyr\.setup\([^)]*source[^)]*["\']([^"\']+\.m3u8[^"\']*)["\']',
-        r'new\s+Hls\([^)]*\)[^;]*loadSource\(["\']([^"\']+\.m3u8[^"\']*)["\']',
-    ]
-
-    for pattern in hls_patterns:
-        matches = re.findall(pattern, content, re.IGNORECASE)
-        for m in matches:
-            if '.m3u8' in m:
-                if not m.startswith('http'):
-                    parsed = urllib.parse.urlparse(embed_url)
-                    base_url = f"{parsed.scheme}://{parsed.netloc}"
-                    m = urllib.parse.urljoin(base_url, m)
-                logger.debug(f"[M3U8] HLS: {m}")
-                return m
-
-    # -------------------------
-    # 5. Look for base64 encoded data
-    # -------------------------
-    b64_patterns = [
-        r'atob\(["\']([^"\']+)["\']\)',
-        r'Base64\.decode\(["\']([^"\']+)["\']\)',
-        r'decodeURIComponent\(["\']([^"\']+)["\']\)',
-        r'btoa\(["\']([^"\']+)["\']\)',
-    ]
-
-    for pattern in b64_patterns:
-        matches = re.findall(pattern, content)
-        for match in matches:
-            decoded = decode_obfuscated_string(match)
-            if decoded and '.m3u8' in decoded:
-                logger.debug(f"[M3U8] Base64 decoded: {decoded}")
-                if not decoded.startswith('http'):
-                    parsed = urllib.parse.urlparse(embed_url)
-                    base_url = f"{parsed.scheme}://{parsed.netloc}"
-                    decoded = urllib.parse.urljoin(base_url, decoded)
-                return decoded
-
-    # -------------------------
-    # 6. Look for any URL that might be a stream
-    # -------------------------
-    generic_patterns = [
-        r'(https?://[^\s"\']+stream[^\s"\']+)',
-        r'(https?://[^\s"\']+play[^\s"\']+)',
-        r'(https?://[^\s"\']+watch[^\s"\']+)',
-        r'(https?://[^\s"\']+video[^\s"\']+)',
-    ]
-    
-    for pattern in generic_patterns:
-        matches = re.findall(pattern, content, re.IGNORECASE)
-        for match in matches:
-            if '.m3u8' in match or 'stream' in match:
-                logger.debug(f"[M3U8] Generic URL: {match}")
+            # Filter out wikisport URLs (they are just redirects)
+            if 'wikisport.club' not in match and 'stream.m3u8?ch=spn' not in match:
+                log.debug(f"[M3U8] Found: {match}")
                 return match
-
+    
+    # Pattern 2: Look for JavaScript variables containing M3U8
+    js_patterns = [
+        r'(?:var|const|let)\s+(?:url|src|source|stream|file|video|hls|m3u8)\s*=\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
+        r'(?:source|file|src|video)\s*:\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
+        r'playlist\s*:\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
+        r'loadSource\(["\']([^"\']+\.m3u8[^"\']*)["\']',
+        r'src\s*:\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
+    ]
+    
+    for pattern in js_patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        for match in matches:
+            if 'wikisport.club' not in match and 'stream.m3u8?ch=spn' not in match:
+                # Make absolute URL if relative
+                if not match.startswith('http') and base_url:
+                    match = urljoin(base_url, match)
+                log.debug(f"[M3U8] JS var: {match}")
+                return match
+    
     return None
 
 
-# =========================
-# SCRAPER
-# =========================
-
-def fix_event(s: str) -> str:
-    return " ".join(x.capitalize() for x in s.split())
+async def fetch_with_redirects(url: str, headers: dict = None, max_redirects: int = 5) -> tuple:
+    """Fetch URL following redirects and return final URL and content"""
+    current_url = url
+    redirect_count = 0
+    
+    while redirect_count < max_redirects:
+        if not headers:
+            headers = {"User-Agent": USER_AGENT}
+        
+        response = await network.request(current_url, headers=headers, log=log)
+        if not response:
+            return None, None
+        
+        # Check if it's a redirect (3xx status)
+        if hasattr(response, 'status') and 300 <= response.status < 400:
+            location = response.headers.get('Location', response.headers.get('location'))
+            if location:
+                current_url = urljoin(current_url, location)
+                redirect_count += 1
+                log.debug(f"[REDIRECT] {current_url}")
+                continue
+        
+        # Return final URL and content
+        return current_url, response.text
+    
+    return current_url, response.text if response else None
 
 
 async def process_event(url: str, url_num: int):
     """Process individual event page to extract M3U8 URL"""
-    if not (res := await network.request(url, log=log)):
-        log.warning(f"URL {url_num}) Failed to load url.")
-        return None
-
-    soup = HTMLParser(res.content)
-
-    # Look for the main iframe (usually has height="100%")
-    iframe = soup.css_first('iframe[height="100%"]')
-    if not iframe:
-        # Try to find any iframe that contains embed or stream
-        iframes = soup.css('iframe')
-        for ifr in iframes:
-            src = ifr.attributes.get("src", "")
-            if "embed" in src or "stream" in src or "player" in src:
-                iframe = ifr
-                break
+    log.debug(f"Processing event {url_num}: {url}")
     
-    if not iframe:
-        # Look for script that creates iframe
-        scripts = soup.css('script')
+    # Step 1: Fetch the event page
+    event_response = await network.request(url, log=log)
+    if not event_response:
+        log.warning(f"URL {url_num}) Failed to load event page")
+        return None
+    
+    soup = HTMLParser(event_response.content)
+    
+    # Step 2: Find all iframes and script tags
+    iframes = soup.css('iframe')
+    scripts = soup.css('script')
+    
+    # Step 3: Look for iframe with embed or stream
+    iframe_url = None
+    for iframe in iframes:
+        src = iframe.attributes.get("src", "")
+        if src and ('embed' in src or 'stream' in src or 'player' in src):
+            if not src.startswith('http'):
+                src = urljoin(url, src)
+            iframe_url = src
+            break
+    
+    # Step 4: If no iframe, look in scripts for dynamically created iframe
+    if not iframe_url:
         for script in scripts:
             script_text = script.text()
-            if script_text and 'iframe' in script_text and 'src' in script_text:
+            if script_text and ('iframe' in script_text or 'embed' in script_text):
+                # Look for src attribute
                 src_match = re.search(r'src\s*[:=]\s*["\']([^"\']+)["\']', script_text)
                 if src_match:
                     src = src_match.group(1)
                     if not src.startswith('http'):
                         src = urljoin(url, src)
-                    iframe = type('obj', (object,), {'attributes': {'src': src}})()
+                    iframe_url = src
                     break
     
-    if not iframe:
-        log.warning(f"URL {url_num}) No iframe element found.")
+    if not iframe_url:
+        log.warning(f"URL {url_num}) No iframe found")
         return None
-
-    if not (src := iframe.attributes.get("src")):
-        log.warning(f"URL {url_num}) No iframe source found.")
+    
+    log.debug(f"URL {url_num}) Iframe URL: {iframe_url}")
+    
+    # Step 5: Fetch iframe content with proper referer
+    iframe_response = await network.request(iframe_url, headers={"Referer": url}, log=log)
+    if not iframe_response:
+        log.warning(f"URL {url_num}) Failed to load iframe")
         return None
-
-    # Make absolute URL if needed
-    if not src.startswith("http"):
-        src = urljoin(url, src)
-
-    log.debug(f"URL {url_num}) Iframe src: {src}")
-
-    # Fetch the iframe content
-    iframe_data = await network.request(src, headers={"Referer": url}, log=log)
-    if not iframe_data:
-        log.warning(f"URL {url_num}) Failed iframe load.")
-        return None
-
-    # Define get_page function for extract_m3u8
-    async def get_page(page_url):
-        response = await network.request(page_url, headers={"Referer": src}, log=log)
-        return response.text if response else None
-
-    # Extract M3U8 URL
-    m3u8_url = extract_m3u8(
-        iframe_data.text,
-        src,
-        get_page,
-        log
-    )
-
+    
+    iframe_content = iframe_response.text
+    
+    # Step 6: Look for direct M3U8 in iframe content
+    m3u8_url = extract_m3u8_from_string(iframe_content, iframe_url)
     if m3u8_url:
         log.info(f"URL {url_num}) Captured M3U8")
         return m3u8_url
-
-    log.warning(f"URL {url_num}) No M3U8 source found.")
+    
+    # Step 7: Look for fetch.php or similar endpoints
+    fetch_patterns = [
+        r'(https?://[^"\']+fetch\.php[^"\']+)',
+        r'(https?://[^"\']+source\.php[^"\']+)',
+        r'(https?://[^"\']+stream\.php[^"\']+)',
+        r'fetch\.php\?([^"\']+)',
+    ]
+    
+    for pattern in fetch_patterns:
+        matches = re.findall(pattern, iframe_content, re.IGNORECASE)
+        for match in matches:
+            if isinstance(match, tuple):
+                fetch_url = match[0] if match[0].startswith('http') else f"{iframe_url.split('/source')[0]}/source/fetch.php?{match[0]}"
+            else:
+                if match.startswith('http'):
+                    fetch_url = match
+                else:
+                    # Construct fetch URL
+                    parsed = urllib.parse.urlparse(iframe_url)
+                    base = f"{parsed.scheme}://{parsed.netloc}"
+                    fetch_url = f"{base}/source/fetch.php?{match}"
+            
+            log.debug(f"URL {url_num}) Trying fetch: {fetch_url}")
+            fetch_response = await network.request(fetch_url, headers={"Referer": iframe_url}, log=log)
+            if fetch_response:
+                # Check for M3U8 in fetch response
+                m3u8 = extract_m3u8_from_string(fetch_response.text, fetch_url)
+                if m3u8:
+                    log.info(f"URL {url_num}) Captured M3U8 from fetch")
+                    return m3u8
+    
+    # Step 8: Look for JavaScript that might contain the M3U8
+    for script in scripts:
+        script_text = script.text()
+        if script_text:
+            # Look for variables that might contain URLs
+            var_patterns = [
+                r'(?:var|const|let)\s+(\w+)\s*=\s*["\']([^"\']+)["\']',
+                r'(\w+)\s*=\s*["\']([^"\']+)["\']',
+            ]
+            
+            variables = {}
+            for pattern in var_patterns:
+                matches = re.findall(pattern, script_text)
+                for var_name, var_value in matches:
+                    variables[var_name] = var_value
+            
+            # Check if any variable contains .m3u8
+            for var_name, var_value in variables.items():
+                if '.m3u8' in var_value and 'wikisport.club' not in var_value:
+                    if not var_value.startswith('http'):
+                        var_value = urljoin(iframe_url, var_value)
+                    log.info(f"URL {url_num}) Captured M3U8 from script variable")
+                    return var_value
+    
+    # Step 9: Try to find any URL in the iframe content that looks like a stream
+    all_urls = re.findall(r'(https?://[^\s"\']+)', iframe_content)
+    for url_candidate in all_urls:
+        if ('.m3u8' in url_candidate and 
+            'wikisport.club' not in url_candidate and 
+            'stream.m3u8?ch=spn' not in url_candidate):
+            log.info(f"URL {url_num}) Captured M3U8 from URL list")
+            return url_candidate
+    
+    log.warning(f"URL {url_num}) No M3U8 source found")
     return None
 
 
@@ -438,46 +326,18 @@ async def get_events():
 
         soup = HTMLParser(page.content)
 
-        # Look for event tables
+        # Look for event rows
         event_rows = soup.css("#events .vevent.theevent")
         
         if not event_rows:
-            # Try alternative selector
+            # Try alternative selectors
             event_rows = soup.css(".vevent")
         
-        if not event_rows:
-            # Try to find any links with btn-gray class
-            watch_links = soup.css('a.btn-gray[href*="/lives/"]')
-            for link in watch_links:
-                href = link.attributes.get("href")
-                if href:
-                    if not href.startswith("http"):
-                        href = urljoin(BASE_URL, href)
-                    
-                    # Try to get event name from nearby element
-                    parent = link.parent
-                    event_elem = parent.css_first(".event, .teamtd")
-                    if event_elem:
-                        name = event_elem.text(strip=True)
-                    else:
-                        # Extract from URL
-                        name = href.split('/lives/')[-1].replace('/', ' ').replace('-', ' ').strip()
-                        name = re.sub(r'-(main|alt)$', '', name, flags=re.IGNORECASE)
-                    
-                    name = fix_event(name.replace("@", "vs"))
-                    
-                    events.append({
-                        "sport": SPORT_ENDPOINTS[sport],
-                        "event": name,
-                        "link": href,
-                    })
-            continue
-
         for row in event_rows:
-            # Find the watch link
+            # Find the watch link (btn-gray)
             watch_link = row.css_first('a.btn-gray')
             if not watch_link:
-                # Try to find any link in the row
+                # Try any link with /lives/
                 watch_link = row.css_first('a[href*="/lives/"]')
             
             if not watch_link:
@@ -517,6 +377,14 @@ async def get_events():
     
     log.info(f"Found {len(unique_events)} events")
     return unique_events
+
+
+def fix_event(s: str) -> str:
+    """Fix event name formatting"""
+    # Remove extra spaces
+    s = " ".join(s.split())
+    # Capitalize each word
+    return " ".join(x.capitalize() for x in s.split())
 
 
 # =========================
