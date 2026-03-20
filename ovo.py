@@ -120,7 +120,8 @@ class OVOScraper:
                 r'(https?://[^\s"\']+\.m3u8(?:\?[^\s"\']*)?)',
                 r'(https?://[^\s"\']+stream[^\s"\']*\.m3u8[^\s"\']*)',
                 r'(https?://[^\s"\']+playlist[^\s"\']*\.m3u8[^\s"\']*)',
-                r'(https?://[^\s"\']+\.m3u8(?:\?[^"\'\s]+)?)'
+                r'(https?://[^\s"\']+\.m3u8(?:\?[^"\'\s]+)?)',
+                r'(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
             ]
             
             for pattern in m3u8_patterns:
