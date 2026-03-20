@@ -43,14 +43,14 @@ jobs:
     - name: Verify secrets
       run: |
         if [ -z "${{ secrets.CDNTV_CH_API_URL }}" ]; then
-          echo "CDNTV_API_URL secret is not set"
+          echo "CDNTV_CH_API_URL secret is not set"
           exit 1
         fi
         echo "CDNTV_CH_API_URL is set"
         
     - name: Run CDNTV_CH updater
       env:
-        CDNTV_API_URL: ${{ secrets.CDNTV_CH_API_URL }}
+        CDNTV_CH_API_URL: ${{ secrets.CDNTV_CH_API_URL }}
       run: |
         python -c "from cdntv_ch import run; run()"
         
