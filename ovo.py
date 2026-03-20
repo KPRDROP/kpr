@@ -125,20 +125,6 @@ async def process_event(url: str, url_num: int):
     
     captured_url = None
     
-    for pattern in patterns:
-        match = pattern.search(iframe_data.text)
-        if match:
-            if pattern == patterns[0]:  # var/const pattern has 3 groups
-                captured_url = match.group(3)
-            elif pattern in [patterns[1], patterns[2], patterns[3]]:  # source/file/url patterns
-                captured_url = match.group(1)
-            else:  # Direct m3u8 pattern
-                captured_url = match.group(0)
-            
-            if captured_url and ('m3u8' in captured_url or captured_url.startswith('http')):
-                log.info(f"URL {url_num}) Captured M3U8")
-                return captured_url
-
     log.warning(f"URL {url_num}) No Clappr source found.")
     return None
 
