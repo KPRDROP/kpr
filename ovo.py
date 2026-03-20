@@ -119,8 +119,8 @@ async def process_event(url: str, url_num: int):
         log.warning(f"URL {url_num}) Failed iframe load.")
         return None
 
-    # ✅ RESTORED ORIGINAL WORKING REGEX
-    pattern = re.compile(r'source:\s+"([^"]*)"', re.I)
+    # WORKING REGEX
+    pattern = re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
     match = pattern.search(iframe_data.text)
 
     if not match:
@@ -206,7 +206,7 @@ async def scrape():
         }
 
         cached_urls[key] = entry
-        urls[key] = entry  # ✅ CRITICAL
+        urls[key] = entry  # CRITICAL
 
     CACHE_FILE.write(cached_urls)
 
