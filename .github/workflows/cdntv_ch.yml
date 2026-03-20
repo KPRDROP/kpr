@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   scrape:
@@ -18,6 +19,11 @@ jobs:
       with:
         fetch-depth: 0
         token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Configure Git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
       
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -44,7 +50,7 @@ jobs:
         
     - name: Run CDNTV_CH updater
       env:
-        CDNTV_CH_API_URL: ${{ secrets.CDNTV_CH_API_URL }}
+        CDNTV_API_URL: ${{ secrets.CDNTV_CH_API_URL }}
       run: |
         python -c "from cdntv_ch import run; run()"
         
@@ -61,13 +67,28 @@ jobs:
           echo "No output files found"
         fi
         
-    - name: Commit & push changes
+    - name: Commit and push changes
       if: steps.check_files.outputs.files_exist == 'true'
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: "Update CDNTV_CH Playlist"
-        file_pattern: cdntv_ch_vlc.m3u8 cdntv_ch_tivimate.m3u8
-        commit_user_name: github-actions[bot]
-        commit_user_email: github-actions[bot]@users.noreply.github.com
-        commit_author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
-        push_options: '--force-with-lease'
+      run: |
+        # Check if files have changes
+        if [[ -n $(git status --porcelain cdntv_ch_vlc.m3u8 cdntv_ch_tivimate.m3u8) ]]; then
+          echo "Changes detected, committing..."
+          
+          # Pull latest changes to avoid conflicts
+          git pull --rebase origin main || true
+          
+          # Add only the playlist files
+          git add cdntv_ch_vlc.m3u8 cdntv_ch_tivimate.m3u8
+          
+          # Commit changes
+          git commit -m "Update CDNTV_CH Playlist - $(date '+%Y-%m-%d %H:%M:%S')"
+          
+          # Push changes
+          git push origin main
+          
+          echo "Successfully pushed changes"
+        else
+          echo "No changes to commit"
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
