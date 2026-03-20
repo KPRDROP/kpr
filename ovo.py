@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 OVO Scraper - Extracts M3U8 streams from volokit.xyz
+Uses only standard library modules for compatibility
 """
 
 import os
@@ -8,16 +9,14 @@ import re
 import json
 import time
 import base64
-import hashlib
-import logging
-import requests
 import urllib.request
-from datetime import datetime
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse, parse_qs, urlencode
+import urllib.parse
+import urllib.error
 import sys
-
-from utils import Cache, Time, get_logger, leagues, network
+import logging
+import ssl
+from datetime import datetime
+from html.parser import HTMLParser
 
 # Configure logging
 logging.basicConfig(
@@ -27,22 +26,53 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Custom HTML Parser for extracting data without BeautifulSoup
+class HTMLParserExtended(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.iframes = []
+        self.links = []
+        self.scripts = []
+        self.current_tag = None
+        self.current_attrs = {}
+    
+    def handle_starttag(self, tag, attrs):
+        self.current_tag = tag
+        self.current_attrs = dict(attrs)
+        
+        if tag == 'iframe':
+            src = dict(attrs).get('src', '')
+            if src:
+                self.iframes.append(src)
+        elif tag == 'a':
+            href = dict(attrs).get('href', '')
+            if href:
+                self.links.append(href)
+    
+    def handle_data(self, data):
+        if self.current_tag == 'script':
+            self.scripts.append(data)
+
 class OVOScraper:
     def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
+        # Create SSL context that doesn't verify certificates (for problematic sites)
+        self.ssl_context = ssl.create_default_context()
+        self.ssl_context.check_hostname = False
+        self.ssl_context.verify_mode = ssl.CERT_NONE
+        
+        self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate, br',
             'Connection': 'keep-alive',
             'Upgrade-Insecure-Requests': '1',
-        })
+        }
         self.cache_file = 'ovo_cache.json'
         self.events = []
         self.cached_events = {}
         self.load_cache()
-        
+    
     def load_cache(self):
         """Load cached events from file"""
         try:
@@ -57,11 +87,10 @@ class OVOScraper:
     def save_cache(self):
         """Save events to cache file"""
         try:
-            # Only cache successful events
             cache_data = {}
             for event in self.events:
                 if event.get('url'):
-                    key = f"{event.get('title', '')}_{event.get('date', '')}"
+                    key = f"{event.get('title', '')}_{datetime.now().strftime('%Y%m%d')}"
                     cache_data[key] = {
                         'url': event['url'],
                         'title': event.get('title', ''),
@@ -76,12 +105,13 @@ class OVOScraper:
             logger.error(f"Error saving cache: {e}")
     
     def get_page(self, url):
-        """Fetch a page with retries"""
+        """Fetch a page with retries using urllib"""
         for attempt in range(3):
             try:
-                response = self.session.get(url, timeout=30)
-                response.raise_for_status()
-                return response
+                req = urllib.request.Request(url, headers=self.headers)
+                response = urllib.request.urlopen(req, context=self.ssl_context, timeout=30)
+                content = response.read().decode('utf-8', errors='ignore')
+                return content
             except Exception as e:
                 logger.warning(f"Attempt {attempt + 1} failed for {url}: {e}")
                 if attempt == 2:
@@ -93,11 +123,9 @@ class OVOScraper:
         """Extract M3U8 URL from embed page"""
         try:
             logger.debug(f"Fetching embed: {embed_url}")
-            response = self.get_page(embed_url)
-            if not response:
+            content = self.get_page(embed_url)
+            if not content:
                 return None
-            
-            content = response.text
             
             # Method 1: Look for direct M3U8 URLs in the content
             m3u8_patterns = [
@@ -112,7 +140,7 @@ class OVOScraper:
                 matches = re.findall(pattern, content, re.IGNORECASE)
                 if matches:
                     for match in matches:
-                        if '.m3u8' in match and not 'clappr' in match.lower():
+                        if '.m3u8' in match and 'clappr' not in match.lower():
                             logger.debug(f"Found M3U8: {match}")
                             return match
             
@@ -124,6 +152,7 @@ class OVOScraper:
                 r'(?:source|src|file|video)\s*:\s*["\']([^"\']+)["\']',
                 r'playlist\s*:\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
                 r'url\s*:\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
+                r'file\s*:\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
             ]
             
             for pattern in js_patterns:
@@ -158,15 +187,14 @@ class OVOScraper:
             for match in matches:
                 if 'hd=' in match or 'id=' in match:
                     # Try to construct URL from the embed page itself
-                    parsed = urlparse(embed_url)
+                    parsed = urllib.parse.urlparse(embed_url)
                     base_url = f"{parsed.scheme}://{parsed.netloc}"
                     new_url = f"{base_url}/source/{match}"
                     logger.debug(f"Trying fetch param URL: {new_url}")
                     
                     # Try to fetch the actual stream URL
-                    stream_response = self.get_page(new_url)
-                    if stream_response:
-                        stream_content = stream_response.text
+                    stream_content = self.get_page(new_url)
+                    if stream_content:
                         # Look for M3U8 in the response
                         for pattern in m3u8_patterns:
                             stream_matches = re.findall(pattern, stream_content, re.IGNORECASE)
@@ -189,6 +217,22 @@ class OVOScraper:
                             logger.debug(f"Found M3U8 in script block: {match}")
                             return match
             
+            # Method 6: Look for HLS.js initialization
+            hls_patterns = [
+                r'Hls\(\)[^;]*loadSource\(["\']([^"\']+\.m3u8[^"\']*)["\']',
+                r'new\s+Hls\([^)]*\)[^;]*loadSource\(["\']([^"\']+\.m3u8[^"\']*)["\']',
+                r'player\.load\(["\']([^"\']+\.m3u8[^"\']*)["\']',
+                r'videojs\([^)]*\)\.src\(["\']([^"\']+\.m3u8[^"\']*)["\']',
+            ]
+            
+            for pattern in hls_patterns:
+                matches = re.findall(pattern, content, re.IGNORECASE)
+                if matches:
+                    for match in matches:
+                        if '.m3u8' in match:
+                            logger.debug(f"Found M3U8 from HLS.js: {match}")
+                            return match
+            
             logger.warning(f"No M3U8 found in {embed_url}")
             return None
             
@@ -198,31 +242,30 @@ class OVOScraper:
     
     def extract_iframe_url(self, page_content, base_url):
         """Extract iframe URL from page content"""
-        soup = BeautifulSoup(page_content, 'html.parser')
+        parser = HTMLParserExtended()
+        parser.feed(page_content)
         
         # Look for iframes
-        iframes = soup.find_all('iframe')
-        for iframe in iframes:
-            src = iframe.get('src', '')
-            if src and 'embed' in src:
-                return urljoin(base_url, src)
+        for src in parser.iframes:
+            if src and ('embed' in src or 'stream' in src or 'player' in src):
+                return urllib.parse.urljoin(base_url, src)
         
         # Look for script that might contain iframe URL
-        scripts = soup.find_all('script')
-        for script in scripts:
-            if script.string:
+        for script in parser.scripts:
+            if script:
                 # Look for iframe creation
                 iframe_patterns = [
                     r'iframe\.src\s*=\s*["\']([^"\']+)["\']',
                     r'createElement\(["\']iframe["\']\)[^;]*src\s*=\s*["\']([^"\']+)["\']',
                     r'<iframe[^>]*src=["\']([^"\']+)["\']',
+                    r'setAttribute\(["\']src["\'],\s*["\']([^"\']+)["\']\)',
                 ]
                 for pattern in iframe_patterns:
-                    matches = re.findall(pattern, script.string)
+                    matches = re.findall(pattern, script)
                     if matches:
                         for match in matches:
-                            if 'embed' in match:
-                                return urljoin(base_url, match)
+                            if 'embed' in match or 'stream' in match:
+                                return urllib.parse.urljoin(base_url, match)
         
         return None
     
@@ -230,11 +273,9 @@ class OVOScraper:
         """Process individual event page to extract stream URL"""
         try:
             logger.debug(f"Processing event: {url}")
-            response = self.get_page(url)
-            if not response:
+            content = self.get_page(url)
+            if not content:
                 return None
-            
-            content = response.text
             
             # Extract iframe URL
             iframe_url = self.extract_iframe_url(content, url)
@@ -250,8 +291,8 @@ class OVOScraper:
                 # Add required headers for the stream
                 headers = {
                     'Referer': iframe_url,
-                    'Origin': urlparse(iframe_url).scheme + '://' + urlparse(iframe_url).netloc,
-                    'User-Agent': self.session.headers['User-Agent']
+                    'Origin': urllib.parse.urlparse(iframe_url).scheme + '://' + urllib.parse.urlparse(iframe_url).netloc,
+                    'User-Agent': self.headers['User-Agent']
                 }
                 
                 # Return the stream URL with headers
@@ -272,31 +313,28 @@ class OVOScraper:
             # Get the schedule page
             schedule_url = 'http://volokit.xyz/schedule/'
             logger.info(f"Fetching schedule from {schedule_url}")
-            response = self.get_page(schedule_url)
-            if not response:
+            content = self.get_page(schedule_url)
+            if not content:
                 logger.error("Failed to fetch schedule page")
                 return
             
-            soup = BeautifulSoup(response.text, 'html.parser')
+            parser = HTMLParserExtended()
+            parser.feed(content)
             
             # Look for event links
             event_links = []
             
             # Find all links that might be events
-            links = soup.find_all('a', href=True)
-            for link in links:
-                href = link.get('href', '')
+            for href in parser.links:
                 if '/lives/' in href and href not in event_links:
                     event_links.append(href)
             
-            # Also look for schedule cards
-            schedule_cards = soup.find_all('div', class_='volo-schedule-card')
-            for card in schedule_cards:
-                link = card.find('a')
-                if link and link.get('href'):
-                    href = link.get('href')
-                    if '/lives/' in href and href not in event_links:
-                        event_links.append(href)
+            # Also look for schedule cards using regex
+            card_pattern = r'<div[^>]*class="[^"]*volo-schedule-card[^"]*"[^>]*>.*?<a[^>]*href="([^"]+)"'
+            card_matches = re.findall(card_pattern, content, re.IGNORECASE | re.DOTALL)
+            for href in card_matches:
+                if '/lives/' in href and href not in event_links:
+                    event_links.append(href)
             
             # Remove duplicates
             event_links = list(set(event_links))
@@ -305,15 +343,7 @@ class OVOScraper:
             # Process events
             processed_events = []
             for i, link in enumerate(event_links[:30]):  # Limit to 30 events
-                full_url = urljoin(schedule_url, link)
-                
-                # Check cache first
-                cache_key = f"{full_url}_{datetime.now().strftime('%Y%m%d')}"
-                if cache_key in self.cached_events:
-                    cached = self.cached_events[cache_key]
-                    processed_events.append(cached)
-                    logger.info(f"URL {i+1}) Using cached M3U8")
-                    continue
+                full_url = urllib.parse.urljoin(schedule_url, link)
                 
                 # Extract event info from URL
                 event_name = link.split('/lives/')[-1].replace('/', ' ').replace('-', ' ').title()
@@ -322,22 +352,31 @@ class OVOScraper:
                 group = 'Live Event'
                 logo = 'https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png'
                 
-                if 'nba' in event_name.lower():
+                event_lower = event_name.lower()
+                if 'nba' in event_lower:
                     group = 'NBA'
                     logo = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png'
-                elif 'nfl' in event_name.lower():
+                elif 'nfl' in event_lower:
                     group = 'NFL'
                     logo = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nfl.png'
-                elif 'mlb' in event_name.lower():
+                elif 'mlb' in event_lower:
                     group = 'MLB'
                     logo = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png'
-                elif 'nhl' in event_name.lower():
+                elif 'nhl' in event_lower:
                     group = 'NHL'
                     logo = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png'
-                elif 'boxing' in event_name.lower() or 'fight' in event_name.lower():
+                elif 'boxing' in event_lower or 'fight' in event_lower:
                     group = 'BOXING'
-                elif 'race' in event_name.lower() or 'formula' in event_name.lower():
+                elif 'race' in event_lower or 'formula' in event_lower or 'motogp' in event_lower:
                     group = 'RACE'
+                
+                # Check cache
+                cache_key = f"{full_url}_{datetime.now().strftime('%Y%m%d')}"
+                if cache_key in self.cached_events:
+                    cached = self.cached_events[cache_key]
+                    processed_events.append(cached)
+                    logger.info(f"URL {i+1}) Using cached M3U8")
+                    continue
                 
                 # Process the event page
                 logger.info(f"Processing URL {i+1}): {event_name}")
@@ -379,10 +418,6 @@ class OVOScraper:
                     url = event.get('url', '')
                     
                     if url:
-                        # Add headers as EXTINF comment
-                        headers = event.get('headers', {})
-                        headers_str = '&'.join([f"{k}={v}" for k, v in headers.items()])
-                        
                         f.write(f'#EXTINF:-1 tvg-id="Live.Event" tvg-logo="{logo}" group-title="{group}",[{group}] {title} (VOLOKIT)\n')
                         f.write(f'{url}\n')
                 
@@ -405,23 +440,8 @@ class OVOScraper:
                     url = event.get('url', '')
                     
                     if url:
-                        # TiviMate supports headers in URL format
-                        headers = event.get('headers', {})
-                        if headers:
-                            # Add headers as query parameters or in the URL
-                            parsed = urlparse(url)
-                            query_params = parse_qs(parsed.query)
-                            for key, value in headers.items():
-                                if key.lower() not in ['user-agent', 'referer', 'origin']:
-                                    query_params[key] = value
-                            
-                            new_query = urlencode(query_params, doseq=True)
-                            final_url = parsed._replace(query=new_query).geturl()
-                        else:
-                            final_url = url
-                        
                         f.write(f'#EXTINF:-1 tvg-id="Live.Event" tvg-logo="{logo}" group-title="{group}",[{group}] {title} (VOLOKIT)\n')
-                        f.write(f'{final_url}\n')
+                        f.write(f'{url}\n')
                 
             logger.info(f"Generated {output_file} with {len(self.events)} events")
             return True
@@ -440,7 +460,7 @@ class OVOScraper:
                 self.generate_vlc_playlist()
                 self.generate_tivimate_playlist()
                 logger.info(f"Final playlist size: {len(self.events)} events")
-                logger.info(f"Total written: {len(self.events) * 2}")
+                logger.info(f"Total written: {len(self.events)}")
             else:
                 logger.warning("No events found")
             
