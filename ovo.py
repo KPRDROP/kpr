@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+"""
+OVO Scraper - Extracts M3U8 streams from volokit.xyz
+"""
+
 import asyncio
 import re
 import base64
@@ -91,10 +96,12 @@ def generate_tivimate_playlist(data: dict, output="ovo_tivimate.m3u8"):
     log.info(f"Generated {output} with {count} events")
     return count
 
+
 # =========================
-# M3U8 EXTRACTOR PATTENRS
+# M3U8 EXTRACTOR PATTERNS
 # =========================
 def extract_m3u8(content: str, embed_url: str, get_page, logger):
+    """Extract M3U8 URL from embed page content"""
     if not content:
         return None
 
@@ -115,7 +122,7 @@ def extract_m3u8(content: str, embed_url: str, get_page, logger):
                 return m
 
     # -------------------------
-    # 2. JS variable extraction (FIXED)
+    # 2. JS variable extraction
     # -------------------------
     js_patterns = [
         r'(?:var|const|let)\s+(?:url|src|source|stream|file|video|hls)\s*=\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
@@ -157,7 +164,7 @@ def extract_m3u8(content: str, embed_url: str, get_page, logger):
                 pass
 
     # -------------------------
-    # 4. fetch.php handler (IMPORTANT FOR YOUR CASE)
+    # 4. fetch.php handler
     # -------------------------
     fetch_pattern = r'fetch\.php\?([^"\']+)'
     matches = re.findall(fetch_pattern, content)
@@ -197,6 +204,16 @@ def extract_m3u8(content: str, embed_url: str, get_page, logger):
                 logger.debug(f"[M3U8] HLS: {m}")
                 return m
 
+    # -------------------------
+    # 6. Look for any URL with .m3u8
+    # -------------------------
+    url_pattern = r'(https?://[^\s"\']+\.m3u8[^\s"\']*)'
+    matches = re.findall(url_pattern, content, re.IGNORECASE)
+    for match in matches:
+        if '.m3u8' in match:
+            logger.debug(f"[M3U8] Generic URL: {match}")
+            return match
+
     return None
 
 
@@ -209,13 +226,29 @@ def fix_event(s: str) -> str:
 
 
 async def process_event(url: str, url_num: int):
+    """Process individual event page to extract M3U8 URL"""
     if not (res := await network.request(url, log=log)):
         log.warning(f"URL {url_num}) Failed to load url.")
         return None
 
     soup = HTMLParser(res.content)
 
-    if not (iframe := soup.css_first('iframe[height="100%"]')):
+    # Look for iframe with height 100% or any iframe containing embed
+    iframe = soup.css_first('iframe[height="100%"]')
+    if not iframe:
+        # Try other iframe selectors
+        iframe = soup.css_first('iframe[src*="embed"]')
+    
+    if not iframe:
+        # Try to find any iframe
+        iframes = soup.css('iframe')
+        for ifr in iframes:
+            src = ifr.attributes.get("src", "")
+            if "embed" in src or "stream" in src or "player" in src:
+                iframe = ifr
+                break
+    
+    if not iframe:
         log.warning(f"URL {url_num}) No iframe element found.")
         return None
 
@@ -223,31 +256,40 @@ async def process_event(url: str, url_num: int):
         log.warning(f"URL {url_num}) No iframe source found.")
         return None
 
+    # Make absolute URL if needed
+    if not src.startswith("http"):
+        src = urljoin(url, src)
+
+    log.debug(f"URL {url_num}) Iframe src: {src}")
+
     iframe_data = await network.request(src, headers={"Referer": url}, log=log)
     if not iframe_data:
         log.warning(f"URL {url_num}) Failed iframe load.")
         return None
 
-    # WORKING REGEX
+    # Define get_page function for extract_m3u8
+    async def get_page(page_url):
+        response = await network.request(page_url, headers={"Referer": src}, log=log)
+        return response.text if response else None
+
+    # Extract M3U8 URL
     m3u8_url = extract_m3u8(
-    iframe_data.text,
-    embed_url,
-    self.get_page,
-    logger
-)
+        iframe_data.text,
+        src,
+        get_page,
+        log
+    )
 
-if m3u8_url:
-    return m3u8_url
+    if m3u8_url:
+        log.info(f"URL {url_num}) Captured M3U8")
+        return m3u8_url
 
-    if not match:
-        log.warning(f"URL {url_num}) No Clappr source found.")
-        return None
-
-    log.info(f"URL {url_num}) Captured M3U8")
-    return match[1]
+    log.warning(f"URL {url_num}) No M3U8 source found.")
+    return None
 
 
 async def get_events():
+    """Get events from sport pages"""
     sport_urls = {
         sport: urljoin(BASE_URL, f"sport/{sport}")
         for sport in SPORT_ENDPOINTS
@@ -258,21 +300,67 @@ async def get_events():
 
     events = []
 
-    for sport, page in zip(SPORT_ENDPOINTS, pages):
+    for sport, page in zip(SPORT_ENDPOINTS.keys(), pages):
         if not page:
             continue
 
         soup = HTMLParser(page.content)
 
-        for card in soup.css("#events .table .vevent.theevent"):
-            href = card.css_first("a").attributes.get("href")
+        # Look for event cards
+        event_cards = soup.css("#events .table .vevent.theevent")
+        if not event_cards:
+            # Try alternative selectors
+            event_cards = soup.css(".volo-schedule-card")
+        
+        if not event_cards:
+            # Try to find any links to lives
+            links = soup.css('a[href*="/lives/"]')
+            for link in links:
+                href = link.attributes.get("href")
+                if href:
+                    if not href.startswith("http"):
+                        href = urljoin(BASE_URL, href)
+                    
+                    name = link.text(strip=True)
+                    if name:
+                        name = fix_event(name.replace("@", "vs"))
+                    
+                    events.append({
+                        "sport": SPORT_ENDPOINTS[sport],
+                        "event": name or f"Event {len(events) + 1}",
+                        "link": href,
+                    })
+            continue
+
+        for card in event_cards:
+            href = None
+            name = None
+            
+            # Try to find link in card
+            link_elem = card.css_first("a")
+            if link_elem:
+                href = link_elem.attributes.get("href")
+            
             if not href:
                 continue
 
             if not href.startswith("http"):
                 href = urljoin(BASE_URL, href)
 
-            name = card.css_first(".teamtd.event").text(strip=True)
+            # Try to get event name
+            name_elem = card.css_first(".teamtd.event")
+            if name_elem:
+                name = name_elem.text(strip=True)
+            else:
+                name_elem = card.css_first(".event")
+                if name_elem:
+                    name = name_elem.text(strip=True)
+            
+            if not name:
+                # Extract from URL
+                name = href.split('/lives/')[-1].replace('/', ' ').replace('-', ' ').strip()
+                name = re.sub(r'-(main|alt)$', '', name, flags=re.IGNORECASE)
+            
             name = fix_event(name.replace("@", "vs"))
 
             events.append({
@@ -281,7 +369,7 @@ async def get_events():
                 "link": href,
             })
 
-    log.info(f"Processing {len(events)} events")
+    log.info(f"Found {len(events)} events")
     return events
 
 
@@ -290,6 +378,7 @@ async def get_events():
 # =========================
 
 async def scrape():
+    """Main scraping function"""
     cached_urls = CACHE_FILE.load() or {}
 
     valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
@@ -298,6 +387,13 @@ async def scrape():
     log.info(f"Loaded {len(valid_urls)} cached events")
 
     events = await get_events()
+
+    if not events:
+        log.warning("No events found")
+        # Still generate empty playlists
+        generate_vlc_playlist({})
+        generate_tivimate_playlist({})
+        return
 
     for i, ev in enumerate(events, 1):
         url = await network.safe_process(
@@ -322,26 +418,28 @@ async def scrape():
         }
 
         cached_urls[key] = entry
-        urls[key] = entry  # CRITICAL
+        urls[key] = entry
 
     CACHE_FILE.write(cached_urls)
 
     clean = {k: v for k, v in urls.items() if v.get("url")}
 
-    vlc = generate_vlc_playlist(clean)
-    tiv = generate_tivimate_playlist(clean)
+    vlc_count = generate_vlc_playlist(clean)
+    tiv_count = generate_tivimate_playlist(clean)
 
     log.info(f"Final playlist size: {len(clean)} events")
-    log.info(f"Total written: {vlc + tiv}")
+    log.info(f"Total written: {vlc_count + tiv_count}")
 
 
 async def main():
+    """Main entry point"""
     log.info("Starting OVO scraper")
     await scrape()
     log.info("OVO scraper completed")
 
 
 def run():
+    """Run the scraper"""
     asyncio.run(main())
 
 
