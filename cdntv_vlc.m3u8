@@ -1,7 +1,31 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Los Angeles Kings vs Philadelphia Flyers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Los Angeles Kings vs Philadelphia Flyers
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nhl+league+pass+11&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Parva Liga] Botev Plovdiv vs Slavia Sofia (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Parva Liga",Botev Plovdiv vs Slavia Sofia
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=diema+sport+1&code=bg&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nhl-league-pass-11/playlist.m3u8?token=fbda470935901ff68fdb6933035f1e9c1650ee18140d778231bd602c85322272.1773980771.7be147d7648bc89548523e58592afbbe.c6113bbfbe949dd10c396615188d5e71.82d8d22e0288d7a7e9a1ca42ce0dec4c&signature=5a8f5eef682f395e910049d9f8162884d401c8cd814c58642820b59f370ec9fc
+https://edge.cdn-live.ru/secure/api/v1/bg-diema-sport-1/playlist.m3u8?token=9d9385aee49a2093003169cff2d71cdf31a4292861d2bed49ac20505732e5ea9.1774019489.1d2fe7eff90db9ecaceb36e528472d36.3115d93187bd9d48178ac8f478adc1cd.7fc9bee9478c05dff16ad0591c9d38c6&signature=8fed551abf5df9b76a461806a540757348ec7b6dcd5ac6b83c3ed64be5980a88
+
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Virsliga] Riga vs Auda (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Virsliga",Riga vs Auda
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=m+liga+de+campeones+4&code=es&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/es-m-liga-de-campeones-4/playlist.m3u8?token=2740ddfd14cb9a9c4e1f0e2b7da5c009ee917e226b4c32a440a813ab61747f88.1774019490.5874f43ae129105b9e6dd5d8811802ea.bcb4a3ad8ce7ba579760c82d2cd83fef.e5cdaf7bd7f398586ae9a1bfbe13431d&signature=09cc91b9ecee3d0854e56465006f45120288ea70aa8ae43430c7fb222b02f110
+
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[FNL] Fakel vs Rotor Volgograd (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="FNL",Fakel vs Rotor Volgograd
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=match+premier&code=ru&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/ru-match-premier/playlist.m3u8?token=30f966b9f04360aab5265e0408f1318d6ec4b6de962885a46cdb53cfb82448d0.1774019490.4ee615614e9333c700cdbcae8cec6594.3ccba27ef2f3cef7d56d7c57cbb9143c.9c18e23558976309ee6331f438a8246e&signature=a8379cd9db1cd479017557bebb909bc3da1e68ab58e8dab8bebb42dc4b5bb60a
+
+#EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[Liga I] UTA Arad vs FCSB (CDNTV)" tvg-logo="https://i.gyazo.com/3fd4b38d5263ca391e45850eb58d11e6.png" group-title="Liga I",UTA Arad vs FCSB
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=arena+sport+2&code=hr&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/hr-arena-sport-2/playlist.m3u8?token=f90dcf9bd23b337d704364a328c9e0be4fe0bc9200db2e144e5659ff87c79137.1774019491.9cafdcf24d61b5a1a5dbf504e5915e1a.0df9c3124eb8768d8aa1e178396c6e1a.5466187c2ceeefb165e686a6626594c2&signature=b7799c0e79eb0c086b5195d97b95a74627fabd98617e82cde2d7e55d970de3e0
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Radomiak Radom vs Piast Gliwice (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Radomiak Radom vs Piast Gliwice
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=bein+sports&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-bein-sports/playlist.m3u8?token=9709a2706d93bdce085e7127d4233a3139ab2b8fd68bf78a1f484de652505ef0.1774019492.a30eeb72bd6e820086649e199427de60.fc81fc275921ac0457de061378a37a19.5ceb954cee28547f646309acfbb7bc01&signature=e6596d63076d020b6f748f920a00041cdf7e939fc02dc039735e7f129e47b2f8
 
