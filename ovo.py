@@ -121,7 +121,7 @@ async def process_event(url: str, url_num: int):
 
     # Try multiple patterns to find the M3U8 URL
     patterns = [
-        re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I),  # var source = "url"
+        re.compile(r'(var|const)\s+(\w+)\s*=\s*"([^"]*)"', re.I)
         re.compile(r'source:\s*"([^"]*)"', re.I),  # source: "url"
         re.compile(r'file:\s*"([^"]*)"', re.I),    # file: "url"
         re.compile(r'url:\s*"([^"]*)"', re.I),     # url: "url"
