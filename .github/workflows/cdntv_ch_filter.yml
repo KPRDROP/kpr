@@ -2,8 +2,7 @@ name: CDNTV_CH Filtered Updater
 
 on:
   schedule:
-    # Runs every 1 hour
-    - cron: "0 */1 * * *"
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 permissions:
