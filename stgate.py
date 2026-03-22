@@ -53,7 +53,6 @@ SPORT_ENDPOINTS = [
 
 urls: dict[str, dict[str, Any]] = {}
 
-# Irrelevant
 # --------------------------------------------------
 def get_event(t1: str, t2: str) -> str:
     if t1 == "RED ZONE":
