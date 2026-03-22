@@ -32,8 +32,8 @@ jobs:
         env:
           CDNTV_CH_API_URL: ${{ secrets.CDNTV_CH_API_URL }}
         run: |
-          echo "Starting CDNTV_CH updater..."
-          python cdntv_ch.py
+          echo "Starting Update CDNTV_CH Filtered updater..."
+          python cdntv_ch_filter.py
 
       - name: Commit & Push safely
         run: |
@@ -47,7 +47,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Update CDNTV_CH playlist"
+          git commit -m "Update CDNTV_CH Filtered playlist"
 
           # FIX: stash before rebase
           if ! git push origin main; then
@@ -56,6 +56,6 @@ jobs:
             git pull --rebase origin main
             git stash pop
             git add cdn_ch_filter_vlc.m3u8 cdn_ch_filter_tivimate.m3u8
-            git commit -m "Update CDNTV_CH playlist (rebased)" || true
+            git commit -m "Update Update CDNTV_CH Filtered playlist (rebased)" || true
             git push origin main
           fi
