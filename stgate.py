@@ -47,7 +47,7 @@ SPORT_ENDPOINTS = [
     "ufc",
     "box",
     "f1",
-    "OLYMPICS",
+    "olympics",
 ]
 
 urls: dict[str, dict[str, Any]] = {}
