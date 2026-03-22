@@ -1,7 +1,6 @@
 import asyncio
 from itertools import chain
 from functools import partial
-from itertools import chain
 from typing import Any
 from urllib.parse import urljoin, quote
 from pathlib import Path
@@ -81,7 +80,12 @@ async def refresh_api_cache(now_ts: float) -> list[dict[str, Any]]:
         if not r:
             continue
 
-        js = r.json()
+        try:
+            js = r.json()
+        except Exception:
+            log.warning(f"{sport}.json → invalid JSON (skipped)")
+            continue
+
         if not isinstance(js, list):
             continue
 
