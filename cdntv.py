@@ -321,8 +321,8 @@ async def scrape(browser: Browser) -> None:
 
 
 async def main():
-    """Main function to run the scraper"""
-    log.info("Starting CDNTV scraper")
+    """Main function to run the updater"""
+    log.info("Starting CDNTV updater")
     
     # Validate API_URL
     if not API_URL or API_URL == "None":
@@ -340,11 +340,11 @@ async def main():
         finally:
             await browser.close()
     
-    log.info("CDNTV scraper completed")
+    log.info("CDNTV updater completed")
 
 
 def run():
-    """Synchronous entry point for the scraper"""
+    """Synchronous entry point for the updater"""
     asyncio.run(main())
 
 
