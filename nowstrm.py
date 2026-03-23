@@ -349,7 +349,7 @@ async def scrape(browser: Browser) -> None:
                             "base": REFERER,
                             "timestamp": ts,
                             "id": tvg_id or f"{sport.replace(' ', '.')}.event",
-                            "link": link,  # Store the original l2l2.link URL for referer
+                            "link": ORIGIN,  # Store the original l2l2.link URL for referer
                         }
                         
                         urls[key] = cached_urls[key] = entry
