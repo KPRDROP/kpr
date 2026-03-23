@@ -121,7 +121,12 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
     if not api_data:
         log.info("Refreshing API cache")
         
-        api_url = API_URL if API_URL else "https://nowstreams.top/api_proxy.php"
+        # Validate API_URL is set
+        if not API_URL:
+            log.error("NOWSTRM_API_URL environment variable is not set")
+            return events
+        
+        api_url = API_URL
         log.info(f"Fetching from API: {api_url}")
         
         if r := await network.request(
