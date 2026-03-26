@@ -1,43 +1,85 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Kosovo vs Slovakia (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Kosovo vs Slovakia
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Sweden vs Ukraine (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Sweden vs Ukraine
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sky+sport+6&code=nz&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/nz-sky-sport-6/playlist.m3u8?token=3c1f676e0a2e14af6cd29e27fd637593db341c0d8ed8fff26f20eae263c3f75e.1774560799.9d86091fc6e0fa8cbda66b8956533742.999758e9e732d6805a411bcf926e3db2.2d5712749136b5e042444413798ce559&signature=0e80e6ad7f854e99f0da0aa9a721906bf8fec5a80483b5f21a250bffb6d4bfa9
+
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Kosovo vs Slovakia (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Kosovo vs Slovakia
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sky+sport+9&code=nz&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/nz-sky-sport-9/playlist.m3u8?token=cfac793acb2c65dcf8458506800f957afd2437168eba511f95cd5c55ce23fff4.1774557481.a4437b72054edf968e9ec06eda6e8051.38256a3fcdff88d113634528c51404fb.2ecd742bc16fa08925c3d6885970c865&signature=62f396025042b630ba4b0cb845fc684683d4590a26026076ea3fe7f36080c9d6
+https://edge.cdn-live.ru/secure/api/v1/nz-sky-sport-9/playlist.m3u8?token=9c1cff1027b9e783e69b9928b24d9abae86f69b7b34c1fd6af5202f3a50a891a.1774560800.4be2221bcb0f0471ab1d8d9141331660.183ffc36b7d8b25acf8df20fbdd68626.93bd5df7a0823a79f97bcae3b1377e12&signature=6408906f3d72ed37d1af48a63c21985bbf40558de1928a687724838ef2fd9a12
 
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Albania vs Poland (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Albania vs Poland
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Albania vs Poland (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Albania vs Poland
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=fox+sports+2&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-fox-sports-2/playlist.m3u8?token=91bc3a857da8caaded1822e279da633211d697a315393ca894607ea3c5fbd1b2.1774557482.0907bf89ea8cc273ecc2ad83f95d8ee6.9355185d428ee9173ebe1e0cdad6ce82.4cc027b4e6c9dc826d56446602cfe9a5&signature=8032f8ecf95e9e48bc7e62e86b50be9997526dcb9bb0ea88e096c83b4302097e
+https://edge.cdn-live.ru/secure/api/v1/us-fox-sports-2/playlist.m3u8?token=1713c1986aae1b7f1f3d142143383ebdbc9f43b7764d2b4cfa870dd120567113.1774560801.744707e08e95d3e18468ee9c1f228b13.e947def747ce0f96b0cd66fda77442ac.664cca0c4f47553a85f60459b2e39d67&signature=c3b177dc65b2930e96fa83c5d9788ef3c0ebc5cafa9ad8697addd603803511af
 
-#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Northern Ireland vs Italy (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Northern Ireland vs Italy
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Northern Ireland vs Italy (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Northern Ireland vs Italy
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=bein+sports+mena+1&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-bein-sports-mena-1/playlist.m3u8?token=1f74fa80fe817a4269aef6ae74915a3596065f252ad6b304d00d4caebeb18157.1774557482.6e7c6baa27dfcca9137494ad2341c985.aa2ce91f859332ac2a860be67bdcf9ca.f2d355345b2f6d1146af2c6b4ba400e2&signature=fa05f31048e0985683ae24fece1616abef87805d826397e15046b98ad79d45dd
+https://edge.cdn-live.ru/secure/api/v1/us-bein-sports-mena-1/playlist.m3u8?token=210396fe110c59b581da951dcc7bf8e2b2292356b080ece069cba026c2f6e87d.1774560802.d6976b1d9f1868c83ade06109cd36b46.4be11df474b539a11efeb407f6497cc9.d79e8d4a96bfcf6f59323d017f6c5a32&signature=4115e61b0e6bfcc85b8e53d88deff7f5760c36fd363fb6bdf4698fe32a633b18
 
-#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] North Macedonia vs Denmark (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",North Macedonia vs Denmark
+#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] North Macedonia vs Denmark (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",North Macedonia vs Denmark
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+9&code=gb&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-9/playlist.m3u8?token=a4354b84f0cb862a9ce1799d966ab7e7fdf3f2d624b96ce41dabdb90229a2f5b.1774557483.3dfbf84386299bf996a53281cf7e170d.225bd76c97fb2befba34f19b0fb9aaba.e5d4033864d187498905951940053c4a&signature=886d5281411ba607d8ede2efd935817e94e1c97cfbbe200fe7c68615ee693a70
+https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-9/playlist.m3u8?token=23185c385fb1eb0bde7174d71671f38e188cad728b98d82d1d326e06f784edf1.1774560802.3edfd6c468ebad560cecc84937654513.689ed3d5ff66bd195f5889df409c71e2.ebdcc7a3a9cffdb54d7e8bb1f6865ec2&signature=9b9ff5cf308049f180a3ed68cd1f7bd240f4433af994407fdbeaea5d2cb70e45
 
-#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Bosnia and Herzegovina vs Wales (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Bosnia and Herzegovina vs Wales
+#EXTINF:-1 tvg-chno="6" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Bosnia and Herzegovina vs Wales (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Bosnia and Herzegovina vs Wales
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=fox+sports+1&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-fox-sports-1/playlist.m3u8?token=c3a1d5ab816ae083fd751bcd567d7e671d68e0709cf85293f0370cb44d855f83.1774557484.641833db72a08edf457597a5449d3706.a0b0fb0deda17793fef8aa1e15a64951.7b4d6c631fbf4d05358adedb2dc1629a&signature=c207d5d217b055d783cf8215e1593ff829e372807e2f65cfaaf4b54042ab71e4
+https://edge.cdn-live.ru/secure/api/v1/us-fox-sports-1/playlist.m3u8?token=6564f80c45740fbc8ec7f1f443426aad57f26d79573d32200889de53636d584d.1774560803.066f5ffaa0aa898baf2c75883ba282e3.ae66ceef7cfdea81aa7ca0222f19ff85.89861f718fb726b0cf6bf798d02e01bf&signature=c6dbb61da25cf64f4392b0eab6d0bebb65a2b195dc65f579d0c1365423ffb23f
 
-#EXTINF:-1 tvg-chno="6" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Ireland Republic vs Czech Republic (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Ireland Republic vs Czech Republic
+#EXTINF:-1 tvg-chno="7" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Ireland Republic vs Czech Republic (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Ireland Republic vs Czech Republic
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sky+sport+select&code=nz&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/nz-sky-sport-select/playlist.m3u8?token=6f8b87760f0e74ecb09ed221240e726b41ba19c8cc5a7a34ebc7d4e7be62f94b.1774557485.f8bdf67557efb838cf7a5e8a5b359f96.f954e1057a80335411911e9d4f83d0e1.fbc794507073fef379e7bb8202338eff&signature=72435491fa87371fb4bcfa66468c0876d21243f4f9321d70b1baadb4e02d25c9
+https://edge.cdn-live.ru/secure/api/v1/nz-sky-sport-select/playlist.m3u8?token=1d4d5f1618f28c41392a658c4f3145f554ba03ca87229809a409b8943521a0a9.1774560804.8c80319ab83d8f01a10378cf1b22fee9.d972d57186251acdbb91a72e69cefd5a.b4471fb38e8ce77194b52e20ca96efb7&signature=538112d7af980edb8f403beea06c1af12c2150e81704260751985a0559852ce2
 
-#EXTINF:-1 tvg-chno="7" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Suriname vs Bolivia (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Suriname vs Bolivia
+#EXTINF:-1 tvg-chno="8" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Suriname vs Bolivia (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Suriname vs Bolivia
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=fox+sports+1&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-fox-sports-1/playlist.m3u8?token=6b05aeddfe1a11408f05e489b834d35cee15199fe811422cbc5c4b0b296e19d5.1774557485.7e3c2101d32a8660fb82e3e547b5b07b.c1f7464917bd12c8d6b51dd999ba9da4.7a86e042a2d2851b2e6c347460f522ea&signature=71c35558b4c5e124f3b2c6db0a3b56c83f7705eb67565d77d34397aafa2cb94d
+https://edge.cdn-live.ru/secure/api/v1/us-fox-sports-1/playlist.m3u8?token=3f807ad815cc99f23fb5022fb2aec8ecdccf024fb1f4bbcacf86b0d01e32c05c.1774560805.be8f1e85bbf127b61b58e216ab2be8dd.c9a678880f3c3e5b65b9babc185d53e0.d6a38a789a0e5e36d11d3073f3e2351a&signature=f625de4656f78447371f71cd56d07fa7483850a0b651fde9a138ba6e8c058381
+
+#EXTINF:-1 tvg-chno="9" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] New York Knicks vs Charlotte Hornets (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",New York Knicks vs Charlotte Hornets
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=msg&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-msg/playlist.m3u8?token=b189d338e92ac1c4eff10be0920aedcffd56ab02542625791dabda1250f1ae1f.1774560805.a149deacc53d212238f0e1ebdc8d30f6.39db3c054eb46d6606e163fdbcf1cd2f.aa26ff19afe6c92df889362089577394&signature=2621f9e0039e6554a1e8925891b10a5fd2293a7582657dd1c34dbefc1dd3443e
+
+#EXTINF:-1 tvg-chno="10" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Sacramento Kings vs Orlando Magic (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Sacramento Kings vs Orlando Magic
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=bein+sports+mena+1&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-bein-sports-mena-1/playlist.m3u8?token=cf748b1614e1954248ea10bb357dc2fd5b08178fe6da9e05ae1f4ac319ff0ccb.1774560806.754db83ce041edb848974d7ac7a12c38.1e3d06d64a628972b7dc87dadfd0e89e.8e67f393f21a6b36d83370c86e191f02&signature=d64916de328f6e85a32b2ea1b05046e0be4c5e5f384721f84ed9c78464b672ee
+
+#EXTINF:-1 tvg-chno="11" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Montreal Canadiens vs Columbus Blue Jackets (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Montreal Canadiens vs Columbus Blue Jackets
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+9&code=gb&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-9/playlist.m3u8?token=7cebec00f1524eaa7227d4ec6de2f4e7a4b816fd08702545702b4a3d86860562.1774560807.d678b61ca6b7aee1782a91bd11b38ae2.10541e4a8b08a1f8a7f4bc68c94c835f.8073ef527c2e30789ddda5f72b48f522&signature=f3f72e27d9e73752be45a4bcb23659de5005faba0042191b3efb68195c9ffc48
+
+#EXTINF:-1 tvg-chno="12" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Florida Panthers vs Minnesota Wild (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Florida Panthers vs Minnesota Wild
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-espn/playlist.m3u8?token=d5a81f204910bafe8fe2f8e554db7dc9dbc2d0dcb10bbc056c9e0b7a3a9c3154.1774560807.5c82f29d6f90bfade0d18afc493e1705.76388d5e1279d389f4a4f0efc386a63e.ae3ff957583ae7ccc13699b7eefbbd71&signature=c8baf42011bcd6be047b113064b7496366db449b9bf71c0657df9037992e2829
+
+#EXTINF:-1 tvg-chno="13" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Ottawa Senators vs Pittsburgh Penguins (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Ottawa Senators vs Pittsburgh Penguins
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tsn+5&code=ca&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/ca-tsn-5/playlist.m3u8?token=45cedcb3724c475d085d03f68e8e56dc1e5a64f3470588a275b78de1e04843a8.1774560808.901b582f16da350d03949de80d621eab.85099f05ba157d71cded9713f4db87d3.073830da0ea50d3a9084fb8cda7ddcda&signature=6e1a9ac6023d6043b93d71913007a8f14b4239896902b5db4ae4a71eb226dd78
+
+#EXTINF:-1 tvg-chno="14" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Tampa Bay Lightning vs Seattle Kraken (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Tampa Bay Lightning vs Seattle Kraken
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sportsnet+ontario&code=ca&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/ca-sportsnet-ontario/playlist.m3u8?token=794835aa343168589f947f9437f2bc17aef726c98ea06ac78412fc7e0cf02b7e.1774560809.5104695d9102e49b19d1b4e5c6fa6cc7.e62821ff56704c045ea4e5e582f33772.85bf9a2a0553255f8e78d0682dba4037&signature=3acfc99d4f773a5ce098cbc51f724364c6edc3df5c8a2dc263dd2a4d1b06cf6f
 
