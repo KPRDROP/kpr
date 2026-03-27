@@ -1,25 +1,7 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Calgary Flames vs Anaheim Ducks (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Calgary Flames vs Anaheim Ducks
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sportsnet+west&code=ca&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/ca-sportsnet-west/playlist.m3u8?token=e235d0080825cd5176d5e70c0b80e1903f8d1816aa24a2846aa9f1c8a0bae254.1774578497.dfab278c935750a270678da350b062b1.5d8f44258ffd568d5ce1446aee059c75.c3227b57ed8324a532448f4e15e3b4ec&signature=e971d8ad338f1df16a366b43afbeb8b7314f5aec4bb701c97b424853b2f3e7c4
-
-#EXTINF:-1 tvg-chno="2" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Vegas Golden Knights vs Edmonton Oilers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Vegas Golden Knights vs Edmonton Oilers
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-espn/playlist.m3u8?token=ba6c4ec2c0e2700b5e6abc610f91fd8fdfe6498a6691e2665bfea1c132c4ae20.1774578498.640e805ad4e847682c43b0c85c395462.36760bc0ca2fd5c04282afba55e7455a.56451ac29b022f25c4556176862424f8&signature=5eafd8b7024d297d83100707a3ba852b0b07bbb7db00a95220339e33480bc88c
-
-#EXTINF:-1 tvg-chno="3" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Vancouver Canucks vs Los Angeles Kings (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Vancouver Canucks vs Los Angeles Kings
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=viaplay+sports+1&code=gb&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/gb-viaplay-sports-1/playlist.m3u8?token=791c0fe448a69619eee17bcaced4e8016ea0bb772880b7ca1bb825ef81e57c47.1774578498.90cb252cc246f6a294a6f8a7f9d4a323.749375e16c1f47b923fe68acfcf6ecd3.ac66661de3585b58ed7b65d0a7a14219&signature=e5451c123c10ca10bcc8ef23df2049489e7c4a7f319a0d95a471f7e994a38322
-
-#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Jamaica vs New Caledonia (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Jamaica vs New Caledonia
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Jamaica vs New Caledonia (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Jamaica vs New Caledonia
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=fox+sports+1&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-fox-sports-1/playlist.m3u8?token=4ca70e55ab1deaaf5da26a1d6c1bf39d9e37bcbef52c8e1bd684a85604e0f37b.1774578496.dc503591d97ca0650936ce3fd4735472.72482ca05f22e21b7ace1d43f24a5179.91af87fd4861a7137f6f7a078ac17b94&signature=5acf797b01eeb6f3b8ce117a1856eb8cbccf0eed16841cc9aeb0ded078c0a2dd
+https://edge.cdn-live.ru/secure/api/v1/us-fox-sports-1/playlist.m3u8?token=7e8a44c90e9f031172ecf87d6e4f0ba66ea7607a05597ae90934f97c5a652997.1774587435.cdfb1972cbe10e22147100fdf4c2871c.a57886bbdd2d15822a5af9c8e6db6322.78169e704d573868350e9c3535eb3798&signature=a37259269774d07334adfc1b5f949b0be8f9fb5d936b09f23719dcc013ebae3a
 
