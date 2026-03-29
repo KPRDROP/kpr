@@ -1,79 +1,61 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Carolina Hurricanes vs Montreal Canadiens (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Carolina Hurricanes vs Montreal Canadiens
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tsn+2&code=ca&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/ca-tsn-2/playlist.m3u8?token=ea122c775969a4ac9c2bdaf81756900a014ff9462402b4dba1cbc414c0c96876.1774823571.5f4175fd5e2058046dc533685ee2b9e1.0b4d0184695d1df357c5f8373253c9e7.f04dc10a56235c5ecc029a890b31a0ae&signature=3846864a069612987f4b87b8e33c697c64a81b022f9fc8a0b4bff7f18355d541
-
-#EXTINF:-1 tvg-chno="2" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Tampa Bay Lightning vs Nashville Predators (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Tampa Bay Lightning vs Nashville Predators
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+10&code=gb&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-10/playlist.m3u8?token=757508c7fe1f24d40689811ae7ddeb40cb6eb21dc644aa1fed43b6fe5ebd3d29.1774823572.abdd535e21cd7129a22ac0c0293e4edb.2fc141a747587bd2dbaf949d65dcee85.78c099722730ca0a2c65187ff312c811&signature=5bbe2ab033bd431a055cbfc63db8c66fb052c7eff58a69da10d4be019c852271
-
-#EXTINF:-1 tvg-chno="3" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Columbus Blue Jackets vs Boston Bruins (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Columbus Blue Jackets vs Boston Bruins
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+8&code=gb&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-8/playlist.m3u8?token=c4590073cd7b34874618d749a8c10371e7102e25aaa8bafa505b8a6be5e72a3e.1774823572.44a2681c98d786b98441b80106d407d8.e545b6e700c20df6e59d92a783bdeae6.47d7cf278ba88ac63b188149d2195aac&signature=688b30336718c0589018ec715aea3024672121e48f28313a0a2c437454759914
-
-#EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Junior vs Inter Bogotá (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Junior vs Inter Bogotá
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=3d354d5406502da3894feaf2e171be3c8393c945737ab2532bbd9a138ac2cdc5.1774823566.a80a0a7636e08cb50dfdc4597469b8c8.55d79fec8cfa34ae1ee7295d78093174.0c621b6fd50a6e888c114ad20a94585a&signature=f20a16490c8afba3d57a54f1db159a5aaa738c943e4762cd1fcdb8bf1ed4f874
-
-#EXTINF:-1 tvg-chno="5" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Sacramento Kings vs Brooklyn Nets (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Sacramento Kings vs Brooklyn Nets
+#EXTINF:-1 tvg-chno="1" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Sacramento Kings vs Brooklyn Nets (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Sacramento Kings vs Brooklyn Nets
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=yes+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-yes-network/playlist.m3u8?token=8d52cbc96b5fe1968eb5301396f5f77e8d9654f47f63d78a82cbdba7f3d76d99.1774823568.57d83397f10a9134a5740a7b4a913a16.9931b739b818a7149a057fa80d0abe46.01c159c9918ed8f7e98b42c0701e5288&signature=fea3c132166f26543137458a4408435d46a9ce8c23676a697b1d99458c4bdb56
+https://edge.cdn-live.ru/secure/api/v1/us-yes-network/playlist.m3u8?token=2c1ff81630fa8db214da2c8d2355a7112f8e9928ef3800b52d6b13fe89aaff5d.1774827261.72c95134d656b1380749b80390d8dcee.8abc81292528df3558cf58225abc89f8.7c665c279d6b55eb929b5f8a55fb20d8&signature=989d421dacee1eea6f1181d0f8bc2fccb718f3817e1a90903be4cce5d1c12c28
 
-#EXTINF:-1 tvg-chno="6" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Boston Celtics vs Charlotte Hornets (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Boston Celtics vs Charlotte Hornets
+#EXTINF:-1 tvg-chno="2" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Boston Celtics vs Charlotte Hornets (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Boston Celtics vs Charlotte Hornets
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=cosmote+sport+8&code=gr&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/gr-cosmote-sport-8/playlist.m3u8?token=0cca9d014920a8b4fe75f1f4d73139bfcfd4aa9509365dac4150ddbf5b43ce3d.1774823569.af47366005cbe581c6d7e8e91597e223.63f0b44da7264ebffb1ab8effe0576bc.5a47330bb38ca0faf23ba7a1be0970e8&signature=af7b128d62bb15cdc34f5483eee98b56c8f514ff3688d73567d90c46b0b86b65
+https://edge.cdn-live.ru/secure/api/v1/gr-cosmote-sport-8/playlist.m3u8?token=cd8f86646ba164fa0726efaf6765a22513b16a58ce584ad4a1cc84a2ce58ce10.1774827262.3e5c5c77735fd1a0c9263d23312e879c.fba03a4c1dea5ece8af639f2b45fdf21.a356de13daad8a80e419cf5ad89d81ac&signature=91ba36d5f3693b4dd74ecce1397a16508c5c9809314df96afdc113bf147c3c5c
 
-#EXTINF:-1 tvg-chno="7" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Washington Wizards vs Portland Trail Blazers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Washington Wizards vs Portland Trail Blazers
+#EXTINF:-1 tvg-chno="3" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Washington Wizards vs Portland Trail Blazers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Washington Wizards vs Portland Trail Blazers
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sport+5&code=il&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/il-sport-5/playlist.m3u8?token=962689ef3c33fdee70c00f985c9355b1099dee1399140d95b3e1bd2e8bc1e5f6.1774823569.d30211399b789529d04b7da111f4617c.94c0a996508be9ebf909dd61afe62ace.c4803557f3b8f2d1a9a05c991e629b54&signature=1c4945b439c2f648386a1c44f21bc720b38a9f7dab88efec8ecdd7fc7035de12
+https://edge.cdn-live.ru/secure/api/v1/il-sport-5/playlist.m3u8?token=628d3ff8559412a16d4863ae1c58f57bcd73700206d3be0e7049925f1975b5ed.1774827263.02cb6954b8eea73ebf1371093ddadf60.99cacba6888f9bbef6ee63f7b9dc730a.e509c4b429bdca1336d113c5400abf1b&signature=72a85657fc276d2c21ffdfed6b6d6f517907b85d4bccb3d4c5ace7440debe232
 
-#EXTINF:-1 tvg-chno="8" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Orlando Magic vs Toronto Raptors (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Orlando Magic vs Toronto Raptors
+#EXTINF:-1 tvg-chno="4" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Orlando Magic vs Toronto Raptors (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Orlando Magic vs Toronto Raptors
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tsn+4&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/ca-tsn-4/playlist.m3u8?token=74266364813576b2258682013f6ce87f311f57aee1ade2d786bc65155016bef2.1774823570.8a3d3a2d432b4611fe5352be7a5c5be0.09c372dd95fee85d8512e847295419c7.bde49395451c79f632a72c1edbde832b&signature=b12dc484fc74da1cdfc6d405c0711cff8fda94947d6736277d6dbc02b758eba9
+https://edge.cdn-live.ru/secure/api/v1/ca-tsn-4/playlist.m3u8?token=52ac4623f832b20cece5e17b3fd0717a3e3c9d36050c1846e318ee44c7bd4ba9.1774827263.194ea49e0134003886402de276547229.f095f35595dd15fc042e6e75b06a8f7d.5cab8aeed8f0564550a00a6c86009741&signature=e80bef9bd430c08f749217b18fd41794c4e591dcf136bdfb885b5567118a46d3
 
-#EXTINF:-1 tvg-chno="9" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Botafogo vs Athletico-PR (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Botafogo vs Athletico-PR
+#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Botafogo vs Athletico-PR (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Botafogo vs Athletico-PR
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sportdigital+fussball&code=de&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/de-sportdigital-fussball/playlist.m3u8?token=2304bd3f0ce9f795c25c5a0c410b68fb60c1993a0777abc50aaacc2b046931fb.1774823567.32a816cc1f196402e7ddb3aaf779d216.75d77aa485dd62e7f0cfc5eea090d367.5648d65b5cb59c13741f03c15b4dea89&signature=71e8388f9ef6d0a69e99e4476d70e1d1d9177aabe0b775c882afe817b3531718
+https://edge.cdn-live.ru/secure/api/v1/de-sportdigital-fussball/playlist.m3u8?token=e4c6d89cc6d91f2ae80633f6d35264822debba1186843976d78027aad4bc4fb0.1774827258.6d65627ef8c09911f51d51fc34df4073.374e497fb025aa32bed4f1f8cc8c174a.2aa7d5aeb4035cc3541d5936c8f3abaf&signature=74368252a80470faef6e2cd5929d8e69eff2797a84fb2036cc16cfbc42f76b44
 
-#EXTINF:-1 tvg-chno="10" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] New Jersey Devils vs Chicago Blackhawks (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",New Jersey Devils vs Chicago Blackhawks
+#EXTINF:-1 tvg-chno="6" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] New Jersey Devils vs Chicago Blackhawks (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",New Jersey Devils vs Chicago Blackhawks
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=msg&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-msg/playlist.m3u8?token=dd7b851f716c6a15536d869c6104c3602302035ca1b39ef8f4530ff698e2f68e.1774823573.9499f5610d3f997e432fdf8771ae7f0b.0b7781088f999caa2a5f069aa6d5f354.7c5ab5b65b39d368e18c06a4ed810263&signature=83720bc209c8cf364adf02fda079ed813b7d17ed7c4b056f1a13a6e3542591a6
+https://edge.cdn-live.ru/secure/api/v1/us-msg/playlist.m3u8?token=66fc34ba3c23e301ec08bd7e1b107bd16ec724b3250182f07bb5d5b222380a18.1774827265.b0a4f4ee0c8b7e95182ce46ef9c96607.c6138cef9a9db9ea41193c31513ed9fe.6184a292af62a4366599d1b124265c05&signature=d010f25f0136a7c1df671bb42989e2472157462717f4fff38a6c72a0568b8fc0
 
-#EXTINF:-1 tvg-chno="11" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Atlético Nacional vs Deportivo Pasto (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Atlético Nacional vs Deportivo Pasto
+#EXTINF:-1 tvg-chno="7" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Atlético Nacional vs Deportivo Pasto (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Atlético Nacional vs Deportivo Pasto
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=b744a866b0e0bd6d61dd599e14ab1ab626bb00fc07267073ec5fb29b85650656.1774823568.4a6da873c08a38d5fbfe48bc9b701dd3.8b5478e668d2d00f0a74f925d7d41d70.d6abef386806217edcc30af9171c008b&signature=8ba55a942b8d5f24f91cf2cea672435a5f1c6bbbde4b9c3d3b4602e1ab5d1545
+https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=cb7bc632980548017b48e34444e7d90485bdbea5176dfb78e6cce8880b90fa64.1774827259.9aba93970cfaf48b510806641beed1fd.b7323ac45646fdc0d9baa5dfc0c9a4c3.e6fab16f34c802097b7cdee0c95e7f75&signature=b7b39dc0ce2f1669b6fe0b692cd9948acb9f3a8143a3edc574b7273a5a6ae334
 
-#EXTINF:-1 tvg-chno="12" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Seattle Mariners vs Cleveland Guardians (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Seattle Mariners vs Cleveland Guardians
+#EXTINF:-1 tvg-chno="8" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Seattle Mariners vs Cleveland Guardians (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Seattle Mariners vs Cleveland Guardians
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+1&code=gb&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-1/playlist.m3u8?token=cbd5a4037ef3c1307cde6e8f2fc4b0ca7e7efb01a04658f135d070639acbfee0.1774823573.610fd56e8258c02e3a48a8c51fbc30e5.e65af6094e71b096bed498da9d16629a.d01096dec792ad2102ee181981667907&signature=e9c48a7deb94c8446b98257ed69e1dd44f5a540f9780c907dd03165a4acf0401
+https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-1/playlist.m3u8?token=1641e56f57eff1933f69f457220ba443c649a42b4848f4da60005f1545fcaa26.1774827265.dd514bfadcd8fc17e0db29f1215a27ec.f68fca3a0f56e1fdd48ada4da5a64604.7993c0ec12c8580d4972899640aa91e5&signature=bac7004779838a854007f0cd198503cc358efcc877ba1e521866b7d54652e5bc
 
-#EXTINF:-1 tvg-chno="13" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] New York Knicks vs Oklahoma City Thunder (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",New York Knicks vs Oklahoma City Thunder
+#EXTINF:-1 tvg-chno="9" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] New York Knicks vs Oklahoma City Thunder (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",New York Knicks vs Oklahoma City Thunder
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=bein+sports+mena+1&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-bein-sports-mena-1/playlist.m3u8?token=154778c70776ba37dd7ffc27f30e2fede79c155cb84afa3ce6d00b1164781fa6.1774823571.e24ebf32d016a53777dae5adebdb6826.5f3841cbb494e3ff6d0c47c170848919.77821d5c688ec37105f69ac6e8ccd09f&signature=758ddcf2ece2e38cb2dd52a63c6f21e3a0e79e64eb9dead7aabbb8617886f72b
+https://edge.cdn-live.ru/secure/api/v1/us-bein-sports-mena-1/playlist.m3u8?token=5fbd66b0635580aa8d1d0c058cba3182c201127426af559a221773735c488d0a.1774827264.34ab0fed550b9e15f064af4a9e1acd6a.dacb14358ba4b1ba63b0e0c8b6aaad95.b5fed3de8d1374f84185422846e05ebd&signature=40ab678667372d76ec85e4abf1bcaff1347261e82841e0c96c68c71c5cce588a
+
+#EXTINF:-1 tvg-chno="10" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Once Caldas vs Llaneros (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Once Caldas vs Llaneros
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=902058b71b84bd71ea0ffb055798d875071d796f3fd7ec9e7785410feb2de376.1774827260.4b70c49f3e58c4ec844745e0287e351c.476517f19a51ce955ff61cd14ac3f064.5146481860cd7d6f129307c454b747a5&signature=cde6632611ce8a243ec9f190a7b2eb03311d5276aa7e863e29d5473a90cb7ca2
 
