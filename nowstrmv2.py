@@ -56,7 +56,6 @@ def generate_output_files():
             continue
             
         # Extract data
-        # Parse sport from key format "[Sport] Event (TAG)"
         sport_match = key.split("[")[1].split("]")[0] if "[" in key else "Live Events"
         sport = sport_match
         event_name = key.split("]")[-1].strip().replace(f"({TAG})", "").strip() if "]" in key else key
@@ -65,15 +64,14 @@ def generate_output_files():
         url = data.get("url", "")
         link = data.get("link", "")
         
-        # CRITICAL FIX: Keep the full URL with token parameters - do NOT split on '?'
-        # The token and signature are essential for playback
+        # Keep the full URL with token parameters
         full_url = url
         
         # Skip if no URL
         if not full_url:
             continue
         
-        # For VLC referer, use the player page URL which contains the channel info
+        # For VLC referer, use the player page URL
         vlc_referer = link if link else REFERER
         
         # EXTINF line (same for both formats)
@@ -143,13 +141,13 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                 
                 # Handle different response formats
                 if isinstance(api_data, dict):
-                    # Check if it's a list wrapped in a dict
-                    if "events" in api_data:
+                    # Check for matches array in response
+                    if "matches" in api_data:
+                        api_data = api_data.get("matches", [])
+                    elif "events" in api_data:
                         api_data = api_data.get("events", [])
                     elif "data" in api_data:
                         api_data = api_data.get("data", [])
-                    elif "matches" in api_data:
-                        api_data = api_data.get("matches", [])
                 elif not isinstance(api_data, list):
                     log.error(f"Unexpected API response format: {type(api_data)}")
                     api_data = []
@@ -176,15 +174,16 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
         log.warning("No API data available")
         return events
     
-    # Extended time window to capture more events (2 hours before to 2 hours after)
-    start_dt = now.delta(minutes=-120)
-    end_dt = now.delta(minutes=120)
+    # Extended time window to capture more events (4 hours before to 4 hours after)
+    # Increased window to catch more live and upcoming events
+    start_dt = now.delta(minutes=-240)
+    end_dt = now.delta(minutes=240)
     
-    log.info(f"Processing {len(api_data)} events from API")
+    log.info(f"Processing {len(api_data)} events from API (time window: -4h to +4h)")
     
     for event in api_data:
         try:
-            # Extract event information from new API format
+            # Extract event information
             match_str = event.get("matchstr", "")
             if not match_str:
                 continue
@@ -193,7 +192,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
             league = event.get("league", "")
             sport = event.get("sport", "")
             
-            # Get event name from matchstr
+            # Get event name
             event_name = match_str
             
             # Get team names if available
@@ -210,29 +209,29 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                 log.debug(f"No channels for event: {event_name}")
                 continue
             
-            # Find valid links from channels (only https://upstor.link domain)
+            # Find valid links from channels (prioritize upstor.link, then l2l2.link)
             event_links = []
             for channel in channels:
-                # Check links array
+                # First check oldLinks (for upstor.link)
+                old_links = channel.get("oldLinks", [])
+                for link in old_links:
+                    if link and isinstance(link, str) and link.startswith(('http://', 'https://')):
+                        # Include both upstor.link and l2l2.link
+                        if "upstor.link" in link or "l2l2.link" in link:
+                            event_links.append(link)
+                            log.debug(f"Found link in oldLinks for {event_name}: {link}")
+                
+                # Also check links array (for l2l2.link)
                 links = channel.get("links", [])
                 for link in links:
                     if link and isinstance(link, str) and link.startswith(('http://', 'https://')):
-                        # Only include upstor.link domain
-                        if "upstor.link" in link:
+                        # Include both upstor.link and l2l2.link
+                        if "upstor.link" in link or "l2l2.link" in link:
                             event_links.append(link)
-                            log.debug(f"Found upstor.link for {event_name}: {link}")
-                
-                # Also check oldLinks as fallback
-                if not event_links:
-                    old_links = channel.get("oldLinks", [])
-                    for link in old_links:
-                        if link and isinstance(link, str) and link.startswith(('http://', 'https://')):
-                            if "upstor.link" in link:
-                                event_links.append(link)
-                                log.debug(f"Found upstor.link in oldLinks for {event_name}: {link}")
+                            log.debug(f"Found link in links for {event_name}: {link}")
             
             if not event_links:
-                log.debug(f"No upstor.link URLs found for event: {event_name}")
+                log.debug(f"No valid links found for event: {event_name}")
                 continue
             
             # Use the first valid link
@@ -278,10 +277,11 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                 "sport_type": sport,
                 "team1": team1,
                 "team2": team2,
-                "channel_name": event.get("channel", "")
+                "channel_name": event.get("channel", ""),
+                "link_type": "upstor" if "upstor.link" in link else "l2l2"
             })
             
-            log.info(f"Found new event: {key} at {event_time_str if event_time_str else 'current time'}")
+            log.info(f"Found new event: {key} at {event_time_str if event_time_str else 'current time'} (link: {link})")
             
         except Exception as e:
             log.error(f"Error processing event: {e}")
@@ -310,7 +310,7 @@ async def scrape(browser: Browser) -> None:
         async with network.event_context(browser) as context:
             for i, ev in enumerate(events, start=1):
                 async with network.event_page(context) as page:
-                    log.info(f"Processing event {i}/{len(events)}: {ev['sport']} - {ev['event']}")
+                    log.info(f"Processing event {i}/{len(events)}: {ev['sport']} - {ev['event']} (type: {ev.get('link_type', 'unknown')})")
                     
                     handler = partial(
                         network.process_event,
@@ -321,7 +321,7 @@ async def scrape(browser: Browser) -> None:
                         timeout=15,
                     )
                     
-                    # CRITICAL FIX: Get the full URL with token from the upstor.link page
+                    # Get the full URL with token from the link page
                     url = await network.safe_process(
                         handler,
                         url_num=i,
@@ -340,8 +340,7 @@ async def scrape(browser: Browser) -> None:
                         
                         tvg_id, logo = leagues.get_tvg_info(sport, event)
                         
-                        # CRITICAL FIX: Keep the full URL with token - do NOT split
-                        # The token and signature are in the URL parameters
+                        # Keep the full URL with token
                         full_url = url
                         
                         # Ensure URL is a valid m3u8 stream
@@ -349,12 +348,12 @@ async def scrape(browser: Browser) -> None:
                             log.warning(f"URL may not be an m3u8 stream: {full_url}")
                         
                         entry = {
-                            "url": full_url,  # Store the full URL with token
+                            "url": full_url,
                             "logo": logo,
                             "base": REFERER,
                             "timestamp": ts,
                             "id": tvg_id or f"{sport.replace(' ', '.')}.event",
-                            "link": ORIGIN,  # Store the original upstor.link URL for referer
+                            "link": ORIGIN,
                         }
                         
                         urls[key] = cached_urls[key] = entry
@@ -398,7 +397,7 @@ async def main():
 
 
 def run():
-    """Synchronous entry point for the scraper"""
+    """Synchronous entry point for the updater"""
     asyncio.run(main())
 
 
