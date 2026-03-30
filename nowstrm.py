@@ -1,8 +1,9 @@
 import asyncio
 import os
 import urllib.parse
+import re
 from functools import partial
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, parse_qs
 
 from playwright.async_api import Browser
 
@@ -35,6 +36,39 @@ def encode_user_agent(user_agent: str) -> str:
     """Encode user agent for TiviMate format"""
     return urllib.parse.quote(user_agent)
 
+def extract_id_from_link(link: str) -> str:
+    """Extract ID from l2l2.link URL"""
+    try:
+        # Parse the URL
+        parsed = urlparse(link)
+        # Get query parameters
+        params = parse_qs(parsed.query)
+        # Extract id parameter
+        if 'id' in params:
+            return params['id'][0]
+        
+        # Try regex as fallback
+        match = re.search(r'[?&]id=([^&]+)', link)
+        if match:
+            return match.group(1)
+    except Exception as e:
+        log.debug(f"Error extracting ID from {link}: {e}")
+    return None
+
+def convert_to_player_url(link: str) -> str:
+    """Convert l2l2.link/ch.php?id=X to l2l2.link/api/player.php?id=X"""
+    try:
+        # Extract ID from the link
+        event_id = extract_id_from_link(link)
+        if event_id:
+            # Convert to player URL format
+            player_url = f"https://l2l2.link/api/player.php?id={event_id}"
+            log.debug(f"Converted {link} to {player_url}")
+            return player_url
+    except Exception as e:
+        log.error(f"Error converting link {link}: {e}")
+    return link
+
 def generate_output_files():
     """Generate both VLC and TiviMate M3U8 files"""
     if not urls:
@@ -56,7 +90,6 @@ def generate_output_files():
             continue
             
         # Extract data
-        # Parse sport from key format "[Sport] Event (TAG)"
         sport_match = key.split("[")[1].split("]")[0] if "[" in key else "Live Events"
         sport = sport_match
         event_name = key.split("]")[-1].strip().replace(f"({TAG})", "").strip() if "]" in key else key
@@ -65,8 +98,7 @@ def generate_output_files():
         url = data.get("url", "")
         link = data.get("link", "")
         
-        # CRITICAL FIX: Keep the full URL with token parameters - do NOT split on '?'
-        # The token and signature are essential for playback
+        # Keep the full URL with token parameters
         full_url = url
         
         # Skip if no URL
@@ -143,13 +175,13 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                 
                 # Handle different response formats
                 if isinstance(api_data, dict):
-                    # Check if it's a list wrapped in a dict
-                    if "events" in api_data:
+                    # Check for matches array in response
+                    if "matches" in api_data:
+                        api_data = api_data.get("matches", [])
+                    elif "events" in api_data:
                         api_data = api_data.get("events", [])
                     elif "data" in api_data:
                         api_data = api_data.get("data", [])
-                    elif "matches" in api_data:
-                        api_data = api_data.get("matches", [])
                 elif not isinstance(api_data, list):
                     log.error(f"Unexpected API response format: {type(api_data)}")
                     api_data = []
@@ -176,15 +208,15 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
         log.warning("No API data available")
         return events
     
-    # Extended time window to capture more events (2 hours before to 2 hours after)
-    start_dt = now.delta(minutes=-120)
-    end_dt = now.delta(minutes=120)
+    # Extended time window to capture more events (4 hours before to 4 hours after)
+    start_dt = now.delta(minutes=-240)
+    end_dt = now.delta(minutes=240)
     
-    log.info(f"Processing {len(api_data)} events from API")
+    log.info(f"Processing {len(api_data)} events from API (time window: -4h to +4h)")
     
     for event in api_data:
         try:
-            # Extract event information from new API format
+            # Extract event information
             match_str = event.get("matchstr", "")
             if not match_str:
                 continue
@@ -210,20 +242,21 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                 log.debug(f"No channels for event: {event_name}")
                 continue
             
-            # Find valid links from channels (only https://l2l2.link domain)
+            # Find valid l2l2.link URLs from channels
             event_links = []
             for channel in channels:
-                # Check links array
+                # Check links array (primary source for l2l2.link)
                 links = channel.get("links", [])
                 for link in links:
                     if link and isinstance(link, str) and link.startswith(('http://', 'https://')):
                         # Only include l2l2.link domain
                         if "l2l2.link" in link:
                             event_links.append(link)
-                            log.debug(f"Found l2l2.link for {event_name}: {link}")
-                
-                # Also check oldLinks as fallback
-                if not event_links:
+                            log.debug(f"Found l2l2.link in links for {event_name}: {link}")
+            
+            # Also check oldLinks as fallback (but prioritize links)
+            if not event_links:
+                for channel in channels:
                     old_links = channel.get("oldLinks", [])
                     for link in old_links:
                         if link and isinstance(link, str) and link.startswith(('http://', 'https://')):
@@ -235,8 +268,9 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                 log.debug(f"No l2l2.link URLs found for event: {event_name}")
                 continue
             
-            # Use the first valid link
-            link = event_links[0]
+            # Use the first valid link and convert to player URL
+            original_link = event_links[0]
+            player_link = convert_to_player_url(original_link)
             
             # Parse event time
             event_time_str = event.get("time", "")
@@ -272,7 +306,8 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
             events.append({
                 "sport": group_title,
                 "event": event_name,
-                "link": link,
+                "link": player_link,  # Use the converted player URL
+                "original_link": original_link,
                 "timestamp": timestamp,
                 "league": league,
                 "sport_type": sport,
@@ -281,7 +316,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                 "channel_name": event.get("channel", "")
             })
             
-            log.info(f"Found new event: {key} at {event_time_str if event_time_str else 'current time'}")
+            log.info(f"Found new event: {key} at {event_time_str if event_time_str else 'current time'} (player: {player_link})")
             
         except Exception as e:
             log.error(f"Error processing event: {e}")
@@ -321,7 +356,7 @@ async def scrape(browser: Browser) -> None:
                         timeout=15,
                     )
                     
-                    # CRITICAL FIX: Get the full URL with token from the l2l2.link page
+                    # Get the full URL with token from the player page
                     url = await network.safe_process(
                         handler,
                         url_num=i,
@@ -340,8 +375,7 @@ async def scrape(browser: Browser) -> None:
                         
                         tvg_id, logo = leagues.get_tvg_info(sport, event)
                         
-                        # CRITICAL FIX: Keep the full URL with token - do NOT split
-                        # The token and signature are in the URL parameters
+                        # Keep the full URL with token
                         full_url = url
                         
                         # Ensure URL is a valid m3u8 stream
@@ -349,12 +383,12 @@ async def scrape(browser: Browser) -> None:
                             log.warning(f"URL may not be an m3u8 stream: {full_url}")
                         
                         entry = {
-                            "url": full_url,  # Store the full URL with token
+                            "url": full_url,
                             "logo": logo,
                             "base": REFERER,
                             "timestamp": ts,
                             "id": tvg_id or f"{sport.replace(' ', '.')}.event",
-                            "link": ORIGIN,  # Store the original l2l2.link URL for referer
+                            "link": ev["link"],  # Store the player URL for referer
                         }
                         
                         urls[key] = cached_urls[key] = entry
@@ -398,7 +432,7 @@ async def main():
 
 
 def run():
-    """Synchronous entry point for the scraper"""
+    """Synchronous entry point for the updater"""
     asyncio.run(main())
 
 
