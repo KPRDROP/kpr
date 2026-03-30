@@ -1,19 +1,31 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Once Caldas vs Llaneros (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Once Caldas vs Llaneros
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Hapoel Hadera vs Maccabi Herzliya (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Hapoel Hadera vs Maccabi Herzliya
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sport+5+live&code=il&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=99f583f130799e6b1699ed7d9fb421c266b0c74abb84baebcc15c865c0307909.1774838022.8cbb579649521bec92a240cb54a308b9.6e03a5ff8147a899c72fce271b82b337.c5f832526c9549600266fc99379ff94f&signature=c07a45680a8d5078ef3b241beb2b0b9390eb1c4750b5d3ba92fd143693d749cd
+https://edge.cdn-live.ru/secure/api/v1/il-sport-5-live/playlist.m3u8?token=323d267f78574a5500a857905e530af25b7663a33e2c851a36389afdccdf5dff.1774879591.fcbbc50fe08bfc040a50e219290e503d.abee4f79805e6566181b74f5906fdb88.74f1b380cbf60150be71237ca5271645&signature=0a0ddd249bbba1a283c5ab913fa385b072081b4c31fed730d1d18f07759b2ee8
 
-#EXTINF:-1 tvg-chno="2" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Golden State Warriors vs Denver Nuggets (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Golden State Warriors vs Denver Nuggets
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=telemundo&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Kafr Qasim vs Hapoel Rishon LeZion (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Kafr Qasim vs Hapoel Rishon LeZion
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sport+5+stars&code=il&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-telemundo/playlist.m3u8?token=1cea1a4d6c64d483fedb0830ae7c2794a12f6809f6ef2a7d4099e04b09247c3f.1774838023.e1ebca873ef4c87e82213095e201051e.c9a73a3d63df2c65386519a6c1ddd7a7.e6bd3f089a95d0510427371c81f944d2&signature=1a6ca9b77cc87d26c69207da3ac9f89a287a6eaa578f441d74ab5905487977d1
+https://edge.cdn-live.ru/secure/api/v1/il-sport-5-stars/playlist.m3u8?token=d218d5b4bd5360c954971fb4b6819597af85b0869b56d5900a5d4db32ad1ab79.1774879592.43434b2d6fc41e3e1bbc607c4b0533c7.0fb780c751d21f8e1deab098b90a3389.39ef84a9ba87af0a09029f1478490e84&signature=6aded29bcfa104241464f7bc4dc520d5e67b348c5e4d720b0aba2235132c1971
 
-#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Friendly] Finland *FIFA Series vs Cape Verde Islands (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Finland *FIFA Series vs Cape Verde Islands
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+7&code=gb&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Friendly] Sierra Leone *FIFA Series vs Azerbaijan (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Sierra Leone *FIFA Series vs Azerbaijan
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=fox+soccer+plus&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-7/playlist.m3u8?token=a9a25a4b964a588c8d4118fd1dfc7ed27c4f436310c36d4123c335ec5149cae9.1774838023.6c2e71b0d18ecf5e2f12984173b1a757.28efa8a3a533914bc582332ad15b9b67.307c575a60958ce30c85e45cd33ce292&signature=f7c42a816aa3ef4732da99c3d40ec3b4fa75f631574fec1fa711a48f1c7b185b
+https://edge.cdn-live.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=d6d1a70383dca543a33c97fa1ec49f4196d2f52285ddbe2264dc6068dbec6fb8.1774879593.58e5efb97083ff268884c773f7e0d1de.19db839061fe6ec8d2efb2b09fb7adca.0cc21d9dfbafc02042e0adc6196f6773&signature=0f74b86fc249c973d536c1fc6b4fb6f761f22a3d82b9ca2588ef7cd9d0d0de78
+
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Friendly] Moldova vs Cyprus (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Moldova vs Cyprus
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=fox+sports+2&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-fox-sports-2/playlist.m3u8?token=b82e7993567762c71bec9a7c61cc763cd51c04a679cb8f40fe09be34796e3371.1774879593.1fbaa54042e4d532584e2f766b0f014a.9a0780da7bb63013b2f266fd0874f794.288025e6e251e466fcef54b7dda8b36b&signature=1f60a84396d4b5e4a05c1b1591e49aff4c41b9738073eec74da336fee059699e
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[Friendly] Egypt vs Spain (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Egypt vs Spain
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tve+la+1&code=es&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/es-tve-la-1/playlist.m3u8?token=1334e70e61b785663b57d7495ff4515196fb06f873003a3ceb29fc5b0da206ea.1774879594.8afde391e0151afada44c470d2641aa9.c09f2872703d371c7989dfb4f64e1346.d2af311c40f9dfd12138e4b701eac739&signature=3182a27c257fc8457701414064a0a08f1e81a4bad22045623eb7a458189220ec
 
