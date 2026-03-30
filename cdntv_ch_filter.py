@@ -18,7 +18,7 @@ CACHE_FILE = Cache(TAG, exp=10_800)
 API_CACHE = Cache(f"{TAG}-api", exp=19_800)
 
 # COUNTRY FILTER
-ALLOWED_COUNTRIES = {"us", "ca", "es", "ar", "mx", "uy", "cl", "co"}
+ALLOWED_COUNTRIES = {"us", "ca", "ar", "mx", "uy", "cl", "co"}
 
 API_URL = os.environ.get("CDNTV_CH_API_URL")
 if API_URL and not API_URL.startswith(('http://', 'https://')):
