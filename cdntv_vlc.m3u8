@@ -1,37 +1,25 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Hapoel Hadera vs Maccabi Herzliya (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Hapoel Hadera vs Maccabi Herzliya
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sport+5+live&code=il&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/il-sport-5-live/playlist.m3u8?token=746602465d53fb2d7fc56669b73732ec023c0c9760fab9ebde42b249695f0386.1774883633.d9b26d1a9f2fe276e33ea53e21c17eee.54cb46cf64cbed7ce53b4d7244923ea0.4e8c32ab4865b4b5d34f8aa1bf69733d&signature=3ed2f17cfb765fccbea9216b825187eef5570f53da0489c1dbc1b5d0c08af056
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Kafr Qasim vs Hapoel Rishon LeZion (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Kafr Qasim vs Hapoel Rishon LeZion
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sport+5+stars&code=il&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/il-sport-5-stars/playlist.m3u8?token=6a87d4119b2e7ed3c3515124a411f4962066066d25c8318f125787d09ca54732.1774883633.596baa4d18220e12a8c0d94bca86ef8f.a220903e7c0fea0aa65d3f12675d3bdd.c36fe19879ab23bb63c1714bd503f247&signature=584d6a373ba9d5af0ac7dd374a76ae77313e68bbd24a26c9dcec7c66aaf3c4b8
-
-#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Friendly] Sierra Leone *FIFA Series vs Azerbaijan (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Sierra Leone *FIFA Series vs Azerbaijan
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Friendly] Sierra Leone *FIFA Series vs Azerbaijan (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Sierra Leone *FIFA Series vs Azerbaijan
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=fox+soccer+plus&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=b8c194dbd72279065782000c4875092c27d7ba64379e19291c76823db0020665.1774883634.2f938f9286cc2c60de33c76e14ed715d.811d87db1934758a3cb4c2d9330cb259.e76b10c196e7fefef94b0f47a8078a67&signature=d26fa252721e384f6eeaff353abb3336c30265eb9e7b627de40f726b86a14241
+https://edge.cdn-live.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=fe29d87fa949b950f18e14c648602e8e7971058be3ad4f965702355d1a430b84.1774886803.f2950af1abfb3faa94ed52e1060d21ec.c927e9607b460a75fc4e56023c572231.2735692cae009b6d695cd18b745d6589&signature=d5b237a383b9e973369ceca5a9865c7b47e31213d52c8e99d3b8fe763ea8f892
 
-#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Friendly] Moldova vs Cyprus (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Moldova vs Cyprus
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Friendly] Moldova vs Cyprus (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Moldova vs Cyprus
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=fox+sports+2&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-fox-sports-2/playlist.m3u8?token=74824518a98bd7bfc140fa0d57a82934fe11ca33a1b2cffc91ef21c6ad25e0f0.1774883634.023a24b015cd3ca6448a773db82df0c4.f4b2b3c2c83ef1ace7af96e5b6632378.876c85fed3a762959e18a0ee4bd52154&signature=246ec809c41c6531e45cdd7112976284246fcb68ef35bf44540d8763f0d0913b
+https://edge.cdn-live.ru/secure/api/v1/us-fox-sports-2/playlist.m3u8?token=bac2434a0d7ade1f6460f87b75c8da1f6d345d8ef3d7a9f961c35a64e605b59d.1774886804.9ee43a83410edc41056af58dca19bef5.09808bc850341b896bacae64381ef40e.c28e410d927731fe9deb438520ef7f10&signature=e78f2a71cf3cfa3e5e7371032735f298a773d24ec8b59ee0fb0618658179a0bd
 
-#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[Friendly] Egypt vs Spain (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Egypt vs Spain
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Friendly] Egypt vs Spain (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Egypt vs Spain
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tve+la+1&code=es&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/es-tve-la-1/playlist.m3u8?token=e3dd9bc6ad1d3ffc4915e8a34001a83898d55bef07c4cb9c621c8704da003386.1774883635.0ec4be9650b1c3c96acf78c4242efe77.51545a9e74a11a7193d97eb7b572b0bf.d7b617a73c7d8a32162b90a931d195b4&signature=cbdf8d484aa61c49e8a66439fbe3abe2099e712f8849898996845981c5516320
+https://edge.cdn-live.ru/secure/api/v1/es-tve-la-1/playlist.m3u8?token=54507ae9557bedd37c2995fc8eb3e5719990643097e306b7051876beeb1632c4.1774886805.7ffcaf42bfc79a8d62a03bc67abc65b5.2b8a2006389aea644b812721e4f30ca1.2b81a608da2397c527f9e81abc13de7a&signature=b1de8fed7c8570bde6244f04b080b4eb662bbb2b0aec047afd446ef38a087d10
 
-#EXTINF:-1 tvg-chno="6" tvg-id="Live.Event.us" tvg-name="[FNL] SKA Khabarovsk vs Torpedo Moskva (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="FNL",SKA Khabarovsk vs Torpedo Moskva
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[FNL] SKA Khabarovsk vs Torpedo Moskva (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="FNL",SKA Khabarovsk vs Torpedo Moskva
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=match+premier&code=ru&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/ru-match-premier/playlist.m3u8?token=5d192d7688b14e59c070bf8925283257e2e4f72ac6d5bdc6a2f80dba74186d65.1774883635.b0ef73ef0d2523d01a124544084cf037.bab6c82b545a284551d1598806e7d0ee.a4ab41a1bda3adeb52a19cd1021d95e8&signature=a1dd9b9d1de3ed52dc98e0f93de242e923e70c58db4ec1368625010d7682c21c
+https://edge.cdn-live.ru/secure/api/v1/ru-match-premier/playlist.m3u8?token=367fa5fcd5f706202bffa492cd924afce545f8e1943059df093fcef147c80a8a.1774886805.16c4a65f49cca5112e2b1cffcff94e2f.3dee24f726f9be05d2ec0975f86edd06.25d5b1f3a52810df441d884c36720b7f&signature=55cb49d66df65d67e0a5cac6e39546f3b7c2627ebd79c507711d422ca4d601ec
 
