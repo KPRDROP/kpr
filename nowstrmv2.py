@@ -12,7 +12,7 @@ log = get_logger(__name__)
 
 urls: dict[str, dict[str, str | float]] = {}
 
-TAG = "NOWSTRM"
+TAG = "NOWSTRMV2"
 
 CACHE_FILE = Cache(TAG, exp=10_800)
 
