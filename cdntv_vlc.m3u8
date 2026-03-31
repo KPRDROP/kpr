@@ -1,49 +1,25 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Minnesota Timberwolves vs Dallas Mavericks (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Minnesota Timberwolves vs Dallas Mavericks
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+5&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Friendly] Iran vs Costa Rica (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Iran vs Costa Rica
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+7&code=gb&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-5/playlist.m3u8?token=346803ce40565a56737b68627072a1d669146db5a41c8a033f949870ee281acf.1774924125.e5809a2ffc86ce2ff2347f658b97f17a.d430c00e6248a431ab6b43ad96937b7b.0b3808ea56b80e8c61592fcbcdd140a4&signature=26c950fc11791b6817da52e49b6be8252734a2ed75ecafcdb5d09864a811ab32
+https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-7/playlist.m3u8?token=797674a916cd2980b5aa7d125127f778289653edf333dff86cdf2cb360615f33.1774963259.cc9827950638ffc30644ad46ac852f73.775b994ea4aac20c771588f286507ab3.330f896d8b7d26e617e7548040b75d24&signature=c47890eac9bd8acd630f427610d5660b8bf86971dcad2405abc3772e8e89398e
 
-#EXTINF:-1 tvg-chno="2" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Colorado Avalanche vs Calgary Flames (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Colorado Avalanche vs Calgary Flames
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nhl+league+pass+2&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Friendly] Comoros vs Kazakhstan (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Comoros vs Kazakhstan
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=fox+soccer+plus&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nhl-league-pass-2/playlist.m3u8?token=980736b79813f4aa03c6220a963c07ae2050a2b912601391b5ce18809fd055fe.1774924127.71348ff2d0dd7a9e5b6ca2ffa288c415.12c6fa6347a2a41ad2e5e08f1b34cccd.5402056906a37fbb2c5f709ceb911433&signature=95ebb1ce96debb99a9dd8d6a4eb0643d30f15f0194ed87411501f2b22806f093
+https://edge.cdn-live.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=df9d7ce0211d2e3d4e522be88d90c770363f6d857395420e7795701c319a2145.1774963260.95fc518d81e36bbb14e47329973e8637.bd7b21eba29f6b631154969a47e75a90.f11184f00f09eae502b9082bccf01ca3&signature=4c30539b718ae8f736dcece02ca74cef3c3aeee0b54f41755206bc8cf107f1a6
 
-#EXTINF:-1 tvg-chno="3" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Cleveland Cavaliers vs Utah Jazz (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Cleveland Cavaliers vs Utah Jazz
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+6&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Bnei Yehuda vs Hapoel Nazareth Illit (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Bnei Yehuda vs Hapoel Nazareth Illit
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sport+5&code=il&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-6/playlist.m3u8?token=a9554539b48d1eea37eb63a0363393dae55eed8a818eea8aba9d27a3f8444205.1774924126.e70de38351e03d57e933b0df0a19cc4d.c445c03d91ed2271aa6e2a5151696b3c.76e407847930676cc2f57b65fff60f91&signature=7e70529037ec7ba1793b7df88b7103da0065cd78167919b166fe521178793c05
+https://edge.cdn-live.ru/secure/api/v1/il-sport-5/playlist.m3u8?token=275349d2e8555094b1c4e52b97d1d5c199084b373f692d57dab834163d3e1316.1774963261.7745d545a653d2fca678dfff54e3b1e4.553dc264c3a44cd755ba4436b05910b8.f9204351192ff7d46a3c2c21fc43115a&signature=50786a8e488b7d21091cb06f0a9bf380dc27da24c180ef297c38eeae21688930
 
-#EXTINF:-1 tvg-chno="4" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Detroit Pistons vs Oklahoma City Thunder (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Detroit Pistons vs Oklahoma City Thunder
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+7&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Friendly] Germany U20 vs Poland U20 (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Germany U20 vs Poland U20
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tvp+sport&code=pl&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-7/playlist.m3u8?token=854683e4c5820fa88c7d4e42a36029a19a8d1005eb16a71b506aa1df776ac73f.1774924126.b67c76c631c03c65f158e261259db6bf.3ab4c5e317edc05a091a0ee1d3edd0d7.c6762df08b25e97cad29ec99b091cd8f&signature=eb6170994c602af7f07bb520f0680531d9954e60023a56285934434b67d17e48
-
-#EXTINF:-1 tvg-chno="5" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Washington Wizards vs Los Angeles Lakers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Washington Wizards vs Los Angeles Lakers
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+8&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-8/playlist.m3u8?token=70e51a83dbb23011bfb75a16ac5f4b2fb61fe3484f45176e9dd6d1b9158da437.1774924127.3436334c23f91c240b3eded05837c2ee.3cc1505fa6c759719ec7b1bc680e9e4c.8be5258969a400a8a025bf8ee83a3d58&signature=193f269e053c15bcf35cb723b7f3d7c215e8451788809bcf367a6a3155e1b3ad
-
-#EXTINF:-1 tvg-chno="6" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Vegas Golden Knights vs Vancouver Canucks (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Vegas Golden Knights vs Vancouver Canucks
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nhl+league+pass+3&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nhl-league-pass-3/playlist.m3u8?token=2fc85751321394f8d2a2968a4efea09844473bcc69eec6ed18fa6e437353005b.1774924128.76d22a49a4c0e407583f27196d6aad1c.71e4f12a181a78640aad6471fbb8817f.43af5dee4c5bee6cbb550c38994a8e35&signature=538a464a1de62805ceb460ae7a4dcbf2e4638f3fda491bb77cc24fb9059d5c9a
-
-#EXTINF:-1 tvg-chno="7" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Anaheim Ducks vs Toronto Maple Leafs (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Anaheim Ducks vs Toronto Maple Leafs
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nhl+league+pass+4&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nhl-league-pass-4/playlist.m3u8?token=b4bf2fd0eb722c0b3cd18b23b7998e7b16b50ec954f5a3aeac715017b065d227.1774924128.ea11940c330456e5e45557fd6aadfe70.fd5851aa5d88b65955c4d8f70110bf72.b00f7ea7f670663ffb5d3fe75bdd8ff0&signature=151a38d9a517b2a42741d942204f2617a00c02dadda8482463de9f4a94b2ab42
-
-#EXTINF:-1 tvg-chno="8" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] San Jose Sharks vs St. Louis Blues (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",San Jose Sharks vs St. Louis Blues
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nhl+league+pass+5&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nhl-league-pass-5/playlist.m3u8?token=2f1d7a63476c2e9afe3721043adb7b1f29bcea6b3cf224af77b1c59352a4699b.1774924129.5fe9dab800c56ff81404128196d79056.93328956c43525b5a666b44661851db5.9969c00eeb50d5c40dd1d77b1246b6d7&signature=200ec43ed475db265bec877a32c989de835d1145ea930b71394344995d428169
+https://edge.cdn-live.ru/secure/api/v1/pl-tvp-sport/playlist.m3u8?token=29e1f413e3e92a98a9341dd41cd22e716d02cb5a102ab407f65e58b9e351e9a6.1774963261.d852b8ac61320ee9019bd93dc607ec62.521df4b6729fc58908cec676c1ce348e.3443cb1b1fe1ee3ee7ded0037bf3de75&signature=c104dd79b0a6ca004174325c890993a87bf460b55c54bed8af341b3750b471d2
 
