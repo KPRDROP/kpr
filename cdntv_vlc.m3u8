@@ -1,37 +1,7 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Friendly] Belgium Club vs Mexico (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Belgium Club vs Mexico
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tudn&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[FNL] Fakel vs Neftekhimik (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="FNL",Fakel vs Neftekhimik
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=match+premier&code=ru&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-tudn/playlist.m3u8?token=54f1ab681bf46f18d2a1bdbc2bc959616637c2dc7c2b5b89ebaf2cfa53764d37.1775011164.afea49d388a92d8c961677c01a2b45db.2f3b88aee68427dde4f5a8c8c21042c8.2fe1bc7dc976994747b57a77acf7971f&signature=4b255a46b608d617ceb044c710ae676bfda932cb53d9b821742b365279f0107b
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Rionegro Águilas vs Deportes Tolima (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Rionegro Águilas vs Deportes Tolima
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=134df6e14df052fe939fd4b866638f870a10da5392c16775cd930a25d4224ed7.1775011165.dbea2504fea42fe716a43b8ed7f47307.6552f6f03a8d9c557747bc026d4221ec.b7deecedd915c109d215ad19658efc30&signature=603f83d8aa4111f27e7da184fe34dd394bee0de7d315fc38e7160a206207fd75
-
-#EXTINF:-1 tvg-chno="3" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Edmonton Oilers vs Seattle Kraken (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Edmonton Oilers vs Seattle Kraken
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nhl+league+pass+10&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nhl-league-pass-10/playlist.m3u8?token=7f28061793bcfde4f2196326366ef92a60b9e5cd8ba4f59a37918c98c24360f6.1775011167.38c9168050526754b8b4b00af4882932.640a7f9e6286d7f7122c7ad76956be38.2854f5d1d47f80e437dc1b5d4a8f8c78&signature=4591a5b142c61facc96b70661a9bf477e54de42f5d8c2d323cf2eafc0374e780
-
-#EXTINF:-1 tvg-chno="4" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Cleveland Cavaliers vs Los Angeles Lakers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Cleveland Cavaliers vs Los Angeles Lakers
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+6&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-6/playlist.m3u8?token=aea318da177cd33f06f95703a6d2f016d4fa4aad1e3ca7e01d4bf54007d90fc7.1775011166.cd59de6e391c9d53f98411b9064f9d07.dbd890e234808362e27d5efedf0c4781.20a65699883179b8d983789328b84dae&signature=51b952500e07a67dae68eed731d002fabbea01e2bbe3ff28fd84675ac56c2d46
-
-#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[World Cup Qualifying] Bolivia vs Iraq (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="World Cup Qualifying",Bolivia vs Iraq
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=fox+sports+1&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-fox-sports-1/playlist.m3u8?token=acbb2a9def95c38aa060b2e63f9a094f00ea05b29190d8f56f804604d5fa1774.1775011166.8597295ccad280841b196d5708c39602.1c4fa929c4b0e52f68ec153c562eb86e.b1d928318ebd2ed8a74146984e20f1ea&signature=7b8495fdb2a43d21e2402157fd2791e04640c90651ce081c726e7412d79aeb28
-
-#EXTINF:-1 tvg-chno="6" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Portland Trail Blazers vs Los Angeles Clippers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Portland Trail Blazers vs Los Angeles Clippers
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+7&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-7/playlist.m3u8?token=28e5308c7d6fa08a1dcb8989f9714db98579443f884c9f265a9054d17f7514a6.1775011167.02ddad1470f625db401ab7dad0db1704.cfc06c644f0f91f3d5b40dcb033b7d23.ce5101dab8511cab4bdb1e432e4a570c&signature=17c026b8ba97c7b5bc59b9d04e65ca565f0bffd4616863ab5cd9932bf7bf6c48
+https://edge.cdn-live.ru/secure/api/v1/ru-match-premier/playlist.m3u8?token=76f01fbe760c1eae8216aff5474b2748605110e1d38318c1c2399de8b1646250.1775055054.02d01d4766fef1e39514d3fcf434f16f.6464de39306e8576a1cafec8668bc1ff.4ae95b62ff77fa93622387b181693052&signature=a754a240869518319626aba04360d51f5825f328199896f0dad477c4685415ef
 
