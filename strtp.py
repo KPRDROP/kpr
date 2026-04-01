@@ -492,7 +492,7 @@ async def main() -> None:
 
 
 def run() -> None:
-    """Run the scraper"""
+    """Run the updater"""
     import asyncio
     asyncio.run(main())
 
