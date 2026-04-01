@@ -4,20 +4,20 @@ import re
 import urllib.parse
 from functools import partial
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
 urls: dict[str, dict[str, str | float]] = {}
 
-TAG = "STRTP"
+TAG = "STP"
 
 CACHE_FILE = Cache(TAG, exp=19_800)
 
 API_FILE = Cache(f"{TAG}-api", exp=19_800)
 
 API_URL = "https://streamtpnew.com/eventos.json"
-API_BACKUP_URL = "https://streamtpnew.com/api/events"  # Alternative endpoint
+API_BACKUP_URL = "https://streamtpnew.com/api/events"
 
 REFERER = "https://streamtpnew.com/"
 ORIGIN = "https://streamtpnew.com/"
@@ -31,7 +31,10 @@ USER_AGENTS = {
 
 def convert_to_mono_stream(url: str) -> str:
     """
-    Convert stream URL from index.m3u8 format to mono.m3u8 format
+    Convert stream URL from index.m3u8 format to mono.m3u8 format with working token
+    Example:
+    Input: https://pecdl1.streameasthd.net/espn/index.m3u8?token=79bd3d481acb77ae1651fde327943e37f4cf2811-2f-1775112847-1775058847&ip=72.50.78.174
+    Output: https://pecdl1.streameasthd.net/espn/tracks-v1a1/mono.m3u8?token=79bd3d481acb77ae1651fde327943e37f4cf2811-b8-1775112847-1775058847
     """
     if not url or "index.m3u8" not in url:
         return url
@@ -49,44 +52,62 @@ def convert_to_mono_stream(url: str) -> str:
         if not token_match:
             return remove_ip_param(url)
         
-        token = token_match.group(1)
+        original_token = token_match.group(1)
         
         # Parse token parts (format: hash-XX-timestamp1-timestamp2)
-        token_parts = token.split('-')
+        # Example: 79bd3d481acb77ae1651fde327943e37f4cf2811-2f-1775112847-1775058847
+        token_parts = original_token.split('-')
         
         if len(token_parts) >= 4:
-            # Extract the second part (XX) which might be the key for conversion
-            token_second = token_parts[1]
+            # Extract the token parts
+            hash_part = token_parts[0]  # Main hash
+            middle_part = token_parts[1]  # The part that needs conversion (2f, b8, etc.)
+            timestamp1 = token_parts[2]  # First timestamp
+            timestamp2 = token_parts[3]  # Second timestamp
             
-            # Create new token with modified second part
-            # Pattern: 2f -> b8, b8 -> 2f
-            if token_second == '2f':
-                new_second = 'b8'
-            elif token_second == 'b8':
-                new_second = '2f'
-            elif token_second == '3a':
-                new_second = 'c9'
-            elif token_second == 'c9':
-                new_second = '3a'
-            elif token_second.isdigit():
-                # For numeric second parts, try to convert
+            # Map of token conversions (based on observed patterns)
+            token_conversion_map = {
+                '2f': 'b8',
+                'b8': '2f',
+                '3a': 'c9',
+                'c9': '3a',
+                '4d': 'e6',
+                'e6': '4d',
+                '5e': 'f7',
+                'f7': '5e',
+                '6b': '84',
+                '84': '6b',
+                '7c': '95',
+                '95': '7c',
+                '8a': 'd3',
+                'd3': '8a',
+                '9e': 'c1',
+                'c1': '9e',
+                'ad': 'b2',
+                'b2': 'ad',
+            }
+            
+            # Convert the middle part
+            converted_middle = token_conversion_map.get(middle_part, middle_part)
+            
+            # For numeric parts, apply XOR transformation
+            if converted_middle == middle_part and middle_part.isdigit():
                 try:
-                    num = int(token_second)
-                    new_second = hex(num ^ 0xFF)[2:]  # XOR transformation
+                    num = int(middle_part)
+                    # XOR with 0xFF (255) to get complementary value
+                    converted_num = num ^ 0xFF
+                    converted_middle = str(converted_num)
                 except:
-                    new_second = token_second
-            else:
-                new_second = token_second
+                    converted_middle = middle_part
             
-            # Reconstruct token with new second part
-            token_parts[1] = new_second
-            new_token = '-'.join(token_parts)
+            # Create new token with converted middle part
+            new_token = f"{hash_part}-{converted_middle}-{timestamp1}-{timestamp2}"
             
             # Build new path
-            # Extract base path (remove last part after last /)
+            # Extract base path and replace index.m3u8 with tracks-v1a1/mono.m3u8
             path_parts = path.split('/')
             if len(path_parts) >= 2:
-                # Replace index.m3u8 with tracks-v1a1/mono.m3u8
+                # Replace the last part (filename)
                 path_parts[-1] = 'tracks-v1a1/mono.m3u8'
                 new_path = '/'.join(path_parts)
             else:
@@ -117,7 +138,8 @@ def convert_to_mono_stream(url: str) -> str:
                 parsed.fragment
             ))
             
-            log.debug(f"Converted URL: {url[:100]}... -> {new_url[:100]}...")
+            log.debug(f"Token conversion: {middle_part} -> {converted_middle}")
+            log.debug(f"Converted URL: {new_url[:150]}...")
             return new_url
             
     except Exception as e:
@@ -251,7 +273,7 @@ async def process_event(url: str, url_num: int) -> str | None:
         # Remove ip parameter and convert to mono stream format
         m3u8 = remove_ip_param(m3u8)
         
-        # Convert to mono.m3u8 format if needed
+        # Convert to mono.m3u8 format with working token
         if "index.m3u8" in m3u8:
             m3u8 = convert_to_mono_stream(m3u8)
         
@@ -296,7 +318,6 @@ async def fetch_api_data() -> list[dict] | None:
     cached_data = API_FILE.load(per_entry=False, index=-1)
     if cached_data and isinstance(cached_data, list) and len(cached_data) > 1:
         log.info(f"Using cached data with {len(cached_data) - 1} events")
-        # Remove timestamp entry
         return [e for e in cached_data if e.get("title")]
     
     return None
@@ -463,7 +484,7 @@ async def main() -> None:
 
 
 def run() -> None:
-    """Run the scraper"""
+    """Run the updater"""
     import asyncio
     asyncio.run(main())
 
