@@ -1,19 +1,61 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Segunda Division] Sporting Gijón vs Racing Santander (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/107.png" group-title="Segunda Division",Sporting Gijón vs Racing Santander
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=bein+sports+2&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-bein-sports-2/playlist.m3u8?token=fb7167285b1ea441e94491eca863949144392a287a68e0aa8aacd4ae3c319986.1775076287.e717bf9f7fc1906999fbb792abee2599.4cbfcd62da4fa19573297f90ac44eb43.17309e28ddfc5eb925ca6819d1c68a4f&signature=d08cf15563b31d7563acbec206c33bc32412e0029e1168b8f8af8cc29a438c19
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Deportivo Pasto vs Alianza (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Deportivo Pasto vs Alianza
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Deportivo Pasto vs Alianza (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Deportivo Pasto vs Alianza
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=bdbcb904947373d99f65d9e061f5aef4a669dcfd69c51b900444a1e549c57fc0.1775076288.4277b360e6d685e7d4a96d3b44c537c7.411fc1c4bb0ba8b9b61f53b674e8ab46.9853051a86a3be69b22635bf20921c1b&signature=4f8d9ea4affbd5afb8a3740af24b6fe069d57efba9c548249f938913d9051060
+https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=31e10ff1df06707ce09825805a1db8b34237daeea21650f5f605bca8064fecc9.1775079768.53b54fc8e074df995c81a5ed0c0f4f20.3f9949146e455d598aab76e847929bfe.d959daaf6a1406831ba8bdeb9c4ca02d&signature=e9593115b9b6d4016cb72974d8974aabd4492201f4358ff88f485d532d0f3670
 
-#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Brasileirão] São Paulo vs Internacional (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",São Paulo vs Internacional
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Brasileirão] São Paulo vs Internacional (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",São Paulo vs Internacional
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=m+liga+de+campeones+1&code=es&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/es-m-liga-de-campeones-1/playlist.m3u8?token=d85dff10736e90d53c814a13ab0963d64a8ad63139ea7258eb038c8775cd66a6.1775076289.e05c2931d620c95adb62541e2c2a42c0.813b7ed2dadbf0306ec7c22f39ea24c2.5d8d9f4f9583fdb095ae5365957a8eae&signature=a57fe9244a2a86edd2e0097698149f6c2c17fc3d6cf3d14cce16e4df6e31df74
+https://edge.cdn-live.ru/secure/api/v1/es-m-liga-de-campeones-1/playlist.m3u8?token=d0dec3ffba779d5001b02c2ef3647d13aa09820eb36b05b9c50a9f26e4fa2465.1775079769.2473dd0f166a6ab3ce9194e34738e7a5.ce161c11ad120643e0d5276438349969.bfbc9701990decc79d50054efac711fa&signature=a76683b4b89eebe9e5d5408adb3c6b40057aa1f7235a2e056d70ed178427cc2f
+
+#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Primera División] Platense vs Lanús (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera División",Platense vs Lanús
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports&code=ar&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/ar-tnt-sports/playlist.m3u8?token=9bea476e39d40882cf3bceae7398fa5e581cc4fd1e026f1605f47068357e0b61.1775079770.6acae4a44f5b1b37b0478d1dd5dfa8d2.672fec8ab9e49e14bda4ba09e4f4a0b6.f3a7231e216940c53b78ffbf37e36dbd&signature=9e50a06500f4b2935598da8616cce368b19b5b841c03bb04e789282ecee85d33
+
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Athletico-PR vs Bahia (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Athletico-PR vs Bahia
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+10&code=gb&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-10/playlist.m3u8?token=670b7015aa3e8a677d9166a4a2ecb8241e9c66f2631b361bec67580695067d70.1775079770.1e88065ebde30d196e43758a405e3af4.3cf186d08b02d8eb61f0d2fce5589ef5.b8df1b91cb1bd3500e95e9a10497d61f&signature=daeb60be663152f95a79b2e70ca4e7ff62a03efa6bde5b36c8c8cf51638034f4
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Vitória vs Cruzeiro (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Vitória vs Cruzeiro
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=canal+11&code=pt&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/pt-canal-11/playlist.m3u8?token=3ee4279cc30f98ef1e95e870bd88e837a5764d7fafd1e349ddddcfab16dd2619.1775079771.a833703387b0898a9fa81c17d615536a.b5668f571196009782ff703597cdf65b.4b5161da65e3818a54262555a448d77f&signature=a9797017d3f12ff77109494db01958deb7587f1862f0744e8551ed9b258c20fc
+
+#EXTINF:-1 tvg-chno="6" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Philadelphia 76ers vs Washington Wizards (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Philadelphia 76ers vs Washington Wizards
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+1&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-1/playlist.m3u8?token=8203443664f619c402029ce26d0b771d5abaa69bd7c71f01ab9ee6ae194d672e.1775079772.fa46e831fd0776852ef762caee596ab0.79f06feaf2cd8cab9097c3a462ca502d.3cc43cf2261859ba7e93f72e75f68612&signature=0af5cb0c9ad47c94ce193122c788d7fce40ea6aeeb31674c1bb9ce97ec07f809
+
+#EXTINF:-1 tvg-chno="7" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Atlanta Hawks vs Orlando Magic (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Atlanta Hawks vs Orlando Magic
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+2&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-2/playlist.m3u8?token=6b73340624baacf2a2546d1c1b9592741ef0fe31ef1ae57bab6a38ddf86b7022.1775079773.32df107533af33825c611ed359ec5bf4.0cc7311cd65220213adc923ae3650b62.09940c4f3647003773d07f973aa8e041&signature=2fb78170f51967e1a8b5bd4aa4f4ba99435719ace757be1c5fc7d3da2d3a4dcd
+
+#EXTINF:-1 tvg-chno="8" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Vasco da Gama vs Coritiba (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Vasco da Gama vs Coritiba
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sportv+1&code=br&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/br-sportv-1/playlist.m3u8?token=764bb29e195ef4d21644b3c148c161e668ba53d4e2b09f156ef2d9ab76bc3baa.1775079771.abd64b036581c37100465adba0a9eb59.26690a82f46aa416fc34f3f3273bdb06.88bf1fdf9ad59b888dd35baba9fbcb40&signature=9492a1a9e593819454741f2a23e401f28395f5511d1cbf1f9ff7f13995ad925f
+
+#EXTINF:-1 tvg-chno="9" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Llaneros vs Santa Fe (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Llaneros vs Santa Fe
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=dc9183c3bbe7ff746a7187e5df0226ec622739faa7ee6fb06f04af809aa9f2e5.1775079772.960c15dead5b0e0f401da785244baed1.123ddd40b1123204814e1caf228b4024.40a11d025f2a3d8c6eb8b6bc2d87fef1&signature=44805538b3b71f89707f3098ebb2a6c6929474c797fb4deee8f34cac7cba64f5
+
+#EXTINF:-1 tvg-chno="10" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Boston Celtics vs Miami Heat (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Boston Celtics vs Miami Heat
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+3&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-3/playlist.m3u8?token=2eb91e76c07d42456f87ec20014fbda1288d57f0770fd16673c0aaf099b0fa0c.1775079773.e3638857f967b965aee00eb437d37b1f.0b8694d63614731e571c1f5e1d9e395e.41253bd807a16fa2a68df1d9387773de&signature=aa2895f54ba023438b7063ec0bb6d385ebd73829e97a8051e4ff17e29be0aa89
 
