@@ -1,0 +1,59 @@
+name: STRTP Updater
+
+on:
+  schedule:
+    # Runs every hour
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          pip install playwright httpx[http2] pytz
+          playwright install chromium
+
+      - name: Run updater
+        env:
+          API_URL: ${{ secrets.STRTP_BASE_URL }}
+        run: |
+          python strtp.py
+
+      - name: Commit & Push safely
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+          git add strtp_vlc.m3u8 strtp_tivimate.m3u8
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "Update STRTP playlists"
+
+          # FIX: stash before rebase
+          if ! git push origin main; then
+            echo "Push rejected — rebasing safely..."
+            git stash
+            git pull --rebase origin main
+            git stash pop
+            git add strtp_vlc.m3u8 strtp_tivimate.m3u8
+            git commit -m "Update STRTP playlists (rebased)" || true
+            git push origin main
+          fi
