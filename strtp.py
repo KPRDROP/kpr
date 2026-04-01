@@ -1,0 +1,400 @@
+import ast
+import base64
+import re
+import urllib.parse
+from functools import partial
+
+from utils import Cache, Time, get_logger, leagues, network
+
+log = get_logger(__name__)
+
+urls: dict[str, dict[str, str | float]] = {}
+
+TAG = "STP"
+
+CACHE_FILE = Cache(TAG, exp=19_800)
+
+API_FILE = Cache(f"{TAG}-api", exp=19_800)
+
+API_URL = "https://streamtpnew.com/eventos.json"
+
+REFERER = "https://streamtpnew.com/"
+ORIGIN = "https://streamtpnew.com/"
+
+# User agents for different platforms
+USER_AGENTS = {
+    "vlc": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+    "tivimate": "Mozilla/5.0 (Linux; Android 7.1.2; ASUS_I003DD Build/N2G48H; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/119.0.6045.193"
+}
+
+
+def convert_to_mono_stream(url: str) -> str:
+    """
+    Convert stream URL from index.m3u8 format to mono.m3u8 format
+    Example: 
+    Input: https://pecdl1.streameasthd.net/espn/index.m3u8?token=79bd3d481acb77ae1651fde327943e37f4cf2811-2f-1775112847-1775058847&ip=72.50.78.174
+    Output: https://pecdl1.streameasthd.net/espn/tracks-v1a1/mono.m3u8?token=13e1ed7b5f00907c0cac85db5f939e77a7c2c30b-b8-1775111827-1775057827
+    """
+    if not url or "index.m3u8" not in url:
+        return url
+    
+    try:
+        # Parse the URL
+        parsed = urllib.parse.urlparse(url)
+        
+        # Extract path and query
+        path = parsed.path
+        query = parsed.query
+        
+        # Extract token from query
+        token_match = re.search(r'token=([^&]+)', query)
+        if not token_match:
+            return url
+        
+        token = token_match.group(1)
+        
+        # Parse token parts (format: hash-XX-timestamp1-timestamp2)
+        token_parts = token.split('-')
+        
+        if len(token_parts) >= 4:
+            # Extract the second part (XX) which might be the key for conversion
+            token_second = token_parts[1]
+            
+            # Create new token with modified second part
+            # Pattern: b8, 2f, etc. We need to convert 2f to b8 or similar
+            if token_second == '2f':
+                new_second = 'b8'
+            elif token_second == 'b8':
+                new_second = '2f'
+            elif token_second.isdigit():
+                # For numeric second parts, try to convert
+                try:
+                    num = int(token_second)
+                    new_second = hex(num ^ 0xFF)[2:]  # XOR transformation
+                except:
+                    new_second = token_second
+            else:
+                new_second = token_second
+            
+            # Reconstruct token with new second part
+            token_parts[1] = new_second
+            new_token = '-'.join(token_parts)
+            
+            # Build new path
+            # Extract base path (remove last part after last /)
+            path_parts = path.split('/')
+            if len(path_parts) >= 2:
+                # Replace index.m3u8 with tracks-v1a1/mono.m3u8
+                path_parts[-1] = 'tracks-v1a1/mono.m3u8'
+                new_path = '/'.join(path_parts)
+            else:
+                # Fallback: just replace filename
+                new_path = path.replace('index.m3u8', 'tracks-v1a1/mono.m3u8')
+            
+            # Create new query without ip parameter
+            query_params = {}
+            for param in query.split('&'):
+                if '=' in param:
+                    key, value = param.split('=', 1)
+                    if key != 'ip':  # Remove ip parameter
+                        query_params[key] = value
+            
+            # Update token in query params
+            query_params['token'] = new_token
+            
+            # Build new query string
+            new_query = '&'.join([f"{k}={v}" for k, v in query_params.items()])
+            
+            # Reconstruct URL
+            new_url = urllib.parse.urlunparse((
+                parsed.scheme,
+                parsed.netloc,
+                new_path,
+                parsed.params,
+                new_query,
+                parsed.fragment
+            ))
+            
+            log.debug(f"Converted URL: {url} -> {new_url}")
+            return new_url
+            
+    except Exception as e:
+        log.error(f"Error converting URL {url}: {e}")
+    
+    # If conversion fails, return original URL without ip parameter
+    return remove_ip_param(url)
+
+
+def remove_ip_param(url: str) -> str:
+    """Remove ip parameter from URL"""
+    if '&ip=' in url:
+        return url.split('&ip=')[0]
+    elif '?ip=' in url:
+        return url.split('?ip=')[0]
+    return url
+
+
+def generate_vlc_playlist(data: dict, output="strtp_vlc.m3u8") -> int:
+    """Generate VLC-compatible playlist"""
+    lines = ["#EXTM3U"]
+    count = 0
+
+    for key, entry in sorted(data.items()):
+        url = entry.get("url")
+        if not url:
+            continue
+
+        # Format the EXTINF line
+        tvg_id = entry.get("id", "Live.Event.us")
+        tvg_logo = entry.get("logo", "https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png")
+        group_title = entry.get("sport", "Live Events")
+        
+        lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{tvg_logo}" group-title="{group_title}",{key}')
+        lines.append(f"#EXTVLCOPT:http-referrer={REFERER}")
+        lines.append(f"#EXTVLCOPT:http-origin={ORIGIN}")
+        lines.append(f"#EXTVLCOPT:http-user-agent={USER_AGENTS['vlc']}")
+        lines.append(url)
+        lines.append("")
+        count += 1
+
+    with open(output, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+    log.info(f"Generated {output} with {count} events")
+    return count
+
+
+def generate_tivimate_playlist(data: dict, output="strtp_tivimate.m3u8") -> int:
+    """Generate TiviMate-compatible playlist with pipe format"""
+    ua = urllib.parse.quote(USER_AGENTS['tivimate'], safe="")
+    lines = ["#EXTM3U"]
+    count = 0
+
+    for key, entry in sorted(data.items()):
+        url = entry.get("url")
+        if not url:
+            continue
+
+        # Format the EXTINF line
+        tvg_id = entry.get("id", "Live.Event.us")
+        tvg_logo = entry.get("logo", "https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png")
+        group_title = entry.get("sport", "Live Events")
+        
+        lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{tvg_logo}" group-title="{group_title}",{key}')
+        lines.append(f"{url}|referer={REFERER}|origin={ORIGIN}|user-agent={ua}")
+        lines.append("")
+        count += 1
+
+    with open(output, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+    log.info(f"Generated {output} with {count} events")
+    return count
+
+
+async def process_event(url: str, url_num: int) -> str | None:
+    """Process event URL to extract M3U8 stream"""
+    if not (event_data := await network.request(url, log=log)):
+        log.warning(f"URL {url_num}) Failed to load url.")
+        return None
+
+    digit_func_ptrn = re.compile(r"{return\s+(\d*);}", re.I)
+
+    if not (digit_list := digit_func_ptrn.findall(event_data.text)):
+        log.warning(f"URL {url_num}) Unable to decode url.")
+        return None
+
+    embed_list_ptrn = re.compile(r"\w*=\[\[(.*)\]\];")
+
+    if not (embed_list := embed_list_ptrn.search(event_data.text)):
+        log.warning(f"URL {url_num}) Unable to decode url.")
+        return None
+
+    embed_list_str = embed_list[0].split("=", 1)[-1].strip(";")
+
+    embed_list: list[tuple[int, str]] = ast.literal_eval(embed_list_str)
+
+    embed_list.sort(key=lambda i: i[0])
+
+    # Decode the M3U8 URL
+    m3u8 = "".join(
+        chr(
+            int("".join(c for c in base64.b64decode(v).decode("utf-8") if c.isdigit()))
+            - sum(map(int, digit_list))
+        )
+        for _, v in embed_list
+    )
+
+    log.info(f"URL {url_num}) Captured M3U8: {m3u8[:100]}...")
+
+    # Remove ip parameter and convert to mono stream format
+    m3u8 = remove_ip_param(m3u8)
+    
+    # Convert to mono.m3u8 format if needed
+    if "index.m3u8" in m3u8:
+        m3u8 = convert_to_mono_stream(m3u8)
+    
+    return m3u8
+
+
+async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
+    """Get events from API"""
+    now = Time.clean(Time.now())
+
+    if not (api_data := API_FILE.load(per_entry=False, index=-1)):
+        log.info("Refreshing API cache")
+
+        api_data = [{"timestamp": now.timestamp()}]
+
+        if r := await network.request(API_URL, log=log):
+            api_data: list[dict[str, str]] = r.json()
+
+            api_data[-1]["timestamp"] = now.timestamp()
+
+        API_FILE.write(api_data)
+
+    events = []
+
+    for event in api_data:
+        name = event.get("title")
+        link = event.get("link")
+
+        if not (name and link):
+            continue
+
+        sport = event.get("category")
+        if not sport or sport == "Other":
+            sport = "Live Events"
+        
+        # Format sport name for group title
+        if sport == "Fútbol":
+            sport = "Soccer"
+        elif sport == "NBA":
+            sport = "NBA"
+        elif sport == "NFL":
+            sport = "NFL"
+        elif sport == "MLB":
+            sport = "MLB"
+        elif sport == "NHL":
+            sport = "NHL"
+        elif sport == "UFC":
+            sport = "UFC"
+        elif sport == "Boxeo":
+            sport = "BOXING"
+        elif sport == "Tenis":
+            sport = "TENIS"
+        elif sport == "MotoGP":
+            sport = "RACE"
+
+        key = f"[{sport}] {name} ({TAG})"
+        
+        if key in cached_keys:
+            continue
+
+        events.append(
+            {
+                "sport": sport,
+                "event": name,
+                "link": link,
+            }
+        )
+
+    log.info(f"Found {len(events)} new events")
+    return events
+
+
+async def scrape() -> None:
+    """Main scraping function"""
+    cached_urls = CACHE_FILE.load() or {}
+
+    valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
+    valid_count = cached_count = len(valid_urls)
+
+    urls.update(valid_urls)
+
+    log.info(f"Loaded {cached_count} event(s) from cache")
+
+    log.info('Scraping from "https://streamtpnew.com"')
+
+    events = await get_events(cached_urls.keys())
+    
+    if events:
+        log.info(f"Processing {len(events)} new URL(s)")
+
+        now = Time.clean(Time.now())
+
+        for i, ev in enumerate(events, start=1):
+            handler = partial(
+                process_event,
+                url=(link := ev["link"]),
+                url_num=i,
+            )
+
+            url = await network.safe_process(
+                handler,
+                url_num=i,
+                semaphore=network.HTTP_S,
+                log=log,
+            )
+
+            if not url:
+                log.warning(f"Event {i}) Failed to extract URL: {ev['event']}")
+                continue
+
+            sport, event = ev["sport"], ev["event"]
+
+            key = f"[{sport}] {event} ({TAG})"
+
+            tvg_id, logo = leagues.get_tvg_info(sport, event)
+
+            entry = {
+                "url": url,
+                "logo": logo,
+                "base": link,
+                "timestamp": now.timestamp(),
+                "id": tvg_id or "Live.Event.us",
+                "link": link,
+                "sport": sport,
+            }
+
+            cached_urls[key] = entry
+            urls[key] = entry
+            valid_count += 1
+            
+            log.info(f"Event {i}) ✓ Captured: {event}")
+
+        log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
+
+    else:
+        log.info("No new events found")
+
+    # Save cache
+    CACHE_FILE.write(cached_urls)
+    
+    # Generate playlists only with valid URLs
+    valid_events = {k: v for k, v in urls.items() if v.get("url")}
+    
+    if valid_events:
+        vlc_count = generate_vlc_playlist(valid_events)
+        tivimate_count = generate_tivimate_playlist(valid_events)
+        log.info(f"Final playlist size: {len(valid_events)} events")
+        log.info(f"Total written: {vlc_count + tivimate_count}")
+    else:
+        log.warning("No valid events to generate playlists")
+
+
+async def main() -> None:
+    """Main entry point"""
+    log.info("Starting STP scraper")
+    await scrape()
+    log.info("STP scraper completed")
+
+
+def run() -> None:
+    """Run the scraper"""
+    import asyncio
+    asyncio.run(main())
+
+
+if __name__ == "__main__":
+    run()
