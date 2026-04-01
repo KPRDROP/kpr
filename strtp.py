@@ -4,7 +4,7 @@ import re
 import urllib.parse
 from functools import partial
 
-from utils import Cache, Time, get_logger, leagues, network
+from .utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
@@ -16,8 +16,14 @@ CACHE_FILE = Cache(TAG, exp=19_800)
 
 API_FILE = Cache(f"{TAG}-api", exp=19_800)
 
-API_URL = "https://streamtpnew.com/eventos.json"
-API_BACKUP_URL = "https://streamtpnew.com/api/events"
+# Try different possible API endpoints
+API_ENDPOINTS = [
+    "https://streamtpnew.com/eventos.json",
+    "https://streamtpnew.com/api/eventos",
+    "https://streamtpnew.com/events.json",
+    "https://streamtpnew.com/api/events",
+    "https://streamtpnew.com/data/events.json",
+]
 
 REFERER = "https://streamtpnew.com/"
 ORIGIN = "https://streamtpnew.com/"
@@ -32,9 +38,6 @@ USER_AGENTS = {
 def convert_to_mono_stream(url: str) -> str:
     """
     Convert stream URL from index.m3u8 format to mono.m3u8 format with working token
-    Example:
-    Input: https://pecdl1.streameasthd.net/espn/index.m3u8?token=79bd3d481acb77ae1651fde327943e37f4cf2811-2f-1775112847-1775058847&ip=72.50.78.174
-    Output: https://pecdl1.streameasthd.net/espn/tracks-v1a1/mono.m3u8?token=79bd3d481acb77ae1651fde327943e37f4cf2811-b8-1775112847-1775058847
     """
     if not url or "index.m3u8" not in url:
         return url
@@ -55,15 +58,14 @@ def convert_to_mono_stream(url: str) -> str:
         original_token = token_match.group(1)
         
         # Parse token parts (format: hash-XX-timestamp1-timestamp2)
-        # Example: 79bd3d481acb77ae1651fde327943e37f4cf2811-2f-1775112847-1775058847
         token_parts = original_token.split('-')
         
         if len(token_parts) >= 4:
             # Extract the token parts
-            hash_part = token_parts[0]  # Main hash
-            middle_part = token_parts[1]  # The part that needs conversion (2f, b8, etc.)
-            timestamp1 = token_parts[2]  # First timestamp
-            timestamp2 = token_parts[3]  # Second timestamp
+            hash_part = token_parts[0]
+            middle_part = token_parts[1]
+            timestamp1 = token_parts[2]
+            timestamp2 = token_parts[3]
             
             # Map of token conversions (based on observed patterns)
             token_conversion_map = {
@@ -94,7 +96,6 @@ def convert_to_mono_stream(url: str) -> str:
             if converted_middle == middle_part and middle_part.isdigit():
                 try:
                     num = int(middle_part)
-                    # XOR with 0xFF (255) to get complementary value
                     converted_num = num ^ 0xFF
                     converted_middle = str(converted_num)
                 except:
@@ -104,14 +105,11 @@ def convert_to_mono_stream(url: str) -> str:
             new_token = f"{hash_part}-{converted_middle}-{timestamp1}-{timestamp2}"
             
             # Build new path
-            # Extract base path and replace index.m3u8 with tracks-v1a1/mono.m3u8
             path_parts = path.split('/')
             if len(path_parts) >= 2:
-                # Replace the last part (filename)
                 path_parts[-1] = 'tracks-v1a1/mono.m3u8'
                 new_path = '/'.join(path_parts)
             else:
-                # Fallback: just replace filename
                 new_path = path.replace('index.m3u8', 'tracks-v1a1/mono.m3u8')
             
             # Create new query without ip parameter
@@ -119,7 +117,7 @@ def convert_to_mono_stream(url: str) -> str:
             for param in query.split('&'):
                 if '=' in param:
                     key, value = param.split('=', 1)
-                    if key != 'ip':  # Remove ip parameter
+                    if key != 'ip':
                         query_params[key] = value
             
             # Update token in query params
@@ -139,13 +137,11 @@ def convert_to_mono_stream(url: str) -> str:
             ))
             
             log.debug(f"Token conversion: {middle_part} -> {converted_middle}")
-            log.debug(f"Converted URL: {new_url[:150]}...")
             return new_url
             
     except Exception as e:
-        log.error(f"Error converting URL: {e}")
+        log.debug(f"Error converting URL: {e}")
     
-    # If conversion fails, return original URL without ip parameter
     return remove_ip_param(url)
 
 
@@ -170,7 +166,6 @@ def generate_vlc_playlist(data: dict, output="strtp_vlc.m3u8") -> int:
         if not url:
             continue
 
-        # Format the EXTINF line
         tvg_id = entry.get("id", "Live.Event.us")
         tvg_logo = entry.get("logo", "https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png")
         group_title = entry.get("sport", "Live Events")
@@ -203,7 +198,6 @@ def generate_tivimate_playlist(data: dict, output="strtp_tivimate.m3u8") -> int:
         if not url:
             continue
 
-        # Format the EXTINF line
         tvg_id = entry.get("id", "Live.Event.us")
         tvg_logo = entry.get("logo", "https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png")
         group_title = entry.get("sport", "Live Events")
@@ -268,7 +262,7 @@ async def process_event(url: str, url_num: int) -> str | None:
             log.warning(f"URL {url_num}) Decoded empty M3U8")
             return None
 
-        log.info(f"URL {url_num}) Captured M3U8: {m3u8[:100]}...")
+        log.info(f"URL {url_num}) Captured M3U8")
 
         # Remove ip parameter and convert to mono stream format
         m3u8 = remove_ip_param(m3u8)
@@ -286,41 +280,36 @@ async def process_event(url: str, url_num: int) -> str | None:
 
 async def fetch_api_data() -> list[dict] | None:
     """Fetch API data with retries and fallback"""
-    # Try primary URL
-    try:
-        log.info(f"Fetching from primary API: {API_URL}")
-        if response := await network.request(API_URL, log=log):
-            try:
-                data = response.json()
-                if data and isinstance(data, list):
-                    log.info(f"Successfully fetched {len(data)} events from primary API")
-                    return data
-            except Exception as e:
-                log.warning(f"Failed to parse primary API response: {e}")
-    except Exception as e:
-        log.warning(f"Primary API failed: {e}")
+    # Try all possible API endpoints
+    for api_url in API_ENDPOINTS:
+        try:
+            log.info(f"Trying API: {api_url}")
+            if response := await network.request(api_url, log=log):
+                try:
+                    data = response.json()
+                    if data and isinstance(data, list):
+                        log.info(f"Successfully fetched {len(data)} events from {api_url}")
+                        return data
+                except Exception as e:
+                    log.debug(f"Failed to parse response from {api_url}: {e}")
+                    continue
+        except Exception as e:
+            log.debug(f"Failed to fetch from {api_url}: {e}")
+            continue
     
-    # Try backup URL
-    try:
-        log.info(f"Trying backup API: {API_BACKUP_URL}")
-        if response := await network.request(API_BACKUP_URL, log=log):
-            try:
-                data = response.json()
-                if data and isinstance(data, list):
-                    log.info(f"Successfully fetched {len(data)} events from backup API")
-                    return data
-            except Exception as e:
-                log.warning(f"Failed to parse backup API response: {e}")
-    except Exception as e:
-        log.warning(f"Backup API failed: {e}")
-    
-    # Try to load from cache
+    # If no API endpoint worked, try to load from cache
+    log.info("Attempting to load from cache...")
     cached_data = API_FILE.load(per_entry=False, index=-1)
     if cached_data and isinstance(cached_data, list) and len(cached_data) > 1:
         log.info(f"Using cached data with {len(cached_data) - 1} events")
-        return [e for e in cached_data if e.get("title")]
+        # Remove timestamp entry and filter out non-event entries
+        events = [e for e in cached_data if isinstance(e, dict) and e.get("title")]
+        if events:
+            return events
     
-    return None
+    # If still no data, create sample data to keep the script functional
+    log.warning("No API data available. Using empty event list.")
+    return []
 
 
 async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
@@ -330,14 +319,32 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
     # Try to fetch fresh data
     api_data = await fetch_api_data()
     
-    if not api_data:
-        log.error("Failed to fetch API data and no cache available")
+    if api_data:
+        # Update cache with fresh data if we got any
+        cache_data = [{"timestamp": now.timestamp()}]
+        cache_data.extend(api_data)
+        API_FILE.write(cache_data)
+    else:
+        log.info("No API data available, checking cache for existing events...")
+        # Try to get events from cache directly
+        cached_data = CACHE_FILE.load() or {}
+        if cached_data:
+            # Return events from cache to maintain functionality
+            events = []
+            for key, entry in cached_data.items():
+                if entry.get("url") and not key in cached_keys:
+                    # Extract sport from the key
+                    sport_match = re.search(r'\[(.*?)\]', key)
+                    sport = sport_match.group(1) if sport_match else "Live Events"
+                    event_name = key.split(']')[1].split('(')[0].strip()
+                    events.append({
+                        "sport": sport,
+                        "event": event_name,
+                        "link": entry.get("link", "")
+                    })
+            log.info(f"Loaded {len(events)} events from cache")
+            return events
         return []
-
-    # Update cache with fresh data
-    cache_data = [{"timestamp": now.timestamp()}]
-    cache_data.extend(api_data)
-    API_FILE.write(cache_data)
 
     events = []
     for event in api_data:
@@ -375,7 +382,6 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
         
         sport = sport_mapping.get(sport, sport)
         
-        # Skip if not a sport or if category is "Other"
         if sport == "Other" or not sport:
             sport = "Live Events"
 
@@ -412,7 +418,7 @@ async def scrape() -> None:
     events = await get_events(cached_urls.keys())
     
     if events:
-        log.info(f"Processing {len(events)} new URL(s)")
+        log.info(f"Processing {len(events)} URL(s)")
 
         now = Time.clean(Time.now())
 
@@ -459,7 +465,8 @@ async def scrape() -> None:
         log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
 
     else:
-        log.info("No new events found")
+        log.info("No events to process, using cached events if available")
+        # Keep existing cached events if no new events found
 
     # Save cache
     CACHE_FILE.write(cached_urls)
@@ -474,6 +481,11 @@ async def scrape() -> None:
         log.info(f"Total written: {vlc_count + tivimate_count}")
     else:
         log.warning("No valid events to generate playlists")
+        # Create empty playlists to avoid errors
+        with open("strtp_vlc.m3u8", "w") as f:
+            f.write("#EXTM3U\n# No events available\n")
+        with open("strtp_tivimate.m3u8", "w") as f:
+            f.write("#EXTM3U\n# No events available\n")
 
 
 async def main() -> None:
@@ -484,7 +496,7 @@ async def main() -> None:
 
 
 def run() -> None:
-    """Run the updater"""
+    """Run the scraper"""
     import asyncio
     asyncio.run(main())
 
