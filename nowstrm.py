@@ -29,45 +29,12 @@ if API_URL and not API_URL.startswith(('http://', 'https://')):
 VLC_OUTPUT_FILE = "nowstrm_vlc.m3u8"
 TIVIMATE_OUTPUT_FILE = "nowstrm_tivimate.m3u8"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-REFERER = "https://wilderness.click/"
-ORIGIN = "https://wilderness.click"
+REFERER = "https://fisherman.click/"
+ORIGIN = "https://fisherman.click"
 
 def encode_user_agent(user_agent: str) -> str:
     """Encode user agent for TiviMate format"""
     return urllib.parse.quote(user_agent)
-
-def extract_id_from_link(link: str) -> str:
-    """Extract ID from l2l2.link URL"""
-    try:
-        # Parse the URL
-        parsed = urlparse(link)
-        # Get query parameters
-        params = parse_qs(parsed.query)
-        # Extract id parameter
-        if 'id' in params:
-            return params['id'][0]
-        
-        # Try regex as fallback
-        match = re.search(r'[?&]id=([^&]+)', link)
-        if match:
-            return match.group(1)
-    except Exception as e:
-        log.debug(f"Error extracting ID from {link}: {e}")
-    return None
-
-def convert_to_player_url(link: str) -> str:
-    """Convert l2l2.link/ch.php?id=X to l2l2.link/api/player.php?id=X"""
-    try:
-        # Extract ID from the link
-        event_id = extract_id_from_link(link)
-        if event_id:
-            # Convert to player URL format
-            player_url = f"https://l2l2.link/api/player.php?id={event_id}"
-            log.debug(f"Converted {link} to {player_url}")
-            return player_url
-    except Exception as e:
-        log.error(f"Error converting link {link}: {e}")
-    return link
 
 def generate_output_files():
     """Generate both VLC and TiviMate M3U8 files"""
@@ -254,7 +221,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                             event_links.append(link)
                             log.debug(f"Found l2l2.link in links for {event_name}: {link}")
             
-            # Also check oldLinks as fallback (but prioritize links)
+            # Also check oldLinks as fallback
             if not event_links:
                 for channel in channels:
                     old_links = channel.get("oldLinks", [])
@@ -268,9 +235,8 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                 log.debug(f"No l2l2.link URLs found for event: {event_name}")
                 continue
             
-            # Use the first valid link and convert to player URL
-            original_link = event_links[0]
-            player_link = convert_to_player_url(original_link)
+            # Use the first valid link (original l2l2.link URL)
+            link = event_links[0]
             
             # Parse event time
             event_time_str = event.get("time", "")
@@ -306,8 +272,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
             events.append({
                 "sport": group_title,
                 "event": event_name,
-                "link": player_link,  # Use the converted player URL
-                "original_link": original_link,
+                "link": link,  # Use the original l2l2.link URL
                 "timestamp": timestamp,
                 "league": league,
                 "sport_type": sport,
@@ -316,7 +281,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                 "channel_name": event.get("channel", "")
             })
             
-            log.info(f"Found new event: {key} at {event_time_str if event_time_str else 'current time'} (player: {player_link})")
+            log.info(f"Found new event: {key} at {event_time_str if event_time_str else 'current time'} (link: {link})")
             
         except Exception as e:
             log.error(f"Error processing event: {e}")
@@ -356,7 +321,7 @@ async def scrape(browser: Browser) -> None:
                         timeout=15,
                     )
                     
-                    # Get the full URL with token from the player page
+                    # Get the full URL with token from the l2l2.link page
                     url = await network.safe_process(
                         handler,
                         url_num=i,
@@ -388,7 +353,7 @@ async def scrape(browser: Browser) -> None:
                             "base": REFERER,
                             "timestamp": ts,
                             "id": tvg_id or f"{sport.replace(' ', '.')}.event",
-                            "link": ev["link"],  # Store the player URL for referer
+                            "link": ev["link"],  # Store the original l2l2.link URL for referer
                         }
                         
                         urls[key] = cached_urls[key] = entry
