@@ -1,73 +1,67 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Grêmio vs Palmeiras (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Grêmio vs Palmeiras
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=canal+11&code=pt&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Championship] Millwall vs Middlesbrough (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/24.png" group-title="Championship",Millwall vs Middlesbrough
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=cbs+sports+golazo&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/pt-canal-11/playlist.m3u8?token=6adff983005326b71afe3232ed93197c596b01b5145667e570a3556a82ff0e98.1775183212.da20f2d4fa15b73ef7d88f1fbc99f919.b0193cc860dc76bfd4ff59d515461f88.24ad89894cab0c2f62ff0072a59f7b02&signature=4614d94584a8402c30e90e55e303a3f120f4065711bed2ffd5149ef07f16778b
+https://edge.cdn-live.ru/secure/api/v1/us-cbs-sports-golazo/playlist.m3u8?token=a3a0217b9a7f76c2d6733bc8c4768d729b46f1df0ead0d7d5b6ad42dd41d4c28.1775221552.8dfe524723e447e2530b3499ea6b6f05.571aed32975b5cd70612ed70201aaad6.91506ae354fe465f7c493941b263d4d3&signature=61ad30031cc7e72d4988d882399c8aa8524bcca3bd85961fb9ea74bbce3d1482
 
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Flamengo vs RB Bragantino (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Flamengo vs RB Bragantino
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=viaplay+sports+2&code=gb&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[1. Lig] Manisa BBSK vs Adana Demirspor (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="1. Lig",Manisa BBSK vs Adana Demirspor
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=trt+spor&code=tr&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/gb-viaplay-sports-2/playlist.m3u8?token=38d8eef2110d924f2dff5a78d4dd9b3e5a3590f155af87046144cbc295c7a160.1775183213.6afaa34831c0bc465bdc51a9a8ace7d8.e24cdef7f47b8d8d05b312a1db82faca.af844abd19f5350a8b6881e78d15ebce&signature=790fafc7d61dfe159cdb3fd810f205b7bf3e13c92c05013265ac5b6d0a5a504d
+https://edge.cdn-live.ru/secure/api/v1/tr-trt-spor/playlist.m3u8?token=9c495baa32ea44600e5c6f4d39c678f40980d4e2545586eca8b7ac138a4ae5db.1775221553.5795eebcaff8ef461f9ee8002f814c9c.74faa2121bca195164e05d33e8542c1a.e862bf5ff3e2211e1620a4b012806fdf&signature=4a131819eb2a0bae5fccc0856dccaf971d0ddb11fe6be965aa19095461e0caea
 
-#EXTINF:-1 tvg-chno="3" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Edmonton Oilers vs Chicago Blackhawks (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Edmonton Oilers vs Chicago Blackhawks
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nhl+league+pass+10&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Hapoel Nazareth Illit vs Maccabi Petah Tikva (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Hapoel Nazareth Illit vs Maccabi Petah Tikva
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sport+5+live&code=il&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nhl-league-pass-10/playlist.m3u8?token=b0f1181a4e213476f5aa2887ec5a03077c06b5bd8563c3f449bc124f313dfc5b.1775183217.2d14c2313938504a5ed929c66f954761.b30d075092533a7aae4688eeb7b64a77.149d1fdf0ce5235a75c69091015053a9&signature=d17215a6ea6cf3e05ff479e161f38417f545daa5ef02b62795badcf65132ecbb
+https://edge.cdn-live.ru/secure/api/v1/il-sport-5-live/playlist.m3u8?token=6ba123a8014b5105cf25569de78e0bf3fa4f7661473b2c7b46037108634aa082.1775221554.9a380684fe33335fba6743f4105359e8.15e3acd0f84f076315b4f06dc88c1005.3dc8af49e27a4931cd7169ef8815387a&signature=4569ef105912bf8e5e22bcacca0ba5618d5574ad5ddf90283ebb7a26c0c553b9
 
-#EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Medellín vs Once Caldas (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Medellín vs Once Caldas
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Superettan] Öster vs Helsingborg (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Superettan",Öster vs Helsingborg
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tv4+football&code=se&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=43d19f3b2f2011f0f45c69669d6203ebed0128c38f431bc110e314ad391bedbf.1775183214.1547e8a779424fb6f9fffd943fe5f75a.6c067264601e19ecb349dd4b0f6100f0.4367b0018d61b27516033f0ccc868ce3&signature=8df8efe3911312753919467bcebb54bfd56c768841444852925c06b5118bab90
+https://edge.cdn-live.ru/secure/api/v1/se-tv4-football/playlist.m3u8?token=a4c21e3abf5155ec3a9e311f7cc9aceb624296ef692a25bebf83328e2d4ffe7a.1775221555.9d67f08ca67e650a1c2555bfd6c02a9d.06f0cfc66304ad3a5fd49b6ed3ea4fcb.a39434f0e8a8fcb5860a7ab7f5408c23&signature=e1e5aded7cad4db8cff64f147ad5c7d9c9da4c2bf841256b2af6acbf9af47aa7
 
-#EXTINF:-1 tvg-chno="5" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Los Angeles Lakers vs Oklahoma City Thunder (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Los Angeles Lakers vs Oklahoma City Thunder
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+3&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[Virsliga] Liepāja vs BFC Daugavpils (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Virsliga",Liepāja vs BFC Daugavpils
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+7&code=gb&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-3/playlist.m3u8?token=e01e60cb839f15adb21dcabd67ac097e28dcc775ff6530149621e80b611ae55f.1775183214.9272660ead06ea91edb66d2695ebdfa0.033915af30755f86cdebd0834d3ccab8.f649a2e24e9a80eaf22315d3c5c5bf77&signature=23cd458ce9f6a7d369474e07be22f78295630a8bbb95a21b71f94c4f947e344d
+https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-7/playlist.m3u8?token=9a02c760b26d227740c7a5427d8a0c2ecbda685776f3de89d80bd3b5e9fe9114.1775221555.ed87574c85c85485f84ba90efb2614d5.bb2fd8de27465275dbd27064ab43fef2.21d8ed21f063c52461dce16ceeac7f76&signature=d282128a19385a107e0f4fc0c68d6206faa45a83bbe66c748ba6eec38e24ebdf
 
-#EXTINF:-1 tvg-chno="6" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Cleveland Cavaliers vs Golden State Warriors (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Cleveland Cavaliers vs Golden State Warriors
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+4&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="6" tvg-id="Live.Event.us" tvg-name="[1. Lig] Hatayspor vs Pendikspor (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="1. Lig",Hatayspor vs Pendikspor
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=trt+spor&code=tr&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-4/playlist.m3u8?token=bb166c193cb0b069facf2a99df6d8d149e671df80b6f4681ac76a3abf722e7c0.1775183215.e60739789ad0a832ede92558744a6083.54dd42c99b68fe08e912e8bbe2350283.047007888996c6312aed4b3457df12ae&signature=11eec45bed252230b552997ba8300f5fc4666d8bef62bf95cf925940e4fd49d7
+https://edge.cdn-live.ru/secure/api/v1/tr-trt-spor/playlist.m3u8?token=7d648ba20a63a02dfc4b8b5174cd3f9aac5f759ea3e535670d0c61c3e728696c.1775221556.69d1115b0f1014e74b5dc7e702333b87.e9caf8e60c7a34e6a5597518d8e29812.8888c60b7447b8ba36d640cab597c0e5&signature=c6697ff05ab5a6aaa450755f5f0b11f6efedd4191a5c66f1065c56da23aa4af3
 
-#EXTINF:-1 tvg-chno="7" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] New Orleans Pelicans vs Portland Trail Blazers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",New Orleans Pelicans vs Portland Trail Blazers
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+5&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="7" tvg-id="Soccer.Dummy.us" tvg-name="[Championship] Hull City vs Oxford United (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/24.png" group-title="Championship",Hull City vs Oxford United
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=bein+sports+mena+2&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-5/playlist.m3u8?token=95658c5ad0e35ad0956d4e49094216959269f3c7c9af6e43f1ecfb008a42021c.1775183215.4a74f0e8d076d6c7428a09e9745a57db.dc08f8b19177e9759c375b3e9be000ac.ddf22f358309dbe73325ff88351a56de&signature=d0f5c512c5a975b17ffc8e466765363e0b8fcf2b57bd263187b003de219aeaa3
+https://edge.cdn-live.ru/secure/api/v1/us-bein-sports-mena-2/playlist.m3u8?token=a88fa6104e05055c3614bf92b5e11c011ac7d930d13b239bc3378b75fa3371ec.1775221557.449eb09529ba9bbcf56b4d88bcb41452.31d4f8bbab358e815c80076a42d4420b.b42f5d74ff41fdf75bdd28fb0f271810&signature=8b12c397d1a70a9788a5e4ba9bc3389a0e2dcba7521c21c07e358a7d20e1e706
 
-#EXTINF:-1 tvg-chno="8" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Seattle Kraken vs Utah Mammoth (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Seattle Kraken vs Utah Mammoth
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nhl+league+pass+11&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="8" tvg-id="Soccer.Dummy.us" tvg-name="[Championship] Preston North End vs Leicester City (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/24.png" group-title="Championship",Preston North End vs Leicester City
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=cbs+sports+golazo&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nhl-league-pass-11/playlist.m3u8?token=46e3ea1928775960aaa271cde2699695a9e710a60c4469b0d034072d18644ae2.1775183217.b8c536aa5831f93062093af34f135a8d.d0509a993a87740adfc017d9387c872f.f7c3015700fcde80be4dd9531034f809&signature=7f28bae182e1bd40273e1c70c38c0a02df64fbb76ecfedb9199cc52e9e0f4f84
+https://edge.cdn-live.ru/secure/api/v1/us-cbs-sports-golazo/playlist.m3u8?token=c58d82f33c282b7016caab11ba4b688788585f82f7225f8fb3ede941e593ac9b.1775221557.a65d89f09057a14bd122d44b0ff90c75.e99553558375fd89cbc1476ca5d2d3bc.d1747fe1c673fc84449b90078c808757&signature=40be852f952789d4b256ccc3e84182eec37279fde4c05a47abcd777d2f7feb5b
 
-#EXTINF:-1 tvg-chno="9" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] San Jose Sharks vs Toronto Maple Leafs (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",San Jose Sharks vs Toronto Maple Leafs
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nhl+league+pass+12&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="9" tvg-id="Soccer.Dummy.us" tvg-name="[Primeira Liga] AVS vs Gil Vicente (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/14.png" group-title="Primeira Liga",AVS vs Gil Vicente
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=bein+sports+max+6&code=fr&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nhl-league-pass-12/playlist.m3u8?token=6d1b37b5f5f1bc4486966dc3d23250c72e8ced05ff7405734c1e57a4ae71b037.1775183218.94466fdcfb4e4d99cae4de577fdd5272.20a4e6b5d0a764e31734dae9bc2d8d47.4dba0f4fdc515bdf279b77185b58f816&signature=99ae58cb10dfebf12c43c02a9c67b83adf605de2d90c180f2ef8f9ac62d2d326
+https://edge.cdn-live.ru/secure/api/v1/fr-bein-sports-max-6/playlist.m3u8?token=1abd101611c3d12d92a55377210b29635476bd9cd98106cae3db4d7481194159.1775221558.2ba2afc1a704cc42d4e5685ef16a2367.0b297f3ecb6103063963dd78ed019bcd.fb4b4dc2ac958748bd4488ebe3d24f9e&signature=affd7510c68d6f9923a5c44700d415698624a97768d8861326695d8f4e5fd7f3
 
-#EXTINF:-1 tvg-chno="10" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Vegas Golden Knights vs Calgary Flames (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Vegas Golden Knights vs Calgary Flames
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nhl+league+pass+13&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="10" tvg-id="Live.Event.us" tvg-name="[FNL] Chernomorets vs Chelyabinsk (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="FNL",Chernomorets vs Chelyabinsk
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=match+premier&code=ru&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nhl-league-pass-13/playlist.m3u8?token=6bf82227c58413644cd03650f65ce1cb46aca8e90d11aaccada65b74ae756577.1775183218.edc128b5349a7367d8b2b5789ef4fddc.4332d5d03cc6c3069257cdaa0e41adeb.98774109e5cd21540b3e22b8de90895e&signature=6f29f01f35e7917a2da372c67ecba6b5259decd1580e77943b85de96ae77c99f
+https://edge.cdn-live.ru/secure/api/v1/ru-match-premier/playlist.m3u8?token=005997f29fb5cfff59d3e3d901434b535e9b4609f235a597c4dd4a193feb202c.1775221559.5883147e7538f6aaec4484804e8d6a6b.4a5414337a1c90e8bac51aafc52df317.6145e61e32a90c4c1b8e99bd131d7d87&signature=fe23677911b1b5c3148f419b2b280a62a7f1f75c59c3e9c21f45f049dca12c1c
 
-#EXTINF:-1 tvg-chno="11" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] San Antonio Spurs vs Los Angeles Clippers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",San Antonio Spurs vs Los Angeles Clippers
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nba+league+pass+6&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="11" tvg-id="Soccer.Dummy.us" tvg-name="[Segunda liga] Portimonense vs UD Oliveirense (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/107.png" group-title="Segunda liga",Portimonense vs UD Oliveirense
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sport+tv+4&code=pt&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nba-league-pass-6/playlist.m3u8?token=159b8d4b9b8e1ec4712f0853e2c2a03fc544cca48c0b5a97dbea7b422240cb41.1775183216.2f6c499aa9e35b1b7ea7cc3943b7bdb9.0add2e6c8c3355628f0a21cf9945b2c1.d59a0ecfba6a2e67a45a87b28e4eb4af&signature=3488664ba7a0cdd69684fff1975c669c5e29c1800171fbd679dabcf9b61d8d9a
-
-#EXTINF:-1 tvg-chno="12" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Los Angeles Kings vs Nashville Predators (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Los Angeles Kings vs Nashville Predators
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nhl+league+pass+14&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nhl-league-pass-14/playlist.m3u8?token=283493202a79b708d9818f4a54c15aba6a0ea8af3f943c48cf2c7bafa52b20a0.1775183219.06c0f9d6e76138d0b4487707ecf47694.b8c2ca8f3b82a3936d0f61d2cceead6e.7edb2ca945283544119541f5f085ee7c&signature=3ce41961ef3fb32ed977394a8c2895825a1ed861d22ab0358c00bd0ec867f2a2
+https://edge.cdn-live.ru/secure/api/v1/pt-sport-tv-4/playlist.m3u8?token=f3b8a2f79cc15fe23da5e7471cc7ebb44859dc4e58a7f91cf91bd28660f959a5.1775221560.44654824f38c6eb59ae3f247756388c7.959dc92705f17708c140935e5d7d3cec.6d8901e2c3e5addc9345809bb68947bf&signature=c3fff81a4d924964bcff058e068efb764ad706c58effa91d5bf6c57acf9d2ac8
 
