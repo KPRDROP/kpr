@@ -1,55 +1,7 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] Juárez vs Puebla (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",Juárez vs Puebla
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] Tigres UANL vs Tijuana (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",Tigres UANL vs Tijuana
 #EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tudn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-tudn/playlist.m3u8?token=365a8c97171080b6039e52804855ef9eb9d300a22b0721e01ef4cf210f4ea442.1775268679.1ae4a7366d54e58c7ff53c95d23478da.4ab8b621ed962fbc7b03a898ddaa0952.496581da44843a99039ea961583fd460&signature=0e3eedc9bf650cfaa643129607ca0892b5f12d87bf194eb4df1966f24a97c5b0
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Deportivo Cali vs Junior (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Deportivo Cali vs Junior
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=f133430a888f595553c1fd7a7866386e3e33ed3ddb14cb63e3d84ba93290db4c.1775268680.16d58446e4d2409572d1b5f99fd46501.5a41a667b62eac6846bfa58acfa4f93d.e19fbea1c5a0c39f4c230655b25b2813&signature=bd6a980c779eecf644ce76e41ab90e2dd53859926217fc3bc47c8bca68a2772f
-
-#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Los Angeles Angels vs Seattle Mariners (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Los Angeles Angels vs Seattle Mariners
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=seattle+mariners&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-mlb-seattle-mariners/playlist.m3u8?token=22a1621ca441ff7c8cdec90452f24213130930627de13a6dd02ac6ad461c81a1.1775268682.556190c66f0202350dbb8963073cdd93.573329676a0160f043ecbc4637655147.63552a999e1c000e34d6e8e3b004d2bc&signature=59e6a028774c205731dcbf6e759307ebdd0819917a7dd3fd46b4249e84aaacb2
-
-#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Atlanta Braves vs Arizona Diamondbacks (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Atlanta Braves vs Arizona Diamondbacks
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=arizona+diamondbacks&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-mlb-arizona-diamondbacks/playlist.m3u8?token=47343d74f84594e87f1445c57d3ba2ddb2b18a9c2bc9e5462805ca1babf0ec51.1775268682.611a4a803b910e51ae2a47ff04037cf3.87fa41906d75c9ee808235290b77b336.8e087a1b39f2d6598df945ef231fe1fe&signature=7349f5a440820d6d96700223a1134d561523ffa0d3837909e9319aee2395366e
-
-#EXTINF:-1 tvg-chno="5" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Houston Astros vs Oakland Athletics (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Houston Astros vs Oakland Athletics
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=oakland+athletics&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-mlb-oakland-athletics/playlist.m3u8?token=3098665f9650090632fd9acf9c1a38ebcecb9c064ce7e684bc6ca974e255813a.1775268683.cda3bc09a00377144cefdaf6fc8c2e20.f928d4dd85f968660499e710aa8f65ae.47986e450d792d5b94832f5cd7c87315&signature=c35f2f2d097fc4347d656ca1dfe00c21a62006daf0e749cdcbd4d5df2d8ae44a
-
-#EXTINF:-1 tvg-chno="6" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] New Orleans Pelicans vs Sacramento Kings (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",New Orleans Pelicans vs Sacramento Kings
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+8&code=gb&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-8/playlist.m3u8?token=a6e1e700603dd38d2b3b86403e566592a64ccd771e2ee71c0531a0db4828d2fc.1775268681.298b9ae5437a1ee77ec67f7506135ab7.5836b5f535fac9f771a346a8948947d9.b3a2e34086e71a8c1e3292e11b6e3e7a&signature=123295132e5e0a05bfd8eee79f7fff407274dee288b4d35c5f4052da9c188832
-
-#EXTINF:-1 tvg-chno="7" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Anaheim Ducks vs St. Louis Blues (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Anaheim Ducks vs St. Louis Blues
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=viaplay+sports+1&code=gb&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/gb-viaplay-sports-1/playlist.m3u8?token=1498eb7899f3f8c8ce16028f41777d203eeedd5cc92c14ea5008d84fde75696f.1775268681.4287db627fa8c3b2c17bd066c05db3c8.976d06e8455ebdc89ac369e92e33aca2.99adf3d6fa2e2bfce38569396e86375b&signature=ce261f600b6131a7ad676427f6a27bd8a35fb6ac6051bf70991606f9625b52e8
-
-#EXTINF:-1 tvg-chno="8" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] New York Mets vs San Francisco Giants (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",New York Mets vs San Francisco Giants
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=san+francisco+giants&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-mlb-san-francisco-giants/playlist.m3u8?token=67e37c027580b2d632a5b93de6bbbbd10b33f9c9f1e5f0f6b2d5baf258d96af6.1775268683.d6161403f5dc91611dab4b9c99773a0f.c8896bc3dd4b06f21683ffb5ed4855af.b5f3d253852f989fcec2fe6500da45c5&signature=d7f3d9ee01dc8dea5df18c2d6dd8a6c8885d5a02a7c0f7b5219a3b481e6ae152
-
-#EXTINF:-1 tvg-chno="9" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] Tigres UANL vs Tijuana (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",Tigres UANL vs Tijuana
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tudn&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-tudn/playlist.m3u8?token=9c58fce104a9d01441df4f732d9a5ae02005254cb6f16420996dedf763d21519.1775268681.e9b62e7841efa69a54b996593ce82145.4110c795f7d9267e84dc66374f05f3f0.701effe73fadd369c8f82ec419ef08f2&signature=f4c5e2964700dffb47d7aa366de2662150412e70e6c4e7f92bdd64d92f3c25a1
+https://edge.cdn-live.ru/secure/api/v1/us-tudn/playlist.m3u8?token=4960f5514b93c137b9ad302f71d93c6fda1a031d80b9783b91b6f0cb7af6c2b9.1775277006.340c87c5d890647d4bab52da09e44e8a.9beebf5852f46fcad504ecc2ee12e084.f5ddeb0017b02d76222acead6d2d0dfd&signature=d454558950f213bedcd576253dbd03730087d8778ceb3aac745890a6d33b64f7
 
