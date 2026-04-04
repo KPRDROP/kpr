@@ -1,7 +1,49 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] Tigres UANL vs Tijuana (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",Tigres UANL vs Tijuana
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tudn&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Segunda liga] Feirense vs Farense (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/107.png" group-title="Segunda liga",Feirense vs Farense
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sport+tv+1&code=pt&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-tudn/playlist.m3u8?token=4960f5514b93c137b9ad302f71d93c6fda1a031d80b9783b91b6f0cb7af6c2b9.1775277006.340c87c5d890647d4bab52da09e44e8a.9beebf5852f46fcad504ecc2ee12e084.f5ddeb0017b02d76222acead6d2d0dfd&signature=d454558950f213bedcd576253dbd03730087d8778ceb3aac745890a6d33b64f7
+https://edge.cdn-live.ru/secure/api/v1/pt-sport-tv-1/playlist.m3u8?token=b4f3d03c17328ec648f351a2db5ef3a4589b3891b3405ed37443e2873bdf59cf.1775293607.163c13af86a1105b3f926e10b5519214.49f6638f8e201afe119709181c4da62f.2c6d4bb55dd4e9189787f16657c8e392&signature=a6aa086ca53c2ddadacd0d5a6ed8626cbfc72353b910ae3f96580eaf46ccfedb
+
+#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Wisła Płock vs Katowice (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Wisła Płock vs Katowice
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=canal+sport+3&code=pl&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/pl-canal-sport-3/playlist.m3u8?token=5e833c6dd8d3b74b1e7ba423c1616f35b85a57f781bc1636ec300ef36c647924.1775293608.52891e80c70de98c124f0edb072209f4.3cc13ac0a05f78a7bd3d4cade380d293.47fa243e74f19316108089fae7052ac9&signature=e0359245f0be958c1c9334ed612c30967b3a4f572d99474c9e38aefcfa3cdeda
+
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Superettan] Värnamo vs Norrköping (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Superettan",Värnamo vs Norrköping
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tv4+football&code=se&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/se-tv4-football/playlist.m3u8?token=a106b4af73bad1497400a619dcc3103b370f5d27e62ade1b7d3aafad705e0a5a.1775293608.7e683cd12778fed14cbb9cb59e33e806.44f8fbc149cb43bef74a2dc209aabe61.1eb8409d090344991501451220f3f5fb&signature=c01fa8d835c60ad4657500ca7b20ba145404cf283bdd73edc4627469c32df852
+
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[1. Lig] Van BB vs Keçiörengücü (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="1. Lig",Van BB vs Keçiörengücü
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=trt+spor&code=tr&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/tr-trt-spor/playlist.m3u8?token=745d0c42266612a65d67bc499b6e92e9274b1dc0b68c9d7ba8d60c8e554a2ee1.1775293609.76b5c78c0ebb29af62d27af5745795f8.c0fec253cac1a9f16e9a346fdb55cc90.cfe8825eec569836856395054a85097b&signature=28c3253d3a54e6b7dca23de839d6631e6e9060e5efa816ce93abb701a60eca70
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[Premijer Liga] Široki Brijeg vs Radnik Bijeljina (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Premijer Liga",Široki Brijeg vs Radnik Bijeljina
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+9&code=gb&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-9/playlist.m3u8?token=e596ace77494f9d50290f17b4d1682253150eaa71be6dfbfbdf5fafa96af55b9.1775293609.be406c51090efd59f6f2a6e10ff9f218.cce1b7e6341c40b5dfff95e43f12559e.3224af3f3999ecd688ea749a43767071&signature=ca9fe65e75c97e6af36ac0c553fcf374b79389abb66fb3cdd3e25a1e34c19955
+
+#EXTINF:-1 tvg-chno="6" tvg-id="Soccer.Dummy.us" tvg-name="[Bundesliga 2] Darmstadt 98 vs Arminia Bielefeld (CDNTV)" tvg-logo="https://i.gyazo.com/6c343e57acf501f4df3502d7ec646897.png" group-title="Bundesliga 2",Darmstadt 98 vs Arminia Bielefeld
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sky+sport+bundesliga+3&code=de&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/de-sky-sport-bundesliga-3/playlist.m3u8?token=1de8823bf872453930ba108ea21f1e8e83e87e3cfd5e31bcd3067eeddc8b3391.1775293609.ae3f5afc66445a2709e5cc789dabe118.20dbdecb479e74a6e85e72702f127d50.7545d51264f59d29a8945707b1051c55&signature=748237cca358cb036a129478a812923651c3ba5ceb5f3c89d52ed180b752651a
+
+#EXTINF:-1 tvg-chno="7" tvg-id="Soccer.Dummy.us" tvg-name="[Bundesliga 2] Fortuna Düsseldorf vs Kaiserslautern (CDNTV)" tvg-logo="https://i.gyazo.com/6c343e57acf501f4df3502d7ec646897.png" group-title="Bundesliga 2",Fortuna Düsseldorf vs Kaiserslautern
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=bein+sports+3&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-bein-sports-3/playlist.m3u8?token=7b3816582178388294f241cab3813aa3474910fd102188989f2f0ca2d03ab472.1775293610.58bd4354937a06a5a4b4e9a8ff6760a9.6de8c7d34a524a333a6a4cae6437aaf1.ecb4a2785bbdaa17619d97b653e7ed72&signature=3bf7ecdde1492be60255586a543e6ac46b07e61043e9153d605670a2487522b9
+
+#EXTINF:-1 tvg-chno="8" tvg-id="Soccer.Dummy.us" tvg-name="[Bundesliga 2] Bochum vs Magdeburg (CDNTV)" tvg-logo="https://i.gyazo.com/6c343e57acf501f4df3502d7ec646897.png" group-title="Bundesliga 2",Bochum vs Magdeburg
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sky+sport+bundesliga+5&code=de&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/de-sky-sport-bundesliga-5/playlist.m3u8?token=91bc37f86182a37b57a745bee7e6ba2d16102f925b2787dc3747c142517b6acc.1775293610.c8847ddba15d24feecc07d08af9e0a55.0617f1244101c645eeb28a7427f168c2.168fb913c93d9bb0c3b96fc75a47aa92&signature=51c8952e0a9d52d4836673c03de448930a1af7c024cc7c0f3aef93489f5c9145
 
