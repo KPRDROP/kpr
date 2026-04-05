@@ -1,37 +1,7 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] Pachuca vs Cruz Azul (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",Pachuca vs Cruz Azul
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=cbs+sports+network&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Eredivisie] PEC Zwolle vs Go Ahead Eagles (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/11.png" group-title="Eredivisie",PEC Zwolle vs Go Ahead Eagles
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=espn+2&code=nl&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-cbs-sports-network/playlist.m3u8?token=f1f24f9aa10126bdb0a1b72422a7a160c3bd1528af8dc9a06ce7623496fad9fa.1775356404.06080c345e27622c593ad2daaaa622ec.30edc1c4dbe23c59bfc1585a1bce2b32.c989503b479cb1d7b704a11469cc3c8e&signature=bbf6f74847977ccdf8d66a34a10458aaf2a355a979017a32cbf57966e983d756
-
-#EXTINF:-1 tvg-chno="2" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] New York Mets vs San Francisco Giants (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",New York Mets vs San Francisco Giants
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=san+francisco+giants&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-mlb-san-francisco-giants/playlist.m3u8?token=c7fa902f6a26b2e547f15b80474109c3a36ae7b0a99f300b9b59b587def0aded.1775356407.c8f30cacf1abaa8936af5dec8c2cb640.732dd48664b59118a80ccaf52d103247.7d79939ba6867c93b9f9a801537bba4b&signature=6fabf7c37a009f0e1e0c5577078344a3cfd59653a917da264b91f0f31a353842
-
-#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Seattle Mariners vs Los Angeles Angels (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Seattle Mariners vs Los Angeles Angels
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=los+angeles+angels&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-mlb-los-angeles-angels/playlist.m3u8?token=ef3feffadb74216d861637ac7aae86f066b7fbf1e74cfdb8e9a558e60b94ca03.1775356407.0f39be68abe1a271ffc205d6f459d770.cf0566391a01b263a7ed3814adf08a63.b505ee377bc104f3873fec947fd1e0fa&signature=80aeec26908fa25128a6cd58a2c285b66a44208f5748d3db341cec46411ffac6
-
-#EXTINF:-1 tvg-chno="4" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Anaheim Ducks vs Calgary Flames (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Anaheim Ducks vs Calgary Flames
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=fox&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-fox/playlist.m3u8?token=aed15b969b893fdb0b983b2c56109b6029eb1bc3909268337a365328b4f9254e.1775356406.64ba12e41c0de0e8f18023ee58b8131d.8ce093cf4b3a1f603d44949deae9bc57.e88b1e1532c0f0a3c4bfb816bf1b2a9a&signature=138dcbbec51de394938e74590173e1a1a70741593da161932a20475bfb0ed006
-
-#EXTINF:-1 tvg-chno="5" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Seattle Kraken vs Chicago Blackhawks (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Seattle Kraken vs Chicago Blackhawks
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tv3+sport&code=dk&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/dk-tv3-sport/playlist.m3u8?token=6720ef7ce5e128a270dd112ef581e5cfc8919cfbc4c8c6514ba6f33c8941de9e.1775356406.ac9677b48ba4b7067957535f5cec2f23.68791b80c99a72a175430d900e6525e9.147778e73fd9a2284c499a638f3e4774&signature=660db11a4431f55d5e15e8cfa13dcf9eeec1e62685e9bfdf6a55d07547162641
-
-#EXTINF:-1 tvg-chno="6" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] América vs Santos Laguna (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",América vs Santos Laguna
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tudn&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdn-live.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-tudn/playlist.m3u8?token=4944237405c71abbd7c39abb8d0916b045c3b3d71ae6cdea1714216b03ba374e.1775356405.e502875e1587f66bc49af7d7c0d9b09c.f44a1f05168813a3e93e3365433736cd.4ded18054685f7b1284563a84dc7239e&signature=f1ea24c7dc404471fc5e2c533c9491a2e8e2e0c1a7adcd55b14279133813d2ff
+https://edge.cdn-live.ru/secure/api/v1/nl-espn-2/playlist.m3u8?token=0d1606df2fb09dc2d7d4200bc0b7255393a093d37c0b1d4562f8384f4b041645.1775378650.68347c5df5607ebce6907327a27bb26b.dc57e6caa307fede58db639b159ecc4e.e84ed9a77b7fd8da29cb505150e4916b&signature=ba0dc92e064394509fd64834018d5cd051657ab2f28f01ec2148390ec2841d9b
 
