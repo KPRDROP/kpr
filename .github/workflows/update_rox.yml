@@ -34,7 +34,7 @@ jobs:
         run: |
           echo "Starting Roxie playlist generation..."
           python update_rox.py
-          echo "cript finished."
+          echo "script finished."
 
       - name: Commit & Push if Playlists Changed
         env:
