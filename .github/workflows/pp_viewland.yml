@@ -2,8 +2,7 @@ name: PPV Updater
 
 on:
   schedule:
-    # Run every 2 hours
-    - cron: "0 */2 * * *"
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 jobs:
