@@ -32,9 +32,6 @@ USER_AGENTS = {
 
 
 def convert_to_mono_stream(url: str) -> str:
-    """
-    Convert stream URL from index.m3u8 format to mono.m3u8 format with working token
-    """
     if not url or "index.m3u8" not in url:
         return url
     
