@@ -1,19 +1,115 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Colorado Avalanche vs St. Louis Blues (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Colorado Avalanche vs St. Louis Blues
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[DStv Premiership] Kaizer Chiefs vs Orbit College (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="DStv Premiership",Kaizer Chiefs vs Orbit College
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=supersport+psl&code=za&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-espn/playlist.m3u8?token=3dec720d2de4536647db4861722d182f5fea14e4c779ecbd033c87418d4e7fa1.1775442868.30f93167942959e0ca122975e76fbe2a.3c475924acb44eda4391e26dfe74bf66.f28e7d6c5aacb73f994b08d07f049ec5&signature=11cadd79caca915bad875a7741d2b86187dca8796566e7bb2729c1a559f66ad5
+https://edge.cdn-live.ru/secure/api/v1/za-supersport-psl/playlist.m3u8?token=1796bb5a662b495b24523880d2e4bd036f6e0a1ee4e75acc514ae58e596d19d5.1775486917.7f71d3603a74044e82fb2e37e4ff9b4b.0d30f6f46f3359ff96c224567a3eabbf.12c3b898ae48b439bd457435925ff156&signature=bb6b1ae63d4dd819e64bf262a530f1163d849265b3ecf33ad3eed97cde920006
 
-#EXTINF:-1 tvg-chno="2" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Houston Rockets vs Golden State Warriors (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Houston Rockets vs Golden State Warriors
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=telemundo&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Serie A] Atalanta vs Lecce (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png" group-title="Serie A",Atalanta vs Lecce
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=supersport+football&code=za&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-telemundo/playlist.m3u8?token=3b326b1b5489acc03209a17c7be78a86f31f3edf4e5ce3e81ccffa1c56fa06bd.1775442868.8291e37c11fe9783793601b5e0e23782.5dca0cc4264b9ed194891500d352d14e.0ffd4be41b752816673260b88a5f4426&signature=7b31bd05096e4cd55d5486ffecdb58e8c354040625b64333122e2bad4092aef4
+https://edge.cdn-live.ru/secure/api/v1/za-supersport-football/playlist.m3u8?token=3c97a02b64e3d87c1d354ff21248b954a129d87cbfbf41973938f254ed179661.1775486919.2dc11a5f32857cb0842c0381dbf533ba.2c19c73f58ba20a2cc2d3284ec59a064.6563a3f3b82f596e9baa095f1b6f5c96&signature=094eb3d5c66a8ca989f407ebf91e8d36ba7551a69b889eafefd7037c8257bd31
 
-#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] Pumas UNAM vs Guadalajara (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",Pumas UNAM vs Guadalajara
-#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=nbc&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Serie B] Modena vs Bari 1908 (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/99.png" group-title="Serie B",Modena vs Bari 1908
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=fox+soccer+plus&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdn-live.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdn-live.ru/secure/api/v1/us-nbc/playlist.m3u8?token=ab0dc65a71dd2808e5549982ed340876b7745dde1df072d30128eca2e6b43c37.1775442867.abeb2e58de2875dfb083384fa5bbb2a0.284e8e90259f8aaf9c30a0dca1db086c.12581f37cb6213d56729b5908c6eb371&signature=d415389e38d8a7ac6e8a15a5abff37134b50cf9d1e0c4393ea860268e8af6e86
+https://edge.cdn-live.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=224ab499f3e4dda22470d758111a95081c9b7a21a1f1719a96e703cf9784d835.1775486919.00c0f499b9afff10822d5213ef0c3334.feaad83463f70bbb7bf52b64a7a4fc9c.c6c64f97ee6be7ab31fa4748e51b83d4&signature=0b80aa5c297e5be6f55f06a19f4f3e74d0e6eda906f13f67ea8cfc8ff68ab32f
+
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Frauen DFB Pokal] SGS Essen vs Bayern (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Frauen DFB Pokal",SGS Essen vs Bayern
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sky+sport+top+event&code=de&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/de-sky-sport-top-event/playlist.m3u8?token=b53bc4b88d5a2df5d786bf49a83e7e7e66a12de4d848f4fb9531b6e69fd893df.1775486920.ef95e77e05f283e7b01416d3c9740803.feb2b70dac0d6d5173f0dec0bba71f88.8ccb86a929550824fd11524c7ddd1c0c&signature=918a7cc75532257d05b19d9cbaf7bbf8a1e36b0e1e8d8deb3953f7eba9b95f1e
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Ironi Modi'in vs Hapoel Afula (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Ironi Modi'in vs Hapoel Afula
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sport+5+live&code=il&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/il-sport-5-live/playlist.m3u8?token=40181658ddf6b52a581a88dcc173694f4ec278795f1a215ee9ee6921f97998d7.1775486921.4194408b9f2e9d30d6fb56232f79f15a.d8a5d3fa4ea04c399d4ed9d8c3e03f13.2ba2c988ced31be2a2abd0722d3e16ca&signature=8bde1c315c09518d6dc4a1f639036c81f98565d57352286dfd9d870756df2c77
+
+#EXTINF:-1 tvg-chno="6" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Maccabi Herzliya vs Hapoel Acre (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Maccabi Herzliya vs Hapoel Acre
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sport+5&code=il&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/il-sport-5/playlist.m3u8?token=0ff8e029140f835a6d534c9ec5591bba841b6005f5afd338c77bb6ee33d0d22d.1775486921.336bb39f0806ba78ddf1119937557cdd.32d1116e8e9660d8dcc01a8026ce8f44.2c58ec7debb6d727a8ce9c4009a06ce5&signature=20b1a2f01e1ea6fb7a175f49e4c9f18e8f25ac0e24040b835f6136b16c71c65a
+
+#EXTINF:-1 tvg-chno="7" tvg-id="Live.Event.us" tvg-name="[Parva Liga] Botev Vratsa vs Septemvri Sofia (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Parva Liga",Botev Vratsa vs Septemvri Sofia
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=diema+sport+1&code=bg&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/bg-diema-sport-1/playlist.m3u8?token=07e53e5a8494ee8dd1a9c4de7779e6505738065f18154c1a650daf185e483505.1775486922.c676627bd8889b92bfd9a9a684729523.67d278474eae862b3d47edd7e36c9504.e4603624ac82f465654111874759a56c&signature=138dfcd08a028bff6de46cd529e70a36665592a928264103b661c58a845d917b
+
+#EXTINF:-1 tvg-chno="8" tvg-id="Soccer.Dummy.us" tvg-name="[Championship] Birmingham City vs Ipswich Town (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/24.png" group-title="Championship",Birmingham City vs Ipswich Town
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=bein+sports+mena+2&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-bein-sports-mena-2/playlist.m3u8?token=162a730ec1359c4149433b19c4301d2e230d2d93a796dfb36c0b4b993bb5a00d.1775486923.5eea23f03f35f6753b28fcd17c97433e.6f688bd7ebcd78dd20b143116ff9d691.60101543f83826dca335aba7718ae429&signature=0fe59061243623c61909f89966c1ffd4ef72634b54d4c4aced1a66833f2d0bb6
+
+#EXTINF:-1 tvg-chno="9" tvg-id="Soccer.Dummy.us" tvg-name="[Championship] Charlton Athletic vs Watford (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/24.png" group-title="Championship",Charlton Athletic vs Watford
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=astro+grandstand&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-astro-grandstand/playlist.m3u8?token=98c44243bc998bda3f7a5f88fa743299a9e1016e2c68835019db068d39c68a98.1775486923.88ed17c470b49268c025ab488c341c48.d437fd896da14551e588d387cc9ec5be.8df62d8072297cdb5bd6b1b867317f47&signature=99314517c264e3d4ea45662d69162427b23605b7a9fc003531935bf642bb44c3
+
+#EXTINF:-1 tvg-chno="10" tvg-id="Soccer.Dummy.us" tvg-name="[Liga I] Csikszereda vs Petrolul 52 (CDNTV)" tvg-logo="https://i.gyazo.com/3fd4b38d5263ca391e45850eb58d11e6.png" group-title="Liga I",Csikszereda vs Petrolul 52
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=digi+sport+1&code=ro&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/ro-digi-sport-1/playlist.m3u8?token=bf851bf48c0482c737b9b3f41ab6b66545e4819c75a90447d9657e5e0a70a73b.1775486924.72a031088803e233cb236f1567b44d90.f811f38665bda2401f2138fcebed753a.33989c967d7b9b9a5b27b55dab20b0e2&signature=b13c91885794a85d5280c83bcb2ad48eba34baa828e4eb17420cd61843060864
+
+#EXTINF:-1 tvg-chno="11" tvg-id="Soccer.Dummy.us" tvg-name="[Eerste Divisie] Dordrecht vs Cambuur (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/105.png" group-title="Eerste Divisie",Dordrecht vs Cambuur
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=espn+3&code=nl&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/nl-espn-3/playlist.m3u8?token=8e2d52eac12c56e6c3ab4b91f180fb95c872094f3d93a9ce2985d2f5fe72f2e9.1775486925.22c8c507984d44c65ff65d1123700293.96fe99a568f47b88953750de4cb27d5a.81df9d939f241bbb0c665b42dd8b78e7&signature=e6879aeb7d1cc7ab604b963cae1ced6fd8d37b9a2d346348f2b439e95b23fbe4
+
+#EXTINF:-1 tvg-chno="12" tvg-id="Soccer.Dummy.us" tvg-name="[Eerste Divisie] Eindhoven vs ADO Den Haag (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/105.png" group-title="Eerste Divisie",Eindhoven vs ADO Den Haag
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=espn+2&code=nl&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/nl-espn-2/playlist.m3u8?token=6c6109234916bc064fa5a60793e8dd3ee6b273191bc60d99815a04e19402dbd0.1775486925.9f70f7364ff7673f4693da180c620075.2e44d84017d816f984548fde288f7777.5a313c07eed32f2d9339eb10a77fa5b9&signature=8442f7e6af8db747611b6ea0645add521a7b6b6fb08f9a2bc05bcbf28e5feda3
+
+#EXTINF:-1 tvg-chno="13" tvg-id="Live.Event.us" tvg-name="[Slovenian Youth League] Olimpija vs Maribor (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Slovenian Youth League",Olimpija vs Maribor
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+8&code=gb&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-8/playlist.m3u8?token=0a20bffa036879fc880ff7bb425979bc607e1bc03019603c5d1bb4287687dde3.1775486926.cd20761f6ec1ee80072bce419562cd1c.0f856c8aeddce6c07187eb2e91f87277.7e33e669e3fbc0a708f81c93b18766d8&signature=fd6a91fbcf74d8cc886018f1ac3732ba8bc7393abf48b19ba3e80b09c6b5a0e1
+
+#EXTINF:-1 tvg-chno="14" tvg-id="Live.Event.us" tvg-name="[Serie C] Pergolettese vs AlbinoLeffe (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Serie C",Pergolettese vs AlbinoLeffe
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=sky+sport+arena&code=it&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/it-sky-sport-arena/playlist.m3u8?token=7bef4b2de68bb2dc91d5fd49dd706116a1808b639906670511158706da760663.1775486926.405f9e71b884705ff68e8e197458f540.c7ef082db65491c9781a73cb9d8ccd9f.97f2d84f237a47aee842cc6b94364eae&signature=5da24846b333ed8ee496261bd2561674ac564038076eb79ef09f9acb9a4b5c77
+
+#EXTINF:-1 tvg-chno="15" tvg-id="Live.Event.us" tvg-name="[Serie C] Ospitaletto vs Virtus Verona (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Serie C",Ospitaletto vs Virtus Verona
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=tnt+sports+9&code=gb&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/gb-tnt-sports-9/playlist.m3u8?token=09a69225039a48bee18d00c96133632cf23966d1700118be12b368d9a5b2829d.1775486927.7f132e1496bf08693d9e04d6be36ffea.f233a73059da19847ab9a356b8e419e2.6565d3fb5c07e9bbaa1b4d9c420ddf17&signature=67e28d5d74aae9690055e327d1f9c4f7a9d13337fadf5724f9fe7d4a8509ad23
+
+#EXTINF:-1 tvg-chno="16" tvg-id="Live.Event.us" tvg-name="[DStv Premiership] Sekhukhune United vs AmaZulu (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="DStv Premiership",Sekhukhune United vs AmaZulu
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=supersport+psl&code=za&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/za-supersport-psl/playlist.m3u8?token=cbb01d1ecaeb5cc6d68338540228c7068d1100090f85be3c7437c1f08b78761d.1775486928.9b098aa3f148ca647c74a16482f8ba41.398381b882168240e1703df25c08dd23.502dc8fb147a1a8d3f24e03b24e17773&signature=3f04e3e73a6d91d7000a3913a02299b8464f20b8782e36dbe90848a2c0b4946b
+
+#EXTINF:-1 tvg-chno="17" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Legia Warszawa vs Pogoń Szczecin (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Legia Warszawa vs Pogoń Szczecin
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=bein+sports&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-bein-sports/playlist.m3u8?token=d1359a56165333cd54ba1f87d27362473a8c8b6c2a221e2c0671b4794cd1e96f.1775486928.10534ea61a1e019e5cff3ee779abb403.51c190e53052e02cf1a11b2eb9d67c35.5ea28e966dcb2c2825eabe02c1c37ae3&signature=9dea3fbebb0693e2cd834502d9d2fcef836c175c06f6ecb9ff4698d6e750cb3e
+
+#EXTINF:-1 tvg-chno="18" tvg-id="Soccer.Dummy.us" tvg-name="[Serie A] Genoa vs Juventus (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png" group-title="Serie A",Genoa vs Juventus
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=astro+football&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-astro-football/playlist.m3u8?token=20090922d9f7274bf35001f0e56109724eed64881c7f55ad66d4373bda3be0ba.1775486929.b756e81d7e40cd95f43286261b752b62.c47d966e581407aba58c59b758901480.23c2eb22f979606ded95773f1e7ac68a&signature=d5ee05a189c2a899485ff1d51ed0a91780948126a11b59010bc7c96d4bfaa096
+
+#EXTINF:-1 tvg-chno="19" tvg-id="Soccer.Dummy.us" tvg-name="[Championship] Middlesbrough vs Swansea City (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/24.png" group-title="Championship",Middlesbrough vs Swansea City
+#EXTVLCOPT:http-referrer=https://cdn-live.tv/api/v1/channels/player/?name=astro+grandstand&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdn-live.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdn-live.ru/secure/api/v1/us-astro-grandstand/playlist.m3u8?token=8bdfa641ec016ccf49b0a4e7d04841cd6882b99f5f62d87f2f725772ee818658.1775486930.7eb8ba79cf2bb732bcb045a2192bfc08.a9286c52aa901909641ac57e6e8a730e.87965c3ce24552d3c853e31b7a3f25eb&signature=d77da53f4180382982077c8395ff14ee33907eb52120ca2705cf17eaa08406a2
 
