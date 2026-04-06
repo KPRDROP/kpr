@@ -29,13 +29,13 @@ jobs:
           pip install playwright httpx[http2] pytz
           pip install feedparser selectolax
 
-      - name: Run AWAP scraper
+      - name: Run AWAP updater
         env:
           PAWA_FEED_URL: ${{ secrets.PAWA_FEED_URL }}
         run: |
           python -m awap
 
-      - name: ommit & Push safely
+      - name: Commit & Push safely
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
