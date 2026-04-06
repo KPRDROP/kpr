@@ -16,8 +16,8 @@ TAG = "STRMBTW"
 
 BASE_URL = "https://streambtw.com"
 
-REFERER = "https://streambtw.live/"
-ORIGIN = "https://streambtw.live"
+REFERER = "https://streambtw.com/"
+ORIGIN = "https://streambtw.com"
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
