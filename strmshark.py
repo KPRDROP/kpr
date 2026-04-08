@@ -68,7 +68,7 @@ async def fetch_stream(api_url: str) -> str | None:
     return urls[0]
 
 
-# ---------------- SCRAPER ----------------
+# ---------------- UPDATER ----------------
 
 async def scrape_events() -> dict:
     html = await fetch_rendered_html()
