@@ -176,8 +176,8 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
         return events
     
     # Extended time window to capture more events (4 hours before to 4 hours after)
-    start_dt = now.delta(minutes=-240)
-    end_dt = now.delta(minutes=240)
+    start_dt = now.delta(minutes=-360)
+    end_dt = now.delta(minutes=360)
     
     log.info(f"Processing {len(api_data)} events from API (time window: -4h to +4h)")
     
