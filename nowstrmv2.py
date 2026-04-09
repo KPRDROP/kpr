@@ -28,8 +28,8 @@ if API_URL and not API_URL.startswith(('http://', 'https://')):
 VLC_OUTPUT_FILE = "nowstrmv2_vlc.m3u8"
 TIVIMATE_OUTPUT_FILE = "nowstrmv2_tivimate.m3u8"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-REFERER = "https://fisherman.click/"
-ORIGIN = "https://fisherman.click"
+REFERER = "https://faithfoot.click/"
+ORIGIN = "https://faithfoot.click"
 
 def encode_user_agent(user_agent: str) -> str:
     """Encode user agent for TiviMate format"""
