@@ -28,8 +28,8 @@ VLC_OUTPUT_FILE = "cdn_ch_filter_vlc.m3u8"
 TIVIMATE_OUTPUT_FILE = "cdn_ch_filter_tivimate.m3u8"
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-REFERER = "https://cdn-live.tv/"
-ORIGIN = "https://cdn-live.tv"
+REFERER = "https://cdnlivetv.tv/"
+ORIGIN = "https://cdnlivetv.tv"
 
 
 def encode_user_agent(user_agent: str) -> str:
