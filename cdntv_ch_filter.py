@@ -97,7 +97,7 @@ async def get_events(cached_keys: list[str]) -> list[dict]:
     if not api_data:
         log.info("Fetching API...")
 
-        api_url = API_URL or "https://api.cdn-live.tv/api/v1/channels/"
+        api_url = API_URL or "v1/channels/"
 
         if r := await network.request(
             api_url,
