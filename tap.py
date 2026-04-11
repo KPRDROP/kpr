@@ -82,13 +82,13 @@ async def scrape_tv_urls(max_channels=None):
         context = await browser.new_context()
         page = await context.new_page()
 
-        print("🔄 Loading /tv channel list...")
+        print("Loading /tv channel list...")
         try:
             await page.goto(CHANNEL_LIST_URL, wait_until="domcontentloaded", timeout=LIST_GOTO_TIMEOUT)
         except PlaywrightTimeoutError:
-            print("⚠️ Timeout loading channel list; continuing with whatever we have.")
+            print("Timeout loading channel list; continuing with whatever we have.")
         except Exception as e:
-            print(f"❌ Failed to load channel list: {e}")
+            print(f"Failed to load channel list: {e}")
             await browser.close()
             return results
 
@@ -96,7 +96,7 @@ async def scrape_tv_urls(max_channels=None):
         try:
             anchors = await page.locator("ol.list-group a").all()
         except Exception as e:
-            print(f"⚠️ Could not find channel anchors: {e}")
+            print(f"Could not find channel anchors: {e}")
             anchors = []
 
         entries = []
@@ -130,13 +130,13 @@ async def scrape_tv_urls(max_channels=None):
                     "tvg_id": tvg_id_attr
                 })
             except Exception as e:
-                print(f"⚠️ Skipping an anchor due to error: {e}")
+                print(f"Skipping an anchor due to error: {e}")
                 continue
 
         await page.close()
 
         total = len(entries)
-        print(f"ℹ️ Found {total} channel links (will process up to {max_channels or 'all'}).")
+        print(f"Found {total} channel links (will process up to {max_channels or 'all'}).")
 
         for idx, entry in enumerate(entries, start=1):
             if max_channels and idx > max_channels:
@@ -157,7 +157,7 @@ async def scrape_tv_urls(max_channels=None):
                             real = extract_real_m3u8(url)
                             if real and not stream_url:
                                 stream_url = real
-                                print(f"✅ [TV] {entry['title']} → {real}")
+                                print(f"[TV] {entry['title']} → {real}")
                         except Exception:
                             pass
 
@@ -168,9 +168,9 @@ async def scrape_tv_urls(max_channels=None):
                     try:
                         await page.goto(full, wait_until="domcontentloaded", timeout=CHANNEL_GOTO_TIMEOUT)
                     except PlaywrightTimeoutError:
-                        print(f"⚠️ Channel page goto timeout: {entry['title']}")
+                        print(f"Channel page goto timeout: {entry['title']}")
                     except Exception as e:
-                        print(f"⚠️ Error opening channel page {entry['title']}: {e}")
+                        print(f"Error opening channel page {entry['title']}: {e}")
 
                     # short sleeps to let any player calls happen
                     await asyncio.sleep(random.uniform(1.4, 2.2))
@@ -200,19 +200,19 @@ async def scrape_tv_urls(max_channels=None):
                 # run per-channel work with an overall timeout
                 await asyncio.wait_for(per_channel_work(), timeout=PER_CHANNEL_TOTAL_TIMEOUT)
             except asyncio.TimeoutError:
-                print(f"⚠️ Per-channel processing timed out: {entry['title']}")
+                print(f"Per-channel processing timed out: {entry['title']}")
             except Exception as e:
-                print(f"⚠️ Per-channel unexpected error: {entry['title']}: {e}")
+                print(f"Per-channel unexpected error: {entry['title']}: {e}")
 
             if stream_url:
                 entry["url"] = stream_url
                 results.append(entry)
             else:
-                print(f"⚠️ No m3u8 captured for {entry['title']}")
+                print(f"No m3u8 captured for {entry['title']}")
 
             # cooldown periodically
             if idx % 10 == 0:
-                print("⏳ Cooling down Firefox...")
+                print("Cooling down Firefox...")
                 await asyncio.sleep(random.uniform(2.2, 3.8))
 
         await browser.close()
@@ -237,13 +237,13 @@ async def scrape_all_sports_sections(max_per_section=None):
             try:
                 page = await context.new_page()
                 section_url = BASE_URL + section_path
-                print(f"\n📁 Loading section: {section_url}")
+                print(f"\nLoading section: {section_url}")
                 try:
                     await page.goto(section_url, wait_until="domcontentloaded", timeout=SECTION_GOTO_TIMEOUT)
                 except PlaywrightTimeoutError:
-                    print(f"⚠️ Timeout loading section {group_name}; continuing with what we can.")
+                    print(f"Timeout loading section {group_name}; continuing with what we can.")
                 except Exception as e:
-                    print(f"⚠️ Error loading section page {group_name}: {e}")
+                    print(f"Error loading section page {group_name}: {e}")
 
                 # Collect hrefs/titles into a plain list (no locators kept)
                 items = []
@@ -260,10 +260,10 @@ async def scrape_all_sports_sections(max_per_section=None):
                             items.append({"href": href, "title": title})
                         except Exception as e:
                             # skip problematic anchor but continue
-                            print(f"⚠️ Skipping an anchor in {group_name}: {e}")
+                            print(f"Skipping an anchor in {group_name}: {e}")
                             continue
                 except Exception as e:
-                    print(f"⚠️ Failed to enumerate anchors in {group_name}: {e}")
+                    print(f"Failed to enumerate anchors in {group_name}: {e}")
                     items = []
 
                 # close the section page now that we have plain data
@@ -293,7 +293,7 @@ async def scrape_all_sports_sections(max_per_section=None):
                                     real = extract_real_m3u8(resp.url)
                                     if real and not stream_url:
                                         stream_url = real
-                                        print(f"✅ [{group_name}] {title} → {real}")
+                                        print(f"[{group_name}] {title} → {real}")
                                 except Exception:
                                     pass
 
@@ -326,9 +326,9 @@ async def scrape_all_sports_sections(max_per_section=None):
                     try:
                         await asyncio.wait_for(work_item(), timeout=PER_ITEM_TIMEOUT)
                     except asyncio.TimeoutError:
-                        print(f"⚠️ Timeout for {title} in {group_name}")
+                        print(f"Timeout for {title} in {group_name}")
                     except Exception as e:
-                        print(f"⚠️ Error processing {title} in {group_name}: {e}")
+                        print(f"Error processing {title} in {group_name}: {e}")
 
                     if stream_url:
                         all_urls.append((stream_url, group_name, title))
@@ -338,7 +338,7 @@ async def scrape_all_sports_sections(max_per_section=None):
                         await asyncio.sleep(random.uniform(1.6, 3.5))
 
             except Exception as e:
-                print(f"⚠️ Skipped section {group_name}: {e}")
+                print(f"Skipped section {group_name}: {e}")
                 continue
         try:
             await browser.close()
@@ -441,13 +441,13 @@ def append_missing_tv_channels(lines, tv_entries):
 # Main orchestration
 async def main():
     if not Path(M3U8_FILE).exists():
-        print(f"⚠️ {M3U8_FILE} not found — creating template")
+        print(f"{M3U8_FILE} not found — creating template")
         Path(M3U8_FILE).write_text("#EXTM3U\n", encoding="utf-8")
 
     lines = Path(M3U8_FILE).read_text(encoding="utf-8").splitlines()
     lines = clean_m3u_header(lines)
 
-    print("🔧 Updating TV URLs and metadata...")
+    print("Updating TV URLs and metadata...")
     # Set max_channels=None for full run; set an int for testing to limit churn
     tv_entries = await scrape_tv_urls(max_channels=None)
     only_urls = [e["url"] for e in tv_entries if "url" in e]
@@ -455,10 +455,10 @@ async def main():
     if only_urls:
         lines = replace_urls_only(lines, only_urls)
 
-    print("🧹 Removing SD entries...")
+    print("Removing SD entries...")
     lines = remove_sd_entries(lines)
 
-    print("⚽ Replacing Sports Sections...")
+    print("Replacing Sports Sections...")
     sports_urls = await scrape_all_sports_sections(max_per_section=40)
     if sports_urls:
         lines = replace_sports_section(lines, sports_urls)
@@ -467,7 +467,7 @@ async def main():
         lines = append_missing_tv_channels(lines, tv_entries)
 
     Path(M3U8_FILE).write_text("\n".join(lines), encoding="utf-8")
-    print("✅ Done — TheTV.m3u8 updated with metadata and streams.")
+    print("Done — TheTV.m3u8 updated with metadata and streams.")
 
 if __name__ == "__main__":
     asyncio.run(main())
