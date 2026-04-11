@@ -19,7 +19,7 @@ CACHE_FILE = Cache(TAG, exp=10_800)
 API_CACHE = Cache(f"{TAG}-api", exp=19_800)
 
 # Get API_URL from environment variable (secret) with validation
-API_URL = os.environ.get("CDNTV_API_URL")
+API_URL = os.environ.get("CDNTV_SP_API_URL")
 # Ensure URL has protocol
 if API_URL and not API_URL.startswith(('http://', 'https://')):
     API_URL = f"https://{API_URL}"
@@ -326,7 +326,7 @@ async def main():
     
     # Validate API_URL
     if not API_URL or API_URL == "None":
-        log.error("CDNTV_API_URL environment variable is not set correctly")
+        log.error("CDNTV_SP_API_URL environment variable is not set correctly")
         return
     
     log.info(f"Using API URL: {API_URL}")
