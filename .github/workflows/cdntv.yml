@@ -36,15 +36,15 @@ jobs:
         
     - name: Verify secrets
       run: |
-        if [ -z "${{ secrets.CDNTV_API_URL }}" ]; then
-          echo "CDNTV_API_URL secret is not set"
+        if [ -z "${{ secrets.CDNTV_SP_API_URL }}" ]; then
+          echo "CDNTV_SP_API_URL secret is not set"
           exit 1
         fi
-        echo "CDNTV_API_URL is set"
+        echo "CDNTV_SP_API_URL is set"
         
     - name: Run CDNTV scraper
       env:
-        CDNTV_API_URL: ${{ secrets.CDNTV_API_URL }}
+        CDNTV_SP_API_URL: ${{ secrets.CDNTV_SP_API_URL }}
       run: |
         python -c "from cdntv import run; run()"
         
