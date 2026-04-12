@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.parse import quote
 from functools import partial
 
-from playwright.async_api import Browser
+from playwright.async_api import async_playwright, Browser
 from selectolax.parser import HTMLParser
 
 from utils import Cache, Time, get_logger, leagues, network
@@ -106,7 +106,6 @@ async def scrape(browser: Browser) -> None:
 
     log.info(f"Loaded {cached_count} event(s) from cache")
 
-    # ✅ FIXED LINE
     sources = " & ".join(BASE_URLS.values())
     log.info(f'Scraping from "{sources}"')
 
@@ -209,3 +208,18 @@ def write_outputs():
     log.info("M3U files generated successfully")
 
 # -------------------------------------------------
+# ✅ MAIN FUNCTION (FIX)
+async def main():
+    log.info("Starting MLB WebTV updater...")
+
+    async with async_playwright() as p:
+        browser = await p.firefox.launch(headless=True)
+
+        try:
+            await scrape(browser)
+        finally:
+            await browser.close()
+
+# -------------------------------------------------
+if __name__ == "__main__":
+    asyncio.run(main())
