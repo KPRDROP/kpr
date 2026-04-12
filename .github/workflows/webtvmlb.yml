@@ -29,7 +29,6 @@ jobs:
 
       - name: Install Playwright
         run: |
-          pip install playwright
           playwright install --with-deps
 
       - name: Run WEBTV MLB updater
