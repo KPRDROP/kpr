@@ -21,7 +21,6 @@ TAG = "MLBCAST"
 CACHE_FILE = Cache(TAG, exp=19_800)
 
 # -------------------------------------------------
-# BASE URL (ENV)
 BASE_URL = os.environ.get("WEBTV_MLB_BASE_URL")
 if not BASE_URL:
     raise RuntimeError("Missing WEBTV_MLB_BASE_URL secret")
@@ -53,19 +52,21 @@ def clean_event_name(text: str) -> str:
     return text.strip()
 
 # -------------------------------------------------
-async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
-    tasks = [network.request(url, log=log) for url in BASE_URLS.values()]
-    results = await asyncio.gather(*tasks)
-
+# ✅ FIXED: use Playwright instead of network.request
+async def get_events(browser: Browser, cached_keys: list[str]) -> list[dict[str, str]]:
     events = []
 
-    if not (
-        soups := [(HTMLParser(html.content), html.url) for html in results if html]
-    ):
-        return events
+    context = await browser.new_context(user_agent=USER_AGENT)
+    page = await context.new_page()
 
-    for soup, url in soups:
-        sport = next((k for k, v in BASE_URLS.items() if v == url), "Live Event")
+    try:
+        log.info(f"Loading page with Playwright: {BASE_URL}")
+        await page.goto(BASE_URL, timeout=30000, wait_until="domcontentloaded")
+
+        await page.wait_for_timeout(3000)
+
+        html = await page.content()
+        soup = HTMLParser(html)
 
         for row in soup.css("tr.singele_match_date"):
             if not (vs_node := row.css_first("td.teamvs a")):
@@ -77,21 +78,30 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                 date = span.text(strip=True)
                 event_name = event_name.replace(date, "").strip()
 
-            if not (href := vs_node.attributes.get("href")):
+            href = vs_node.attributes.get("href")
+            if not href:
                 continue
 
             event = clean_event_name(fix_event(event_name))
 
-            if f"[{sport}] {event} ({TAG})" in cached_keys:
+            key = f"[MLB] {event} ({TAG})"
+            if key in cached_keys:
                 continue
 
             events.append(
                 {
-                    "sport": sport,
+                    "sport": "MLB",
                     "event": event,
                     "link": href,
                 }
             )
+
+    except Exception as e:
+        log.error(f"Failed to load page via Playwright: {e}")
+
+    finally:
+        await page.close()
+        await context.close()
 
     return events
 
@@ -105,11 +115,12 @@ async def scrape(browser: Browser) -> None:
     urls.update(valid_urls)
 
     log.info(f"Loaded {cached_count} event(s) from cache")
+    log.info(f"Scraping from '{BASE_URL}'")
 
-    sources = " & ".join(BASE_URLS.values())
-    log.info(f'Scraping from "{sources}"')
+    # ✅ FIXED CALL
+    events = await get_events(browser, cached_urls.keys())
 
-    if events := await get_events(cached_urls.keys()):
+    if events:
         log.info(f"Processing {len(events)} new URL(s)")
 
         now = Time.clean(Time.now())
@@ -140,7 +151,7 @@ async def scrape(browser: Browser) -> None:
                     entry = {
                         "url": url,
                         "logo": logo,
-                        "base": BASE_URLS[sport],
+                        "base": BASE_URL,
                         "timestamp": now.timestamp(),
                         "id": tvg_id or "MLB.Baseball.Dummy.us",
                         "link": link,
@@ -152,7 +163,8 @@ async def scrape(browser: Browser) -> None:
                         valid_count += 1
                         urls[key] = entry
 
-        log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
+        log.info(f"Collected {valid_count - cached_count} new events")
+
     else:
         log.info("No new events found")
 
@@ -208,7 +220,6 @@ def write_outputs():
     log.info("M3U files generated successfully")
 
 # -------------------------------------------------
-# ✅ MAIN FUNCTION (FIX)
 async def main():
     log.info("Starting MLB WebTV updater...")
 
