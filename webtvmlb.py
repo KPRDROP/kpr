@@ -107,7 +107,7 @@ async def scrape(browser: Browser) -> None:
     urls.update(valid_urls)
 
     log.info(f"Loaded {cached_count} event(s) from cache")
-    log.info(f'Scraping from "{' & '.join(BASE_URLS.values())}"')
+    og.info(f'Scraping from "{", ".join(BASE_URLS.values())}"')
 
     if events := await get_events(cached_urls.keys()):
         log.info(f"Processing {len(events)} new URL(s)")
