@@ -21,15 +21,13 @@ TAG = "MLBCAST"
 CACHE_FILE = Cache(TAG, exp=19_800)
 
 # -------------------------------------------------
-# ✅ FIXED BASE URL (STRING)
+# BASE URL (ENV)
 BASE_URL = os.environ.get("WEBTV_MLB_BASE_URL")
 if not BASE_URL:
     raise RuntimeError("Missing WEBTV_MLB_BASE_URL secret")
 
-# ✅ DICT for scraper
 BASE_URLS = {"MLB": BASE_URL}
 
-# ✅ HEADERS
 REFERER = BASE_URL
 ORIGIN = BASE_URL.rstrip("/")
 
@@ -107,7 +105,10 @@ async def scrape(browser: Browser) -> None:
     urls.update(valid_urls)
 
     log.info(f"Loaded {cached_count} event(s) from cache")
-    log.info(f'Scraping from "{BASE_URL}"')
+
+    # ✅ FIXED LINE
+    sources = " & ".join(BASE_URLS.values())
+    log.info(f'Scraping from "{sources}"')
 
     if events := await get_events(cached_urls.keys()):
         log.info(f"Processing {len(events)} new URL(s)")
@@ -158,7 +159,6 @@ async def scrape(browser: Browser) -> None:
 
     CACHE_FILE.write(cached_urls)
 
-    # ✅ WRITE OUTPUTS
     write_outputs()
 
 # -------------------------------------------------
