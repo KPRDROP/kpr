@@ -26,6 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install playwright selectolax httpx[http2] pytz
+          pip install firefox
 
       - name: Install Playwright
         run: |
