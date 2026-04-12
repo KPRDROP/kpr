@@ -21,13 +21,15 @@ TAG = "MLBCAST"
 CACHE_FILE = Cache(TAG, exp=19_800)
 
 # -------------------------------------------------
-# ENV BASE URL (REQUIRED)
+# ✅ FIXED BASE URL (STRING)
 BASE_URL = os.environ.get("WEBTV_MLB_BASE_URL")
 if not BASE_URL:
     raise RuntimeError("Missing WEBTV_MLB_BASE_URL secret")
 
-BASE_URL = {"MLB": BASE_URL}
+# ✅ DICT for scraper
+BASE_URLS = {"MLB": BASE_URL}
 
+# ✅ HEADERS
 REFERER = BASE_URL
 ORIGIN = BASE_URL.rstrip("/")
 
@@ -54,7 +56,7 @@ def clean_event_name(text: str) -> str:
 
 # -------------------------------------------------
 async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
-    tasks = [network.request(url, log=log) for url in BASE_URL.values()]
+    tasks = [network.request(url, log=log) for url in BASE_URLS.values()]
     results = await asyncio.gather(*tasks)
 
     events = []
@@ -65,7 +67,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
         return events
 
     for soup, url in soups:
-        sport = next((k for k, v in BASE_URL.items() if v == url), "Live Event")
+        sport = next((k for k, v in BASE_URLS.items() if v == url), "Live Event")
 
         for row in soup.css("tr.singele_match_date"):
             if not (vs_node := row.css_first("td.teamvs a")):
@@ -105,7 +107,7 @@ async def scrape(browser: Browser) -> None:
     urls.update(valid_urls)
 
     log.info(f"Loaded {cached_count} event(s) from cache")
-    log.info(f'Scraping from "{", ".join(BASE_URLS.values())}"')
+    log.info(f'Scraping from "{' & '.join(BASE_URLS.values())}"')
 
     if events := await get_events(cached_urls.keys()):
         log.info(f"Processing {len(events)} new URL(s)")
@@ -138,7 +140,7 @@ async def scrape(browser: Browser) -> None:
                     entry = {
                         "url": url,
                         "logo": logo,
-                        "base": BASE_URL[sport],
+                        "base": BASE_URLS[sport],
                         "timestamp": now.timestamp(),
                         "id": tvg_id or "MLB.Baseball.Dummy.us",
                         "link": link,
@@ -156,7 +158,7 @@ async def scrape(browser: Browser) -> None:
 
     CACHE_FILE.write(cached_urls)
 
-    # WRITE PLAYLISTS
+    # ✅ WRITE OUTPUTS
     write_outputs()
 
 # -------------------------------------------------
