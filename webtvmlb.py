@@ -1,27 +1,32 @@
 #!/usr/bin/env python3
+
 import asyncio
-from pathlib import Path
-from urllib.parse import quote, urljoin
 import os
 import re
-import random
+from pathlib import Path
+from urllib.parse import quote
+from functools import partial
 
-from playwright.async_api import async_playwright
+from playwright.async_api import Browser
 from selectolax.parser import HTMLParser
 
 from utils import Cache, Time, get_logger, leagues, network
 
 log = get_logger(__name__)
 
-# --------------------------------------------------
-# CONFIG
-# --------------------------------------------------
+urls: dict[str, dict[str, str | float]] = {}
 
 TAG = "MLBCAST"
 
+CACHE_FILE = Cache(TAG, exp=19_800)
+
+# -------------------------------------------------
+# ENV BASE URL (REQUIRED)
 BASE_URL = os.environ.get("WEBTV_MLB_BASE_URL")
 if not BASE_URL:
     raise RuntimeError("Missing WEBTV_MLB_BASE_URL secret")
+
+BASE_URLS = {"MLB": BASE_URL}
 
 REFERER = BASE_URL
 ORIGIN = BASE_URL.rstrip("/")
@@ -31,195 +36,174 @@ USER_AGENT = (
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/143.0.0.0 Safari/537.36"
 )
+
 UA_ENC = quote(USER_AGENT)
 
 OUT_VLC = Path("webtvmlb_vlc.m3u8")
 OUT_TIVI = Path("webtvmlb_tivimate.m3u8")
 
-CACHE_FILE = Cache(TAG, exp=10_800)
-HTML_CACHE = Cache(f"{TAG}-html", exp=3_600)
+# -------------------------------------------------
+def fix_event(s: str) -> str:
+    return " vs ".join(s.split("@"))
 
-# --------------------------------------------------
 def clean_event_name(text: str) -> str:
     text = text.replace("@", "vs")
     text = text.replace(",", "")
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
-# --------------------------------------------------
-async def refresh_html_cache(browser):
+# -------------------------------------------------
+async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
+    tasks = [network.request(url, log=log) for url in BASE_URLS.values()]
+    results = await asyncio.gather(*tasks)
 
-    events = {}
+    events = []
 
-    context = await browser.new_context(user_agent=USER_AGENT)
-    page = await context.new_page()
-
-    try:
-        await page.goto(BASE_URL, timeout=30000)
-        await page.wait_for_timeout(5000)
-        html = await page.content()
-    except Exception as e:
-        log.error(f"Failed loading page: {e}")
-        await context.close()
+    if not (
+        soups := [(HTMLParser(html.content), html.url) for html in results if html]
+    ):
         return events
 
-    await context.close()
+    for soup, url in soups:
+        sport = next((k for k, v in BASE_URLS.items() if v == url), "Live Event")
 
-    soup = HTMLParser(html)
+        for row in soup.css("tr.singele_match_date"):
+            if not (vs_node := row.css_first("td.teamvs a")):
+                continue
 
-    rows = soup.css("tr.singele_match_date")
-    log.info(f"Found {len(rows)} raw event row(s)")
+            event_name = vs_node.text(strip=True)
 
-    for row in rows:
+            for span in vs_node.css("span.mtdate"):
+                date = span.text(strip=True)
+                event_name = event_name.replace(date, "").strip()
 
-        link_node = row.css_first("td.teamvs a")
-        if not link_node:
-            continue
+            if not (href := vs_node.attributes.get("href")):
+                continue
 
-        href = link_node.attributes.get("href")
-        if not href:
-            continue
+            event = clean_event_name(fix_event(event_name))
 
-        href = urljoin(BASE_URL, href)
+            if f"[{sport}] {event} ({TAG})" in cached_keys:
+                continue
 
-        # Get full anchor text INCLUDING date span
-        full_text = link_node.text(separator=" ", strip=True)
-        full_text = clean_event_name(full_text)
-
-        key = f"[MLB] {full_text} ({TAG})"
-
-        events[key] = {
-            "sport": "MLB",
-            "event": full_text,
-            "link": href,
-            "timestamp": Time.now().timestamp(),
-        }
+            events.append(
+                {
+                    "sport": sport,
+                    "event": event,
+                    "link": href,
+                }
+            )
 
     return events
 
-# --------------------------------------------------
-async def scrape(browser):
+# -------------------------------------------------
+async def scrape(browser: Browser) -> None:
+    cached_urls = CACHE_FILE.load()
 
-    cached_urls = CACHE_FILE.load() or {}
-    cached_count = len(cached_urls)
+    valid_urls = {k: v for k, v in cached_urls.items() if v["url"]}
+    valid_count = cached_count = len(valid_urls)
 
-    log.info(f"Loaded {cached_count} cached event(s)")
-    log.info(f'Scraping from "{BASE_URL}"')
+    urls.update(valid_urls)
 
-    events = HTML_CACHE.load()
+    log.info(f"Loaded {cached_count} event(s) from cache")
+    log.info(f'Scraping from "{' & '.join(BASE_URLS.values())}"')
 
-    if not events:
-        log.info("Refreshing HTML cache")
-        events = await refresh_html_cache(browser)
-        HTML_CACHE.write(events)
+    if events := await get_events(cached_urls.keys()):
+        log.info(f"Processing {len(events)} new URL(s)")
 
-    new_events = [
-        v for k, v in events.items()
-        if k not in cached_urls
-    ]
+        now = Time.clean(Time.now())
 
-    if not new_events:
+        async with network.event_context(browser) as context:
+            for i, ev in enumerate(events, start=1):
+                async with network.event_page(context) as page:
+                    handler = partial(
+                        network.process_event,
+                        url=(link := ev["link"]),
+                        url_num=i,
+                        page=page,
+                        log=log,
+                    )
+
+                    url = await network.safe_process(
+                        handler,
+                        url_num=i,
+                        semaphore=network.PW_S,
+                        log=log,
+                    )
+
+                    sport, event = ev["sport"], ev["event"]
+                    key = f"[{sport}] {event} ({TAG})"
+
+                    tvg_id, logo = leagues.get_tvg_info(sport, event)
+
+                    entry = {
+                        "url": url,
+                        "logo": logo,
+                        "base": BASE_URLS[sport],
+                        "timestamp": now.timestamp(),
+                        "id": tvg_id or "MLB.Baseball.Dummy.us",
+                        "link": link,
+                    }
+
+                    cached_urls[key] = entry
+
+                    if url:
+                        valid_count += 1
+                        urls[key] = entry
+
+        log.info(f"Collected and cached {valid_count - cached_count} new event(s)")
+    else:
         log.info("No new events found")
-        return
-
-    log.info(f"Processing {len(new_events)} new URL(s)")
-
-    # --------------------------------------------------
-    # CRITICAL FIX: NEW CONTEXT PER EVENT
-    # --------------------------------------------------
-
-    for i, ev in enumerate(new_events, start=1):
-
-        await asyncio.sleep(random.uniform(1.5, 3.5))  # anti-bot delay
-
-        context = await browser.new_context(
-            user_agent=USER_AGENT,
-            extra_http_headers={
-                "Referer": REFERER,
-                "Origin": ORIGIN,
-            }
-        )
-
-        page = await context.new_page()
-
-        try:
-            stream_url = await network.process_event(
-                url=ev["link"],
-                url_num=i,
-                page=page,
-                log=log,
-            )
-
-        except Exception as e:
-            log.warning(f"URL {i}) Failed: {e}")
-            await context.close()
-            continue
-
-        await context.close()
-
-        if not stream_url:
-            continue
-
-        log.info(f"URL {i}) Captured M3U8")
-
-        name = f"[MLB] {ev['event']} ({TAG})"
-        tvg_id, logo = leagues.get_tvg_info("MLB", ev["event"])
-
-        cached_urls[name] = {
-            "url": stream_url,
-            "logo": logo,
-            "base": BASE_URL,
-            "timestamp": ev["timestamp"],
-            "id": tvg_id or "MLB.Baseball.Dummy.us",
-            "link": ev["link"],
-        }
 
     CACHE_FILE.write(cached_urls)
-    build_playlists(cached_urls)
 
-    log.info(f"Collected {len(cached_urls) - cached_count} new event(s)")
+    # WRITE PLAYLISTS
+    write_outputs()
 
-# --------------------------------------------------
-def build_playlists(data):
+# -------------------------------------------------
+def write_outputs():
+    if not urls:
+        log.warning("No URLs to write")
+        return
 
-    vlc = ["#EXTM3U"]
-    tm = ["#EXTM3U"]
+    log.info("Writing M3U outputs...")
 
-    for name, e in data.items():
+    with OUT_VLC.open("w", encoding="utf-8") as f:
+        f.write("#EXTM3U\n")
 
-        vlc.extend([
-            f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-name="{name}" '
-            f'tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
-            f"#EXTVLCOPT:http-referrer={REFERER}",
-            f"#EXTVLCOPT:http-origin={ORIGIN}",
-            f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
-            e["url"],
-        ])
+        for i, (name, data) in enumerate(urls.items(), start=1):
+            if not data.get("url"):
+                continue
 
-        tm.extend([
-            f'#EXTINF:-1 tvg-id="{e["id"]}" tvg-name="{name}" '
-            f'tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
-            f'{e["url"]}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}',
-        ])
+            title = clean_event_name(name)
 
-    OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
-    OUT_TIVI.write_text("\n".join(tm), encoding="utf-8")
+            f.write(
+                f'#EXTINF:-1 tvg-chno="{i}" tvg-id="{data["id"]}" '
+                f'tvg-name="{title}" tvg-logo="{data["logo"]}" '
+                f'group-title="Live Events",{title}\n'
+            )
+            f.write(f"#EXTVLCOPT:http-referrer={REFERER}\n")
+            f.write(f"#EXTVLCOPT:http-origin={ORIGIN}\n")
+            f.write(f"#EXTVLCOPT:http-user-agent={USER_AGENT}\n")
+            f.write(f"{data['url']}\n\n")
 
-    log.info("Playlists written successfully")
+    with OUT_TIVI.open("w", encoding="utf-8") as f:
+        f.write("#EXTM3U\n")
 
-# --------------------------------------------------
-async def main():
+        for i, (name, data) in enumerate(urls.items(), start=1):
+            if not data.get("url"):
+                continue
 
-    log.info("Starting WEBTV MLB updater")
+            title = clean_event_name(name)
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage"],
-        )
-        await scrape(browser)
-        await browser.close()
+            f.write(
+                f'#EXTINF:-1 tvg-chno="{i}" tvg-id="{data["id"]}" '
+                f'tvg-name="{title}" tvg-logo="{data["logo"]}" '
+                f'group-title="Live Events",{title}\n'
+            )
+            f.write(
+                f"{data['url']}|referer={REFERER}/|origin={ORIGIN}|user-agent={UA_ENC}\n"
+            )
 
-# --------------------------------------------------
-if __name__ == "__main__":
-    asyncio.run(main())
+    log.info("M3U files generated successfully")
+
+# -------------------------------------------------
