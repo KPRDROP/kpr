@@ -1,31 +1,19 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Seattle Kraken vs Los Angeles Kings (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Seattle Kraken vs Los Angeles Kings
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[AFC Champions League Elite] Shabab Al Ahli vs Tractor Sazi (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2200.png&scale=crop&cquality=40&location=origin&w=500&h=500" group-title="AFC Champions League Elite",Shabab Al Ahli vs Tractor Sazi
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+1&code=de&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=5635c9847f4aa3d8c52c02e70f2bd60e9c8ddee90f00e2370c7a7fed30035bda.1776134637.bd2e3f94ceea2ddb25d7bfd1d8cfc04d.59f519565f866cc28850cb962e22dd4e.68e43b24597a5ca8082fce504d8ab272&signature=0d46cff6304e917885ac5334cccf4f958cde922e08439bf1d3ccf0192566f2cd
+https://edge.cdnlivetv.ru/secure/api/v1/de-sport-1/playlist.m3u8?token=c9a32451feda05220897312d653c16e84b540ecb2dfb21ad312178c9511baa1d.1776177025.8228d16064ef8d7425503ca8ab62c425.3f202330967cb69a43f89b4535fb5d91.24472f25b300233b124a6529594d8bbb&signature=5d5e81ab064d126b0ccc432c601bb07d328fc5af752243482ecc84363301ac0d
 
-#EXTINF:-1 tvg-chno="2" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Edmonton Oilers vs Colorado Avalanche (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Edmonton Oilers vs Colorado Avalanche
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=viaplay+sports+1&code=gb&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Parva Liga] Lokomotiv Sofia 1929 vs Botev Vratsa (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Parva Liga",Lokomotiv Sofia 1929 vs Botev Vratsa
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=diema+sport+1&code=bg&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/gb-viaplay-sports-1/playlist.m3u8?token=bbeaf7c0bd3d09d2488636e7043afcfed756891f7695a98e00fbf6c1f1eb2fc6.1776134638.64fc209238808f5efa878548dffa6c87.afbeb92f9a5dc238f5221da800a51dfb.9b41821e9fa1867e06dceb4c66b166c9&signature=4e97d3a658d2576dff5c58f9b1eb9a174cbbbd86031e195997bd485ef66b4035
+https://edge.cdnlivetv.ru/secure/api/v1/bg-diema-sport-1/playlist.m3u8?token=577690a71f52b96749e56c5333c733b5b876b9cdd519692d5eebc160949ab295.1776177026.2d638ff170c8ed1ed58789c964991247.94e453333d7beae02d0f8f4fb179ec74.2d7f9a876b6bfa320488ded5bd2eda53&signature=a7b7304be980c9d7e74c8e868220b2ee8b09b505ad82d306c2ab904907c141a4
 
-#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Texas Rangers vs Oakland Athletics (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Texas Rangers vs Oakland Athletics
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nbcs+california&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[KHL] Avangard Omsk vs CSKA Moscow (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="KHL",Avangard Omsk vs CSKA Moscow
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=match+tv&code=ru&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nbcs-california/playlist.m3u8?token=2ba4679d61a20006b1edc2d9119e2d14cc5c5363d3f670593d2432af55766455.1776134639.50929d5af1f5045f66ddd246ffcbc7a3.4552d954202562630d0531fddb3e2324.e997b73cc28612eb9697040e8335e8a0&signature=620a45472a9c36d268a92cc508a8da304df7279ea9bac0e20b1d92d1ff355f7c
-
-#EXTINF:-1 tvg-chno="4" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Vegas Golden Knights vs Winnipeg Jets (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Vegas Golden Knights vs Winnipeg Jets
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=viaplay+sports+2&code=gb&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/gb-viaplay-sports-2/playlist.m3u8?token=6f2670e0cbdd5bde076a699acc24a86032554a922e356af5a228672bb69b8823.1776134639.0dc1f6ef6a4ebbdc13db85ee8b4ff800.5d36c450b2384920329fc44ab1424131.2961a7484ed5ac8b70c939ddbc75c86c&signature=3cdd1d375a65065e4b8a078d8e733c40782b0fedd90f3eb3a8e187ff1ddd3193
-
-#EXTINF:-1 tvg-chno="5" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] New York Mets vs Los Angeles Dodgers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",New York Mets vs Los Angeles Dodgers
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=los+angeles+dodgers&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-los-angeles-dodgers/playlist.m3u8?token=d89911ae23f6c6abc4989bdd0541d0b0e89e0de75825adfe43d1ddf3ce6559f3.1776134640.a225ef717e00f496ec3cc5ad6969f056.f45c3ecfe094147fbb6771ff663f8d84.213da506d672afccefe8ee17b12427f8&signature=477f4fa2671ceb61528eb118e20673e7039d5b9ce170c578b6adb5d0c76855dc
+https://edge.cdnlivetv.ru/secure/api/v1/ru-match-tv/playlist.m3u8?token=51dd5f3a9b46c4d267a04cf04bbaba19390d234c55801b8e54f0f444cfb206ce.1776177027.32209fd524958ca697dbfba6ed4010a6.b3e9c170aebfed4253ed4abd116afd9a.5c98e7690a839ca60298e2782220f252&signature=2f02498dad4b8a12b1ba815b63b88840ffae6a30252b3a2c17f5b0edb30ae0b4
 
