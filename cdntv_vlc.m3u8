@@ -1,7 +1,43 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Parva Liga] Spartak Varna vs Septemvri Sofia (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Parva Liga",Spartak Varna vs Septemvri Sofia
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Parva Liga] Slavia Sofia vs Montana (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Parva Liga",Slavia Sofia vs Montana
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=diema+sport+1&code=bg&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/bg-diema-sport-1/playlist.m3u8?token=2a38c4c994b2df325600ca4c32caba0f01a199dcca6f5e9d0687935f40cdc238.1776348466.3d77d27e1e1d52716b5d515c2afa6833.d79db2a256de1cf40ecf86e3672bf62e.34e87c6595b728cd2863f90159edf290&signature=8fc117234c87b945eec3825802560a1540fa5070d95d26eac4e8f612b4acc1b8
+https://edge.cdnlivetv.ru/secure/api/v1/bg-diema-sport-1/playlist.m3u8?token=ed86931186576301007e8a9fe8674e18177db1df751392cccffa70c93eb7320c.1776355547.5b46d2254f3049d2f55c1a97f906addb.c728128ecdaa569587d8b69cd8dc6d65.c68b325cf6346132f6d91b539fec3f59&signature=b5d5535f9c596c461849c2145d1cae6dc4a26961fb6e592fcff05c7c66c9727e
+
+#EXTINF:-1 tvg-chno="2" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Washington Nationals vs Pittsburgh Pirates (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Washington Nationals vs Pittsburgh Pirates
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=pittsburgh+pirates&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-pittsburgh-pirates/playlist.m3u8?token=be84cfd0eb528af5a22e5db2e1a5c916d635f1dfe94587e975761c1fea43b10a.1776355548.5eb5a01d5e69c4b827b30fd1bff2ed62.4041dbf2570cfb9422cacdd50f9e8e57.1198139deeea84ba1b8048377d1e2e99&signature=cb04ab769e75b0b6046746c2eeaee1eba7f16454de3f3ed60b6fdd88aa3edb73
+
+#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Francisco Giants vs Cincinnati Reds (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Francisco Giants vs Cincinnati Reds
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cincinnati+reds&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-cincinnati-reds/playlist.m3u8?token=501d13f383c46b85fe5d6e0fb66d5e324dcf9d12cab6b69cb1287b4c0ad5f62a.1776355549.7090737a84fa79fec6ff17db3b2f0bc6.25fa267f9e5357181395036cd5c6bc22.7c60aef0eed7f92a19b76a6c9758ff61&signature=541f045a853b91ab3bd70d88f47ba4c4ab2ae31281f9d386826ff9a59d5098da
+
+#EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[UEFA Europa League] Freiburg vs Celta de Vigo (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2310.png" group-title="UEFA Europa League",Freiburg vs Celta de Vigo
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cbs+sports+network&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-cbs-sports-network/playlist.m3u8?token=c62fe060f6edc9e07133e631392e42c9cbfc744956646eb4eb3cbe3b8bc6319c.1776355547.2d13f853f44249709acf676fd26a7f7a.0e7f1abae79606e6f377755810908170.601f5ea8501e51ddb92f313d3e9289aa&signature=eb1e9a40bcb6024e9cf5b7bc88cc8a9254362092f37ebfd264c33fb7282c130f
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[UEFA Conference League] Shakhtar Donetsk vs AZ (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/20296.png" group-title="UEFA Conference League",Shakhtar Donetsk vs AZ
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+3&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-3/playlist.m3u8?token=35b58ea5ccf2355f4050ae682d980d68f0d996af5d6b36d23eedf024d56cf161.1776355548.00eb4069e3a503a28bd105b3dcd13b17.3d13422a2227655b8545e90808f779a3.af44e3f9e12f42e40aba06fe336f106a&signature=7242b9d402d83dfce947b1f7da5e9171545869786029dc307b6f299cbf028822
+
+#EXTINF:-1 tvg-chno="6" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Los Angeles Angels vs New York Yankees (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Los Angeles Angels vs New York Yankees
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=yes+network&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-yes-network/playlist.m3u8?token=c8492639ce0d36d39c2e1b0044b705332d60767c860c0eee08955f0bf35fd676.1776355549.b9c27ed983a44460ba15e48d8615160e.ecc2b9f041eff446b1829717e765f0e3.e096b819e0c50f09cf2951a33b21198d&signature=c8f90799defd3a6056904d030a11786ce0cf56215fdddf81c3e61702b3a1e442
+
+#EXTINF:-1 tvg-chno="7" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Toronto Blue Jays vs Milwaukee Brewers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Toronto Blue Jays vs Milwaukee Brewers
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=mlb+network&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-network/playlist.m3u8?token=4d256cc7a504845947d18a8a23518dfd3ce8cf2ab775afa6c31de7dc908057bc.1776355550.d959c91ecff30abfbcf644df817dd259.e000ba60b7fb75f8519e559576103b72.3f28944a663320aa261ac4dfbc3d60e0&signature=4fc508258023305d62ad1de6e7243431b4010b97559005f43713508bcad5bc29
 
