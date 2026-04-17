@@ -1,13 +1,19 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Colorado Avalanche vs Seattle Kraken (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Colorado Avalanche vs Seattle Kraken
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=altitude&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nhl-league-pass-4/playlist.m3u8?token=eb90c5e4f8509ff0a92076e8c68b05fe23f419e6a2f6a883df05e770e528b9c7.1776397912.ca2c3d86c1869d223bec5831d8b8c2c0.101a4ac8df57cf80cd6b101a77160954.630b1a6d0ff8f71a96618a314189c5cf&signature=08e0b44d96df9ef103ee5128c05b5c3b491fdb4faf8e2ba035fc998a601f54ea
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[College Volleyball] UCLA vs BYU (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Volleyball",UCLA vs BYU
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Bnei Yehuda vs Maccabi Herzliya (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Bnei Yehuda vs Maccabi Herzliya
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=viasat+vinter&code=se&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nhl-league-pass-9/playlist.m3u8?token=69d82c1adc710fa3c50fb46141f8e5f62879b8db08d76256730fb97e8bb7cac4.1776397913.5e8d45bb330db501523405717bd5e984.f100dffb35ced6d5ac958a898dce9b97.eaf5116fa3e6e720693c745c76acfc98&signature=94707dcdc7d56d0d6b15498086c44d0f8fb70b2c0cabacd104fcba5e3ed6bd17
+https://edge.cdnlivetv.ru/secure/api/v1/us-nhl-league-pass-9/playlist.m3u8?token=b3b84909c84b97c6277433980ed2cc6b0e5005b1856329b24b8ee111fd84170a.1776423435.2a36e308b329e0ee96814726039771ca.bccf8fc8f2c1e1106adecb4d0ee9fd39.977e9fd9c52491b9643987344a0f3be5&signature=ee90d3695a48d60b1321c868d55c26f7061ed1cffb94254ba4eeafd55d719edb
+
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Hapoel Acre vs Hapoel Kfar Saba (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Hapoel Acre vs Hapoel Kfar Saba
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+5&code=il&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/il-sport-5/playlist.m3u8?token=a1e38d9518b11fc3034e55f0349739cc9689029ed69615ecec405f90a4da1548.1776423436.83a53e3b148b532b41feed53949878d9.79d56ee6b2472b9b64f42e7355f442ab.31b422340e72266d400e30e23278a52b&signature=8b102e5d7ecc279c41063595f7e9446ec105fe144103031f7b30343e0960e5a4
+
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[FNL] Chelyabinsk vs Yenisey (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="FNL",Chelyabinsk vs Yenisey
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=match+premier&code=ru&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/ru-match-premier/playlist.m3u8?token=5555f8f83095154686ff4dd1843e839ab82ba8668417a649a2729d7cb088eeb2.1776423437.0f97a3dc3f75a87268b2581e9a58a46f.6f39f75c187bc6529d9d3130967b292b.b5340735dc7656b0cffe05ba550a4e4d&signature=0fba2ecc12e34d92dedec9a4581dd8995e7d551cef7e5b924fb745c3c85eceb5
 
