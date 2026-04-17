@@ -1,55 +1,97 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Ligue 1] Toulouse vs Lens (CDNTV)" tvg-logo="https://ligue1.com/images/Logo_Ligue_1.webp" group-title="Ligue 1",Toulouse vs Lens
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports/playlist.m3u8?token=5ced944d58341e0bcf6bb859cdd0a51a23cc310bd1bec9809516ab9e0fc96498.1776458674.73ddb0333bf16ca0922480b1aa13c1a9.c7dca44d092c10b172f8ced386581a77.95b3bf21b57c13282671592964954eba&signature=7bf184ae9f0ebac0fd66aa47ffeee2f6f9ef91de9433a7bda2676dff04c26b7f
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Serie A] Cagliari vs Internazionale (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png" group-title="Serie A",Cagliari vs Internazionale
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=supersport+football&code=za&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/za-supersport-football/playlist.m3u8?token=c39c65ea1183e7b30063b54e87bf8cff64e68b9ad3e14b9b864b9b7bbd17e1b0.1776458675.f6d736573ab905d2555d99a2dbf3b0d5.4cfb1032e819eb97126b2aae28e5694b.09f191d802e709a886f842f4deaa161b&signature=45aa19808d98f552e5dad441f116b07fc0f935bbfb5b1c221ee343d9d7e59659
-
-#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Segunda Division] Leganés vs Las Palmas (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/107.png" group-title="Segunda Division",Leganés vs Las Palmas
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=laliga+tv+hypermotion+1&code=es&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/es-laliga-tv-hypermotion-1/playlist.m3u8?token=0fecbcd4534de0a3dd9a181037d9ea8b30635247d3f522ab277af875924f28f5.1776458675.d642ec38eeab550061da56bb52ed6d73.a9ff23eba27d26fa6f1ba68988cf5e6d.58eaa3158bd032059de08fb789cabada&signature=8cee672a4ca86665854c852804ef89078e472ac3ed7b71721dc96c3701f9274b
-
-#EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[Championship] Coventry City vs Blackburn Rovers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/24.png" group-title="Championship",Coventry City vs Blackburn Rovers
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cbs+sports+golazo&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-cbs-sports-golazo/playlist.m3u8?token=7ab789a065c44407e9ce2fa3e274b39b117514d5b5c423f27d1332e430cd7e46.1776458676.a33bb4aabdb27e6c1da8634cc9835f1e.b13e53fba2feb0124346f76e57608b09.5d1f1cf9dd86e9e718cae905e1763412&signature=afc9150b3ec8282081b9230d75e5b39c21072bd1c21e442893ec08b2f3c527ae
-
-#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[Primeira Liga] AVS vs Rio Ave (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/14.png" group-title="Primeira Liga",AVS vs Rio Ave
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Primeira Liga] AVS vs Rio Ave (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/14.png" group-title="Primeira Liga",AVS vs Rio Ave
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+tv+1&code=pt&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/pt-sport-tv-1/playlist.m3u8?token=665c9271702601c6caede02de94e08286eaf4078f5fc9507ad92dbfbd39f0a4a.1776458676.2a6be63b057d7081d6bb08fabecf6390.c51fd56ca5ce500df0259875bd8a1085.a7cdc2e766c6d9628e269ec8f8e43881&signature=23f7df420e0c5760ec60d389ca40975b63eba79a7de86f9734522ec07782c175
+https://edge.cdnlivetv.ru/secure/api/v1/pt-sport-tv-1/playlist.m3u8?token=84d099802407c75b67b0f149f75cdd8cfdf091382dd794f7f210dc7477d11856.1776462134.b4a9fc3ffa5b26f2ff7518cd2030f543.1515c1b13a4e7e9a11c9e04b8cab83b2.546d71a5d865e23ad9d70d538c26f945&signature=58bf36a5b80521af5ef3a12c56999bc0d93c058220162ba6c09da82a43adf2e9
 
-#EXTINF:-1 tvg-chno="6" tvg-id="Live.Event.us" tvg-name="[College Baseball] Florida vs Auburn (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Florida vs Auburn
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[College Baseball] Florida vs Auburn (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Florida vs Auburn
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sec+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-sec-network/playlist.m3u8?token=737c2af50857a6f4e5372070af5991c0ea3fd0720a3e9e1a0819e41599161fa9.1776458677.b2b95f44be15ce445941d6cb340bd368.2f9d92ba6acd963cd92caf181653dfd6.94c1e535e0ad29a07c3822157cd82965&signature=0052efaaf596f3f56152866c0c245ba15ada1d6188e6ed7dfae0dc696db87d68
+https://edge.cdnlivetv.ru/secure/api/v1/us-sec-network/playlist.m3u8?token=60ff4e65d17caea285c7713c6b8fedccd529ce934cd9a33da4b40a72da92af19.1776462136.3fce460273835862b0b525a88ed8f944.7a6fa82cefc6d9851d778466f75e45fd.cd01de21cd8b97730ad43ea11f8a61d8&signature=159838d61727daed159ac3bf7f78c74ddbd20dbb861ac98b194948dfb4e53717
 
-#EXTINF:-1 tvg-chno="7" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Baltimore Orioles vs Cleveland Guardians (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Baltimore Orioles vs Cleveland Guardians
+#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Baltimore Orioles vs Cleveland Guardians (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Baltimore Orioles vs Cleveland Guardians
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=masn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-masn/playlist.m3u8?token=cc12f4bfd754ffa3ee2c1fbae6a8815a4d2f59a37776255fc0d76255838031b6.1776458678.11b0d9c5a16b08b617d1ffb0f6827aec.400f4939b548cae4c7bc77e0d1cb3ab0.51d75c9f5684db4864d243e4e12788a4&signature=d10a8b8052d8bc7b93008c8b7365cfbf4f821cd9805159df6b06f4e760d76b2a
+https://edge.cdnlivetv.ru/secure/api/v1/us-masn/playlist.m3u8?token=e09262592cbc5f6ca618a29736fe14da547a4d07d15633879875f0c886300f45.1776462138.1446b0a9b9519e2e89a208628df04168.76ce5c1ac8f6f5f9829042771420b9dc.598f2e15f484cdafddcf652a76b59498&signature=c09a641f6722fc19b26d874b4c1eccdcd90da2d217ab737e2602416819009ac4
 
-#EXTINF:-1 tvg-chno="8" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Atlanta Braves vs Philadelphia Phillies (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Atlanta Braves vs Philadelphia Phillies
+#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Atlanta Braves vs Philadelphia Phillies (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Atlanta Braves vs Philadelphia Phillies
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nbcs+philadelphia&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nhl-league-pass-10/playlist.m3u8?token=b7c561c137f86565cdce2d9383728e84a3cf0c4f609ab11fe78d6a1d81f84fdf.1776458678.d6c394b12a6a6aef5e15158894873a3d.89314e8352fbbef35850fb9759880481.e7c938cac331a7c7fcbf99bd2b3abd03&signature=58030c5fd600ec5028f41ce2022b6bc9730851a509f83fc8e37972b99faa79d7
+https://edge.cdnlivetv.ru/secure/api/v1/us-nhl-league-pass-10/playlist.m3u8?token=240f29f0b86517876c3c7c84f54821e233cdd00a1ad3d1c9de7973994e0826bb.1776462139.6775869ade7d75eb21ab843786f16bd9.f467471a0a870b813d43de28dc0d8d37.a1112dbc04efb22ad53db0f2d78e1fb2&signature=e7666aed060b0b61995a263323b9bd31745cf33969c2a663a36d8483df817b8e
 
-#EXTINF:-1 tvg-chno="9" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Tampa Bay Rays vs Pittsburgh Pirates (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Tampa Bay Rays vs Pittsburgh Pirates
+#EXTINF:-1 tvg-chno="5" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Tampa Bay Rays vs Pittsburgh Pirates (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Tampa Bay Rays vs Pittsburgh Pirates
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports+7&code=gb&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/gb-tnt-sports-7/playlist.m3u8?token=ef725c21841f5c1da598ff283f8c4525ca4f656c7db0a3cd0755e8ce681dec04.1776458678.fc231fcc5dd57e2a784be9f49002ad74.86156d433d2272929478333d27969660.df10db111e77d99168c89ac40c3a0651&signature=8c5afe844dfaa5c6a06f660f58a5a803c52b752ce40a4d1a1d50796c89cece23
+https://edge.cdnlivetv.ru/secure/api/v1/gb-tnt-sports-7/playlist.m3u8?token=710717b6ce06a4fffe68d652a16a870bf2f8f9cf89a9d2ce184237688fe3e284.1776462139.ecd9b9247ad84b775dac63ea0b4b436d.8ec060cb8103d1cc39f1140365f263e9.ae563b4ac866f51f49e94b0328065925&signature=54674b361273fab77ff700f229b13de0d141a9d28349ff17e68a9327cf78a45f
+
+#EXTINF:-1 tvg-chno="6" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Francisco Giants vs Washington Nationals (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Francisco Giants vs Washington Nationals
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nbcs+bay+area&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-nbcs-bay-area/playlist.m3u8?token=c6868f440f55c37cf99e1931b7943d656cc7a4ed97854e4a39b2679913427279.1776462140.de526bca2efdbd75f5a67f46de0c22fd.fe8ce49ef9e21b4041c93aa6f41e8306.556dffae53c5c9cb4d73375c33c0f818&signature=a8c3559d8145e8ce06d9f52bdcbef83133756fca572f8765de2fe10d1b8a8add
+
+#EXTINF:-1 tvg-chno="7" tvg-id="Live.Event.us" tvg-name="[College Baseball] Illinois vs Oregon (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Illinois vs Oregon
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nba+league+pass+1&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-nba-league-pass-1/playlist.m3u8?token=29b19ee797bc55a84e94437953fcdbc0c5f7827b4dc05abcee1d73910d386f58.1776462136.d8dbe04ec6e1c532ea98addba9e91e49.fc400cdaaf65230376b11e08fcce88f3.f45013d2f4b66348d3056fe0b087ef0b&signature=19818378df858fae9d441cf292e768894d8385577dd886eb89ac24fbaa68527e
+
+#EXTINF:-1 tvg-chno="8" tvg-id="Live.Event.us" tvg-name="[College Baseball] Iowa vs Maryland (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Iowa vs Maryland
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nba+league+pass+2&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-nba-league-pass-2/playlist.m3u8?token=9fc4a631a32e67694d68a37d89099a8df8b9238f27cde0b009a40dfb5d451615.1776462137.9712e887715c28892c4b556e60156c0f.7c473c70fcc97827bf08850969770d42.b58060bae8a77367a60dd82b142c5c99&signature=2da6c105870b2bcd544e9ec109eb0aae722e440c6450e7a452f469587d0e9d8e
+
+#EXTINF:-1 tvg-chno="9" tvg-id="Live.Event.us" tvg-name="[College Baseball] Louisiana State University vs Texas A&M (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Louisiana State University vs Texas A&M
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=f91be922593bd642e8b8c4ff9cb9383b7687ded75e8b64d5623a87b649c2934d.1776462137.7f289fe13fb2b8d870c1192a01d72ba2.02daf0d5ca40f0334bb9dca7ac287b5f.7179bccd4b69017f7bbe5aa848d0fe08&signature=b282012db3fe18dbd759b8de2d83771c5ba9074e8156ffb16725995a983c3a34
+
+#EXTINF:-1 tvg-chno="10" tvg-id="Live.Event.us" tvg-name="[College Softball] Alabama vs Kentucky (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Softball",Alabama vs Kentucky
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+2&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn-2/playlist.m3u8?token=d98475809e87e4369038ed8bbad7d715ca1be7f4a6553e2922b7f5a89df6eec7.1776462138.3212ac3e024d491068dc22761c71ae5c.5731efe253bc0db8cbc38553cd489a1e.04d033413a6f638cad872d60af99e577&signature=b71c3ee6a6a4e69fc6f1c9f9b035688e8134d0b51cb323c5cd36ac4832efe723
+
+#EXTINF:-1 tvg-chno="11" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Kansas City Royals vs New York Yankees (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Kansas City Royals vs New York Yankees
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=yes+network&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-yes-network/playlist.m3u8?token=2f109edbf5fd36769e21119bbf0ff8503c466e369a2dc3794a4558494e9d06e4.1776462140.72edff25ceb36ea018b99d8d283f64e0.6f623f93aae069a82938f141a13a6d7b.f773ae4cd58cfad41c0863376f7fe585&signature=3bd59f46648c1d54b92decc4b541fc4195b517ff0b9fee00dd534b4d3e26db74
+
+#EXTINF:-1 tvg-chno="12" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Milwaukee Brewers vs Miami Marlins (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Milwaukee Brewers vs Miami Marlins
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+max+4&code=fr&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/fr-bein-sports-max-4/playlist.m3u8?token=bd80704acec97ea7261d2f684e3c6ff933a7d12159cb2b9145cb20137d82b385.1776462141.62f24d11c9626511ac46b50366ff72aa.bf1b801558c748d8150c2470330fcc06.8df3ed1cd509b640ee65fd3c6d5b3dcb&signature=64d66fe956aaff984d47f893cd8afab95892c006c6efea6240bde1b86d5099c0
+
+#EXTINF:-1 tvg-chno="13" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Deportivo Pasto vs Jaguares de Córdoba (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Deportivo Pasto vs Jaguares de Córdoba
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=1d343a6a0cb6617a73d2f98e3eb2479f25911243d56fc6bfea5843842e4bf460.1776462135.a540031909c4ebc6bf1f459708df9e48.fd0ca84b72149b625ed1cf411c1360fa.e9c57cbc9c8467e0709f149e00256990&signature=259fe2ad75602eb179756af1b7cec6f7f47a62e090b07cddfad202e0620bc326
+
+#EXTINF:-1 tvg-chno="14" tvg-id="Soccer.Dummy.us" tvg-name="[Primera División] Newell's Old Boys vs Unión Santa Fe (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera División",Newell's Old Boys vs Unión Santa Fe
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=ar&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/ar-espn/playlist.m3u8?token=9eded67779fa0132b6325bbce6c7b5811445a136a9d883c9faed269c601e3efa.1776462135.dd78cb825e17ffe150121b411661d4fd.53ebc79606670fcd52a46ec39252d901.b993e710450ac631421a6be9c64eb1ae&signature=514be931a37bc4daa9eb253c979357e078a1696a69ff4b12fcca7127a2b3afb9
+
+#EXTINF:-1 tvg-chno="15" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Orlando Magic vs Charlotte Hornets (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Orlando Magic vs Charlotte Hornets
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=mlb+league+pass+16&code=gb&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-league-pass-1/playlist.m3u8?token=2157be66c863c9015683f693edc3dfa7fab1ea819c1764d0fc0db7b6388d5a9f.1776462135.17f52fb4b69e4846b57c8561dbc4b8d5.184855b46dc49474f61c7a33a21e9235.d398cbfca67722e5f3cb708d4ea54160&signature=31f93db8a039230506dced60c6b4980c918eafe3e24da927c4b3e0d8251313f8
+
+#EXTINF:-1 tvg-chno="16" tvg-id="Live.Event.us" tvg-name="[College Baseball] UT Rio Grande Valley vs SE Louisiana (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",UT Rio Grande Valley vs SE Louisiana
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+u&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn-u/playlist.m3u8?token=0bd0745ec1c82236fea8c880a3c81bda0934d905547f770e5f84a275c0d9f708.1776462138.24d979ecaa36221bdcf8052499ad5cdd.99608425f512c8503e4527e69aeb0bf6.fd59ae47754c1c3bfb77b3174c69913a&signature=bcac8cad17837048d7855041d5dd7007b77215c1849992e3ec02508a8a7491ae
 
