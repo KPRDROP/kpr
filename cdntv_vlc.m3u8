@@ -1,31 +1,43 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Bnei Yehuda vs Maccabi Herzliya (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Bnei Yehuda vs Maccabi Herzliya
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=viasat+vinter&code=se&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nhl-league-pass-9/playlist.m3u8?token=090244ec0b93a44869edb13ba7036b6d38b8b1fb4b63c413daed90e55fdf3db1.1776432121.d63a41c33941ba74b39aa6b74b7bbb12.d41d183f4221002a1f053e71d06ee796.e033cf844dd7f4a07db00ed1e99b0c3f&signature=d9b682446aa716b08567a92849055253553f21d524f129263e1405fbcc1ecc3e
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Hapoel Acre vs Hapoel Kfar Saba (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Hapoel Acre vs Hapoel Kfar Saba
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+5&code=il&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/il-sport-5/playlist.m3u8?token=01a015db764f286ba9072f13a2c1fc48a72556a4aab4b22f37545d7f61cae981.1776432122.a11f26e408e2581e17eff1536ca9edfa.5229faccce3a6aef829cdfed1a1e1eb6.81ce7750f0ec1f96b2b1e905a43ea12d&signature=029b279f78b0c9c1cd5852850c928e93768e14f66f37e86b882125bad4edfd22
-
-#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[FNL] Chelyabinsk vs Yenisey (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="FNL",Chelyabinsk vs Yenisey
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=match+premier&code=ru&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ru-match-premier/playlist.m3u8?token=0b1709bedebd42a05a8263fba69b9fc65b73797b7c2fb29d4ad6e9c9ab5d7553.1776432123.a6ee831df169ce4a384e11a8f497c39b.8fe1147d035988630dba6b7c40f88e5b.e7270d056b886b2fb013a3e50b62a703&signature=acc3cf82715001154608c9183b7f0304ae3804851779b80cede3724505ab0e19
-
-#EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[Liga I] UTA Arad vs Oţelul (CDNTV)" tvg-logo="https://i.gyazo.com/3fd4b38d5263ca391e45850eb58d11e6.png" group-title="Liga I",UTA Arad vs Oţelul
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Liga I] UTA Arad vs Oţelul (CDNTV)" tvg-logo="https://i.gyazo.com/3fd4b38d5263ca391e45850eb58d11e6.png" group-title="Liga I",UTA Arad vs Oţelul
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=arena+sport+1&code=hr&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/hr-arena-sport-1/playlist.m3u8?token=7445918a90c2bb043a723a6f5ac8aad8b8a79473d4efbe2706825143c7283025.1776432123.8e360c38f75c933a8295b4a6bd7c30e9.022b0eda51045f26ee82d19d0d7620ad.5e0b7457c62b53c515365b0a2ff5a8a6&signature=692399fbd85c74eb0d903512452c0bb3e259cc3a66edea6a78598d4d3cc6469e
+https://edge.cdnlivetv.ru/secure/api/v1/hr-arena-sport-1/playlist.m3u8?token=9d1d2c2e58443eb341d680105ebb2c11c0adfa033b7e3a0c01f6b5c96576ee0e.1776436886.cf0668e0d837cc0ed74deb4ffe542aa4.b570244d17cc3568adf1cab6434a68c7.e3a336da55e1cb120ca76608ad73903b&signature=ec8b7e5a18a0d225eaa08f83bd7450d499420e6fe6b092773f6e3ece7cbee5d1
 
-#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[Virsliga] Liepāja vs Tukums (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Virsliga",Liepāja vs Tukums
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Virsliga] Liepāja vs Tukums (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Virsliga",Liepāja vs Tukums
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+bundesliga+7&code=de&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/de-sky-sport-bundesliga-7/playlist.m3u8?token=5003a3965698a3df696d22ac6a241cadb4a07085e4184cb4dc1681a83fe9afa9.1776432124.44c75d71cb3d138854bc1e13d9b4b12b.3a07cb0c355f5eef207913f1a4c12c7e.2227686130ec0bbf730cc59e95ae1585&signature=e698972c844099ca4a906106898f49fd77bd97a90e74381eb2d432f6fb30e0df
+https://edge.cdnlivetv.ru/secure/api/v1/de-sky-sport-bundesliga-7/playlist.m3u8?token=83098abdc6c04daf356391b88bc6b5686d180b854688c0474ce9dc6f07ccb96b.1776436887.bf7751b7a40821b54cbaab617ee0e83f.816e12c43986af680f9ea9e2e3a0505f.ed3c5167ce3f54f7f9bd8e359cf2ea3c&signature=2219d34c83787ee602388450325d39784a86a3f66a2a964e8732ff4c15528204
+
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Virsliga] Auda vs Ogre United (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Virsliga",Auda vs Ogre United
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+bundesliga+7&code=de&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/de-sky-sport-bundesliga-7/playlist.m3u8?token=83da998750947bdf18bd13ea250038660a07c8a371e977d02d4fb8041242a644.1776436887.76d62ec08265909d2f9f8e4a360ee715.811c97b3b1e029a536bc6ba90551550d.d9b962d0f3909e0a90d3510cee0d7b1f&signature=d0141c31bb853bfd45ea53e81d20d3283867192c1806461bc51a8937d83a6fb9
+
+#EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Motor Lublin vs Katowice (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Motor Lublin vs Katowice
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=canal+sport+3&code=pl&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-sport-3/playlist.m3u8?token=8db009d05a0bdf92d8ba37382e04ae770a65bb01048a90fa070b7b93676afc02.1776436888.28c69a04cfb5fa4d9428672b586c709a.d09057f8f39c3adffcd4fa58526bd642.6a4c4710891f811f3f12add228cd93e2&signature=8f1847a464a0b7aa041d039772e8af933fe077f347bd594eb7e71dd8af700d7d
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[Serie A] Como vs Sassuolo (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png" group-title="Serie A",Como vs Sassuolo
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=astro+football&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-astro-football/playlist.m3u8?token=6927349330af976a64c13686b18f0444b2ad4219364f93f74cd9481c1bc30ec0.1776436888.1914a458b1b8ccad2a0f866f0880f39d.735185f67af6ea7c9b93f641f8ce355a.7eb219aa2a18fd9a5b402c2de0deaad6&signature=232ac03a92b93dfe5e86003b2bcc3ade300cd477f2152ab7273c1ab27f5369b0
+
+#EXTINF:-1 tvg-chno="6" tvg-id="Soccer.Dummy.us" tvg-name="[Bundesliga 2] Kaiserslautern vs Holstein Kiel (CDNTV)" tvg-logo="https://i.gyazo.com/6c343e57acf501f4df3502d7ec646897.png" group-title="Bundesliga 2",Kaiserslautern vs Holstein Kiel
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+bundesliga+4&code=de&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/de-sky-sport-bundesliga-4/playlist.m3u8?token=07863fcdb9341ee3e4fbce5ce173e1819ba3bf76d118f4ad54017e98fb6cb188.1776436888.d41a478b32f7c8133a5a71e581fa62ce.e4a25836d8e639dbd239ca4bee5b65dc.24ef9e43ab7054272b02dc10d81920ba&signature=5ae142098cb6076b09e42e9e11ac7859882c1958993d42c6e31b9f405e8f4aaa
+
+#EXTINF:-1 tvg-chno="7" tvg-id="Soccer.Dummy.us" tvg-name="[Bundesliga 2] Karlsruher SC vs Elversberg (CDNTV)" tvg-logo="https://i.gyazo.com/6c343e57acf501f4df3502d7ec646897.png" group-title="Bundesliga 2",Karlsruher SC vs Elversberg
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+3&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-3/playlist.m3u8?token=865e5f530fca95033aa204fd9435bc0bc1281dbe7c9068cfb89192f7bb504b99.1776436889.b0e547d3edef00d9b7c233c236a67c4b.00f707f26b8c357d742522b9541c57dd.2664b05027680fdb1437df9afc68e099&signature=d8bc57d7bb2f2c39dde616e33afbc5f165f6674234cf1721814d426b108e5839
 
