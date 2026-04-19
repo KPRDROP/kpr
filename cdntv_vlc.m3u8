@@ -1,79 +1,79 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Medellín vs Alianza (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Medellín vs Alianza
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=9c730bd52d88736e60700fdf3b759eb1cdce30aeeecc8ea717488528201a55c8.1776638949.e46e9cccdbc80d6a36ffd282dada4261.5cacb0bc11ecb240d07285c8984dd910.73c9a718efa6ebed2f0c9ae36140b1a3&signature=252bb54c599587215a61ca0bb4a76dea3b7b7b038a0f4d5b15176733af2e4402
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Athletico-PR vs Palmeiras (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Athletico-PR vs Palmeiras
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportdigital+fussball&code=de&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/de-sportdigital-fussball/playlist.m3u8?token=d76ec1aeb5dcddfbeef9c70846779ea3665b4dc918e4a1687bac97294ec6f98b.1776638950.ce9190e330aab18721e1774b475c9c86.b75c529b274f733a2a0240ccf51f20c1.b4fa8c9d45cf43cc9515d09563c26551&signature=087d5db3b2263f1b59c8fe985f3a0feb641cdfa0ad90265911704d1c9685b1e9
-
-#EXTINF:-1 tvg-chno="3" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Tampa Bay Lightning vs Montreal Canadiens (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Tampa Bay Lightning vs Montreal Canadiens
+#EXTINF:-1 tvg-chno="1" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Tampa Bay Lightning vs Montreal Canadiens (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Tampa Bay Lightning vs Montreal Canadiens
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tnt/playlist.m3u8?token=d9859abb3e6d9a34ec48656c2d18402468aba4528c1fe77224da1e78b98ae6fc.1776638957.cfc1e127146443d73c06a6608600c051.0be5358d7ddb7860b8e856f777e6254e.b8a8273f9706bad36677020bf01264ff&signature=73e68d5f8fcb95026e80ec6ee8a232ae16628761255e242863b0ff4989e8cbb5
+https://edge.cdnlivetv.ru/secure/api/v1/us-tnt/playlist.m3u8?token=f8968134cecdadbdeb9a6378cd97302ea46449f716de95b778271587d2fc8ba5.1776641849.b3720e3e4d506f3957be5b2247954179.d3ec18f50e28ffb693cdc6ab74d1e91f.a197d95e3d3d15b8de86a5266a85bfda&signature=016f0dc598c65f705c30b5214cb7853e636c3453a37894e5bb5f51433ea7ef5e
 
-#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[College Softball] Oregon vs Washington (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Softball",Oregon vs Washington
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[College Softball] Oregon vs Washington (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Softball",Oregon vs Washington
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=btn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-btn/playlist.m3u8?token=1f9893219f274dcd94c103009a85dcf92a7144849e4561c6e72087756198b134.1776638959.e62fb2eb38d166e32f8987c7c1077311.c3a003dcce9924e8ff88173a82c88dd0.483d435de5ea6a810a49fc2f67902256&signature=72228f535644f150a49fc0bc28fccd599749dabe449edfc4ff637c7e4117669b
+https://edge.cdnlivetv.ru/secure/api/v1/us-btn/playlist.m3u8?token=150b0193fdde5993e3de98a291137a74346a92331f3a8d7de07809e008c543b0.1776641850.43cb0a090c2255b253a9410ccc5642df.f4cd595fe37a54fb0ff6506c1ef2161b.adb74604a5f8a5435c5b9e80a229d4c7&signature=0ae4bc84cd6bcd28dd92f43556415f5f4087fcf5801c24fa3ede2e87ad68d1c9
 
-#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[Primera Division] Palestino vs Colo-Colo (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera Division",Palestino vs Colo-Colo
+#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Primera Division] Palestino vs Colo-Colo (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera Division",Palestino vs Colo-Colo
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports&code=cl&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/cl-tnt-sports/playlist.m3u8?token=fc662bdd6dd05fa33018da8f4f946391ac23f1c35d7d5a753bc7dcca6d84501c.1776638951.631b5456b6b4a21a0b7a311675bc2259.e929d5f417584d4e65b8133984d8a236.783b9aaa95d4c271df314b5f5536f72d&signature=d71ae712c94d0706732f6e9148c14bf8fe5bdb8c2ac78dd09cca0e6311b5825a
+https://edge.cdnlivetv.ru/secure/api/v1/cl-tnt-sports/playlist.m3u8?token=21a47c435d73ab270c44565b3bf8f9ae797f569243ee31756b98f9fd0c506fcc.1776641844.b041481fb7d92103a5c8e2c6127caea3.a5c71daf8186fa1691da12aa53ed46f6.276a1c8b067f34f20f12a120b701e8b7&signature=6f000b45ba4f35ed601dbfb8258c3d9240538a25e1249da334beb765ce1f5893
 
-#EXTINF:-1 tvg-chno="6" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Detroit Pistons vs Orlando Magic (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Detroit Pistons vs Orlando Magic
+#EXTINF:-1 tvg-chno="4" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Detroit Pistons vs Orlando Magic (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Detroit Pistons vs Orlando Magic
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nba+league+pass+1&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nba-league-pass-1/playlist.m3u8?token=b7fadc71e5347e32fd2684a2c16a7840d66b2f1d562b071f73bc4c25f92ab811.1776638955.8ab256a585b8064af085cce0ee03e63f.31fb9a6500fc1300a12284cf89726652.f29b77e57bdb9c4f9d50c1d3e3d33e09&signature=54b7162e89bb10a8aa874ace972e788331a01650b6a1d7d09349d19fd5323e16
+https://edge.cdnlivetv.ru/secure/api/v1/us-nba-league-pass-1/playlist.m3u8?token=bf2016fd81aba062b7c05222037e6414cdc3eccdfd749e43fc3858e6f8477ba7.1776641847.b8e713dee9425763dc56e18c2cea5e38.5395c567f8664cf846b39fddf47d93f5.b304e576289a3b46f5de46d0fde5c984&signature=db5fc32e59a5ea376e4c07d9dcca7d956879583d0cd5d4c4d09f6a10ca64024a
 
-#EXTINF:-1 tvg-chno="7" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] Atlas vs Santos Laguna (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",Atlas vs Santos Laguna
+#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] Atlas vs Santos Laguna (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",Atlas vs Santos Laguna
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tudn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tudn/playlist.m3u8?token=a12be1a0dec083037cbd2289cb9d3f8302baba97d2d06612cf1b91e6a4702f73.1776638952.b0419252067b8b98e05849aa98796f9c.86a39859c5e0d17d268ee4f82b279124.2fed70b3754027da5552a72b6c8c77a5&signature=50e7c954102cafbb7045f5215c730070ecefdcc42599e80287ccc5c4da7b15ef
+https://edge.cdnlivetv.ru/secure/api/v1/us-tudn/playlist.m3u8?token=ca53dd0ab7978cd27469a387e12df7ddfafb1ff3daeb325155636454e91cc6b7.1776641845.9b2030f0e2d21f79f02f35b3ff204b3d.56c53679dc27f8f5c642d81db6edd07b.d7da7ec5ca02fad12e5c97f269132571&signature=74b50de344799b848852fe7141fe76642d6a080308b4ca774edbec9166f656b8
 
-#EXTINF:-1 tvg-chno="8" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Llaneros vs Junior (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Llaneros vs Junior
+#EXTINF:-1 tvg-chno="6" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Llaneros vs Junior (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Llaneros vs Junior
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=1a48ecb5a6600cb1a521d096e0f8f9558442be0deddc2c9f7d47762c8d4e1601.1776638952.47adda9b6770ab9a2ac533ba7bbd4f56.1917da6714b57618c444738915dddc5b.74912d182aa9d1b64572e848af1062b9&signature=5e7b354b61b7206f6fff83debf9681bf82ab8b68004010dac779a9dcb075e439
+https://edge.cdnlivetv.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=c0fb19995b97ae8db5983c7f1c50bd229064d8e5a5990e51aa675d6f6f6f9f6c.1776641845.da8b1c08b24e276e610e1459b25f7cdd.02e81c9569bc3fb6d3dd5257a1ffca78.71adf145bbab6f87882be77f059f13bb&signature=3a05e095fa92d0b908d68242ba2f27d21f9c3b93fddc6f6d2e24edf381a8bfd7
 
-#EXTINF:-1 tvg-chno="9" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Atlanta Braves vs Philadelphia Phillies (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Atlanta Braves vs Philadelphia Phillies
+#EXTINF:-1 tvg-chno="7" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Atlanta Braves vs Philadelphia Phillies (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Atlanta Braves vs Philadelphia Phillies
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nbc&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nbc/playlist.m3u8?token=264b6591e159ff6a19351028af42818b52955b3571198e0aeba111c0885d770f.1776638960.682ddef36cffb80ff4e5cd4e729d3529.ba7c97d18726ad8ea8c0a2993cf248ee.709178ee036b409d27ee2743eb33f4d1&signature=bfd26fdf3cce97731882787cdb5858501c9bf664f9a98e2f1aab8c78080c69e5
+https://edge.cdnlivetv.ru/secure/api/v1/us-nbc/playlist.m3u8?token=63920f63ab89d6cac065a66648cbf8a22d74c61e682c9a76d8e5867f51092adf.1776641851.d08fcfff4ca2778b3e23030d4393e5b9.faccbdadd2bde86fac7e38dd3750c9cb.fb30318aa8cabd4f81214d90d234c0a9&signature=a6ccf81f7be35d294afe894ac334d2abd4d9ccb8390992deab22c63cd1999e1a
 
-#EXTINF:-1 tvg-chno="10" tvg-id="Soccer.Dummy.us" tvg-name="[Primera División] Sarmiento vs Rosario Central (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera División",Sarmiento vs Rosario Central
+#EXTINF:-1 tvg-chno="8" tvg-id="Soccer.Dummy.us" tvg-name="[Primera División] Sarmiento vs Rosario Central (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera División",Sarmiento vs Rosario Central
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=viaplay+sports+2&code=gb&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/gb-viaplay-sports-2/playlist.m3u8?token=08db2128b4255e4a84813255abbc806722aff8450a87dcecdba5312fd6ff321b.1776638953.fefa85fa424b2d6503e23932d9bf43d8.2ac10264746468e97ace1c500e6cacb7.1210c547d5c86ad8e5ecc0c970fa54fa&signature=3e80225bf4db2176fea24520f60dcec2a6ac18bd58c282b612f268dfdb0a431f
+https://edge.cdnlivetv.ru/secure/api/v1/gb-viaplay-sports-2/playlist.m3u8?token=fef7db309fabc99d73ed4ae23370d1f7d4a692f7b21aca68034186ac12a880a2.1776641846.fed20fafc6545abf223179fae8cfe2f4.86f63ee42e7dea73ba8b29dc5c19e76e.ca07c405efe798af45f2af6f8d28bf2d&signature=e40bd5713269da77c30ce3d42b5a860cb6b4adf8c8f5c1f8c15fd6d9c136058e
 
-#EXTINF:-1 tvg-chno="11" tvg-id="Soccer.Dummy.us" tvg-name="[Primera División] Deportivo Riestra vs Talleres Córdoba (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera División",Deportivo Riestra vs Talleres Córdoba
+#EXTINF:-1 tvg-chno="9" tvg-id="Soccer.Dummy.us" tvg-name="[Primera División] Deportivo Riestra vs Talleres Córdoba (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera División",Deportivo Riestra vs Talleres Córdoba
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports&code=ar&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ar-tnt-sports/playlist.m3u8?token=a1d667ed29c06a541d6057f4aa8c196bc2aa5d141fd1d50f3ceddcd5f0bc31d3.1776638954.cd5942fbb745ff58e6672338e11a6a2f.c465c97baaf29fef87e83f775679a939.4af5764209e12427d9bfb55647ca54ff&signature=ed03df8d458b74d0a68e618135ec57c163367606462ebec4276ee6195ce43f9b
+https://edge.cdnlivetv.ru/secure/api/v1/ar-tnt-sports/playlist.m3u8?token=2cefa479baa8664b6da62ebb0c26255d345f376da1ca7ea9ce0a2b8942c24de3.1776641846.64a5d415ce3fa5ed27f4603de0dce0eb.b3d8dc57e921162d6dd79fcd3c426cd1.0fac22d00d58f09a969d7925d312fcda&signature=eb79e8d3b247d5534708bc6e83ddd6231c765091089d5e2b27a5996b439ee48e
 
-#EXTINF:-1 tvg-chno="12" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Buffalo Sabres vs Boston Bruins (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Buffalo Sabres vs Boston Bruins
+#EXTINF:-1 tvg-chno="10" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Buffalo Sabres vs Boston Bruins (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Buffalo Sabres vs Boston Bruins
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=cf681d316bac656749ab6abb0753c987fca96159b0a3c0a2d988cf9ce568e8d1.1776638958.0d0ed1012514f00a570831bf44788bec.8353648a06a1a42f21e4e68ef38f3e97.b1c8f9d5d533279c77543e1b0bffab0c&signature=3a9517bd9caa2fc1b2cd0f280e0ec33c2d84c0ed7b581ec655e2a0b69217acde
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=d860225ff0e10d9e34ca86b978667a3d05e03f49fc70eec48667991c25ae3734.1776641850.3f40b7fa92147487766c5f1b04fc2eb6.13c75c5f03b2d7b877a03881b2902431.56f0875813b63decdf320a3e368c777f&signature=bfa21a5a1c2f601b67e216e7bdddc8e6928a4aa859780c8e6b6d0a71c6f30985
 
-#EXTINF:-1 tvg-chno="13" tvg-id="Soccer.Dummy.us" tvg-name="[Primera Division] Audax Italiano vs Huachipato (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera Division",Audax Italiano vs Huachipato
+#EXTINF:-1 tvg-chno="11" tvg-id="Soccer.Dummy.us" tvg-name="[Primera Division] Audax Italiano vs Huachipato (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera Division",Audax Italiano vs Huachipato
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports&code=cl&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/cl-tnt-sports/playlist.m3u8?token=ac2241381f843994281f46a4a087f881c0800513dba8a3787ed434849a5aac78.1776638955.5289bf218eb3a57f457ca7920cab6b47.93d00625feb1e6efe47f20b7254efa6b.2e34a3e68a5b8f59983cc7123cd01f55&signature=8c70d98264abc144428cdf02fc376aed118a0e9a3d47607cabcedd5e7e3e65e1
+https://edge.cdnlivetv.ru/secure/api/v1/cl-tnt-sports/playlist.m3u8?token=e535594f0f7e73ce40601e488be731c2d6d0921797a2d925c87f57fe2824831e.1776641847.950275b5ff6c1040c548151ebd3715ec.5ce0dc4d8e8a0de906d76797b1571e0c.dcdd112c00ea1dc3bbe32b27229e9c1a&signature=7f31336688c7d95e65f301e46cdbf099f02a50d861f5e0de02792db09cc3021e
+
+#EXTINF:-1 tvg-chno="12" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Portland Trail Blazers vs San Antonio Spurs (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Portland Trail Blazers vs San Antonio Spurs
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nba+league+pass+1&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-nba-league-pass-1/playlist.m3u8?token=8bbced5b91f62dadbc1bc2767a87367e9a99d10393793bd0c587370896652b34.1776641848.4cce69f168eb648b42ebcec99235e99b.ceee54c9927295eaf032c2f95d1a5446.8a4ec5c4be1b30da54091f9b206ec601&signature=7fb3c9c9d45502d342b61e049eb9d63d7cdaf9ccbbd3b26c088d81beff92fdff
+
+#EXTINF:-1 tvg-chno="13" tvg-id="Soccer.Dummy.us" tvg-name="[Primera A] Millonarios vs América de Cali (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png" group-title="Primera A",Millonarios vs América de Cali
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=win+futbol&code=co&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/co-win-futbol/playlist.m3u8?token=25f00ceb6a062c834afbdde1b4e296dd6bd655904655cf943892637f3db5d257.1776641847.e8962b8102ce7cb5b44ce8f1182149bc.7ccab34c5fb69f62475c77cee66a16ff.fe4ecdf37980c4458b093446a5b41c58&signature=75bc70fea9d24a865a6b555ba02b55228ca63c284aa713d59ec39f8fccc491d6
 
