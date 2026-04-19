@@ -2,9 +2,10 @@ import asyncio
 from itertools import chain
 from functools import partial
 from typing import Any
-from urllib.parse import urljoin, quote
+from urllib.parse import urljoin, quote, urlparse
 from pathlib import Path
 import os
+import re
 
 from playwright.async_api import async_playwright, Browser
 
@@ -21,9 +22,6 @@ TAG = "STGATE"
 BASE_URL = os.environ.get("STGATE_BASE_URL")
 if not BASE_URL:
     raise RuntimeError("Missing STGATE_BASE_URL secret")
-
-REFERER = "https://instreams.click/"
-ORIGIN = "https://instreams.click/"
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) "
@@ -53,6 +51,37 @@ SPORT_ENDPOINTS = [
 urls: dict[str, dict[str, Any]] = {}
 
 # --------------------------------------------------
+def extract_stream_id(stream_url: str) -> str | None:
+    """Extract stream ID from the M3U8 URL"""
+    if not stream_url:
+        return None
+    
+    # Pattern to match stream ID from URL: /US/STREAM_ID/index.m3u8
+    patterns = [
+        r'/US/([^/]+)/index\.m3u8',
+        r'/([A-Z0-9]+)/index\.m3u8',
+        r'stream=([A-Z0-9]+)',
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, stream_url, re.IGNORECASE)
+        if match:
+            return match.group(1)
+    
+    return None
+
+
+def build_referer_from_stream(stream_url: str) -> str:
+    """Build the correct referer URL based on stream URL"""
+    stream_id = extract_stream_id(stream_url)
+    
+    if stream_id:
+        return f"https://instream.click/jwp-us.php?stream={stream_id}"
+    
+    # Fallback to default
+    return "https://instream.click/"
+
+
 def get_event(t1: str, t2: str) -> str:
     if t1 == "RED ZONE":
         return "NFL RedZone"
@@ -188,6 +217,9 @@ async def scrape(browser: Browser) -> None:
                 if not stream_url:
                     continue
 
+                # Build the correct referer from the stream URL
+                referer = build_referer_from_stream(stream_url)
+                
                 key = f"[{ev['sport']}] {ev['event']} ({TAG})"
                 tvg_id, logo = leagues.get_tvg_info(ev["sport"], ev["event"])
 
@@ -198,6 +230,7 @@ async def scrape(browser: Browser) -> None:
                     "timestamp": ev["timestamp"],
                     "id": tvg_id or "Live.Event.us",
                     "link": ev["link"],
+                    "referer": referer,  # Store the computed referer
                 }
 
     CACHE_FILE.write(cached_urls)
@@ -212,19 +245,28 @@ def build_playlists(data: dict[str, dict]):
     ch = 1
 
     for name, e in data.items():
+        stream_url = e["url"]
+        
+        # Get the referer from stored value or compute it
+        referer = e.get("referer")
+        if not referer:
+            referer = build_referer_from_stream(stream_url)
+        
         vlc.extend([
             f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
             f'tvg-name="{name}" tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
-            f"#EXTVLCOPT:http-referrer={REFERER}",
-            f"#EXTVLCOPT:http-origin={ORIGIN}",
+            f"#EXTVLCOPT:http-referrer={referer}",
+            f"#EXTVLCOPT:http-origin={referer}",
             f"#EXTVLCOPT:http-user-agent={USER_AGENT}",
-            e["url"],
+            stream_url,
+            "",  # Empty line for separation
         ])
 
         tm.extend([
             f'#EXTINF:-1 tvg-chno="{ch}" tvg-id="{e["id"]}" '
             f'tvg-name="{name}" tvg-logo="{e["logo"]}" group-title="Live Events",{name}',
-            f'{e["url"]}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}',
+            f'{stream_url}|referer={referer}|origin={referer}|user-agent={UA_ENC}',
+            "",  # Empty line for separation
         ])
 
         ch += 1
@@ -232,7 +274,9 @@ def build_playlists(data: dict[str, dict]):
     OUT_VLC.write_text("\n".join(vlc), encoding="utf-8")
     OUT_TIVI.write_text("\n".join(tm), encoding="utf-8")
 
-    log.info("Playlists written successfully")
+    log.info(f"Playlists written successfully with {ch-1} channels")
+    log.info(f"  - {OUT_VLC}")
+    log.info(f"  - {OUT_TIVI}")
 
 # --------------------------------------------------
 async def main():
