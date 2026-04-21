@@ -8,9 +8,9 @@ from bs4 import BeautifulSoup
 import html
 import sys
 
-BASE_URL = "https://roxiestreams.info/"
+BASE_URL = "https://roxiestreams.su"
 CATEGORIES = ["", "soccer", "mlb", "nba", "nfl", "nhl", "fighting", "motorsports", "motogp",
-              "ufc", "ppv", "wwe", "f1", "f1-streams", "nascar"]
+              "ufc", "ppv", "wwe", "f1", "nascar"]
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"
 REFERER = BASE_URL
