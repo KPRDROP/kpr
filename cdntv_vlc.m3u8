@@ -1,19 +1,7 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Colorado Avalanche vs Los Angeles Kings (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Colorado Avalanche vs Los Angeles Kings
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Super League] Atromitos vs Panserraikos (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Super League",Atromitos vs Panserraikos
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports+7&code=gb&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=2e524fe1347cc0ce6382cbc968d6c00ebdd63bf0ec909afae918fa576e59c0c5.1776829657.064285b9a096194d137bf4b379d6e4f1.ffa341051409c11d5aab3ae66a05de40.537003ea5fcee6e6e084b1e770350910&signature=606c3abc4a078fe8db2eb09b9328d52fea451622c0f1fd5bda06250689be739f
-
-#EXTINF:-1 tvg-chno="2" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Houston Rockets vs Los Angeles Lakers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Houston Rockets vs Los Angeles Lakers
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+mena+1&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-mena-1/playlist.m3u8?token=84983fdcebca85d93934a9003d64f25d62ea14adb02bb62dee6b2e680ddb8310.1776829656.5f593c79182fbfb0c055d9bbe7c578bf.c44490b2b9b63e89de0234c03164560f.583e1421d7f489f817ad77b4a7d084d4&signature=f7df39c3088b73d6ed6fa74b2517c0d818925d5e28689857da8715dfc637e6ef
-
-#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] Puebla vs Monterrey (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",Puebla vs Monterrey
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tudn&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tudn/playlist.m3u8?token=f000c7e0a067e993269395e8abce05efbf6ca6dd232227abd7659b0ade1f2b71.1776829655.0dcc34d8c9197cdcc8bf2b4dfd366c6b.44c705541e1b095c743a3e8860dfd560.cc1b67c22846895ef33e5ec60e78cdb1&signature=aafa0da8b7f499e56dd8a279bf23c2688a6bf824653d73775028fd10f92c620f
+https://edge.cdnlivetv.ru/secure/api/v1/gb-tnt-sports-7/playlist.m3u8?token=060ab83fda741f407ff21449c5778438456c649596d2028cf2433f3f7f2d7757.1776859132.0b2e073e48543f2b736f00f80f0d5a2c.b746722dff365c6e668ee4928f4fd161.5a4fdb229b0a5e46adc2921373f5453c&signature=b68121d8b77d991003bcdb6ce8d1e74e72cc91961a1c9c0c2a2fdc78ac5e376e
 
