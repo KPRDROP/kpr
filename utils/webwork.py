@@ -38,12 +38,16 @@ class Network:
     PW_S = asyncio.Semaphore(3)
 
     def __init__(self) -> None:
-        self.client = httpx.AsyncClient(
-            timeout=httpx.Timeout(5.0),
-            follow_redirects=True,
-            headers={"User-Agent": Network.UA},
-            http2=True,
-        )
+        client_params = {
+            "timeout": httpx.Timeout(5.0),
+            "follow_redirects": True,
+            "headers": {"User-Agent": Network.UA},
+            "http2": True,
+        }
+
+        self.client = httpx.AsyncClient(**client_params)
+
+        self.unvd_client = httpx.AsyncClient(**client_params, verify=False)
 
     async def request(
         self,
@@ -57,7 +61,8 @@ class Network:
         try:
             r = await self.client.get(url, **kwargs)
 
-            r.raise_for_status()
+            if r.status_code >= 400:
+                r.raise_for_status()
 
             return r
         except (httpx.HTTPError, httpx.TimeoutException) as e:
@@ -216,9 +221,14 @@ class Network:
         got_one: asyncio.Event,
     ) -> None:
 
-        invalids = ["amazonaws", "knitcdn", "jwpltx"]
-
-        escaped = [re.escape(i) for i in invalids]
+        escaped = [
+            re.escape(i)
+            for i in {
+                "amazonaws",
+                "knitcdn",
+                "jwpltx",
+            }
+        ]
 
         pattern = re.compile(rf"^(?!.*({'|'.join(escaped)})).*\.m3u8", re.I)
 
@@ -253,12 +263,13 @@ class Network:
             resp = await page.goto(
                 url,
                 wait_until="domcontentloaded",
-                timeout=30000,
+                timeout=6_000,
             )
 
-            if resp.status != 200:
-                log.warning(f"URL {url_num}) Status Code: {resp.status}")
-
+            if not resp or resp.status != 200:
+                log.warning(
+                    f"URL {url_num}) Status Code: {resp.status if resp else 'None'}"
+                )
                 return
 
             wait_task = asyncio.create_task(got_one.wait())
@@ -267,7 +278,6 @@ class Network:
                 await asyncio.wait_for(wait_task, timeout=timeout)
             except asyncio.TimeoutError:
                 log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
-
                 return
 
             finally:
@@ -281,16 +291,10 @@ class Network:
 
             if captured:
                 log.info(f"URL {url_num}) Captured M3U8")
-
                 return captured[0]
-
-            log.warning(f"URL {url_num}) No M3U8 captured after waiting.")
-
-            return
 
         except Exception as e:
             log.warning(f"URL {url_num}) {e}")
-
             return
 
         finally:
