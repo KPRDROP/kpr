@@ -1,13 +1,7 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Los Angeles Kings vs Colorado Avalanche (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Los Angeles Kings vs Colorado Avalanche
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Liga I] Csikszereda vs Hermannstadt (CDNTV)" tvg-logo="https://i.gyazo.com/3fd4b38d5263ca391e45850eb58d11e6.png" group-title="Liga I",Csikszereda vs Hermannstadt
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=arena+sport+3&code=hr&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tnt/playlist.m3u8?token=382d6f3a2f8a0d98e2c67ac8a349d658f173da4912bf3c5531c080cfc9244cd3.1777003094.4560c3401b65954ad835adfabfeb3caf.8be373fb6493d13f6d732784ff2a59d9.3074fce9fbf270ce9b0a9cb62a16694b&signature=6a2ecec19ec536b20f5be7701ebc6cb529154b72e443042d8f6b5b5cae452a87
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[College Volleyball] UC Irvine vs CSU Northridge (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Volleyball",UC Irvine vs CSU Northridge
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=italia+1&code=it&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/it-italia-1/playlist.m3u8?token=96162acb3a2da4f129e008f9f1d0ebeb654c37929c8ec671da0b198c4f12ef0b.1777003095.a99858adac51bd5b432a14898b07dc84.4ef2316ff06d765130c4ede4ddc84488.bbfff61e7870af35ca7a9a9bf85e0e23&signature=b8d83032947a3f59e5f97e8b861490555d30e283ea9e7bc7679e5cb0adf9cc57
+https://edge.cdnlivetv.ru/secure/api/v1/hr-arena-sport-3/playlist.m3u8?token=9364afcbfda1c1b161fde09dad414d7f7acdd41719093b60cbf972b1b5cc3e67.1777037131.e683b4d83951b3fd2fd4e8b4c0a0c941.4f725554e7d4f43cb7497b5e9fdef223.8a5ea9faec9f1549919b0cd822dc6d37&signature=72a7c7b873dfa7d2eb6edde2cabfa47a5d4a9c0df2c27da40de17cf27990ef18
 
