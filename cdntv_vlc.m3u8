@@ -1,37 +1,25 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Anaheim Ducks vs Edmonton Oilers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Anaheim Ducks vs Edmonton Oilers
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Segunda liga] Portimonense vs Leixões (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/107.png" group-title="Segunda liga",Portimonense vs Leixões
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+tv+1&code=pt&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tnt/playlist.m3u8?token=882ed7ecd6ecbb637c3bdefaac8ff3ecc1dfba9a9854d6083ab19c3435922ccb.1777088433.124fa0bc2b0f36be83b12145f2feb550.95414df63d391ba5e1d40602404ce0eb.cb9a79fef5a258f4e8f9440623acd275&signature=6bbb602532bf698bae3a2e6ef1c3a13c7cc410845a1432ba0c6ff33ca13bc2ff
+https://edge.cdnlivetv.ru/secure/api/v1/pt-sport-tv-1/playlist.m3u8?token=c9aa85701af36eb822680495ad4da7566fe797991a0ad6d946a03d11f52528e6.1777105908.dfc534cc1ac01983d051d2e496dd0fae.91ccb47e1d10f098fc6cdc2e11155559.a174ca975dc21b5f0facf088e9aaeef9&signature=93fe10c1d77aa37f7cccfb815a5ea884f995aaee20921734bea2d1ac4d747256
 
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[College Softball] Washington vs UCLA (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Softball",Washington vs UCLA
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=btn&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Parva Liga] CSKA 1948 vs Ludogorets (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Parva Liga",CSKA 1948 vs Ludogorets
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=diema+sport+1&code=bg&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-btn/playlist.m3u8?token=aa03f70c9c27573d6775bac158545ad90708e000f7acfe7f8cf923e6c063ec58.1777088434.a30831b5282ee29c367f3b7fb472002b.6f09a845019d85c16ea4678c32fa9e2a.d2f88128a6ab1ca8f6e31dc1a1b8d79a&signature=363888fe194fdda93b9bcf96c88a7d4db49cbfb546b733cec299f5a32d27e033
+https://edge.cdnlivetv.ru/secure/api/v1/bg-diema-sport-1/playlist.m3u8?token=30da81867793a8531acca4eafb502febff264b7102b177c00a36cac7708d0d45.1777105909.62a8c05863f01010411757e00a9a9d37.0e6220e9542a12a7903e63a48683c79e.a8dc5ec7ee93511735705985fd268df0&signature=5f0897ce0288aa4d1cc20bf73c33d72dacf98aeb80c4db8b43bdfbf7b07acf33
 
-#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Chicago Cubs vs Los Angeles Dodgers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Chicago Cubs vs Los Angeles Dodgers
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=los+angeles+dodgers&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Serie B] Spezia vs Catanzaro (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/99.png" group-title="Serie B",Spezia vs Catanzaro
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=viasat+vinter&code=se&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-los-angeles-dodgers/playlist.m3u8?token=7efd271af8a0c04d820f8ac679e2cca5ed4822fed1ce0b2a9b461d44db542fd1.1777088434.c0771ac7abf566ca62b2f348be2a8c4f.b451db38a588c1baf964ea24e75cc026.5835908600f7dc43b43ff54b5a0b3ad4&signature=1181d64b0d45860dc3512c94ce13ea35f616599b0f074f94ab3757653ca45014
+https://edge.cdnlivetv.ru/secure/api/v1/us-nhl-league-pass-9/playlist.m3u8?token=140b8b2c8d35b15cc0a644d233b4b40e9d9ea56080328811a372dc886c612675.1777105910.65cea6944a52c7c85af72a0eb6ea0232.b5c5ec1a9342bdcc4dbce7d70f67424b.78d16eca0c388254cf45b803750a2228&signature=d7c9c511718f5fc033e9f1db0de3945867461cbc2e2f65a4c0e8fc0a8883dc53
 
-#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Miami Marlins vs San Francisco Giants (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Miami Marlins vs San Francisco Giants
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=san+francisco+giants&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[1. Lig] İstanbulspor vs Van BB (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="1. Lig",İstanbulspor vs Van BB
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=trt+spor&code=tr&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-san-francisco-giants/playlist.m3u8?token=5783f933f7df2521f35c414a60a9208439d4e65e8ee87a684e0f444f842664af.1777088435.94f573badb5ab04007dc6e28684633f1.e7f0300119912c2fd7d7a56fed392d1b.94e2af1ec1cf6d827e3f4a67faf61b59&signature=0e177085781717809ff0a8a55c0e053243db76926659c701b2b2ed89f3b93bf9
-
-#EXTINF:-1 tvg-chno="5" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] San Antonio Spurs vs Portland Trail Blazers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",San Antonio Spurs vs Portland Trail Blazers
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tsn+4&code=ca&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-tsn-4/playlist.m3u8?token=8e295cf2d4ae5e547114d57daa8538bb6376d66b67bffefcf46f18b9660dd76a.1777088431.658a43304ef4a87644aad63895caa249.0aa099d63af1736ddcf4701c3d1df232.f99f6e7b42dd3dbd77038ae8ccb3cdc9&signature=28ce4704dc339dcbaa9f47231026c12c2206698eb275c9ea9fbc495772dc50e9
-
-#EXTINF:-1 tvg-chno="6" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] Querétaro vs Puebla (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",Querétaro vs Puebla
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tudn&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tudn/playlist.m3u8?token=38c7836c53481106b03a21e379d2652ea35e8f30a44278c6fe88819c12eaa3e0.1777088430.6d28fc0144a7a6b6bd2cac1920e83270.faf8e2be779416a9a8af7d6e1989e966.39623c849a4a0f5bc2ba5984c020e958&signature=91ba30ffaa328596f4c6a52b62c432a0d2d7cbb1c691bcaa81e4298a54d0726c
+https://edge.cdnlivetv.ru/secure/api/v1/tr-trt-spor/playlist.m3u8?token=b6908ac0a16cfbc1960f414b0dee8ba1844956dfd1869a32c1077eb0064164c1.1777105910.897eaae02b51a7725fbcffcdcfce223c.3e01b7c567beb0892d7507056ad3c5d3.efb91df7993de15721d3c4ce235f80bf&signature=5eab252e19282c32df9511c0ab13139b8144583e96a76bf0973545f3806960a3
 
