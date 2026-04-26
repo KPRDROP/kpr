@@ -1,13 +1,13 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] Atlas vs América (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",Atlas vs América
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cbs+sports+network&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[FNL] Ural vs Chelyabinsk (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="FNL",Ural vs Chelyabinsk
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=match+premier&code=ru&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-cbs-sports-network/playlist.m3u8?token=e32b0b56d69d404df27fb7e1dbb233ef744af42726c13ba159d064d185acea2b.1777176158.c03b89e38555c0e72228c4916ee3be48.cb30bc43efbc24bffdd49249625c64fc.03359294341c415772c356ddf2460fd3&signature=fccae1208004f8393db70d06f5a9d4669d328bbecb8da092a9b18bebd04b532c
+https://edge.cdnlivetv.ru/secure/api/v1/ru-match-premier/playlist.m3u8?token=c748f079ffe65f36b0e1e9e0c5c60894abc450d064f1cc391cb4cefeb36607c8.1777190541.0c05ca63b2d37c879521357d671eae16.1fc3098b53082324ca3abd82b89e59d8.e1f62f672832c9444e012d8ed5dafbf4&signature=adb4b1c6d4ce95d4962348e729b9c116dcfcd7a564f709a9fded0ceb0eccee0a
 
-#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Liga MX] Atlético San Luis vs Juárez (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png" group-title="Liga MX",Atlético San Luis vs Juárez
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nbc&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Segunda liga] Paços de Ferreira vs Lusitania FC Lourosa (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/107.png" group-title="Segunda liga",Paços de Ferreira vs Lusitania FC Lourosa
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+tv+1&code=pt&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nbc/playlist.m3u8?token=447e41243b2fa891ba45b43ca678858c8817c699f20c68c4587d6c58a0ad76a3.1777176159.879e87991895e2841e3210efb8ea5706.26d12f82fd2cfa2e5fd655ab6314e47c.57580f7257109744ea113deac9fdb027&signature=a680444c2c11480ce2cab1c29041ca5bf99c7f7a70e4ffbbe19fc97c00035775
+https://edge.cdnlivetv.ru/secure/api/v1/pt-sport-tv-1/playlist.m3u8?token=3ce24fefbdc5888963c7520d136e6c74b2487d6265854051f8fe7c130136b296.1777190542.167c1702f50d90d47af689783dbad7b2.7b01e5052d3481220c87eb56038f4508.792d4cf0dc2e4d595f58992d141f9a10&signature=2b365c405c93b6c89ca4f64f973e5825e5172d846e21c08d5a25f33593304b25
 
