@@ -61,8 +61,8 @@ def build_playlist(data: dict) -> str:
 
         lines.append(
             f'{e["url"]}'
-            f'|referer=https://streamcenter.xyz/'
-            f'|origin=https://streamcenter.xyz'
+            f'|referer=https://streams.center/'
+            f'|origin=https://streams.center'
             f'|user-agent={UA_ENC}'
         )
         ch += 1
