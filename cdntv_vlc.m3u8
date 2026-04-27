@@ -1,49 +1,43 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Liga I] CSU Craiova vs SCM Argeşul Piteşti (CDNTV)" tvg-logo="https://i.gyazo.com/3fd4b38d5263ca391e45850eb58d11e6.png" group-title="Liga I",CSU Craiova vs SCM Argeşul Piteşti
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=digi+sport+1&code=ro&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ro-digi-sport-1/playlist.m3u8?token=f61fd86d003850bf4ae0803ab9503b43411e75132d790afd555e3147add50449.1777317823.72c360ef6365bdbb3afea9a1f11dc2dd.7d5919e26920a57fbaedfd0e50f796eb.49446fc55a5c9e0d71bcec7468e8d358&signature=7f4587dc2caba854e63d559c4f966244d22bcd95ca7f047df2ae7daa4c9c3abc
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[NB II] Soroksár SC vs Honvéd (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="NB II",Soroksár SC vs Honvéd
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=m4+sports&code=hu&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/hu-m4-sports/playlist.m3u8?token=197a62970fc9e600dbbfb63ed636886482163a89aac856e724efc25b3ad951e3.1777317824.6ee89e90cbe253daae6f950a95abd92e.d1682a69d625d977c38b50e5f76d1b1f.f8638d41c0876808a4365e262b20563e&signature=f3075998eca956a7bc7abffb2bc8dd9d4eeda73e360e2a0f3c1f162a984f5def
-
-#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Ligue 2] Dunkerque vs Boulogne-sur-mer (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/96.png" group-title="Ligue 2",Dunkerque vs Boulogne-sur-mer
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+1&code=fr&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/fr-bein-sports-1/playlist.m3u8?token=1db89f11a8af9ace981a9f09049c66a53f22ee3084b7f5306ca6abfc40e28ef1.1777317825.49d38ffa9c869e73a831e635fc383565.8976efe65ac1a47b0896ccbc0f4bf742.2c73255e4a62e20b0ba4010988958234&signature=633a19d029b267f9c7a316c71c189c144f6ad953326043fe84c335a4f26b490b
-
-#EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[Segunda Division] Las Palmas vs Cádiz (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/107.png" group-title="Segunda Division",Las Palmas vs Cádiz
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+2&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-2/playlist.m3u8?token=e7dd0c361f66a18b104bb7822df99abdeabf02443dcac64520e53f91752153be.1777317826.f821d3e0cce7b06b9831998688f3406a.cc908a6d08ca5dda9185878e246d6d88.d16fd7a0489903d636e0366022b7386d&signature=e812d721c2946310c65e39314902b4482ad7a27aea3842db86c96870447c51e3
-
-#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[Serie A] Udinese vs Lazio (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png" group-title="Serie A",Udinese vs Lazio
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Serie A] Udinese vs Lazio (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png" group-title="Serie A",Udinese vs Lazio
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=astro+football&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-astro-football/playlist.m3u8?token=08b9545a8a0a1974248b12c82b518b5558ee7340d521b40cd7f791c3c801dc4c.1777317826.0b81b433ada9b7dfcc7e5933588e47e9.61b0061c6e98d0026028c16d5e2d015a.dfa922443b05b1e49d545b789315eb84&signature=d8885a4b7777dfa4fff2968b6539cb9752ad3aa4741e7d1d9a93b7456672526f
+https://edge.cdnlivetv.ru/secure/api/v1/us-astro-football/playlist.m3u8?token=844461c42f8aa28c905d20d0567033199424a392148fba9b914a2dcf54444c50.1777322416.7ddbdc10f2e419cb72b7364c71dec042.7766f40d6b114a6eff2102dc3096e590.91d0663492aaa7b8640668ec29874208&signature=1fb66e09e39538c2184e8fd2f0220391d36cb74774b5c7aa8b1d9d9c21372633
 
-#EXTINF:-1 tvg-chno="6" tvg-id="Soccer.Dummy.us" tvg-name="[Premier League] Brentford vs Manchester United (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/23.png" group-title="Premier League",Brentford vs Manchester United
+#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Premier League] Brentford vs Manchester United (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/23.png" group-title="Premier League",Brentford vs Manchester United
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=usa+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-usa-network/playlist.m3u8?token=2a92376e3ce4c5417fc4960558b84f20265f66c590a0ab89efdeeb0f17309873.1777317827.027027ab6d0ab746d767c45e3c12dd79.949e522a3545f946cf3dc06321275841.a0080e55794a09c5059c6261f0797cad&signature=15c0a37df2ee5fc0ffc8dc634d5809cc0f8c6842c06564b24d7ed448c89074a6
+https://edge.cdnlivetv.ru/secure/api/v1/us-usa-network/playlist.m3u8?token=3b85e76055a6b865a859d963e7e7c9579fa100f503e4bb1a205b5510d0355637.1777322417.6759bb802ff72dc243df3111c747ac4f.abaa082a5fe031a55d3beb8b69d294b1.eb02e91892c9e682ee882661063cab65&signature=f51e69cbc12aad23e2bbf43b41f4af314aae1bec9fea713c9c9bf70020fb6e8a
 
-#EXTINF:-1 tvg-chno="7" tvg-id="Soccer.Dummy.us" tvg-name="[La Liga] Levante vs Espanyol (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="La Liga",Levante vs Espanyol
+#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[La Liga] Levante vs Espanyol (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="La Liga",Levante vs Espanyol
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+1&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-1/playlist.m3u8?token=1387cc890da68ff35bf5b7928fbe3c82c2b9bdafb185e0d9ef21122f6e1f36a6.1777317828.78bc29d52cc07b18cf9faa1195c8cdc2.ff189edd66584104da6ee7f949061355.86e086bc0e5c9e72e7657b6ea3db3121&signature=5e8617d37125945749b1e41578fcb103721c03af1a9b35c34fd30df3dd6c5666
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-1/playlist.m3u8?token=11860dc3ea6ee0954a8d913498bb2201f0e1cb7783e581edaa2096d12670cab7.1777322418.52f3ee437d09172dfed2bc9010779633.0c16b420d958d5e5f6adae671680ac0b.af4c8342630585c52b6dfd1574bb51b8&signature=faae0a32d1693f49064c7ebfd692dba6fdf2f3b4f18cf584ddbaa90d4ba0682e
 
-#EXTINF:-1 tvg-chno="8" tvg-id="Soccer.Dummy.us" tvg-name="[Primeira Liga] Casa Pia vs Gil Vicente (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/14.png" group-title="Primeira Liga",Casa Pia vs Gil Vicente
+#EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[Primeira Liga] Casa Pia vs Gil Vicente (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/14.png" group-title="Primeira Liga",Casa Pia vs Gil Vicente
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+tv+1&code=pt&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/pt-sport-tv-1/playlist.m3u8?token=24ef9c27815401664e67e91248a5dc3590f2556ee6d26acb61058d84071038bf.1777317829.7d0502be350dc2d5f8694e396cbf8d14.4a8a3f36a6db3400d5c2ed770e22bf19.0bf7763a4a1cfef3830775e245cde2a0&signature=84fad620ce679caf6ac7e914b7751eaa8f6c4d9864379bb6aae157c164f4142b
+https://edge.cdnlivetv.ru/secure/api/v1/pt-sport-tv-1/playlist.m3u8?token=4a4e8fed808003de6ee266e9930ceabba41969fbe59d34537bffb6ecfc15a2b1.1777322418.86b1118361ff7a54902afbb10875bc0d.0c02d45ee7ae0381dfc09aa224e46d40.1224e292167cd5daffeba0d0e2ad8f3b&signature=f4d0ffb10c3e1f955abffeb62edf161e0f6c5849695d9598ba5dd105d224c1af
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[Primera División] Unión Santa Fe vs Vélez Sarsfield (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera División",Unión Santa Fe vs Vélez Sarsfield
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports&code=ar&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/ar-tnt-sports/playlist.m3u8?token=584cda0593aca6d9a8dd7d5a1be07efa3130c936e4b553eaac7644b80b0c10f9.1777322419.2de17c1f6ead684cc15abf406d140e4c.1378bb560d48ac45d5545875a381d3f9.42ffd0343eb1a509fcc29b9605ddc5ba&signature=bb9085114a330200e7ec4dd564da750b15e99eec8d9e049b34599411a045f3f4
+
+#EXTINF:-1 tvg-chno="6" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Tampa Bay Rays vs Cleveland Guardians (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Tampa Bay Rays vs Cleveland Guardians
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports+1&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-sports-1/playlist.m3u8?token=5047cc4a649e6f6fd8b7debd67b8ba8e6bbc55fa3982910abc5cb838cdf888f5.1777322420.4d902ff7888adf054d233932bff104ea.6e7fa117428e5b11869685c41b708d0d.5f16ad7efd3b130c8ef6da27e86e991d&signature=c09cf68ca02d1b530f7763e129d89ae9c6602693f65797defb7765a3c66fc04e
+
+#EXTINF:-1 tvg-chno="7" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] St. Louis Cardinals vs Pittsburgh Pirates (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",St. Louis Cardinals vs Pittsburgh Pirates
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+pittsburgh&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-sportsnet-pittsburgh/playlist.m3u8?token=5256ff70eff94f3864728a7965e0028a5b985025c57a8ab3135402c6ea886645.1777322421.9d9f926fc87d6ac55c775120d90d7ad5.6941c54952653819374d7d7a616e8ae3.f7ca50995693a5eea9f70c7559b0a208&signature=cf0ff4b511168c234982fb0bfff581658a127f3e55a62dde138d40b13e1c87f8
 
