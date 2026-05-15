@@ -1,889 +1,895 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="acc.network.us" tvg-name="[US] ACC Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/acc-network.png" group-title="US",ACC Network
+#EXTINF:-1 tvg-chno="1" tvg-id="abc.us" tvg-name="[US] ABC (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/abc.png" group-title="US",ABC
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=abc&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-abc/playlist.m3u8?token=1e37999f1bfb76efe699d6b8e0596d6f70e0e644a7219d7593a18390504d253b.1778830933.f6beaafdedb8122018fe97e193e6e745.63e91f96b63db8eb848ca95d1d191c32.916d6883ee90801bc777131f17bb0224&signature=7243567a3799b69ee622d8a87df9a40f69e387be30ac225f6679c40484283b40
+
+#EXTINF:-1 tvg-chno="2" tvg-id="acc.network.us" tvg-name="[US] ACC Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/acc-network.png" group-title="US",ACC Network
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=acc+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-acc-network/playlist.m3u8?token=9a6b07a60a711497cd29fc14ad221777f9f2c1d211960ada07ced8c35e36f0cc.1778818407.ab1d4c68219f54898cf8a4932a9bb523.55a9647f010341ed49b46bc07c76e4c8.d4a85eb2e2677735608340c916503f21&signature=679c63a24b4f91d64c8b95b9d079dac24e2a56c21c426f49d13fd903f1061c2a
+https://edge.cdnlivetv.ru/secure/api/v1/us-acc-network/playlist.m3u8?token=87a7055067409530b655f3719458a07c4e4ea82043e26cbb5bd7bac0d80112a7.1778830934.fe475bf2b38cdd891fc76b4951cae989.4a8e4f993ca4ac37fabf525e73347328.b30aa4c113d4867acc2e657f55790ddd&signature=1b446dd1ff7c4ca26a1d2daf2497ef31493c4c49f350fff17b58a2aa29b32e8f
 
-#EXTINF:-1 tvg-chno="2" tvg-id="arizona.diamondbacks.us" tvg-name="[US] Arizona Diamondbacks (CDNTV)" tvg-logo="None" group-title="US",Arizona Diamondbacks
+#EXTINF:-1 tvg-chno="3" tvg-id="arizona.diamondbacks.us" tvg-name="[US] Arizona Diamondbacks (CDNTV)" tvg-logo="None" group-title="US",Arizona Diamondbacks
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=arizona+diamondbacks&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-arizona-diamondbacks/playlist.m3u8?token=e82e0e2d57fe29e0a84bb517466b678f5dcbcba667587d9d8e9deaf3d6e14ea0.1778818408.6eed7cd589f84a7828650930950347a0.105b84bbab9e9e7262d99fa1134e8c7b.9085fa5f2308e294f269641c30207ff8&signature=66ad6554337cc4827d1f7b3a3cb2149f39266f8d7d04d4e2b83b8900df3d2134
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-arizona-diamondbacks/playlist.m3u8?token=7289e4a0c9d247847401bb67892ab4d31b73896812c3b23f0743d6df02a9798a.1778830935.9e1c4bfe62962714dccc15ed105c77ba.f0c86c90bf921f8eb2778c65f0787f76.e9227343ec7a5e2651472c01b4be12c8&signature=a1ec96b48eee8248534ede5b97cb245805e45bae0ed90f1d600bb182a0a7bdec
 
-#EXTINF:-1 tvg-chno="3" tvg-id="astro.cricket.us" tvg-name="[US] Astro Cricket (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/astro-cricket.webp" group-title="US",Astro Cricket
+#EXTINF:-1 tvg-chno="4" tvg-id="astro.cricket.us" tvg-name="[US] Astro Cricket (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/astro-cricket.webp" group-title="US",Astro Cricket
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=astro+cricket&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-astro-cricket/playlist.m3u8?token=fab5655019f17f60ec14a4893ed6bd454f43694adf17dd0e6ded5a403f0de18e.1778818408.f77dc92f577cae1f50d9ccee82d2dc16.75a105c33f12a0d2c535666953135d7b.819ce410e1cb892abf0cf87e099aac50&signature=faa1214f7801a41aa18b73302c331b85694637987b35c4c52ce0c9ab267c98aa
+https://edge.cdnlivetv.ru/secure/api/v1/us-astro-cricket/playlist.m3u8?token=77382df6c9adb7e5ee7c355f3ae0216893a33bb0f6113171eabc3e45d238491e.1778830936.305a4612897099e79a96776a1200352a.33ea8306f92ac23f79c48dd02ee8824a.3a03f30c8256a93c5db8d4891451bdf0&signature=a164b4ceb472c5a061fc052c496832d32d2015b7f54a76d34350640416ff4c8b
 
-#EXTINF:-1 tvg-chno="4" tvg-id="astro.football.us" tvg-name="[US] Astro Football (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/astro-football.webp" group-title="US",Astro Football
+#EXTINF:-1 tvg-chno="5" tvg-id="astro.football.us" tvg-name="[US] Astro Football (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/astro-football.webp" group-title="US",Astro Football
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=astro+football&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-astro-football/playlist.m3u8?token=3f4ad8aa5c1c7570f4e3a6d16775507355c05679e05b3c7afeb9fe237b038104.1778818409.eca393afa7cb3fada438cc2825664796.778cca36b68e065830118cd926af9629.288b91389b3a256b61f229eabae4d11d&signature=3563433933251a30b60116ef8862f0385f0d71694ff30d13e738aafb7ca98d6b
+https://edge.cdnlivetv.ru/secure/api/v1/us-astro-football/playlist.m3u8?token=b17b25c9c6a014a92338e1cd6f13728cf3594b09c4f0e4cd79ad512fc9a9ed5a.1778830936.c8df4efea6d716706ba6435019edf97e.6584ad7227c3048c311625ad8b73b2a4.fcb2cb9ebabe12ef4a1e561cca680f0e&signature=a388765981442f79e8d5523afabaf804afe9ee178e4957c33c9145e0e6f4dae4
 
-#EXTINF:-1 tvg-chno="5" tvg-id="astro.grandstand.us" tvg-name="[US] Astro Grandstand (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/astro-grandstand.webp" group-title="US",Astro Grandstand
+#EXTINF:-1 tvg-chno="6" tvg-id="astro.grandstand.us" tvg-name="[US] Astro Grandstand (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/astro-grandstand.webp" group-title="US",Astro Grandstand
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=astro+grandstand&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-astro-grandstand/playlist.m3u8?token=ab60b8e9284521f77a8fedf530adca60aec3e0c643e30df87a89d554b0baf852.1778818409.209c6780c881f98985e4b28e4a7a40a7.bafafdde414acdeacea4fb347a427011.f4490f797c83810e34a3ad57aad691c7&signature=39a55ed33dc8902300bf0387cfa0aed7f391079ba2f2e4e9e5f41ea3abf5d117
+https://edge.cdnlivetv.ru/secure/api/v1/us-astro-grandstand/playlist.m3u8?token=154d863973ea1f2041b339abcadd401012c44da085caf3b3e9809c0b9a3397f3.1778830937.e704967a6a8e1f5c5e95c21f488ac629.60676834808a7964accb1d7da8cc71a4.d4a02cd7aab8f20f229a547c716ecd58&signature=8ccd8f857fca37dbe1fbca6449b7540004f1907c527bd066c64f827950471780
 
-#EXTINF:-1 tvg-chno="6" tvg-id="astro.premier.league.us" tvg-name="[US] Astro Premier League (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/astro-premier-league.webp" group-title="US",Astro Premier League
+#EXTINF:-1 tvg-chno="7" tvg-id="astro.premier.league.us" tvg-name="[US] Astro Premier League (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/astro-premier-league.webp" group-title="US",Astro Premier League
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=astro+premier+league&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-astro-premier-league/playlist.m3u8?token=71b1be5e6394c894936996de66e14aed5b32c2a9ed177648d37478f8b93518db.1778818410.5ac721fc7640f17789f9f421f5c86f75.d41abad07c26e2ec2e3ff8362ef1c88c.7dabf6dd9a824988acc2cea30bf0d5b0&signature=3c342c552670e6dcf1be93b3002a7fa555120cd20c2422ae8f00ae6a8ba9db18
+https://edge.cdnlivetv.ru/secure/api/v1/us-astro-premier-league/playlist.m3u8?token=6a5cb84f0250f5f353f646fff93e795d67cef096bef48cd9cdc338be53c3acc0.1778830938.e654b5f35749d9fde88903de0cab81e7.050b6526f290f845204b62d7cd971fc9.1f3cc6a0b44a6cab2d8318e4ba8afdb8&signature=a4e247a1ba7fb74f5a28c12f2dc131d362b5f8b4fade8afd71305c21619ec511
 
-#EXTINF:-1 tvg-chno="7" tvg-id="astro.premier.league.2.us" tvg-name="[US] Astro Premier League 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/astro-premier-league-2.webp" group-title="US",Astro Premier League 2
+#EXTINF:-1 tvg-chno="8" tvg-id="astro.premier.league.2.us" tvg-name="[US] Astro Premier League 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/astro-premier-league-2.webp" group-title="US",Astro Premier League 2
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=astro+premier+league+2&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-astro-premier-league-2/playlist.m3u8?token=2aa8cb5af8931150aacce204a73ab1e627fc1d9cd9cd00b0dfbd4710eda21586.1778818411.39412582bbff8e196207bd80765c8bd1.404c0918efbd8925eea528f75e9580bd.a6ddab0a52c1a66668bf6ef7fcb3a7ce&signature=17cf9f48f55a2b0563d15bec50983bb2e3df0ab8a6baf92c02348456c0c0d1b6
+https://edge.cdnlivetv.ru/secure/api/v1/us-astro-premier-league-2/playlist.m3u8?token=815618279051ff8b17071676ead91e0243428af63c2a6715afc3f7d601a18564.1778830938.cb6b4eafb7e625b5305e58ed106e0c1c.476b0138bb0290db991f6e2592e8c07b.f81b33824b64a2d380a21f751d7cc3f7&signature=528e00295233f824da34aa18cb905f1c9c086a6b71e8b8ae9a4556014cc1644e
 
-#EXTINF:-1 tvg-chno="8" tvg-id="atlanta.braves.us" tvg-name="[US] Atlanta Braves (CDNTV)" tvg-logo="None" group-title="US",Atlanta Braves
+#EXTINF:-1 tvg-chno="9" tvg-id="atlanta.braves.us" tvg-name="[US] Atlanta Braves (CDNTV)" tvg-logo="None" group-title="US",Atlanta Braves
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=atlanta+braves&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-atlanta-braves/playlist.m3u8?token=b9032e9bccc976ddb56c176eda66ff07e23b89781716b7e3040f392549d277d9.1778818411.730795be33867ca40499a604b7d4649c.d0f9967e6f12c3676b97257ba1b6e783.e4678ba784becdfad57c52348ed1f776&signature=cb80d998a759ba5efd74af06b6f6d763db41098664b4152b212de44df76eba2c
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-atlanta-braves/playlist.m3u8?token=57ae9eabbdfb3ac772805a48493d7db48b71c34047b42e0dca310a363ec70cc0.1778830939.83a17611c43ad0723a166aab208f8776.2761eabc50f71cccc968a1fa85cc21aa.530b7d7d354dc3a4ed6c9cc81a271264&signature=0c28b5a6c9c2d6f07d8b1b8cd8a367ed62aae2532f026afbefcf994b182d1d39
 
-#EXTINF:-1 tvg-chno="9" tvg-id="baltimore.orioles.us" tvg-name="[US] Baltimore Orioles (CDNTV)" tvg-logo="None" group-title="US",Baltimore Orioles
+#EXTINF:-1 tvg-chno="10" tvg-id="baltimore.orioles.us" tvg-name="[US] Baltimore Orioles (CDNTV)" tvg-logo="None" group-title="US",Baltimore Orioles
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=baltimore+orioles&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-baltimore-orioles/playlist.m3u8?token=71afd5c6e717b7f228b718b119d1183e8fe90e8188eea0003261cb942d8c28cf.1778818412.4eafafbba1670a797cba39526d1807e5.992f879574cc7213802a4dac0e4db53d.14fc1ddb6b15127a7faccd47f717de9e&signature=3876c6cdaf974c4b0a6450187b1f5fd2146acee5137dfa9d6c26bbfaefdcbb28
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-baltimore-orioles/playlist.m3u8?token=8b9a34f33c8bdc282aae7ab6d940d68ebf0e5e339e0a491476737603a7e9032b.1778830940.198e69b3d24d1e06617ebc05eeddae96.01c5828a0aff06c196f795b5f449aff8.7135d8284a451dd6237e299ffa29c303&signature=b0bafcc15097c6c44e9cd71e0d3c721c4f6dfd458da8d564254439109c507b77
 
-#EXTINF:-1 tvg-chno="10" tvg-id="bbc.us" tvg-name="[US] BBC (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bbc.png" group-title="US",BBC
+#EXTINF:-1 tvg-chno="11" tvg-id="bbc.us" tvg-name="[US] BBC (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bbc.png" group-title="US",BBC
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bbc&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bbc/playlist.m3u8?token=bcb55242d5a8945722ba1e7da12f32339fd43b69144a40c17b197bc3de31b523.1778818412.1041cdefb204bc44f20c41ff3ba3283a.ba065241c1622fa9972b17687f2a51db.9c833bb306353e34f8dc3e351ac2ba3d&signature=7c3c186ec319350c7249bd86ce8dc380664f036c5e060aad43d5d1a0824ec1fc
+https://edge.cdnlivetv.ru/secure/api/v1/us-bbc/playlist.m3u8?token=1c171e304dc3f9ed6c6defe018bee37d6198c97cd7282dd5af9831559b411190.1778830940.8ba2320ad24efe83de785dd689b2dd40.6e259eb712559d155e6785ba32babf7d.20441469cf81563859d0c86a77cf9900&signature=29eec00f78f1c1f24f63345dc2d3d8b552b656644ae90f1449a4e8b32d1497d0
 
-#EXTINF:-1 tvg-chno="11" tvg-id="bein.sports.us" tvg-name="[US] beIN SPORTS (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bein-sports.webp" group-title="US",beIN SPORTS
+#EXTINF:-1 tvg-chno="12" tvg-id="bein.sports.us" tvg-name="[US] beIN SPORTS (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bein-sports.webp" group-title="US",beIN SPORTS
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports/playlist.m3u8?token=2fc5780fdf3fa7e3d9d7539c8db4c8dab4d46c7b33e35251829357f78fe4f4d5.1778818413.fd90da79863a9bb07b26dbca6b3465be.848df73a68781d34e6c0c46d7e48fa42.aacee7fcb4f27117a0110e68b67b1ddd&signature=3969c4910c27949073445297d63ef665dbd6b84fe6b6e1d3d2a4c073e33ceb6b
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports/playlist.m3u8?token=193a44b03ed1be2c400c9c33bfd90f292c022355771f50a447691da694695b86.1778830941.b645354fa6cf2d32fad46c12c2678e57.ef99dbdb7a4cc7646be8f0c9128eda5a.db74aa30d7f74ca6ea0fd009df363d97&signature=7290522b680b1e9fdbcef2ecbe7008f6de93161532545bcfd7180752e44f7e8f
 
-#EXTINF:-1 tvg-chno="12" tvg-id="bein.sports.1.us" tvg-name="[US] beIN SPORTS 1 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bein-sports-1.svg" group-title="US",beIN SPORTS 1
+#EXTINF:-1 tvg-chno="13" tvg-id="bein.sports.1.us" tvg-name="[US] beIN SPORTS 1 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bein-sports-1.svg" group-title="US",beIN SPORTS 1
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+1&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-1/playlist.m3u8?token=6ac559c2536201407739820041c1407c852efc6c308f50e8dc2a90d043c2d49c.1778818414.0f9219cc3748824707100ff7037ae930.f1f2fdab017cf912a79ed65edab26e01.77d5f88ff3323a06616a7a0cc934a5b8&signature=09cace6e709b08da338f9e805bdcf8fb04abd3879fd6681332c28e2139abb979
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-1/playlist.m3u8?token=736932a24408b991283024c04372c29915267257052723b87296f3cd2af64bc9.1778830942.b1245d363cb4a59f5d632d7d57cf0e03.c1e7c18748b490ba32c35861d6192f48.703d5c5e287711d7ee10b39e12d68275&signature=88bb8004f1ccc414fdeca3a5866b769d7fefec35ab55f605a82d6bcb5ca1e9c6
 
-#EXTINF:-1 tvg-chno="13" tvg-id="bein.sports.2.us" tvg-name="[US] beIN SPORTS 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bein-sports-2.svg" group-title="US",beIN SPORTS 2
+#EXTINF:-1 tvg-chno="14" tvg-id="bein.sports.2.us" tvg-name="[US] beIN SPORTS 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bein-sports-2.svg" group-title="US",beIN SPORTS 2
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+2&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-2/playlist.m3u8?token=a4658a7cfeac15650532d8782a7dbf6d8c4b5801010a5738bacc744e3961ebff.1778818414.e9244c4f19d85163f94c53e58ba4fd7e.ae482dd6c62fc14aaa708400ca7c6e25.f67fad6b3c54b734a357b1c921c51ba5&signature=62b57211c2e12681dde347a26aad3b700a156e68bb34a694ccd2f66b530d70ae
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-2/playlist.m3u8?token=4a90a73b8f88b965c0db5c136a6c4e82810a50e0afa4b7d451b4078e080681ac.1778830943.7f8f46175ddc664ab5635ddd230cd035.847f93c37a3308374e488cbf7a25c696.019a846c53b14f06745da60bc417bf95&signature=d80580a94eb555303d86ca2112b57e8d8179b424f82182d6ad9cd88ad3b7a6aa
 
-#EXTINF:-1 tvg-chno="14" tvg-id="bein.sports.3.us" tvg-name="[US] beIN SPORTS 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bein-sports-3.svg" group-title="US",beIN SPORTS 3
+#EXTINF:-1 tvg-chno="15" tvg-id="bein.sports.3.us" tvg-name="[US] beIN SPORTS 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bein-sports-3.svg" group-title="US",beIN SPORTS 3
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+3&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-3/playlist.m3u8?token=4a49dfb79462bd328b80ef64e116e8ea852ee729ae1e587d693015c5cd010acc.1778818415.87a76ad9db83c1c267beec8b371a1acb.12b9478186dc85bd6a5ff24cc54d54c9.67428bd4be0ff395817b598ff9d45905&signature=4afeebc86d0001ed27d959869c6311e462bb30d9b309eace63357a5fa43e9815
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-3/playlist.m3u8?token=9994de1349cc4b72571e51feab11909afd84b3394f8d89cd6444350df8c455c2.1778830943.3119542e8b8c6f155e5f7fe0b5dc0795.73cb3c9c4188b23286a8837bf863174b.40dc7599c6b0e86bf54293b41ac6a3d7&signature=c00a571d95437930536787832583659e165c062318ae3108bf44cba3ba21670f
 
-#EXTINF:-1 tvg-chno="15" tvg-id="bein.sports.mena.1.us" tvg-name="[US] beIN SPORTS MENA 1 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bein-sports-1.svg" group-title="US",beIN SPORTS MENA 1
+#EXTINF:-1 tvg-chno="16" tvg-id="bein.sports.mena.1.us" tvg-name="[US] beIN SPORTS MENA 1 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bein-sports-1.svg" group-title="US",beIN SPORTS MENA 1
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+mena+1&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-mena-1/playlist.m3u8?token=0cf290495ff78e46f956a25447378c5dd766d6c7c5a2668668a470d2153aa4d0.1778818415.adf49a9fff0543d4d31886383fcb7657.1a1f54dcd9582b0784128d2632ccf95e.989194391d2f994461a52422fe2ba3de&signature=69d0e46478ed0ca8ea18fb39d4dfeadbe9622d5ab1c995e9217091c582ba38c4
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-mena-1/playlist.m3u8?token=c4310a500c887cfb0c67e879af8cb72c6d33803622344cf6bbf8e2f23f78e4b6.1778830944.b886eadd9b787ae2845ff3ef4c8ad9b0.fe13ecd1c06f2c1e698bacd790c79938.87af2f81a177d6413ea97ea00ad16249&signature=be346ce6cbc386e3b6866caa47bcf3791eb619657c994ae7eb0c26d81bfdec1d
 
-#EXTINF:-1 tvg-chno="16" tvg-id="bein.sports.mena.2.us" tvg-name="[US] beIN SPORTS MENA 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bein-sports-2.svg" group-title="US",beIN SPORTS MENA 2
+#EXTINF:-1 tvg-chno="17" tvg-id="bein.sports.mena.2.us" tvg-name="[US] beIN SPORTS MENA 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bein-sports-2.svg" group-title="US",beIN SPORTS MENA 2
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+mena+2&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-mena-2/playlist.m3u8?token=5a7908f4a07ba6700cedc49dda20f342e5261833412a45fc5e15b8b05fb1e596.1778818416.4eba8a575102b9df0e2ea416a78595fe.f39044060021b0b949b33518c840a876.ef6957207f9850dda090e4cb13742228&signature=a65ce6573f938edc0d3a7b9f36b774d99b65316fb69b7749d922624d5c2e2ca4
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-mena-2/playlist.m3u8?token=7275a9242ef406552fadc9da7027b577e79be6862a56b986032a04bf765a5205.1778830945.573b9fc7f9bd78cbb7bdf00a2dc8ce90.7ce89a841655bc7038e23288d515e297.6facbede40413385f56df84882a78cd9&signature=7b3683ee7d30dd32bb318e275b06ef347462694901e1432cfc5932b063145a04
 
-#EXTINF:-1 tvg-chno="17" tvg-id="bet.us" tvg-name="[US] BET (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bet.png" group-title="US",BET
+#EXTINF:-1 tvg-chno="18" tvg-id="bet.us" tvg-name="[US] BET (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/bet.png" group-title="US",BET
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bet&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bet/playlist.m3u8?token=936c9a3c6e6fc635ce465693e1db0e3a9f903fc405f069524a6f7d872a9911de.1778818417.23f2fe1723bdd11b0ebf2076d3be57fb.1be6c0beaa38506225dc32690ef06fb1.79907fe83ff354fb2e75d70cb10e18dd&signature=fb0cdf4142fc093362bf9953d1afd1838f3388b5910c2aaca4804770069bb838
+https://edge.cdnlivetv.ru/secure/api/v1/us-bet/playlist.m3u8?token=667284ee093deacce331dbc22e4912e1240b7fc8b08af14a3898b82e10c635d7.1778830945.a09b00abfac9147a10b485597451a004.7c94882345a9c1d6935f10995669a59e.d2842e8af5e1e9a06ae6620e8f60bc3e&signature=980c6d68c7411c21d44ecd5202e377da5ae984062d9eee3aa7e7f9a6466d7baf
 
-#EXTINF:-1 tvg-chno="18" tvg-id="boston.red.sox.us" tvg-name="[US] Boston Red Sox (CDNTV)" tvg-logo="None" group-title="US",Boston Red Sox
+#EXTINF:-1 tvg-chno="19" tvg-id="boston.red.sox.us" tvg-name="[US] Boston Red Sox (CDNTV)" tvg-logo="None" group-title="US",Boston Red Sox
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=boston+red+sox&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-boston-red-sox/playlist.m3u8?token=0eb3434b05d72ef66f1b8ce0dfb8e1dfa366ac8090ac00f8475feb167b9ac3dc.1778818417.cf3c633206e57790afdc5815f8722b3d.f36888d796289282a5bb506e8b7ace13.b98748cfe2ff19254e79d222fc14bb01&signature=ce43af709fb7546d45f4d3512080b116f39fb834ea5584ccc74b654d8616defa
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-boston-red-sox/playlist.m3u8?token=7554bbfd20708ea69e9353453b3e932020407d30613f01d402faa7176368794f.1778830946.0f2c694834589be0c2afc1e708d64aba.3e4c80ce21d7ca84d77c6363e0d12c61.56e3bef4adeb5e93c938d8985c65796c&signature=42cf0c612271bb051e8c16d792ebe77acd5a7b70f62da699ff5207cd6e1b752f
 
-#EXTINF:-1 tvg-chno="19" tvg-id="cbs.us" tvg-name="[US] CBS (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/cbs.png" group-title="US",CBS
+#EXTINF:-1 tvg-chno="20" tvg-id="cbs.us" tvg-name="[US] CBS (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/cbs.png" group-title="US",CBS
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cbs&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-cbs/playlist.m3u8?token=42dea355a067aca2001afde2ba6c731769c55d85d47a455b4759b86a67182bab.1778818418.5f563e4cb9f84873e3968372b7b2f140.368a7c2278ed96fddf73a44e085b34c9.16f626a5f3a2cd3436ea9578dd537b86&signature=5374ff48c8ec4b1187b1a7da75e669882a49f85c7b59c63b90dd31cae1aed09a
+https://edge.cdnlivetv.ru/secure/api/v1/us-cbs/playlist.m3u8?token=078933264959915f2705936cdacac494970d4a5d40b85ec001380af24ab241d0.1778830947.bef63cbb4aa33d0c163cad179bd93588.1ae5b949510e75302dfcc0bafa9a0a72.bc70c2fadf7612095f214bf2555469ad&signature=1220a716d11599e9f47a7077955a02da05ed87170ce8c099c22e6bdf7c9fccd8
 
-#EXTINF:-1 tvg-chno="20" tvg-id="cbs.sports.golazo.us" tvg-name="[US] CBS Sports Golazo (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/cbs-sports-golazo.webp" group-title="US",CBS Sports Golazo
+#EXTINF:-1 tvg-chno="21" tvg-id="cbs.sports.golazo.us" tvg-name="[US] CBS Sports Golazo (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/cbs-sports-golazo.webp" group-title="US",CBS Sports Golazo
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cbs+sports+golazo&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-cbs-sports-golazo/playlist.m3u8?token=7274acc114e0729f582a7b7cb607607a4a21a7a3d6edf0a98f3c3efb7256909d.1778818418.b2f67b1fcf20ff44548250fc586694b9.cb06d354c6a0efe3ac73ccf70e82bdc1.a2141310d22c75f466868fb01160b19f&signature=449fa5576685332cf02953997c30abb3f9d08ed5d464a1887f89da82b51b65b0
+https://edge.cdnlivetv.ru/secure/api/v1/us-cbs-sports-golazo/playlist.m3u8?token=a419627abf02acd20fc262bf4f62d4f51c21e93d7c6a990bb1545022ecfbb3fc.1778830947.bec62649cf510792d2b71b5a679f4ec4.2574ede282bbb69c4bf757b400599453.4cb848365bc154471b44250ca4e8da3c&signature=98bd3235dec90c7f24415dfdc90f73e69ae20279e57bc9ddbba13c9fb1a3b3ca
 
-#EXTINF:-1 tvg-chno="21" tvg-id="cbs.sports.network.us" tvg-name="[US] CBS Sports Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/cbs-sports-network.svg" group-title="US",CBS Sports Network
+#EXTINF:-1 tvg-chno="22" tvg-id="cbs.sports.network.us" tvg-name="[US] CBS Sports Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/cbs-sports-network.svg" group-title="US",CBS Sports Network
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cbs+sports+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-cbs-sports-network/playlist.m3u8?token=ea4ec2212e67c95f33773e0fbb40c9c4fd206946224085d67e6b5ef943a9af98.1778818419.1113dc3db4806b893a47da8ce72e50f9.a04da97b0c409046b56a4b53f90c31c9.41fd315259fa4cd3e0cb77a961c57d5e&signature=1162e703cd702a750e1b124d5c9022251e3dff53b59a06edda45c2623376c08f
+https://edge.cdnlivetv.ru/secure/api/v1/us-cbs-sports-network/playlist.m3u8?token=06934ef0c1b3f75febef7eff985f02ecc710c6c6cf746ff4a75118f76a3dd196.1778830948.ec02002e1aad39d4ccb0585ecc07f24e.d07fbd2b85b1ac82396048b5d709f56b.6ab952c33aec9a9cc39671cad4a4d3bf&signature=228f4434b58b575b494d7dfa5a35347ce8088dcfaf5104b60eeade4f0d91c85d
 
-#EXTINF:-1 tvg-chno="22" tvg-id="chicago.cubs.us" tvg-name="[US] Chicago Cubs (CDNTV)" tvg-logo="None" group-title="US",Chicago Cubs
+#EXTINF:-1 tvg-chno="23" tvg-id="chicago.cubs.us" tvg-name="[US] Chicago Cubs (CDNTV)" tvg-logo="None" group-title="US",Chicago Cubs
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=chicago+cubs&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-chicago-cubs/playlist.m3u8?token=f7280d0fcc27a03891a5fb34418f5be21cc25915f5345d59c89712b47bc26b6f.1778818420.68939fcacf98615bde011d5b8941ec4c.fb7b3d6f85b5a7a17d483b6103750cab.c6c60b7f98f708c4b12f0256a50ead97&signature=699ad29aab407c293a2b80bb5d3e8d04407ab42764c86d40073d451afbbe85ef
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-chicago-cubs/playlist.m3u8?token=e9bffb75304902b5758276f3c368c535c032761d4ea581a8220ff2dca8faf4f1.1778830949.039e75cbb3399bb0d2473248765684fb.b9a1126f8f054b476cde13225487f19c.17f8209c96dce7bbe6f7182c77f6c33d&signature=8307c45ac5826d855ab7631184a6112ca22dfb255df1cf2522f04cb8488ce940
 
-#EXTINF:-1 tvg-chno="23" tvg-id="chicago.white.sox.us" tvg-name="[US] Chicago White Sox (CDNTV)" tvg-logo="None" group-title="US",Chicago White Sox
+#EXTINF:-1 tvg-chno="24" tvg-id="chicago.white.sox.us" tvg-name="[US] Chicago White Sox (CDNTV)" tvg-logo="None" group-title="US",Chicago White Sox
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=chicago+white+sox&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-chicago-white-sox/playlist.m3u8?token=a4ba9d51b5306ac73711bb8f0c3a059f1fae87b51c04e46c973a36a344aa14bf.1778818420.2fa5b971ed6a298293a5dfb30e21a24b.32fe04cfd40eae8839e9f86147614742.b7331320c6ac99a99bdd8e358de50dfb&signature=a1467d1eff6028489a7de1bd87997cccdc1df4fe85b988da0cdd81d4d4b04cfd
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-chicago-white-sox/playlist.m3u8?token=e1fbb5593af2a9d0662c218c3accf36500b76aac7503112f935674c2794c1bd9.1778830950.1324cce9236113221ecb18c4638c9a48.d3366b9810370d3fc8d464d79c79156e.96df40f3efc3e2fb907a8b4e0cf0a85f&signature=dc8ca753ee62efb90b61abec2af3344e4ae062386203682e699a4910450a3366
 
-#EXTINF:-1 tvg-chno="24" tvg-id="cincinnati.reds.us" tvg-name="[US] Cincinnati Reds (CDNTV)" tvg-logo="None" group-title="US",Cincinnati Reds
+#EXTINF:-1 tvg-chno="25" tvg-id="cincinnati.reds.us" tvg-name="[US] Cincinnati Reds (CDNTV)" tvg-logo="None" group-title="US",Cincinnati Reds
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cincinnati+reds&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-cincinnati-reds/playlist.m3u8?token=7c271d44ef5e689898fec30dec49cec4e8b0f9640830193d266cd27b8db868ec.1778818421.6ac10c3b50f2dc915f0b26c19eb022cd.776d4772b7bfa1f0b45ca9b9c310e834.5bb3151f867387a0631eb3ca82c88ed6&signature=03c09e4fefe340cb3bc5207f5372ad263dd7ea58e30945e6c41c984d1fb6b8c3
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-cincinnati-reds/playlist.m3u8?token=e80889014ccfa8c709a29cf81ced8d49c18ce93df71bb77f0237ba7ee2ea3951.1778830950.7d60bc544ff273213b3a757824d4a282.4054717f715f2e07f8eb1fa409094919.a661239fac7d93c242d6162f395f822a&signature=7379ed48c36b48d6d7b56a04eafa18ed95986ad4177a13194813f99324817b44
 
-#EXTINF:-1 tvg-chno="25" tvg-id="cinemax.us" tvg-name="[US] Cinemax (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/cinemax.svg" group-title="US",Cinemax
+#EXTINF:-1 tvg-chno="26" tvg-id="cinemax.us" tvg-name="[US] Cinemax (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/cinemax.svg" group-title="US",Cinemax
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cinemax&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-cinemax/playlist.m3u8?token=0fa09bd888154bbc15101c07e3fd82c9ef99deb4566f890cdc92411b3622dde7.1778818421.a60278a1700c65935c584bbe3dfb8cd0.ef471872985c85bc54e9b11f2a5124fa.1e635259f5b7238e5fcbd9f87174ec28&signature=dc6d1cfff4196b7336e29438a6ffafbc93d73902f0f7b71d82b18e5e2617baf8
+https://edge.cdnlivetv.ru/secure/api/v1/us-cinemax/playlist.m3u8?token=cda37944035be23bc54330de603dddf566bd4fb06e3ccfeb64db3bdd6ccf02b8.1778830951.747256276b94907d57b60479a804c398.9ea8aa667b7474c02398dedfe75afba0.886f452009b8e97c77fe757da9e7a5fc&signature=f566c55c0c3987a23bb3aa83ede709ffc82538eac919ca5776ff7343466111e2
 
-#EXTINF:-1 tvg-chno="26" tvg-id="cleveland.guardians.us" tvg-name="[US] Cleveland Guardians (CDNTV)" tvg-logo="None" group-title="US",Cleveland Guardians
+#EXTINF:-1 tvg-chno="27" tvg-id="cleveland.guardians.us" tvg-name="[US] Cleveland Guardians (CDNTV)" tvg-logo="None" group-title="US",Cleveland Guardians
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cleveland+guardians&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-cleveland-guardians/playlist.m3u8?token=fc5edaf2af79ba087004217198902ccf6bedcf852265ece896e7fe4603a1e67e.1778818422.a6ca23adf2153f52df003a3578ce3cef.69a5de6d4cbc2a480e58f612b05e8630.969544a9a6c9b62b7e39a8877398827f&signature=70b5f8346f67090428c261e43aac795fee2a0693a924560425c9924ccbebcaf1
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-cleveland-guardians/playlist.m3u8?token=f0f8f04f40c8f2874dfbd8597ed35bce2ef16e3fdb4b20daffc4abbbb69e0370.1778830952.ba0acdfb7aa14cb85c9ad869a74d1e56.4a3e735a107e900306a0c43043858597.f59a3acba10769fc914897e21db2d484&signature=8840205375cf7d594d88e016acd0a05652dc934a57aa31662634ddb4a6d9d7f1
 
-#EXTINF:-1 tvg-chno="27" tvg-id="cnbc.us" tvg-name="[US] CNBC (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/cnbc.svg" group-title="US",CNBC
+#EXTINF:-1 tvg-chno="28" tvg-id="cnbc.us" tvg-name="[US] CNBC (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/cnbc.svg" group-title="US",CNBC
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cnbc&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-cnbc/playlist.m3u8?token=3251e8f18c92f4165bedb15b22291b48ddb0bd41d21d88a873cc8d204d4c216a.1778818423.2391ce74afb2e19bcba97bba852c9df4.3fe76f33a6ff1c4382e3e9465279885f.db8ee9022a63326db82511420862a9f0&signature=b6e98976014df09c456880fd8be45af1beb08b94c0523d31fde62fe80c0e0d44
+https://edge.cdnlivetv.ru/secure/api/v1/us-cnbc/playlist.m3u8?token=5f9744de584c3acf1010587c1af3d810755b1426d2f694c9e638f0cbeff847e2.1778830952.4f9698cb9b26ff10f1a0ab7650e7ce06.6cfc59b8e68aa6a99ad96549c6e0693a.abf7311d109d2a6c30cbc5cb84c945e7&signature=781e290ee6402b9a6ee11767b15937356090e5fb346759a7ecc53dc767f9a7e3
 
-#EXTINF:-1 tvg-chno="28" tvg-id="cnn.us" tvg-name="[US] CNN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/cnn.svg" group-title="US",CNN
+#EXTINF:-1 tvg-chno="29" tvg-id="cnn.us" tvg-name="[US] CNN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/cnn.svg" group-title="US",CNN
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cnn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-cnn/playlist.m3u8?token=e95567e7e37f8e6ddb168463acc1fedcbfb614aaa58ac4dcdf7649b3e86501b8.1778818423.d90fac572317124141548c41a1903691.d6d8481670185f213b287b5f2b1b3d9d.788073bde4e1861e139150918ebfb4ce&signature=d8642a88e6f03abe804bd55cf0fdbe0a245f576c0faa81f2ba1d6f8507e917de
+https://edge.cdnlivetv.ru/secure/api/v1/us-cnn/playlist.m3u8?token=137394b0bc8de1dd05ce826f5729bf1eacf6bff82aa2538958bdfb4078939b6f.1778830954.456283c5cae9cdb3410e7be90f7d293d.0a24a273211326066e8b7472acf2410e.e7f540bf01105703792f68a09d33ad3f&signature=2262401659e7155fc7f327f10310283a6f44b7292016081a1445ac30aad21d96
 
-#EXTINF:-1 tvg-chno="29" tvg-id="colorado.rockies.us" tvg-name="[US] Colorado Rockies (CDNTV)" tvg-logo="None" group-title="US",Colorado Rockies
+#EXTINF:-1 tvg-chno="30" tvg-id="colorado.rockies.us" tvg-name="[US] Colorado Rockies (CDNTV)" tvg-logo="None" group-title="US",Colorado Rockies
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=colorado+rockies&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-colorado-rockies/playlist.m3u8?token=f45e29ef1c493bfd37fbc73bdd65fef67f0276141d206317beadcb7ec0799ff2.1778818424.f7c4548fdd8842c1c6d1d344a2e9944b.06da0e9ed0181b110bb350eb8784e7fd.88de6fa76672bf2cc7f449eda3713c1c&signature=6933fc116ce3954214efa1b5c96999f4ed636a17224a8c9738875db32779cf03
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-colorado-rockies/playlist.m3u8?token=a28ad53c53c672c3104659525b66aad5480e25737c562aa2b7954ea6197a49d8.1778830954.f33de23b202c9281955b7fcf6826a2bb.cebe7904911f1bab071bdd1415957344.3bbfeb8979b7e20d051730e5cc6dca52&signature=cd39ee5e61e08f39ae828e32d1ef84df7c4e14053db8d299621ad6f605a38613
 
-#EXTINF:-1 tvg-chno="30" tvg-id="detroit.tigers.us" tvg-name="[US] Detroit Tigers (CDNTV)" tvg-logo="None" group-title="US",Detroit Tigers
+#EXTINF:-1 tvg-chno="31" tvg-id="detroit.tigers.us" tvg-name="[US] Detroit Tigers (CDNTV)" tvg-logo="None" group-title="US",Detroit Tigers
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=detroit+tigers&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-detroit-tigers/playlist.m3u8?token=eaa80398ea72b56a5a643c0bb34cdae0f92b8b281ccee6307ff2ffa891e5123d.1778818424.b3cb085e6603c3bba55cf82694e4bca2.3a5025676b7a64661ea422d330fc80a4.b30058315e836be117ea7e12cdd497a9&signature=344a8d26bf5f401940df244732536afe76515ec01719eeb0dcce3f1e7fe92930
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-detroit-tigers/playlist.m3u8?token=6517e26bf7e3d5131715b27ca6a928b153cd2bf636158328268228ee41765eaf.1778830955.c0e037ccec8d14d6d93c073d086d66c5.f2a91746e53a248abdda69c31fa9115e.9921128c81cf431b24ff8750eb492782&signature=073ede991fa0821a39d1da5c2b9a0c15a68c48dc02873796327bce876ffadcc0
 
-#EXTINF:-1 tvg-chno="31" tvg-id="discovery.channel.us" tvg-name="[US] Discovery Channel (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/discovery.png" group-title="US",Discovery Channel
+#EXTINF:-1 tvg-chno="32" tvg-id="discovery.channel.us" tvg-name="[US] Discovery Channel (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/discovery.png" group-title="US",Discovery Channel
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=discovery+channel&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-discovery-channel/playlist.m3u8?token=a50745ca119e520be509414a2e58d7c7e3f499d3f2a80930587c2e5d152add12.1778818425.f251db371c8c4a9b1f388bb774f790d6.1e67097be74be4950b3921553a464882.dc0c4177f608acb9343ca19473908893&signature=3f0df9966c12097b1807580a0d5818d9489ee88208347fc929cd0f9d79949043
+https://edge.cdnlivetv.ru/secure/api/v1/us-discovery-channel/playlist.m3u8?token=ba6706849af0ddaa4d7ed1f75aea335e086ee2c73fef01487c3d4a41fbdee638.1778830956.026422b689c5f668d0b104ee900ff9f5.919f360c6513265a3da328dd7efb2c8d.dbc6cf6afece1b44de879e5ad4157fa6&signature=d4d46af36e9a2b45acecdb23199f2fc625af598d72655f451e058e90df784cc8
 
-#EXTINF:-1 tvg-chno="32" tvg-id="disney.channel.us" tvg-name="[US] Disney Channel (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/disney-channel.webp" group-title="US",Disney Channel
+#EXTINF:-1 tvg-chno="33" tvg-id="disney.channel.us" tvg-name="[US] Disney Channel (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/disney-channel.webp" group-title="US",Disney Channel
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=disney+channel&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-disney-channel/playlist.m3u8?token=26c27d872b59e9ac9c14f6f16bad6574cddd7192424c84b1b9ee36c4e0a6386d.1778818426.7ca7ca43bb3cf22a0d4cb54cd681f6a7.56d8ec2dd0d74618ee52c14a0dca8995.47f048e6615b63fd8812c4f733e1902e&signature=00a51218ea8d32035ad56b4cc519972a74b7febd2d23315481823b68229a2aef
+https://edge.cdnlivetv.ru/secure/api/v1/us-disney-channel/playlist.m3u8?token=6cc0912f91bd3e1388dbb0b7f332c186e14ae4cf0f859fbae7e043cd4c471ed8.1778830957.13745956a40d1726a8680685378172fe.f976cded64d9591cd1f31d90fb8902a0.b875f1bd17ec0b05428315cb2bbdb331&signature=75b3299c8f103c4a6b66eee54d1fb68d6d1408918cdcd988d0bff9529d056698
 
-#EXTINF:-1 tvg-chno="33" tvg-id="espn.us" tvg-name="[US] ESPN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/espn.svg" group-title="US",ESPN
+#EXTINF:-1 tvg-chno="34" tvg-id="espn.us" tvg-name="[US] ESPN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/espn.svg" group-title="US",ESPN
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=9833a0a7436e8486ff28d7e8c091d7395d7eb03d5145d979abad909c82798e5d.1778818426.24f7256883deff6fc1329a631d964ef4.d46ad19c90e83aa225678c3d665572ee.2ecdef4cd14b678ae678f2feb43870b6&signature=7e82082520173e4b03235850b2ad45bc9548ab573f595ade23cdc7aad9818911
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=d85f037df9fe45d01f235d2abe241e29ceadc0d29f07db70c39dade72d655b03.1778830957.58622b16133176b64697a87f522e2cbf.70e9d881dcd40285e39f026ca82dd915.fde6d2d64e957291c128bb30087f29e2&signature=bc55a06493c7f5391342e40408d86388cf4e372ece7cc13d4648d724f06f26d0
 
-#EXTINF:-1 tvg-chno="34" tvg-id="espn.2.us" tvg-name="[US] ESPN 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/espn-2.svg" group-title="US",ESPN 2
+#EXTINF:-1 tvg-chno="35" tvg-id="espn.2.us" tvg-name="[US] ESPN 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/espn-2.svg" group-title="US",ESPN 2
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+2&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn-2/playlist.m3u8?token=3f4dace8329a75f0bf549738ab3beb493abe135603b7d0af43d758fa436bf406.1778818427.58e6b35d6b99e52c97779c79599c31a5.1e19f97f06925110a8b7acf796b35d06.8ce11d99ab3536ec56bdc43d21cc127d&signature=391be9371bd4a751db4efb1e368748c2ff9832e513f23731c3150ac53f849b5c
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn-2/playlist.m3u8?token=04a2461eaf334981f4885053167571ea4abfc2e64e74637c5bb74091121f1cab.1778830958.18a68ce3a43ced85f6dca63d3abf9313.244680284b1e2b556bcd64f5f38739a5.431cfebd82e0a240583f5b8d0a9b02ee&signature=0b218a1e7fa57bf468d8bd86bd724b32efdb6355027b11ace31d35751f26db78
 
-#EXTINF:-1 tvg-chno="35" tvg-id="espn.deportes.us" tvg-name="[US] ESPN Deportes (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/espn-deportes.png" group-title="US",ESPN Deportes
+#EXTINF:-1 tvg-chno="36" tvg-id="espn.deportes.us" tvg-name="[US] ESPN Deportes (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/espn-deportes.png" group-title="US",ESPN Deportes
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+deportes&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn-deportes/playlist.m3u8?token=49a9fde9582b4e5f1b56b2fd1cc823c49dcd55cf3d31456b950acbd3c8920662.1778818428.e1385675524e1203e9dd3a6733a07f44.5472cb32a6943655b736a45c02e6850b.a4773757f82b6cece83fc79c0ff1e490&signature=ead9412e699e5db81690b67eb69abe6c4349b0f725ccc8cd1b1eceb96528f087
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn-deportes/playlist.m3u8?token=30149b9643d9ea729c2ada1e856ff7ad791bac6485c548b652dd899239277680.1778830959.ce2f162a0ecdb06e85a65eed0bd23b46.77625920d7c4417b30ee4f136da6b823.f029f256ce36714204c1e5ffe731595e&signature=e71ccd64b9e09587671854ddb66e67e13e2403d9b579db00f877fe5d3335e75c
 
-#EXTINF:-1 tvg-chno="36" tvg-id="espn.news.us" tvg-name="[US] ESPN News (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/espn-news.svg" group-title="US",ESPN News
+#EXTINF:-1 tvg-chno="37" tvg-id="espn.news.us" tvg-name="[US] ESPN News (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/espn-news.svg" group-title="US",ESPN News
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+news&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn-news/playlist.m3u8?token=8770e588c8833a4e689255afaf65566bcef385c0107fb9dbcd0fcbeaedd0a03b.1778818428.6acfd5a942b9115431679b74cdb2420f.f6ded4be73a2fbccd856d9eb7399079d.73c4f4eab4e96501576143cbf1e45704&signature=6c2b2abefa56d57a5c48f6c317961099c893020e92a7a08bbaa041d1e0ccf96c
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn-news/playlist.m3u8?token=41f39623c87bccdf5456bdfbb4d0c8bc0c755757bb6f2ae3eb5cb8661a1ff56b.1778830960.7d2bd07dd761b15edaef3a11f3815952.80813c2f4224827c04dae71e0e86f33f.4442f4d0933d8a47432399a11a67bc99&signature=8aa36777576d0a489215f57f1845b1f732ff24eebb36279ae7e9e79fcc99c2b4
 
-#EXTINF:-1 tvg-chno="37" tvg-id="espn.u.us" tvg-name="[US] ESPN U (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/espn-u.svg" group-title="US",ESPN U
+#EXTINF:-1 tvg-chno="38" tvg-id="espn.u.us" tvg-name="[US] ESPN U (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/espn-u.svg" group-title="US",ESPN U
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+u&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn-u/playlist.m3u8?token=7f3c474ece5b643470b1f0eb0fd7e8d8a9ac09b1d2e28fc69c2262f27bbb5409.1778818429.b1c2ff173113d54bfa7c660c108c781d.cc479d00101554d0bbcb3e75bca16653.9d749aee2cfe5d8d9e373d4b7ade76e7&signature=d51767ca62ee6e950690e6f77f73cb7970bd89cef711b6c521e1b26e515a8350
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn-u/playlist.m3u8?token=039e8bb8f85a16994a0de3c202f8eb2a2d701b8005c9030d2f6bd5cd6963cab3.1778830960.dd15ef86342a9499ad7f3e214120fdf0.c24c3e4e9d2ec5f4e1d67db036c656f8.3dc54f03525430dd4cb5a47527b5e107&signature=0e5a14b3f5b2d3003079f43fc8ee46ed7e3255fc5458fff2185e1cd8d3caa80b
 
-#EXTINF:-1 tvg-chno="38" tvg-id="fanduel.sports.network.west.us" tvg-name="[US] FanDuel Sports Network West (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fanduel-sports.png" group-title="US",FanDuel Sports Network West
+#EXTINF:-1 tvg-chno="39" tvg-id="fanduel.sports.network.west.us" tvg-name="[US] FanDuel Sports Network West (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fanduel-sports.png" group-title="US",FanDuel Sports Network West
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fanduel+sports+network+west&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-fanduel-sports-west/playlist.m3u8?token=5c11316904f18ebe1b3c34dd5ee07eb25b788747d57245a15a0ac4d9df1d0d5f.1778818430.f218697918c864f79d2a8a41f8b40726.4c5f3d166e43205bc7bbda5d29565d48.5c2b22b3e671e6d668055504808fd680&signature=00eb22824bd6936120f40edfd22ab76fb892bbaa84b581bbaeae4e7e95e2d6fc
+https://edge.cdnlivetv.ru/secure/api/v1/us-fanduel-sports-west/playlist.m3u8?token=cc20599d1490cc254fe41c134dc57834aa8784aa5a455bba59d6c64ccb1c18fa.1778830961.45e76c0c349c13932977bd218e03ff53.bd714e3dd844ef11adc6833013ffeebe.896a2df949ce4887516ba5e2d72144ea&signature=2801cdf2833d3c5970a19b4cbdf4a609989078a1d3abbb425ad3efce464db3d2
 
-#EXTINF:-1 tvg-chno="39" tvg-id="fox.us" tvg-name="[US] FOX (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fox.png" group-title="US",FOX
+#EXTINF:-1 tvg-chno="40" tvg-id="fox.us" tvg-name="[US] FOX (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fox.png" group-title="US",FOX
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-fox/playlist.m3u8?token=454637f389b8509d9794992bd7c7f29459ebc46f8c2e54e87fde97d128c3df08.1778818430.6ff0943b156771b235f509f454dd1558.8c94a2147190d054e01c9f51e0560c16.a5920cb842ec090977c62142ea84301d&signature=d60d2270c59fe6b4b747f9bf30ba584c012453b3686a0cbb240b3514c37c5ce3
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox/playlist.m3u8?token=dfd4ac15dea591247af63fb2321fe71806128dba0015c632cdea1b0c3b72152a.1778830962.e8784dd137c6fe715f094a7a1bfe360c.b4b4dcb30252c843c0da1aee192c2394.fd39671a6ae2024e263fecd986b0e334&signature=eaed47cd9d3a529d410ea9aeeef364bb93325df94105a9aad66ab6f0ed60fea5
 
-#EXTINF:-1 tvg-chno="40" tvg-id="fox.deportes.us" tvg-name="[US] FOX Deportes (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fox-deportes.svg" group-title="US",FOX Deportes
+#EXTINF:-1 tvg-chno="41" tvg-id="fox.deportes.us" tvg-name="[US] FOX Deportes (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fox-deportes.svg" group-title="US",FOX Deportes
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+deportes&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-fox-deportes/playlist.m3u8?token=e81d26f5443e50133dc2612de3b7f1b46c6b711f1c1a65cac433f0b034c843fd.1778818431.0a511e5b8566533d742bd0173909f311.4b0344734c1091da3113d3c76ba45106.a4c3b90411db0bc1174471662b016d22&signature=f84df73b2742ce254426e285ec7f67ed3cbd9fe7cf1c498a91ea694204824344
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-deportes/playlist.m3u8?token=6ac391b7886e41ee1e3934a7b953758a86b693a1bf2a7b449010853ac3038413.1778830963.7c9552cf429d3a39ed82bb983e842c50.d9d748ee38d6a2c32b06d742c3c08d9e.ba3e4670184d095401278c15cf297138&signature=897d182cf03d66e2ad13fb4f054a5e9387265c456a68a784843015d1efb24504
 
-#EXTINF:-1 tvg-chno="41" tvg-id="fox.news.us" tvg-name="[US] FOX News (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fox-news.svg" group-title="US",FOX News
+#EXTINF:-1 tvg-chno="42" tvg-id="fox.news.us" tvg-name="[US] FOX News (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fox-news.svg" group-title="US",FOX News
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+news&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-fox-news/playlist.m3u8?token=2060040b9e51e1614d670c29e17966e2a8997dfb51aa64c9cd8244c2087a15ac.1778818431.f39530ab9e23d7eafa57e9b991ef97b2.cb31d30db42f8afe426d772cd23e2d2c.1bed1117fc991bcbe72fc73fece536c0&signature=5333350b61622891bebc1d45ea5998974183ed890dd3c1021a5d3b4f328743b6
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-news/playlist.m3u8?token=da36c19ea00f67eadc751e2e1f2cadc778765e6b54aa572c88c092be625dd784.1778830963.3541f3353af8f16708bb1ec4a4553557.2cbdc9b8e95346b815c94152ec7d670b.8920a3b3fb6a61f9df0d683838644ecc&signature=0b2c1a75c4577a56a10ee67128569caab1d5ecca62121d0905584d5b3d1e6b9b
 
-#EXTINF:-1 tvg-chno="42" tvg-id="fox.soccer.plus.us" tvg-name="[US] FOX Soccer Plus (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fox-soccer-plus.svg" group-title="US",FOX Soccer Plus
+#EXTINF:-1 tvg-chno="43" tvg-id="fox.soccer.plus.us" tvg-name="[US] FOX Soccer Plus (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fox-soccer-plus.svg" group-title="US",FOX Soccer Plus
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+soccer+plus&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=2dc8c1bf9ca5cb5b2a412d6760a78b1e62678329f7fed7e3cea653ea16877e59.1778818432.e39f00b60434d656157f74eae9cd11fa.164eadb651d6886fc8a5b529266b7ee0.73f0af80554c1a135f320da8468133f9&signature=0aa19d26aa0c495b481f71e035bc337d952c843aa1f0310f7204f52be5a5272a
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=3d82af0294df010bf78f431fd8858d1c34474280c7aaa7a706be0f5ff217feed.1778830964.86af00fee0effaea0d39fdae7bd069a3.66a7e769a45c4f08b7005ab9f0fe99f0.6831cdcd6ef9cc4c05a64e57361cf137&signature=ac4a28e216ecb54d3e58ab54c86d77eef9ebef8cc7b3e13ecc08b05cb376ebbd
 
-#EXTINF:-1 tvg-chno="43" tvg-id="fox.sports.1.us" tvg-name="[US] FOX Sports 1 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fox-sport-1.svg" group-title="US",FOX Sports 1
+#EXTINF:-1 tvg-chno="44" tvg-id="fox.sports.1.us" tvg-name="[US] FOX Sports 1 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fox-sport-1.svg" group-title="US",FOX Sports 1
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports+1&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-fox-sports-1/playlist.m3u8?token=e5d54ea30817793fee8265d5ffbe379909639db2793bfb998a597cffd7a47589.1778818433.26131d307799584175bef46864be6423.251205581399887edbeffce34c1c31d4.99ccee8b24b3ac7982e89359186941b7&signature=760b3c34c8ce5c3bda75e7c218a024fdf0c63f43b7bee3c2e7bd936d34df4053
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-sports-1/playlist.m3u8?token=7c7334fdd013f6395ee7b5a7253ea43fd225851484a8dc4e1722c90c74d87835.1778830965.7f31e24cdd97d2e0cebd310bff7e7efc.b3fac9ecc30f19f0512b7409ff30ab74.3c6fa857b0230bfca63b35f35e1ea76c&signature=64e816d55c1c4f5fb1a1a624342018029e9487520ef953e5a020fea832e80113
 
-#EXTINF:-1 tvg-chno="44" tvg-id="fox.sports.2.us" tvg-name="[US] FOX Sports 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fox-sport-2.svg" group-title="US",FOX Sports 2
+#EXTINF:-1 tvg-chno="45" tvg-id="fox.sports.2.us" tvg-name="[US] FOX Sports 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/fox-sport-2.svg" group-title="US",FOX Sports 2
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports+2&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-fox-sports-2/playlist.m3u8?token=61c1540db346af5839bcc64f354b11c6ba28a26a4d6c27ebd1d73ac3368cb9ec.1778818433.33042c023b65ad4cf14117c456f689b2.af3eb432a08132d9765a94077283ef3f.2de45ea7d705e170f6188e3b65031792&signature=12e30554ed6ce8e0d8e230c21fa185eefa726a19573a685eb1cc545b67fd1cf4
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-sports-2/playlist.m3u8?token=fb6e9b3c69cb06840dcdb4c86d892c945be576a9d2891bf460e449200bb4fb80.1778830965.ede16d4631bea6b938c9ef15fd6a641b.02da1931fe2d4b030a69aabf8717d730.d1f501ae7e2cdebd31ab3d749315d8ae&signature=574f16fedf222825ae94d0717c45cec7b55a05e49dd1169a70b0fa4529f0c157
 
-#EXTINF:-1 tvg-chno="45" tvg-id="golf.tv.us" tvg-name="[US] GOLF TV (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/golf-tv.png" group-title="US",GOLF TV
+#EXTINF:-1 tvg-chno="46" tvg-id="golf.tv.us" tvg-name="[US] GOLF TV (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/golf-tv.png" group-title="US",GOLF TV
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=golf+tv&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-golf-tv/playlist.m3u8?token=1379d22b747aaab298c716aca1cdccfe0e3ac2ee4e7e179fe5a212e0773c840c.1778818434.94670466ce73e5d55cbf8c6d79b1fc96.f12eafa5d913f6a2a54bedb73e171720.06bc560aaf7058c248d1db6cacce05a3&signature=60431aa152d61502e5ae7e93cb7a29ee987b24760c3c701680ebda80540db744
+https://edge.cdnlivetv.ru/secure/api/v1/us-golf-tv/playlist.m3u8?token=a994f84d389a2fde520167b24f071fb120a46dc7db9b9863bccbd57a63252703.1778830966.3a6511001294d47b8dce1b57729dc347.c5d2501b9b8616640eff33a45c2d2a8d.9baa48669d40efef47507d72d0ad5bd6&signature=6eba5fabae8b1332ad16799479d903ede7d4814855aceeb8f93cb16a51163de5
 
-#EXTINF:-1 tvg-chno="46" tvg-id="goltv.us" tvg-name="[US] GOLTV (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/goltv.svg" group-title="US",GOLTV
+#EXTINF:-1 tvg-chno="47" tvg-id="goltv.us" tvg-name="[US] GOLTV (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/goltv.svg" group-title="US",GOLTV
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=goltv&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-goltv/playlist.m3u8?token=8aca6f71ae00f409bd250a3e587b57f412a0f8b5d0517384cf43ca27c657c142.1778818435.6d5297ae77dc29eedff8bc443aa26cea.e01c53c830cd5c008b78f77ce8de5842.be792c6c1ae9adcce6ba59c3243bf279&signature=6b39f136f2ec78ea0de6aeee74de9ec857b41e32a2ddb2f5ca4bebd2a40553ee
+https://edge.cdnlivetv.ru/secure/api/v1/us-goltv/playlist.m3u8?token=73db2f4087fc9459672de5ca9178873b23d97daa85b39d108569867db1cd858f.1778830967.145651f9e173b756b3f906bfd087fd50.7372c8a5de9769f2ee4aab841b057ef8.63af0b066f11d48f2cbdb3578c0a6ebf&signature=c1fbf9a45a79321f6767f9fa2e888d40295092fec196018de7bdde09945279ca
 
-#EXTINF:-1 tvg-chno="47" tvg-id="hallmark.us" tvg-name="[US] Hallmark (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/hallmark.png" group-title="US",Hallmark
+#EXTINF:-1 tvg-chno="48" tvg-id="hallmark.us" tvg-name="[US] Hallmark (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/hallmark.png" group-title="US",Hallmark
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=hallmark&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-hallmark/playlist.m3u8?token=6494b098112f1478086578d513b14b43f12910f4aad2b90d1873f181e0e23215.1778818435.d3827400ba1859c75589a79c879f3822.6f497dc7c6a52331a35e0e9292644c1a.b6d6025f79e7438ece755c4ab1df243c&signature=b5cb420b404ac86f741b206bb4eeb01fff52f7162fc5ef5b706adcf148675623
+https://edge.cdnlivetv.ru/secure/api/v1/us-hallmark/playlist.m3u8?token=5d2f19d91bf7666faf45ead303414e33dda6efc28740b5abecffdcb1f48559f5.1778830968.97f8947c07cca5c58b4738786a80996c.935bb1898a46f36a740b89388bdcd23d.450a4be0d83905083e94e5e417c54614&signature=98d4954bbde2145b588769e99b84e480efe72d87a4c19196d18b1f939b993b4a
 
-#EXTINF:-1 tvg-chno="48" tvg-id="hbo.us" tvg-name="[US] HBO (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/hbo.png" group-title="US",HBO
+#EXTINF:-1 tvg-chno="49" tvg-id="hbo.us" tvg-name="[US] HBO (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/hbo.png" group-title="US",HBO
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=hbo&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-hbo/playlist.m3u8?token=ad0ab2c48576793e24f1bb77ddd7f0fc2fe77bf6d67f7f6693ee67e995bd2f41.1778818436.ed8a393cff1175ffe01450e755aa8a7e.b53d33249f1a1cf909efd0b7b0913b79.cc578ad4a7155b48e0918fa4091f1395&signature=4c8f42277cb0f6110c88fa14447c89dcb29deca2dc054b0aa51dcb1f15a4947c
+https://edge.cdnlivetv.ru/secure/api/v1/us-hbo/playlist.m3u8?token=3d94ae715ab0a46c4812daa550e0408c44f5306b8b451eba739dedcaaad0f5a4.1778830968.0189c69d63c402ada43418797f5378bd.8255dbf63c561a3a1d0996344141ef3e.7e33b4ffcaa1e5df914bca8d30257919&signature=486b44ee1712621b7d7faea7c4af6195e15598cc9f1a695e65d2b1ad16ea4e17
 
-#EXTINF:-1 tvg-chno="49" tvg-id="history.us" tvg-name="[US] History (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/history.webp" group-title="US",History
+#EXTINF:-1 tvg-chno="50" tvg-id="history.us" tvg-name="[US] History (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/history.webp" group-title="US",History
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=history&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-history/playlist.m3u8?token=62b7b89cb32ea8dd6f545f68d75373540449bcf735d51d935dd6791297c96f19.1778818436.fb588d387858496b933fa57ea04ee406.8fcdcc7db5f708597807b088d084916a.5c1f3ab2e0030b4cb9168707ffef0907&signature=d15b6d0659d3aa337063ec298d685e8d8bb37cb4b9b299da7e9b22d91d10de6a
+https://edge.cdnlivetv.ru/secure/api/v1/us-history/playlist.m3u8?token=0ba0064c505745b82b880eeb5613ceacd909fb055828c64c77963c179e759027.1778830969.7798ccce4e210d1379eea997dc12ed53.98115f2ce181575362787423caf8061b.8fb8ccce4dae988e02afa0f3286f92fc&signature=f75b421f92aeed3c3624b68cb42fb3012d26712e27c47402221fd082e2e1dbde
 
-#EXTINF:-1 tvg-chno="50" tvg-id="houston.astros.us" tvg-name="[US] Houston Astros (CDNTV)" tvg-logo="None" group-title="US",Houston Astros
+#EXTINF:-1 tvg-chno="51" tvg-id="houston.astros.us" tvg-name="[US] Houston Astros (CDNTV)" tvg-logo="None" group-title="US",Houston Astros
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=houston+astros&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-houston-astros/playlist.m3u8?token=5d77f27ad3ea69d248b0a27a2b64bed5a612c1079e33fd5fbbfb277ccbf2ed62.1778818437.25bc61e721c8dbb1ed98c1416a92f052.8ee57856f339a78b29149380b76ce5f9.4a425bff27c40555fe5da4dc6dd2b283&signature=b0485977e84b557767e523b79dda03b9fedf76d7ce2dbec0eeb4ce7bb3c88118
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-houston-astros/playlist.m3u8?token=6118339339e3a7cf6d053473a2dda1be8e4837e9d77f5398fa006c9cae688a2f.1778830970.3662c5a91db6a9242b8aeab6df290396.e02c0a8379a98caef3e8d8228d01a527.ecc4ae23817e35cfe0e3e281e8e7816d&signature=236fdae8e5d73b9e9b6bdfbe0757bfdd01274df4ac987f98cb303de7e304a311
 
-#EXTINF:-1 tvg-chno="51" tvg-id="kansas.city.royals.us" tvg-name="[US] Kansas City Royals (CDNTV)" tvg-logo="None" group-title="US",Kansas City Royals
+#EXTINF:-1 tvg-chno="52" tvg-id="kansas.city.royals.us" tvg-name="[US] Kansas City Royals (CDNTV)" tvg-logo="None" group-title="US",Kansas City Royals
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=kansas+city+royals&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-kansas-city-royals/playlist.m3u8?token=47c599fb3a34250c044d1ab147dd037b7be75a9237018ee0edcdc1b2e99fa4ca.1778818438.d8c52a6391717fd5539747cf6c09a9bd.16ab27ff2f42165657729430552c8fc2.77124629b06b7f41b2068c36b2cb210b&signature=c3e192eb7458f3df241fd8a273f3411649f5b0e4abe75d8722363243ef0d7363
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-kansas-city-royals/playlist.m3u8?token=4dc1c24a567b2a8e226add27873eb995bb86bce510011dd3296005a217737210.1778830970.5fa99415f26b6867b816bf4356ca7753.2d9fc44271be1273d6e82cfccf4ef519.6f2cecba273129158dd840fe1642796d&signature=e221bd930edd070237f14c8358abe825b31f9aa07a1035afa73e85ad3d1c750d
 
-#EXTINF:-1 tvg-chno="52" tvg-id="lifetime.us" tvg-name="[US] Lifetime (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/lifetime.svg" group-title="US",Lifetime
+#EXTINF:-1 tvg-chno="53" tvg-id="lifetime.us" tvg-name="[US] Lifetime (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/lifetime.svg" group-title="US",Lifetime
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=lifetime&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-lifetime/playlist.m3u8?token=b028adfaa519bbda655e21c9ce9adf65efa45af685412871a590b841a2608335.1778818438.73bbb9695d06e1e1809e2eeddae31032.a65680a9c33171b3310f304096337608.b78c89e51166e0b193aa5d989669a268&signature=c5af950b387650594b8569f7c32513bd24dca7ec13fc9895bc8cca88f1529850
+https://edge.cdnlivetv.ru/secure/api/v1/us-lifetime/playlist.m3u8?token=7b02ae7cbc4cceaa4a869c39052c459189569e2487474d29523e573ae495d558.1778830971.59bd5006db21774b65c01cce08818ef4.673e262bd0697b761c6d2b008fcd488c.dfa6f7be636799bf54a61521088dc33d&signature=5a75e65c1b5ecc0b229ec0ea6cf9897040a5d702e26d884fb90d8ab3839dc626
 
-#EXTINF:-1 tvg-chno="53" tvg-id="los.angeles.angels.us" tvg-name="[US] Los Angeles Angels (CDNTV)" tvg-logo="None" group-title="US",Los Angeles Angels
+#EXTINF:-1 tvg-chno="54" tvg-id="los.angeles.angels.us" tvg-name="[US] Los Angeles Angels (CDNTV)" tvg-logo="None" group-title="US",Los Angeles Angels
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=los+angeles+angels&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-los-angeles-angels/playlist.m3u8?token=b5494d8e08d1770c82dcbd0fa6b50b348466a220e9513cd39a03d79ee0b0c032.1778818439.fc27b0969e15fc5f067ed06547cb0087.0adf1540a8b82a78ce4d739706dfd3dc.fed49e6c242704509c90987927980c6c&signature=d20b8e4017a84f97c967f94e0e84d4693d778d2b078fcc4ff0007b88dc529576
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-los-angeles-angels/playlist.m3u8?token=3bab7e7f0ce48644d83cc328cac767ccbc8b1407e162a7dc9913623c194990cc.1778830972.541ec7bf20f1760b3ecf445cb79bdeaa.f671f0d66cb5756d84949beb57b3c799.7d4eea99db8c5dc90c74386f416edc5d&signature=828c07229a3863fd0b857f667f908ee4f822aa3d22e87ff3736d2aa15208cf09
 
-#EXTINF:-1 tvg-chno="54" tvg-id="los.angeles.dodgers.us" tvg-name="[US] Los Angeles Dodgers (CDNTV)" tvg-logo="None" group-title="US",Los Angeles Dodgers
+#EXTINF:-1 tvg-chno="55" tvg-id="los.angeles.dodgers.us" tvg-name="[US] Los Angeles Dodgers (CDNTV)" tvg-logo="None" group-title="US",Los Angeles Dodgers
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=los+angeles+dodgers&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-los-angeles-dodgers/playlist.m3u8?token=8cd1ecb644eb70c72a5add36a1745c972deb857a1259d5ca40dac40a9d9af9c2.1778818439.37fc3cdf3b6bae20bdb5e12aca7d26b9.0dd8d28c01e104dccc526219ced3731f.cf9f8766623dde41143b0efb0d251a29&signature=358daad9aba2bf6cc373598de9e36178bc815428421e506cbc3e2d4925a2f658
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-los-angeles-dodgers/playlist.m3u8?token=af948203ff90c5da14643569e709b381173ab3e88e6d534de1a08e5aa7bf96bf.1778830972.1babb8ac5fb17b253058583a5ed3c67e.b39ace16161f0540b1237b3e19f17785.15b6c2fbaa660c01b9cfb6193a3d84e6&signature=9bc82e49016487d9264727389e76da4901c25407ffd290eac4c83a14ecc76b9e
 
-#EXTINF:-1 tvg-chno="55" tvg-id="marquee.sports.network.us" tvg-name="[US] Marquee Sports Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/marquee.png" group-title="US",Marquee Sports Network
+#EXTINF:-1 tvg-chno="56" tvg-id="marquee.sports.network.us" tvg-name="[US] Marquee Sports Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/marquee.png" group-title="US",Marquee Sports Network
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=marquee+sports+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-marquee-sports-network/playlist.m3u8?token=c4efe0c7ff0794821a96676e01ef399c932aa86b98d80dedcfbb541b60c9c29b.1778818440.07e473c8a1c90d61bba77432d15e0b8a.214ae593570f6e69cc7a0974b7af581b.74b58c14d6513cc9deaab5eab27fcc4e&signature=f10a18684dbc344524f530dc921ab6b851a6dbf82a427dd70acc373936e47619
+https://edge.cdnlivetv.ru/secure/api/v1/us-marquee-sports-network/playlist.m3u8?token=3d5a51612d4920f8d407e9a580a3c6f207646ab2a56bfbf72bd00a3fa920a666.1778830973.d442a597d2b5725c87badb102c10c6f1.5e86fe9468ad515d99d785848b6ecd14.d2cc53b447dc73d44b481787387d41cc&signature=ef89d254c30456327b9924038a4cb93589e3c2e08be866a88b0db836e5152876
 
-#EXTINF:-1 tvg-chno="56" tvg-id="masn.us" tvg-name="[US] MASN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/masn.png" group-title="US",MASN
+#EXTINF:-1 tvg-chno="57" tvg-id="masn.us" tvg-name="[US] MASN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/masn.png" group-title="US",MASN
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=masn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-masn/playlist.m3u8?token=17a3ccdeb9a114fe2c8e9e742bceb1c645666df5d82800ec21e3630763f93dd0.1778818441.2c4cba7bdccabb76d046e7d35b8a945c.4925350ef07d86f51c9feeffeab03b1f.cd2eb0656fdd71993eb69b4b2483cac5&signature=a38b07f794e13a9a78c88ef8ec58085944200c749c93c38b6725d7d16783b552
+https://edge.cdnlivetv.ru/secure/api/v1/us-masn/playlist.m3u8?token=f7ec0f0c9afd1850a50180d9aa4063fc6e1b3679ee2479495de2a56b4da8fac5.1778830974.aa23f1f413e5360c6f91f8932d5e51da.5cc596110d6f819fc3462b3c1e8233f4.e76fdb5b6274142d847730797568e2b2&signature=58b3e37f6420126215f2c92e66c27c1c123cd79a93878fcf3b4d5940a72cc532
 
-#EXTINF:-1 tvg-chno="57" tvg-id="max.us" tvg-name="[US] MAX (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/max.svg" group-title="US",MAX
+#EXTINF:-1 tvg-chno="58" tvg-id="max.us" tvg-name="[US] MAX (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/max.svg" group-title="US",MAX
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=max&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-max/playlist.m3u8?token=dc5feab9ee4962473d6e48fca8ea6971f6cc68308e4f5c41251b7a87c3980254.1778818441.d051d0d4e125ce4bcbb54860e462c41c.597ae390226f507e464248cc4ba400a1.94fd53fee678a53425343b13b0accd48&signature=be64485882f13ce7fda4bc1778ff425870e5127204c3567eddf6f16c2576c15b
+https://edge.cdnlivetv.ru/secure/api/v1/us-max/playlist.m3u8?token=1e3146a631937005a8beddfa7c746de2683ebc4ff4ddfaf8ef0c3d70f7832e82.1778830975.00d4b038d012c284e407975a1d756ef4.6b988a8dd2c9d4333e3005315f45093a.870e0cded625388bd531875b007503a7&signature=5432346e51f522375789eced015688638f9f3fcb0f8223f39d000c006e14e604
 
-#EXTINF:-1 tvg-chno="58" tvg-id="miami.marlins.us" tvg-name="[US] Miami Marlins (CDNTV)" tvg-logo="None" group-title="US",Miami Marlins
+#EXTINF:-1 tvg-chno="59" tvg-id="miami.marlins.us" tvg-name="[US] Miami Marlins (CDNTV)" tvg-logo="None" group-title="US",Miami Marlins
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=miami+marlins&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-miami-marlins/playlist.m3u8?token=6f611d2023561b51a9b811d47363437c0179515208ee68690fb678d639da0ee9.1778818442.8c49d560c08dce38c1570aa5819e19e8.0d6d87df5ade2dbcf4b4158a7d6dce2d.d039d0fca5b96b2f926c24ef374ab227&signature=22b33880711fb8e456434f096e15b47c99550605d204a3218ae89e1205cff2fa
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-miami-marlins/playlist.m3u8?token=1ae2683f0705bff2546f02a78c9b4bc05afdf93c526e2ed70df159c7318b22bc.1778830975.d1ea4d0ad87279915b36e0aad333175c.a8a8fe41f1f43e5b4dc9fb0fb268fe4a.32f9b3525a6d7367b6eea873c7546335&signature=53160b5b43eeef9abf4bb22b91f7c46c14d5fd43096a6f8988e8e94aba466fc5
 
-#EXTINF:-1 tvg-chno="59" tvg-id="milwaukee.brewers.us" tvg-name="[US] Milwaukee Brewers (CDNTV)" tvg-logo="None" group-title="US",Milwaukee Brewers
+#EXTINF:-1 tvg-chno="60" tvg-id="milwaukee.brewers.us" tvg-name="[US] Milwaukee Brewers (CDNTV)" tvg-logo="None" group-title="US",Milwaukee Brewers
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=milwaukee+brewers&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-milwaukee-brewers/playlist.m3u8?token=d7d1215351d59a9bac786135008431e77375df52682d1d014e5def086c80dd8c.1778818442.3142a3b92b00dae2c9fe205010f98c03.3afcb79849cfcb39726cfb45262574f9.976e018dc782484a9ce20c5c7eb96070&signature=070ef92806886efba98cdd034cd8b60b7cc8f0ee92422955dafaa6e66bcf022b
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-milwaukee-brewers/playlist.m3u8?token=a7ee533be6c54229f6b02ae9c432ac73d9f870110b50d00d42e33d1cc884de81.1778830976.c45369feb40eb7a527fe079a8ea52ccb.528847d3d64d3f6638702060a5e271e1.0687304191de8f8714d992024e0d7dec&signature=6357ab08cad076b83dc89cda5d2c37026c062c88165f8cdd72fa16531f9818af
 
-#EXTINF:-1 tvg-chno="60" tvg-id="minnesota.twins.us" tvg-name="[US] Minnesota Twins (CDNTV)" tvg-logo="None" group-title="US",Minnesota Twins
+#EXTINF:-1 tvg-chno="61" tvg-id="minnesota.twins.us" tvg-name="[US] Minnesota Twins (CDNTV)" tvg-logo="None" group-title="US",Minnesota Twins
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=minnesota+twins&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-minnesota-twins/playlist.m3u8?token=abe50e9ab752dc724ffeaca980c5e862b14468e6c3c5defc9f58661dabec7dd3.1778818443.7e5405d80f2d0e9ba60dcb75980246dd.2cc4ad55d9e54ac08279dfa9762a73fd.c7c429af46c3b53e92b368ca761d4559&signature=daa3e2b04ba4ccc5f877539ad85bc70949109645f8671ac0b5ec4deceb81b84a
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-minnesota-twins/playlist.m3u8?token=b30e2b2a8e4256f42abb35fa038c2559dcf5e910803c8e2046db8f82fc519626.1778830977.a852d505075c2032ba95d1f0300e94ef.fbdb08031c35c1c933eb227cc508dc2d.319c6d1fa66db24d394d38fb73bf9b0d&signature=ed56c9c97e410f99d8444523896a1a903fb88c6cf195ba1fb58706604e07bdc7
 
-#EXTINF:-1 tvg-chno="61" tvg-id="mlb.big.inning.us" tvg-name="[US] MLB Big Inning (CDNTV)" tvg-logo="None" group-title="US",MLB Big Inning
+#EXTINF:-1 tvg-chno="62" tvg-id="mlb.big.inning.us" tvg-name="[US] MLB Big Inning (CDNTV)" tvg-logo="None" group-title="US",MLB Big Inning
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=mlb+big+inning&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-big-inning/playlist.m3u8?token=d616bfc50176f983ac2699f4098b21af35a089ec842999b7e4c0461126f07de8.1778818444.603365f7b225153807e66b4172e3bf9e.d2ee4ecb12b2380a48a121202d3642d6.130a7ac5666c00b4880355f276fcfb35&signature=ee09b670ce20dc84b69e712fe392100f92bf0591c7ca4ef58d59a341ed7ac69b
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-big-inning/playlist.m3u8?token=8dc334cca6f288956200a0caa1f38c44c349545549094385c195f85d40e617c0.1778830977.49cf53d356d012b04c004fd97f3a6c82.886d0f627e5e31ca189459c0dd57c839.4bb46477eec7651e796410cb2087235e&signature=a9145d5ead88978c44ddfac9eaa9786bec8669e0881e466ea22ff45526af4f8d
 
-#EXTINF:-1 tvg-chno="62" tvg-id="mlb.network.us" tvg-name="[US] MLB Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/mlb-network.svg" group-title="US",MLB Network
+#EXTINF:-1 tvg-chno="63" tvg-id="mlb.network.us" tvg-name="[US] MLB Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/mlb-network.svg" group-title="US",MLB Network
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=mlb+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-network/playlist.m3u8?token=e776f30523fcea5b01b3b7abecb430696b107ce228b1eee66ca5f29e0637b261.1778818444.8ad6bc2e29d1998472447bf0973d29a8.6b3694907dc0b843607dbc601c10bcd5.64b38a72d5b3861874668cf80a40f700&signature=744073fcfba769dd0c20251e5521dde483112315a14515453caa68b5b710d6e5
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-network/playlist.m3u8?token=02977aa324297d4d97edc087084ecb1b5497037fd6867e569965d6616fe11cf3.1778830978.ee632559aae1372d7e54143ff17b9a5b.3dac28eaf0e063dfa2f6087b33ce8c0f.c32f1772a7cdd2bd65ee6cff957d0c99&signature=5046d4a3dac829e0beadfd45f54e191de8eb35b00e20e625cb6561c409b4a952
 
-#EXTINF:-1 tvg-chno="63" tvg-id="msg.us" tvg-name="[US] MSG (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/msg.png" group-title="US",MSG
+#EXTINF:-1 tvg-chno="64" tvg-id="msg.us" tvg-name="[US] MSG (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/msg.png" group-title="US",MSG
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=msg&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-msg/playlist.m3u8?token=21f3537e0b16839b1033cc9c4b225d5186d45451775f165511ba2dedab30db5e.1778818445.905c65639db88af54cb89dc800286abb.69705e95abf0b2014a46767d98759625.d889c0233fd65321d573b25ed8df311e&signature=cc95d84eaebb58f06dd4bfc207143f520c774e4cfbfc5a732868ccb1463f9be4
+https://edge.cdnlivetv.ru/secure/api/v1/us-msg/playlist.m3u8?token=18b7a6a94b600b5b261a5a8cd2a548897e049a386784af50eb576f6ca2bd0ac6.1778830979.db0629f87d948d0493ae78172555375b.752094506f4d7f2b57bdfda1d721022e.dc1f21093761d28ee8b4deca31e94c4c&signature=fac74be0badd3caf0d4e9c4aa4d7ff587fbe53ae5cb03b329bed506ae0f7ba85
 
-#EXTINF:-1 tvg-chno="64" tvg-id="national.geographic.us" tvg-name="[US] National Geographic (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/national-geographic.png" group-title="US",National Geographic
+#EXTINF:-1 tvg-chno="65" tvg-id="national.geographic.us" tvg-name="[US] National Geographic (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/national-geographic.png" group-title="US",National Geographic
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=national+geographic&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-national-geographic/playlist.m3u8?token=753ee64d5b30a2a02b9222efb861ca925a335f858ecb0cbb03b041150887056c.1778818445.bf98ce93cd8ab77f7da21db54be2ea0a.9e48ac9928593521d24ee3f8dc3ab9f1.effcf16149f3d727acc91323284dd15e&signature=3b3e2c8165052aefddc76ec6bf1d5fb6fb817a5124d505566df733278b646eb3
+https://edge.cdnlivetv.ru/secure/api/v1/us-national-geographic/playlist.m3u8?token=04dc663e361726f3a62a276d362af12af6200b46f089d76d2613e8fbeb0beca8.1778830980.aaa14037d96637d9dc8e88ab8b602e14.7ff93257e427ff57ea6e3ef4b384917f.2983f0294c44a5a888a23027de31d658&signature=8776cfba077be539a5575a7161a31a5ee75f8b2dd61dcb446e53141a9a299d23
 
-#EXTINF:-1 tvg-chno="65" tvg-id="nba.tv.us" tvg-name="[US] NBA TV (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nba-tv.svg" group-title="US",NBA TV
+#EXTINF:-1 tvg-chno="66" tvg-id="nba.tv.us" tvg-name="[US] NBA TV (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nba-tv.svg" group-title="US",NBA TV
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nba+tv&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nba-tv/playlist.m3u8?token=bb09cd105678f44f0c3c211f3e717d213a6a697d8ce126d49b0b893cb43d1fb2.1778818446.fd21db337b1436c38a07d7b31700bf89.93cb2d63f641f14dd5ab04d997b95086.3c0d1ff69cc2d6cca9be32686df10257&signature=93071f3167dfcc280a8109cf0359cf6e191a0214290cb9fc97ea1e4843a2a200
+https://edge.cdnlivetv.ru/secure/api/v1/us-nba-tv/playlist.m3u8?token=6d78809869769e9634cd098c7e11c7fc076748a91be0eaed99f4d825f22119d2.1778830980.2f04b21d0bc1c43f0b2026b592018e24.70f7f941a77b667815bb7e032e58e703.a5695c9a432931a8d737f86c0ddbdcfa&signature=cd9c148a98ef3434fb11177d8a2ec78c7a300c58af61ae419314404c158d5453
 
-#EXTINF:-1 tvg-chno="66" tvg-id="nbc.us" tvg-name="[US] NBC (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nbc.png" group-title="US",NBC
+#EXTINF:-1 tvg-chno="67" tvg-id="nbc.us" tvg-name="[US] NBC (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nbc.png" group-title="US",NBC
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nbc&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nbc/playlist.m3u8?token=aa0a45c8228b2b991ee133eec701e3a3bba9d217ac93ab341633767fe1fcaddc.1778818447.37ee3795fcdfc883a95e65f9cec6c3c1.3da1dd85de96fed00ca5806b30e80de8.0df783030a1ccd12c116e460a2d1b5e1&signature=154c3389675d16183e9d8bccb2d8dee6fc0c8d9f30cedb94404a8df3b2be3c9d
+https://edge.cdnlivetv.ru/secure/api/v1/us-nbc/playlist.m3u8?token=be8973a5d06a851318ed4b691dd6f042cbd3a8780d4720b095526290b335264f.1778830981.9c94855f0ad6f92adc9caef992370eee.1abc9648c5e4c433700b17151343b237.c0543d1e8e40a49250eeca2835d77415&signature=15af0fb3cc11ca3b0cf97256a1e4061dae9135c623b116f8204e7587c5a8b415
 
-#EXTINF:-1 tvg-chno="67" tvg-id="nbcs.california.us" tvg-name="[US] NBCS California (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nbc-sports.png" group-title="US",NBCS California
+#EXTINF:-1 tvg-chno="68" tvg-id="nbcs.california.us" tvg-name="[US] NBCS California (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nbc-sports.png" group-title="US",NBCS California
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nbcs+california&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nbcs-california/playlist.m3u8?token=e21335c0a163afdbc41acfd3d6bdecd39930764b3e19cb1c375933d91e038ddc.1778818447.758fdac5ba96b524d57e10cd0004e5e2.0c39cbe4e29515dc2517314a80705412.088802566ea3f65c10ab857134bcf396&signature=158ad5fa4e6064d7f9e83d05fb9d9759cb7910a18f0648c11869a35ca917b994
+https://edge.cdnlivetv.ru/secure/api/v1/us-nbcs-california/playlist.m3u8?token=076ea6cd7d7352ece093faa82c2eb6d4159e58aadcb51fb068b10ce9b1db01c1.1778830982.29add70e5bd9eeb5f81e7df8c4811d46.53ce42ee512758c00ce3a20f33c31c76.6c47abbcdd524f79359477c773234583&signature=a086a1f5446486a24fddfadb9b8936afe03a2201f091f49eea1b19251ba5c9e2
 
-#EXTINF:-1 tvg-chno="68" tvg-id="nbc.universo.us" tvg-name="[US] NBC Universo (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nbc_universo.png" group-title="US",NBC Universo
+#EXTINF:-1 tvg-chno="69" tvg-id="nbc.universo.us" tvg-name="[US] NBC Universo (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nbc_universo.png" group-title="US",NBC Universo
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nbc+universo&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nbc-universo/playlist.m3u8?token=eb2efbacb898f0f8bda3f90660c5137d6458307ae4bb31298c25e93605d9e10a.1778818448.600328d3e0f2489e193e19cad8f1aee6.7e1209b2209ace1f09db6dee172bc93d.cd5da5ede2de6cdc5bb0b5796cea1588&signature=69e24b07f73c3cf6efd87e77ba8d1e791c59cb9cdb291441353e90821aad0cdc
+https://edge.cdnlivetv.ru/secure/api/v1/us-nbc-universo/playlist.m3u8?token=66d03d74b3d08d136391f6689f2259b9d2ec36d0f31c59069f3f821b036533df.1778830982.d59dcc8c78a04ebe81e5cf8e3ba5343b.c34720a6984decc59270fd5895f0b035.b7b96086f803e88abd4338d2157b55f8&signature=0dd94d330aac95dfb6ebd8ce633bf4e764279377fbf041f96604d75c974902ad
 
-#EXTINF:-1 tvg-chno="69" tvg-id="nesn.us" tvg-name="[US] NESN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nesn.png" group-title="US",NESN
+#EXTINF:-1 tvg-chno="70" tvg-id="nesn.us" tvg-name="[US] NESN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nesn.png" group-title="US",NESN
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nesn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nesn/playlist.m3u8?token=f927f5d208f817bd786f526add9c30717f977b2308d2317e1e1155b34ef1fac4.1778818448.ebd992ae3edb26fe911efca3b5b7796a.430dc349801c95ea6a92a6f0bd5d67eb.36d66d42eea8f545419a534a65071647&signature=d34777c9defa945dbebd0a7b4525a801c171b92502879fedf5fda4b1d41e74a4
+https://edge.cdnlivetv.ru/secure/api/v1/us-nesn/playlist.m3u8?token=ef88127fedd2823d501cee9602148ae4532fd99ec10b0ac2d08b7d627d9f5956.1778830983.71a75c035d7bfbe1e5387f26f63c0900.aeb23118c7573fa613526d4d41abd2e1.a30a4d630f1d628d9075d1f4b65af328&signature=610a2f535b46569cdec15256a82ca977cbb7fd7223c3705a8e2a7915de1eb2ff
 
-#EXTINF:-1 tvg-chno="70" tvg-id="new.york.mets.us" tvg-name="[US] New York Mets (CDNTV)" tvg-logo="None" group-title="US",New York Mets
+#EXTINF:-1 tvg-chno="71" tvg-id="new.york.mets.us" tvg-name="[US] New York Mets (CDNTV)" tvg-logo="None" group-title="US",New York Mets
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=new+york+mets&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-new-york-mets/playlist.m3u8?token=e6fc805b2f0da8caebf68a3831f8ee38d45bef5c91e9e669847a567c3cad1ff0.1778818449.f50317ca9da3db513bd04bc0cd0d790e.1b67cff7844efb6ad0d46758efc22a1a.65981291690a739fa08ceadab2fb78b8&signature=f162c13a69309779fda010831aa4b3c0a648218ef679a5b819e97aa6de79f5f3
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-new-york-mets/playlist.m3u8?token=1592cfe4c769bd087f14d853b8348a7878948ce19cf3583353e7a4006bacdbd9.1778830984.208eaf88f023fadd3c09fb0b9b7e1dd7.6e27a893943efe3225e2d4987f255531.99b26a32751daf138f81df3c11b7e2a2&signature=6e1f8d1339484d99615bbe915631c4483d707a98dd44a2cc38e41e318e9531c3
 
-#EXTINF:-1 tvg-chno="71" tvg-id="new.york.yankees.us" tvg-name="[US] New York Yankees (CDNTV)" tvg-logo="None" group-title="US",New York Yankees
+#EXTINF:-1 tvg-chno="72" tvg-id="new.york.yankees.us" tvg-name="[US] New York Yankees (CDNTV)" tvg-logo="None" group-title="US",New York Yankees
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=new+york+yankees&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-new-york-yankees/playlist.m3u8?token=369360e0ddbba128bb1c52587035ca63f6fe7bd8b5d0a1e8c3ec1dd57e905eed.1778818450.8e329f53f9d4e8f52c6cc0802b177396.e3eaa810aa1db93dd67a7be81b7d25a9.e55579ae446f144a710712040efb10b3&signature=734f043ba68a076fddc610f700f913ab26c7abf7d403cbaf4915b577e26a7d26
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-new-york-yankees/playlist.m3u8?token=7df17ac0c4442a46255ecb41d71a471fdc6c766385fd146f9b432df1f9696489.1778830984.8b162ca92b2ca93f1dbe0d36300f2563.61ab916b536e17b899a7ee0316432683.9258af1fbb5c5a554209f43393f60f27&signature=1eb170c45c6ff701b2376f459ab3e77245a0e1c39ffc13e1e8dcd94edc3bbe31
 
-#EXTINF:-1 tvg-chno="72" tvg-id="nfl.network.us" tvg-name="[US] NFL Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nfl-network.svg" group-title="US",NFL Network
+#EXTINF:-1 tvg-chno="73" tvg-id="nfl.network.us" tvg-name="[US] NFL Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nfl-network.svg" group-title="US",NFL Network
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nfl+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nfl-network/playlist.m3u8?token=c77527cd2ffc3f644f1aefb467d97c3105fbf206a024250166a2343ffc00bbcf.1778818450.d20d9c7f8160965286800c4c1e74d6ca.3f063a185b4eef2a5d72ca1ff41764a8.691c63dcfddb6b656f8470175ce27d90&signature=215cc01d257e605aa4452d03276e3777be262c75e1f4c9edae692c991e0e5f35
+https://edge.cdnlivetv.ru/secure/api/v1/us-nfl-network/playlist.m3u8?token=1a163006ef9a270df08eaf509edbc203769fc093117f3c014340b7abc6f49339.1778830985.6445aebdd6ff878e2a00b836e983ae14.a31a2a5d59e0f029677a413de7923300.319f40dd0240631490a6428e1162265f&signature=5742cf03751a2e95ff507a71e65b18d8d5e02320baf4e2dc0e161a48c3e713a5
 
-#EXTINF:-1 tvg-chno="73" tvg-id="nhl.network.us" tvg-name="[US] NHL Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nhl-network.svg" group-title="US",NHL Network
+#EXTINF:-1 tvg-chno="74" tvg-id="nhl.network.us" tvg-name="[US] NHL Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nhl-network.svg" group-title="US",NHL Network
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nhl+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nhl-network/playlist.m3u8?token=bfe695b57b79582d0b14003333317bb4b2c1e39f455742296229125156e7f32c.1778818451.489c36fcf3cbf14abc7bb335d434f569.6d150752be35684f7658f7e72bbe2784.6d688747fd5409fa58d319ff4756d549&signature=a6fb76081b4956dacbd1ed434e4379b33f5b5f5b60651c1528b833e12ffde8ed
+https://edge.cdnlivetv.ru/secure/api/v1/us-nhl-network/playlist.m3u8?token=80692babb705ece160c0fec907a42b47e98bb3e7e4c339db63141357fca0f39e.1778830986.172450b66fa66245377c181184b3157d.d0ffc1ee4438438c0cc0fe86c72c128d.810e6e260b1a6bcfe21345f5f192b40c&signature=f2dc99ef718752315cb095901345afa1d86554a9eb5e6b3fab093697b4542002
 
-#EXTINF:-1 tvg-chno="74" tvg-id="nickelodeon.tv.us" tvg-name="[US] Nickelodeon TV (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nickelodeon.svg" group-title="US",Nickelodeon TV
+#EXTINF:-1 tvg-chno="75" tvg-id="nickelodeon.tv.us" tvg-name="[US] Nickelodeon TV (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/nickelodeon.svg" group-title="US",Nickelodeon TV
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nickelodeon+tv&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nickelodeon-tv/playlist.m3u8?token=83c0aee4c10ec403f31927c9744a3d0792849ee9b58131c8cc5e94c476b1adf5.1778818451.8a706fbf9390d3f8c88afbfe514c01f4.753e45fbfa729cec585ff42269f054b2.c34ce6381a6cc817e555a7c24f6a94a3&signature=2ee396aa2cfdfd3f119b9cf4b989d2732f6b8c158e12f5191767d3a101a2a681
+https://edge.cdnlivetv.ru/secure/api/v1/us-nickelodeon-tv/playlist.m3u8?token=f3a3ea4959b98f74bd3d09571477c4a9135152103c720ac46b5b641643da87e2.1778830986.3da682a8a9a762d6e9cafb3359a2abf8.d7dfd377fd3972c4c27fee789d4ca7f7.7e9ec076dcbbed1b9c78a44e10f3b8c2&signature=287d1e30efa0f9dad0d6a2bf23c1379f0c9c34aca54c1bb3d7a1ecd5312f3fd1
 
-#EXTINF:-1 tvg-chno="75" tvg-id="oakland.athletics.us" tvg-name="[US] Oakland Athletics (CDNTV)" tvg-logo="None" group-title="US",Oakland Athletics
+#EXTINF:-1 tvg-chno="76" tvg-id="oakland.athletics.us" tvg-name="[US] Oakland Athletics (CDNTV)" tvg-logo="None" group-title="US",Oakland Athletics
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=oakland+athletics&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-oakland-athletics/playlist.m3u8?token=baff606b8b8f3bab5d3c742927e085b291b8355c94dba68cf124546ff057e86b.1778818452.bef30f018c7542cf697a15ccaaab6fb2.e24a77fbac08e39b0c093901cccf8057.b1de4f9a740e1a284ed8552ef3519466&signature=51bda12ebdf73324044b78041db2e3c8b9d3d4c7b051009402fe6498885a5bdd
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-oakland-athletics/playlist.m3u8?token=cde4ea9e48c6a6e5ff3ee642979453b22c251763ba39bae2efb34121d3a82eed.1778830987.cb81900e814014adebc919aae0fdec7a.a5861bb913232289e7ce1e4773d1aa76.8f7232a200c144afc11ccfa981d2abb0&signature=fd5928733c35a8586659ec7518e15d1d64edb4b352b5a634b76825111e6c1163
 
-#EXTINF:-1 tvg-chno="76" tvg-id="peacock.event.1.us" tvg-name="[US] Peacock Event 1 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/peacock.png" group-title="US",Peacock Event 1
+#EXTINF:-1 tvg-chno="77" tvg-id="peacock.event.1.us" tvg-name="[US] Peacock Event 1 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/peacock.png" group-title="US",Peacock Event 1
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=peacock+event+1&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-peacock-event-1/playlist.m3u8?token=8d38f685c18c39807169fa5bebcc2a24f33f9a5d7a104d799d624a4a1ca18ba9.1778818453.6d94133972f82ca5aa2ff079bd420e78.2f92e8dba945d2f275522d36ae7852de.1f70953a841766bdf1acd96ea645424d&signature=d7e78c671d0f5f79673fdfd57d9fbfa24c44b507616eec1871484d9c1552ca1d
+https://edge.cdnlivetv.ru/secure/api/v1/us-peacock-event-1/playlist.m3u8?token=48f375421a37a39ff7dcb1367f29fa27229c1d4232390686ba2f954a033cca81.1778830988.ca341b0b93245543cd64a643054aad38.cb9ccf026f82c76c458f73a4c6e8b6a2.0ecdf5ec6949a577c1b9366c8ad8061d&signature=99ec19edcc67552cf5d772fd217b7eed0bd42129d8cfb32295ea20f033509469
 
-#EXTINF:-1 tvg-chno="77" tvg-id="peacock.event.2.us" tvg-name="[US] Peacock Event 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/peacock.png" group-title="US",Peacock Event 2
+#EXTINF:-1 tvg-chno="78" tvg-id="peacock.event.2.us" tvg-name="[US] Peacock Event 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/peacock.png" group-title="US",Peacock Event 2
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=peacock+event+2&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-peacock-event-2/playlist.m3u8?token=13e9a06e47757a01e2f83b685acd20f5c95d62ba6b6110432b0bb19300566e09.1778818453.d0964d580cd65b8aa8dcdb92d81bc40b.3be1b65fa148a440d76a5175f2efb3b0.811c7ccf827626d7146547dae52f87b7&signature=30c271116192840101754a2cdf2598bbb7307be2a9f98417a4b5a05c312282fd
+https://edge.cdnlivetv.ru/secure/api/v1/us-peacock-event-2/playlist.m3u8?token=2569ad4513780669878bde588d26fa6495ba6266d8e66c132835cd43b93e10db.1778830989.a3be30b70a4fff996c35e3c318e300ae.a8f66b7b39d6882e1c00b0999dca5925.553c58ed06c4ddd24dc864ab5f6576db&signature=46e046d5a11cea46b3c236ed1c2a4ab1cb0dc37bd63fe6d9122434221281802d
 
-#EXTINF:-1 tvg-chno="78" tvg-id="peacock.event.3.us" tvg-name="[US] Peacock Event 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/peacock.png" group-title="US",Peacock Event 3
+#EXTINF:-1 tvg-chno="79" tvg-id="peacock.event.3.us" tvg-name="[US] Peacock Event 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/peacock.png" group-title="US",Peacock Event 3
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=peacock+event+3&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-peacock-event-3/playlist.m3u8?token=511ede04aea8083cd97aa530574a59577a7b8473cc794801f301275e1cc34949.1778818454.59bf89153d03260da660617b4900a3ee.3fb0493baec94f694e872f42c868e79b.38d15397b9172ee5ad72909d58f0c103&signature=e23ff4019255bd99a0a194585647fee36285bd2845373d42393cf242df8b3f86
+https://edge.cdnlivetv.ru/secure/api/v1/us-peacock-event-3/playlist.m3u8?token=aa24757e60824567c1a4a6d753e167bb00b848928cb4adc4a2d06c321058a9b6.1778830989.7fedc4eade54fc8c1429a5dffbd3cb74.2452c57a7875532ffecccd7ca3328b60.752ddde0aa7089b93fa94f9d8ffcd206&signature=2a21f0c2e2dc49f40bfc57b27ed7730426e1f58fd341c2fc7bc4673f4d3bb06b
 
-#EXTINF:-1 tvg-chno="79" tvg-id="peacock.event.4.us" tvg-name="[US] Peacock Event 4 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/peacock.png" group-title="US",Peacock Event 4
+#EXTINF:-1 tvg-chno="80" tvg-id="peacock.event.4.us" tvg-name="[US] Peacock Event 4 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/peacock.png" group-title="US",Peacock Event 4
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=peacock+event+4&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-peacock-event-4/playlist.m3u8?token=658a3caca109a8c3b28d7f332a675f7395e991fe51658e4fc2c04d93e5f6e233.1778818454.8fa24baed8c7ce7481382e0fd3b869c3.8442686e7efe8d95988c7fe16559e266.a62541b3d4e8ae455599b89030577ba6&signature=137cfd64567cc38edbf760fbba7df0bb22311f2a31eae946e36c92ff52436a3f
+https://edge.cdnlivetv.ru/secure/api/v1/us-peacock-event-4/playlist.m3u8?token=23d5293e1729c6d78b9058c318bd6f2ef07d4de07b3db02479fc205d19b00f7f.1778830990.e21db1a01d9de487f8f3480ba479247b.66ea83d9b4188b4316aa955d3ab276da.f26b21de59e5a68cb27db7a3e2927d0b&signature=f7dc45a21855ee7bacef74d756015221388a0e6a303e1c39774607164919c827
 
-#EXTINF:-1 tvg-chno="80" tvg-id="peacock.event.5.us" tvg-name="[US] Peacock Event 5 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/peacock.png" group-title="US",Peacock Event 5
+#EXTINF:-1 tvg-chno="81" tvg-id="peacock.event.5.us" tvg-name="[US] Peacock Event 5 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/peacock.png" group-title="US",Peacock Event 5
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=peacock+event+5&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-peacock-event-5/playlist.m3u8?token=57017b1131539b889c1a5e00afcb0058369252caa62294c380d2250f1e5e9e8a.1778818455.91b5e55fbbc5b1cdbd16da866f562781.7e5c9dc1602907b680b7267c814d711a.b3b97eb7f93a736a62906f8c25be63d2&signature=2fb0437947ca3d6808e0f8ecee7d62c2ec5716c924a13b4c9d763a98e86a8d24
+https://edge.cdnlivetv.ru/secure/api/v1/us-peacock-event-5/playlist.m3u8?token=2e8fdf813e4e8769ba4069111e2fba47d67dfcbbfc93fc554d944cec2002b11b.1778830991.7cf58792f86474be62e7e27074e1086c.4e664456cdbbfb4a76a1433ad1765594.eb90fd58ce997796898954e2f37af0c7&signature=003e798c76e7613ac0fc326270de9b9d4bfa5bcd08f215d93b3bd7684d2691df
 
-#EXTINF:-1 tvg-chno="81" tvg-id="philadelphia.phillies.us" tvg-name="[US] Philadelphia Phillies (CDNTV)" tvg-logo="None" group-title="US",Philadelphia Phillies
+#EXTINF:-1 tvg-chno="82" tvg-id="philadelphia.phillies.us" tvg-name="[US] Philadelphia Phillies (CDNTV)" tvg-logo="None" group-title="US",Philadelphia Phillies
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=philadelphia+phillies&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-philadelphia-phillies/playlist.m3u8?token=6bcc0a43c7e7f2b39c40e07de1d730ad4acbb6d1e79200c2dadab32837469b91.1778818456.39dfd9619983baf3f3f41ec4ca7bbefe.5a4b1c63b26e109f03a266f262fd0331.d79b8b6e2f0baeba3c27a19c594ff315&signature=944e1790b866e403a9a57b1b2345a4efe1c58dd7cd8a48ccf9d4d114ec96ba42
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-philadelphia-phillies/playlist.m3u8?token=92acd35e82323a1fcfc17e57e14df02c22d957d2c31d1620de139c02f395c2f4.1778830991.2d6d0084263f56a35893405d5557d866.d1d2aa93dcead32d4d3ab47dcb6aaf8e.47ea75e5572f7107e90ccfb7f4a687d1&signature=9584b29fd4c36f409c4416c4c8a24420865c223258713fa60eea9877a4d6ed1e
 
-#EXTINF:-1 tvg-chno="82" tvg-id="pittsburgh.pirates.us" tvg-name="[US] Pittsburgh Pirates (CDNTV)" tvg-logo="None" group-title="US",Pittsburgh Pirates
+#EXTINF:-1 tvg-chno="83" tvg-id="pittsburgh.pirates.us" tvg-name="[US] Pittsburgh Pirates (CDNTV)" tvg-logo="None" group-title="US",Pittsburgh Pirates
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=pittsburgh+pirates&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-pittsburgh-pirates/playlist.m3u8?token=a1f62365ee8f9d1733a2e2832330b32d2b479ef8ea4dc7ee603b0d08f82f3c21.1778818456.cd2240d740a6a2fd67624f5593db7898.4a04b7b22a64e70b030efbd1af228c33.107c1b89999a127d2432dd6564225680&signature=bb2dab3aa85efc13ccc1ac827402ffa8dc49f171adb03d140f167544331eeec9
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-pittsburgh-pirates/playlist.m3u8?token=7dd09ce82de49627d466103bb635d8ca5d62353254fa15968eb9b73697a09d91.1778830992.e9572c91af9a2c1b36146fbcf71c945c.5f94258b61b010066eb34b8dc7f869f2.e3a3568f3ee5b67a784a51283492d353&signature=e6ea2b5ec68c83578e30c2bd861816f8e298aeb740ee39efeb866da996a69ee8
 
-#EXTINF:-1 tvg-chno="83" tvg-id="red.bull.us" tvg-name="[US] Red Bull (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/red-bull.svg" group-title="US",Red Bull
+#EXTINF:-1 tvg-chno="84" tvg-id="red.bull.us" tvg-name="[US] Red Bull (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/red-bull.svg" group-title="US",Red Bull
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=red+bull&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-red-bull/playlist.m3u8?token=6d487c4385d28cddc8be6c1cdb859a0dc838cb0e32647c9ab5e1ef669914eb53.1778818457.aba4b91e0318fa82aedb3d17841511f9.84a85d341cc12ab598828acd8a790b85.25e18bf1820c983651f751dfd425fd73&signature=77875b03e9d4e6d93fc4437c540d9e873359949271c478a546664e412e47dff9
+https://edge.cdnlivetv.ru/secure/api/v1/us-red-bull/playlist.m3u8?token=09d5799cde630e2a41b940d247980df27023a06674119a2d929223cd2df1af1e.1778830993.4d8ec6e68dac3db1eae975932e6d2259.2e0c0745069e9b901097caa495c4cf09.16dc2cc28cc5e3ac716ccd6bbd18600e&signature=1bd0f9c4ca40774159fded83ff1cf796fab47d9c905c064daf363d7c27c2fac1
 
-#EXTINF:-1 tvg-chno="84" tvg-id="san.diego.padres.us" tvg-name="[US] San Diego Padres (CDNTV)" tvg-logo="None" group-title="US",San Diego Padres
+#EXTINF:-1 tvg-chno="85" tvg-id="san.diego.padres.us" tvg-name="[US] San Diego Padres (CDNTV)" tvg-logo="None" group-title="US",San Diego Padres
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=san+diego+padres&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-san-diego-padres/playlist.m3u8?token=93082d5b667c06260b3002a4627b904c4b08eda7fad44bfa624b46b03ac59b18.1778818458.2cc7594b7526ae85d795e220c2937263.6807551f5aec12ebf1a003c34e8c0be4.bcb2a2720380c06bc33cf85b23686b49&signature=bbce9382abe9743c0552b93b99e5f143a6ce19ed57bb84f13f6c0826aa5d877b
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-san-diego-padres/playlist.m3u8?token=131cf700ca77babdac3e0ea7bcf65f09e362da898c65a91317341973f069c247.1778830994.ef1df0285ad6e921a08ef9a191585e3b.652b68b20245f8ec1e5fca751f53b8bf.036500bdb13ab7c84ee7d8d0c9294a18&signature=438cd73bf4e1e9b710939bfd8c84915e0547dee5c9d97bc50488b945843fef93
 
-#EXTINF:-1 tvg-chno="85" tvg-id="san.francisco.giants.us" tvg-name="[US] San Francisco Giants (CDNTV)" tvg-logo="None" group-title="US",San Francisco Giants
+#EXTINF:-1 tvg-chno="86" tvg-id="san.francisco.giants.us" tvg-name="[US] San Francisco Giants (CDNTV)" tvg-logo="None" group-title="US",San Francisco Giants
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=san+francisco+giants&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-san-francisco-giants/playlist.m3u8?token=c7c146ae1cd87827023dcc44f0bf7461b8d6626673a9beeb762bef5cd0b17dd7.1778818458.5dfdb8daef506ec8df0e7e50e2b88892.ebffb1784d7205aeaf3c79c972df2d75.27a7990b3abe2d7962049586196b647f&signature=7627d5d688995315201c808aaf2591ed69c3dbe14dec2e65c38e9497bc1ea47a
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-san-francisco-giants/playlist.m3u8?token=548bf8f69a530362154c14ed9858166ed47f943a7ff54c44d8b9b35000e709f4.1778830994.f01339cf7172859cb020bbd1a36a1f54.b4028b9677dc961e6c083992f83e7e4c.b42fd58dffa46d3705fdbcbeddfa1244&signature=02af7edf72023ccd99f6f84e425a535667a94fdfc85918ab215ac75dfc614db5
 
-#EXTINF:-1 tvg-chno="86" tvg-id="seattle.mariners.us" tvg-name="[US] Seattle Mariners (CDNTV)" tvg-logo="None" group-title="US",Seattle Mariners
+#EXTINF:-1 tvg-chno="87" tvg-id="seattle.mariners.us" tvg-name="[US] Seattle Mariners (CDNTV)" tvg-logo="None" group-title="US",Seattle Mariners
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=seattle+mariners&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-seattle-mariners/playlist.m3u8?token=e8be089d7e7c78495ee11d70d7405f1be898a031242940edb27c9438465329d5.1778818459.de1de6b78d2b46cbc1a3ed1a23777352.b51e0404da9478f82f31bdf42e1df7a3.a29dbc1267e109017144726891b8217e&signature=99f107fdf4bebea9f88a8a5f6136e180525f79248b5311d9e0ffddd33bdfe45e
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-seattle-mariners/playlist.m3u8?token=67ffbf530316b985549ddba4ceb7db98078c5ca27d8c4286ab656d278fae1dff.1778830995.8f3c8993cb9f8adc283bf74943ceb64d.d2c20c20a7ec51535a41faeb1e511e88.a91c69798db925bfeb01da7ee731daa1&signature=25e04fb4f96164995d335aecce8d91e6bd929c495e62d3f0714cf4ab0115c81f
 
-#EXTINF:-1 tvg-chno="87" tvg-id="sec.network.us" tvg-name="[US] SEC Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/sec-network.svg" group-title="US",SEC Network
+#EXTINF:-1 tvg-chno="88" tvg-id="sec.network.us" tvg-name="[US] SEC Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/sec-network.svg" group-title="US",SEC Network
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sec+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-sec-network/playlist.m3u8?token=b912edf6bb857cad1e05aca22cdbf2ae0c7bbec808de1e1ee397e3167c8480d5.1778818459.70c7f3f35eb3541a2abfd6c69db0be83.684063179b3a0bb9f7e48b97850c9a86.49d72150c213a31e2871bc28d82c06c6&signature=3afcc5e11b3aba432314bb05f771111ec22c8bdba2b141c7ecacefb9d0a9887c
+https://edge.cdnlivetv.ru/secure/api/v1/us-sec-network/playlist.m3u8?token=16bedad1109994375967b828a30bdb655e3607f9968ecb1e2b497daf1355bf1d.1778830996.ed525c0091f80d1d3110968f221c165e.63e674e4425455b012d0c7b252c44095.be6cf683ffd2e627dca5e786c34a7c77&signature=1fd442655e537d7cd6448a27a4526b11bc0bf470aa9e2f370fbed2a9eb45f701
 
-#EXTINF:-1 tvg-chno="88" tvg-id="showtime.us" tvg-name="[US] Showtime (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/showtime.svg" group-title="US",Showtime
+#EXTINF:-1 tvg-chno="89" tvg-id="showtime.us" tvg-name="[US] Showtime (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/showtime.svg" group-title="US",Showtime
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=showtime&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-showtime/playlist.m3u8?token=35ce7152c84b509c883d61fa5864fad5b66b36ca160202cff2a4fd2e0f6df81c.1778818460.9c7728893a4bde1b6fab0e33a98f5a05.68cf9e741089d3f2c2962072e23af6f6.eb397a363b16ed3c30746417e5d2bc82&signature=f8cc2f1e32cebd6c37a710f6fcde72efcbc2d0f5aa03f4e64803ec3ca9cf1b31
+https://edge.cdnlivetv.ru/secure/api/v1/us-showtime/playlist.m3u8?token=b1202658075e32b375f2ccfdf90040836b563715188ae6b30c7178ab320623ea.1778830996.93c3351aeeb333c8c81fabfcf845f97a.0ec43744116a07d2a848d448696dd69a.7e3db22b6c9aaf06a225cd278d655f5d&signature=846721a434a47945925b32cc0f974c8b6d3ce59f8d2923ccc96be270c74ff5e0
 
-#EXTINF:-1 tvg-chno="89" tvg-id="space.city.home.network.us" tvg-name="[US] Space City Home Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/space-city.png" group-title="US",Space City Home Network
+#EXTINF:-1 tvg-chno="90" tvg-id="space.city.home.network.us" tvg-name="[US] Space City Home Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/space-city.png" group-title="US",Space City Home Network
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=space+city+home+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-space-city-home-network/playlist.m3u8?token=c5c3da2374f59acd017ef10ac8b1dea5f610eeecc5003649a038c2ae218addab.1778818461.a36969db500b71c6edf7a8c42a0d4dbd.de4af241ea3c170d56db8f8d28b795a9.dbb787e9bafe260ea72ff22d6b89003a&signature=9849dd32136266ee216efa8af1efda16fd6203f368c64e842ab24f44f87a58bf
+https://edge.cdnlivetv.ru/secure/api/v1/us-space-city-home-network/playlist.m3u8?token=009fbf126ef501c293e8078664f99c221fc1fa46cca99f963e2312fb9d42a9dc.1778830997.0c986051d17c03a154ded4905e15de14.6e5b2aba4965685b3e278e0e45a25ee6.904ec78346b346ed6a98dd38e48031fd&signature=d758f25d90787c34e6ebd34277d202fe59256d2fc3449df0d93a8ad272c63078
 
-#EXTINF:-1 tvg-chno="90" tvg-id="spectrum.sportsnet.la.us" tvg-name="[US] Spectrum Sportsnet LA (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/spectrum-sportsnet.png" group-title="US",Spectrum Sportsnet LA
+#EXTINF:-1 tvg-chno="91" tvg-id="spectrum.sportsnet.la.us" tvg-name="[US] Spectrum Sportsnet LA (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/spectrum-sportsnet.png" group-title="US",Spectrum Sportsnet LA
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=spectrum+sportsnet+la&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-spectrum-sportsnet-la/playlist.m3u8?token=6b920ecbb5c13be82155b7f94aa369a91f634fb213254addd093eb7dbc258909.1778818461.1b7683d38255a7e74875745055329c94.6a8c1410d7d0bff78ef71fb97caa654d.81724579eca86a4eac486b07d7ad8be2&signature=4b54aca1670f9f2618829663dfd975df7afad8facde8110bd462612b062105a9
+https://edge.cdnlivetv.ru/secure/api/v1/us-spectrum-sportsnet-la/playlist.m3u8?token=7d9eef13d2c45581dbccd002163f792b82e80ec1dde55a0be7596da0d0410f8b.1778830998.82afe2729c6d3d4b50d62fea3ae799f4.d36fb54e74508d56eb84435b314f948d.6da2769c69dc4e3fc6fd1e660ffe0327&signature=ffb8d1b7bab8239a1796df41fe81e06bef15326b1f98e809ebb88f3b1ab4449f
 
-#EXTINF:-1 tvg-chno="91" tvg-id="sportsnet.new.york.us" tvg-name="[US] SportsNet New York (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/sny.png" group-title="US",SportsNet New York
+#EXTINF:-1 tvg-chno="92" tvg-id="sportsnet.new.york.us" tvg-name="[US] SportsNet New York (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/sny.png" group-title="US",SportsNet New York
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+new+york&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-sportsnet-new-york/playlist.m3u8?token=b9795eb887071945fbef0e8a4dcdfea04f0a32a2c2e8dbc056a5ba45024b485e.1778818462.6983213e070e82e09f93b5f3ce6c86ff.8bc783dff3deee977cc00b3f68b33b15.d3ed30953635ad02916bbffcc2e7545e&signature=c599de6a3d2dd0178c777f6f4d4a3546e5d6e9f6618160d0e35f269a6d9bc854
+https://edge.cdnlivetv.ru/secure/api/v1/us-sportsnet-new-york/playlist.m3u8?token=bfdb958c781688f70641712214dfb6dfd95281eb9478e3a6fbd65c31c1f7adb9.1778830998.4aac0723d9b46f455175806fa7bdd016.50404fab9e62ca3b102d5ffe496494ce.fe5bdf73393c83e82c275beed98496be&signature=17f78a40d0b38c3c5246ce8a1236a19f653cbebe022dc37cddf07e9b02d0fbb9
 
-#EXTINF:-1 tvg-chno="92" tvg-id="sportsnet.pittsburgh.us" tvg-name="[US] SportsNet Pittsburgh (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/sportsnet-pittsburgh.png" group-title="US",SportsNet Pittsburgh
+#EXTINF:-1 tvg-chno="93" tvg-id="sportsnet.pittsburgh.us" tvg-name="[US] SportsNet Pittsburgh (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/sportsnet-pittsburgh.png" group-title="US",SportsNet Pittsburgh
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+pittsburgh&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-sportsnet-pittsburgh/playlist.m3u8?token=e7bdd43352192d42f3f7e9dcdfccae4b2f4691f6f298bdfbfb362051d168edd6.1778818462.3b42f5553ab77f192756f8fd7833a45b.c0528d1836a9c8d8d779c16439bbd5b9.97c56b404be8a635c61e96983bc5d76c&signature=a8469e7c2d424d0670ec05ce95360529e7b08236746d3c72ef7e7b08a81cdd7a
+https://edge.cdnlivetv.ru/secure/api/v1/us-sportsnet-pittsburgh/playlist.m3u8?token=3335fd29ce50afdae0654e9c1340f8d4c4aafd7050c64f1abaa759b5538f7967.1778830999.81dcdd61c4bd31ec476ebba9ebc551d5.1fa2697a9308dcac521ff7310e53c19c.aee1ed4757df20af56b26b69743d2b7b&signature=9b24fdccfffe99d6f537bcdc2a783e3e40178d676491419927e47853e5aec4dd
 
-#EXTINF:-1 tvg-chno="93" tvg-id="st.louis.cardinals.us" tvg-name="[US] St Louis Cardinals (CDNTV)" tvg-logo="None" group-title="US",St Louis Cardinals
+#EXTINF:-1 tvg-chno="94" tvg-id="st.louis.cardinals.us" tvg-name="[US] St Louis Cardinals (CDNTV)" tvg-logo="None" group-title="US",St Louis Cardinals
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=st+louis+cardinals&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-st-louis-cardinals/playlist.m3u8?token=f5a7ef1cec5a074bc1e0613bde2205ec1855379883a86c2cdfd8a057ce229a98.1778818463.cf01ab62386709d0ebf88952c6c04f10.2e8f4a42a64d92b08923a9a5aeb18e82.8ebb0269a552a231bc57cd5e5282dd34&signature=388a48d80cebdb7f9e1efc21539bebddcc8affc79b19d7311c228580e7d95131
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-st-louis-cardinals/playlist.m3u8?token=52aadf101617f8bf7c5cb75d81bb8c09a6b38145eeea35067164ca5f7cb3d89b.1778831000.eccc5100c7d5624a32a2d083be52549e.e8c97823f19c80ba4dcdd3a4a09011f9.e70575bdbe623c3b264f1ce45ae04c4c&signature=184003c9e6f50f6ef891469ab79781d0f668214eb84c216a0a42edb268e7c398
 
-#EXTINF:-1 tvg-chno="94" tvg-id="tampa.bay.rays.us" tvg-name="[US] Tampa Bay Rays (CDNTV)" tvg-logo="None" group-title="US",Tampa Bay Rays
+#EXTINF:-1 tvg-chno="95" tvg-id="tampa.bay.rays.us" tvg-name="[US] Tampa Bay Rays (CDNTV)" tvg-logo="None" group-title="US",Tampa Bay Rays
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tampa+bay+rays&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-tampa-bay-rays/playlist.m3u8?token=5154523f03e8bd196b37b2281b6bcdced986b46bf4c3a31b8127d5191ca331d0.1778818464.18c90d3e5fbe9a9bda6d9c81815349ef.e2f97d740c5d1ec2b9d107130e868976.27c1156326f3711a0b1e6935243cc72f&signature=db93684a7cc12307d2582d4252d97c8d5232478b7b6614a8a1c603598a0a2a7d
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-tampa-bay-rays/playlist.m3u8?token=373e16504c30c03cb15a41fe303667b2821118f7d8b6b076f52cf4107ab0cc05.1778831001.bd4445caf6404bbc2cc30a68b200532d.502331499d93b9a04c81027a9ef75d1d.cf8855c91dc7d60932c7759789f0455e&signature=8d29e5c0dcf688ea37ed01f2caa73182c41fe5859bfff9ee1b4dcfcd029a61d8
 
-#EXTINF:-1 tvg-chno="95" tvg-id="tbs.us" tvg-name="[US] TBS (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/tbs.png" group-title="US",TBS
+#EXTINF:-1 tvg-chno="96" tvg-id="tbs.us" tvg-name="[US] TBS (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/tbs.png" group-title="US",TBS
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tbs&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tbs/playlist.m3u8?token=df208c4c9e6a582f71aae1fcfd50c8e52436e52c6a4988d2ba39bbce81512f1d.1778818464.571a1ed5483932ed382b2a641b911786.061c5d27cca3cbbbe609d0cd502739a9.b7f8fa07bfb6144813483ab225d31435&signature=3bf1e67b634168211c4884585f01a41a35d3f9f56f82ad9d1b9e235097d3d7e5
+https://edge.cdnlivetv.ru/secure/api/v1/us-tbs/playlist.m3u8?token=f0437aafada010f7ffb59e8976daacab121543c9e3225a3f56a90be0d2587ad3.1778831001.a99fb923eb116ef287f3601db78f1b05.19caf8eb6270232055182748a685ebd0.bc907576a02c11fc3a8a1cb1e5691f0a&signature=fe61199cc94b0b322c55674a2bb508ed23fc7ae3e4adcbe6d5cc8eaf14827d7b
 
-#EXTINF:-1 tvg-chno="96" tvg-id="telemundo.us" tvg-name="[US] Telemundo (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/telemundo.svg" group-title="US",Telemundo
+#EXTINF:-1 tvg-chno="97" tvg-id="telemundo.us" tvg-name="[US] Telemundo (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/telemundo.svg" group-title="US",Telemundo
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=telemundo&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-telemundo/playlist.m3u8?token=d55044cb1d853d40e59f1d304a30f3337b752cdb55d3142cad25a37873691e33.1778818465.4c8fe9dd3aafe7f197309d3f6b870ad9.44a22d90002455f73bad878f275bfd34.26edb0ac1f5da05228bf460821632bd9&signature=dd41e1a2f320d6caf3449fadbb188964328c7e4bd591c8e6228c7d33cb05e0bf
+https://edge.cdnlivetv.ru/secure/api/v1/us-telemundo/playlist.m3u8?token=ef179e9f43a1d18d83c94b967f971d222ba237196a7f302dbe5e1c745fa7eb06.1778831002.b7fe2131d3f7375f1e8acdf7e6565037.6d1234d6a9529345fa66d5fa5ac2a02f.edc7cfb6fc94410934fd17fbd8c95dcc&signature=d52551ad0994598e0b109e009b5cb6adb95bd8bc385c3b8266e79ffdb0490747
 
-#EXTINF:-1 tvg-chno="97" tvg-id="tennis.channel.us" tvg-name="[US] Tennis Channel (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/tennis-channel.png" group-title="US",Tennis Channel
+#EXTINF:-1 tvg-chno="98" tvg-id="tennis.channel.us" tvg-name="[US] Tennis Channel (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/tennis-channel.png" group-title="US",Tennis Channel
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tennis+channel&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tennis-channel/playlist.m3u8?token=aafd6c429c72a23f74acf1820a2bbd7927b4f9132d8dec9b0de05d6681bcf285.1778818465.aa479e1f17b4972738d7eb9de707de64.6f83313efbf87fdf72a90729b7054f2f.1796a6b965e9d954cf08ff4c3fa5f4ec&signature=41299713599de18226e2f399c5f5efd7ad281879541519b3864e2e4a9a733c03
+https://edge.cdnlivetv.ru/secure/api/v1/us-tennis-channel/playlist.m3u8?token=e4d07643f49df12524b887c11209c75c0a63ab876f543b7fdc8b511d1346f682.1778831003.0af344e7610b9281c60b1b84842b1ed4.978be22e17c0be6f42409656baa8c532.67e3210fd47465c23fe169bdc28cfb5b&signature=609a850f79f4ba27fb9b0431daa983d5ccf17113e6f064c9fb5af7a3c7921fe1
 
-#EXTINF:-1 tvg-chno="98" tvg-id="texas.rangers.us" tvg-name="[US] Texas Rangers (CDNTV)" tvg-logo="None" group-title="US",Texas Rangers
+#EXTINF:-1 tvg-chno="99" tvg-id="texas.rangers.us" tvg-name="[US] Texas Rangers (CDNTV)" tvg-logo="None" group-title="US",Texas Rangers
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=texas+rangers&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-texas-rangers/playlist.m3u8?token=8e0711c468d95fec043202c524f69768b858e43c0dee749491169800d6b8f624.1778818466.788e825ada92d75bb334d37285d27cef.f9c424e82eed6484637d599c0bf485bb.e4c270bd883c404cb2e6ba6659dda12c&signature=da461ca05fec8318882f12f8484397862f234adcdb3ac6ced74e77cd1e9c5c4e
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-texas-rangers/playlist.m3u8?token=97191af670eb505829f0024977d40e5c35ee970ddfdb341575789daa9906916e.1778831003.3901a63c56cde07d2001561c0c3a299a.6a5799922e85a66de9712a55b56715e1.28d7489a4fe7d948965f5e4481f4c644&signature=a6e5aed3268299adf640aae23051c44a73be3b18ddfc14fac9310965c158e58b
 
-#EXTINF:-1 tvg-chno="99" tvg-id="tlc.us" tvg-name="[US] TLC (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/tlc.svg" group-title="US",TLC
+#EXTINF:-1 tvg-chno="100" tvg-id="tlc.us" tvg-name="[US] TLC (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/tlc.svg" group-title="US",TLC
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tlc&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tlc/playlist.m3u8?token=b1801ed1447da0ecfaec533d95e8cab12bd75d4417799475ad8ca04bce426524.1778818467.1d4a7e0c09225f65120333e10771c724.f990da20952a8a0e4871a77bf1c8a71a.97f74a6afcd0bb70e0c13654e8eba2dd&signature=87d7302155f53d20ef3821635d82c88becdcbab4135d35e70b950a738d453704
+https://edge.cdnlivetv.ru/secure/api/v1/us-tlc/playlist.m3u8?token=386dad3482f2ff28c541d758bcb75a7161394854014abf1efe9ac6099d6f6f8e.1778831004.177abfa9d00ccffa20bd19a4bf6e7398.ca3cfe388ec0e8caa59211cc18054768.90b91588a6ebcae631f3aeb60db80999&signature=c57befd60861ee179b7f2280123a67d97a35ad17e56946da8850739760289d64
 
-#EXTINF:-1 tvg-chno="100" tvg-id="tnt.us" tvg-name="[US] TNT (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/tnt.png" group-title="US",TNT
+#EXTINF:-1 tvg-chno="101" tvg-id="tnt.us" tvg-name="[US] TNT (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/tnt.png" group-title="US",TNT
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tnt/playlist.m3u8?token=6899c5d745a3b8191c327f79e541d805c2fa1fa523b46731b6dadeda1617fc7e.1778818467.27859c3971657ea9b88b23138b06a578.d68b79c502dd9a33bf7b91c27edf25d8.c2195fa2e14614470aeed7eb000c38f1&signature=83630a55a08467f68d947e08043a9b4b96c67bf27ec1154942e0fe278aff8fba
+https://edge.cdnlivetv.ru/secure/api/v1/us-tnt/playlist.m3u8?token=eaa22c09a41c62a82d2455c5d798ad43a92afe6762ce54e1e1560ce696882773.1778831005.52a7a88d8fd4a01060207dc9448e74a0.1d5782471364eb2407572e73f00d1f97.4f29dc886c14f4661fdefccd627010fd&signature=1c39698d5af08a8b51648c89b8490d7ff61229af84c5879dc705812bdf939b72
 
-#EXTINF:-1 tvg-chno="101" tvg-id="toronto.blue.jays.us" tvg-name="[US] Toronto Blue Jays (CDNTV)" tvg-logo="None" group-title="US",Toronto Blue Jays
+#EXTINF:-1 tvg-chno="102" tvg-id="toronto.blue.jays.us" tvg-name="[US] Toronto Blue Jays (CDNTV)" tvg-logo="None" group-title="US",Toronto Blue Jays
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=toronto+blue+jays&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-toronto-blue-jays/playlist.m3u8?token=76853ff1d219ba04ba8709f9c3155deed48e7de3f72fb689bb21c6ccb677c714.1778818468.181fce8a1081d426fc983421eca9db4d.1ef1935a3aef9a181545f282466ed162.4f16ce86090f298150a5433931730222&signature=bdd1bcd32f6f0d2a3f6888fa269705db2d4b37a2a08aa043f1e6d267fbc93339
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-toronto-blue-jays/playlist.m3u8?token=eeedc75e1a1fbc653bf174fc50ffe24f11bbfaf413d509f383744101749b482c.1778831005.e74cd40248134bf1ee8ed96c7c1b0812.a4ab2b7b1bbf01e3d0493841ff2c088e.139135fd94986e0d29b596f8bf2ec363&signature=25713e41137639658391e6faf3198a4d04b3c20f1150cd0cad49f7ba1f21ad2b
 
-#EXTINF:-1 tvg-chno="102" tvg-id="travel.channel.us" tvg-name="[US] Travel Channel (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/travel-channel.svg" group-title="US",Travel Channel
+#EXTINF:-1 tvg-chno="103" tvg-id="travel.channel.us" tvg-name="[US] Travel Channel (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/travel-channel.svg" group-title="US",Travel Channel
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=travel+channel&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-travel-channel/playlist.m3u8?token=88ba009d3e03651d80851842db654b19714547e6c819138f58394abb42053802.1778818468.3ccd507ce07eb363a2ffe5c75b9361ea.2a266fd63267d2da17b3eac0fe2435cc.5b9a489b725c78abfe44aacdce45ff7d&signature=c86a6c3e5aff15350b6218e92e11a3b88a74f7703940dfb2bbcdcf8941d918bb
+https://edge.cdnlivetv.ru/secure/api/v1/us-travel-channel/playlist.m3u8?token=110b1ae9daacec1b8a8f35d51c2152ba816079c632bbae73a54fc9fe05729881.1778831006.a66f18c2717d22c9c2c9848dd60ed98f.681af7c339ce94536c6ba0bffbc287a6.9fca87e22f605426a5a29b2745cc584b&signature=efdf7f416a5940f84b4a30bfae8767fe38638d12f5869462d8db4d28ee8fb20d
 
-#EXTINF:-1 tvg-chno="103" tvg-id="tudn.us" tvg-name="[US] TUDN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/tudn.svg" group-title="US",TUDN
+#EXTINF:-1 tvg-chno="104" tvg-id="tudn.us" tvg-name="[US] TUDN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/tudn.svg" group-title="US",TUDN
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tudn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tudn/playlist.m3u8?token=ff18cab6fb194bf207698ff2570fe9a545b92bf818b55357a5252e72d88de6fa.1778818469.68e569d0b7d7674af8adecd6b3325e0b.26932d4fec700540d274aeee0a921bee.bd84a33c2f3a3d5014d497889d77adba&signature=fdb14d5bd6bc62c646175097c237fc0288199f1733425c51521ab686e109b3d6
+https://edge.cdnlivetv.ru/secure/api/v1/us-tudn/playlist.m3u8?token=96c0d12f93d292cf3a18fbd20d08c2df431cde97deca640b32472d82a0fa1e29.1778831007.999b46089081286e08a8d458881c9b3c.e5def21aa644a67ef8930842cb13e11c.be7348df22bbb2aa94be1736c6531e7d&signature=0d6cc334f594fbd6848a4c7dbf3bd0db655094b3305d469b56e2c92733ed0cb2
 
-#EXTINF:-1 tvg-chno="104" tvg-id="tv.one.us" tvg-name="[US] TV ONE (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/tv-one.webp" group-title="US",TV ONE
+#EXTINF:-1 tvg-chno="105" tvg-id="tv.one.us" tvg-name="[US] TV ONE (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/tv-one.webp" group-title="US",TV ONE
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tv+one&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tv-one/playlist.m3u8?token=b0d536a3e81b2ff3f8076d0b958fe840bfdff4316755be6da5a0d547903420b1.1778818470.c025c33b072ae8e2f17d9022d60b6c14.79be42c10c411cdf1d63e2a1b589003c.33494fbd7c85e9c4dbab7ff29bda9a31&signature=89bc098b276749a30401a83bb8467d980e263a35ff7f462d5cb9d35ecf0cc555
+https://edge.cdnlivetv.ru/secure/api/v1/us-tv-one/playlist.m3u8?token=4f8c2f040f7a7d4c6322bcdc207814013e487bea13ebf0c27c155c3f4b5bb5ed.1778831008.cecc7fb2909aefa1d17046379afb6746.e2a82ac0add86ac5508d21716d239714.5875213be423403a5835ddcbbd35a508&signature=1630bd8e3d6ee82de97ac7cd66a16fe73a7d7d514c7e13284dcb4dced5025a7b
 
-#EXTINF:-1 tvg-chno="105" tvg-id="ufc.328.backup.1.us" tvg-name="[US] UFC 328 Backup 1 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Backup 1
+#EXTINF:-1 tvg-chno="106" tvg-id="ufc.328.backup.1.us" tvg-name="[US] UFC 328 Backup 1 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Backup 1
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=ufc+328+backup+1&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-backup-1/playlist.m3u8?token=75634db3611040e4a88d8a038fcd08fafaee7d084ac51546b9389fefa1770824.1778818470.82d9dc648de6fe625a835f277ac95c2a.0285926486c463acdec44dcacf8066d0.f6035eb5c5d236969293516512e910ad&signature=a888f8039b884151e6a946aa687499b5a22bc08fc57a6ca15b72f59bc37e58ba
+https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-backup-1/playlist.m3u8?token=93e87dc05914f70fb0e08dff50de47eb0663204bf6260205cbbab290d4b3c32f.1778831008.618752d92680c2fbcdc2cb430834cc97.b65aa74d0a90e45dcd685cefb648f3c4.ad19cc75797150c15556902f8abcd293&signature=53d0bd9d14658de0a5107b5b886d4bdad8072aa5deb38a3f98989f44d43d1c33
 
-#EXTINF:-1 tvg-chno="106" tvg-id="ufc.328.backup.2.us" tvg-name="[US] UFC 328 Backup 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Backup 2
+#EXTINF:-1 tvg-chno="107" tvg-id="ufc.328.backup.2.us" tvg-name="[US] UFC 328 Backup 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Backup 2
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=ufc+328+backup+2&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-backup-2/playlist.m3u8?token=deb33dff0aa135f84a3f403eb4560951b5733fd3080ccf0dbb74e77908982358.1778818471.9fe4fd4740fe8fc4e8fc82e656b2e7d1.fedeb7b298d8f271ee86c8bcb7baad84.59b52c1b6658e0e8d018fd8428da8416&signature=117d1f116e1ecc4faf7f175f70b7d42348ba1ec662567bfb21c73fd0e015db86
+https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-backup-2/playlist.m3u8?token=e1a2859a46c56a6c67aa0cee257c4722b413b72f63b6e03b526a27d07574d450.1778831009.3eca56a65b5422a1b8a2b2ec4b53f20d.c1db5c4fd06e01e1d1f4e23b5eb64403.57fccec975fdbc7671a64a74f76cb1fd&signature=c252ca46d8ded8a71e86a1a4b12ad973b750cc1a39b0c7e7c314e68f140a0213
 
-#EXTINF:-1 tvg-chno="107" tvg-id="ufc.328.main.card.us" tvg-name="[US] UFC 328 Main Card (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Main Card
+#EXTINF:-1 tvg-chno="108" tvg-id="ufc.328.main.card.us" tvg-name="[US] UFC 328 Main Card (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Main Card
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=ufc+328+main+card&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-main/playlist.m3u8?token=f4cc9bdcce3de96b61453c9dbf2ad73bc95a94c9201fd3662f04442d288fbd3a.1778818471.72e54b7f0e0a8ac91aff293c1f96bdee.cbdaa6d30c6a902d0c42354314516a29.47b40df13b6f8f92aa2a0bd0314cb73c&signature=22689686eb0b98525f3885cf45cab81c8e1f93148bc9c9ae0b1d0fbfe9092372
+https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-main/playlist.m3u8?token=30d29d4875f3a4591c3270dfae034c5e68fc4da8379b1168de36539832b44f73.1778831010.ecb47160876fbc7f03f22a0ade4aa1e0.6ada9ac8b2a79c0ebf1d536713025b97.445d726c8a008439c06d3d309f04f626&signature=1b8d7680608f9796e1ac949d2d78f0a067f30e5b2e13ce4dc2fcd7a4ba525195
 
-#EXTINF:-1 tvg-chno="108" tvg-id="ufc.328.multiview.us" tvg-name="[US] UFC 328 Multiview (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Multiview
+#EXTINF:-1 tvg-chno="109" tvg-id="ufc.328.multiview.us" tvg-name="[US] UFC 328 Multiview (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Multiview
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=ufc+328+multiview&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-multiview/playlist.m3u8?token=7cda6eb3f1206c9afba9d54270827b3a921a6675617f83e52a1d918dfa3aa8f1.1778818472.73358db0b94becdc622d51a26bab6d42.76dbac753d004709261017c46fd943d2.b3b8a790647011f227322e37d5993d95&signature=26602c0d157c737add0ddb7a075d0a79ecc910677bb6e1496950ed616f0cfc77
+https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-multiview/playlist.m3u8?token=f564ee0ce086b1bb837523bfe566b85f9a267b73d7be1595b5628bb509c262c1.1778831010.c557d0048a78fc22b0085b3923f64835.c5db4102e6c4ba4e550248f8a5efc8d2.d1cd7433a5cc9087b87d72881f93a33c&signature=402b957784c90ce93c0ea9fc9e069142fdddde5a33b2b00884c17f184ff91116
 
-#EXTINF:-1 tvg-chno="109" tvg-id="ufc.328.paramount.english.us" tvg-name="[US] UFC 328 Paramount English (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Paramount English
+#EXTINF:-1 tvg-chno="110" tvg-id="ufc.328.paramount.english.us" tvg-name="[US] UFC 328 Paramount English (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Paramount English
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=ufc+328+paramount+english&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-paramount-en/playlist.m3u8?token=eca63293730af9ad734e44db6b674cd46a7bd05d38f28e7c5941f45de72090ec.1778818473.74fbaddc047fe14364e96b7d785aca66.ebe37e05b74a808c0c76b919bd56773a.9eb893bb506765efc2db8c6cc337ce2f&signature=0cd78dd2dd47eabc964a03a89804e0f5fca54ae45a4f6d9d37293327b93891fa
+https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-paramount-en/playlist.m3u8?token=612537fc6406f2232ac4cb1db94b113fbf979321dc10cd7241c66a5c760d44d3.1778831011.f105487e3f9446cd81cd81aded48d8ef.c43ada8ed4d0d5388758bcf1c017d0e1.f57152f7eb965f61d4c81da6b5b15803&signature=fadbd143545470fb2cc3ec70585c920fe0ce343d1ed61b80501b762311a94130
 
-#EXTINF:-1 tvg-chno="110" tvg-id="ufc.328.paramount.espanol.us" tvg-name="[US] UFC 328 Paramount Espanol (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Paramount Espanol
+#EXTINF:-1 tvg-chno="111" tvg-id="ufc.328.paramount.espanol.us" tvg-name="[US] UFC 328 Paramount Espanol (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Paramount Espanol
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=ufc+328+paramount+espanol&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-paramount-es/playlist.m3u8?token=9f1be7a2e2a9b403c45f71a923c4544cadbcc84c9bf2cb83092964dab75a0626.1778818473.367215e32358a2153a4e72c4134a9bcd.3ad695ae1029c01fe3948ff6142b7996.df5c8ae2673e94bbd77bb8b1e9a33ee9&signature=49d464c4a95f7cad36ecc2690a3393507213bb78d2e0e2d9debc70562925feea
+https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-paramount-es/playlist.m3u8?token=f0f9387b724636494623b2f76bfff583dc3eba7a7360cab10d4add9fce796371.1778831012.bdcb7ad996da5e4055c05b77c5fcb36d.7681664dc636e3c24ed5efad507fda86.d9a5a4730f151050a3f2ecae057d506e&signature=cffdf632e8b762569b70ffc44c1ea2430e3db0767f17815484f2e89a5416fedd
 
-#EXTINF:-1 tvg-chno="111" tvg-id="ufc.328.paramount.portugues.us" tvg-name="[US] UFC 328 Paramount Portugues (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Paramount Portugues
+#EXTINF:-1 tvg-chno="112" tvg-id="ufc.328.paramount.portugues.us" tvg-name="[US] UFC 328 Paramount Portugues (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Paramount Portugues
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=ufc+328+paramount+portugues&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-paramount-pt/playlist.m3u8?token=89975d775b54e753faa06ed9f4be0cfaf5b2c25aeb514158b2b4cbae5ade6035.1778818474.d280984355f4be13415cf15f4093ccb7.da82b8970cbd1e51a34d82ee221afa1a.3532d70329b1706294ccaa44f50401ef&signature=899d3a348dbb2524d01713da7f97344a2907c2883723ca5ed577c248f3dba533
+https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-paramount-pt/playlist.m3u8?token=61b14b6d64995bd7aa5fd901cad7cad2cca5829240b4d0dc91af75a202dacdaf.1778831012.69f4b1e6d30f853119d25fa043fea5d5.78de226553a16822169dbf3666a03308.2d31e316e766a7125b8e9ab787cfe5be&signature=345c448dfe23f5514a87a838b931c54782708eb7556ab9002e6d52b8e58962df
 
-#EXTINF:-1 tvg-chno="112" tvg-id="ufc.328.prelims.us" tvg-name="[US] UFC 328 Prelims (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Prelims
+#EXTINF:-1 tvg-chno="113" tvg-id="ufc.328.prelims.us" tvg-name="[US] UFC 328 Prelims (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/ufc.png" group-title="US",UFC 328 Prelims
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=ufc+328+prelims&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-prelims/playlist.m3u8?token=0e74540fad3b549013e6a5174af6ee05f062c689b8862154e4a358a12685cf6e.1778818474.a70015133d345b3c03fcbb531732f5a6.4e0cb4a47e13d3780ad12b33de9dea53.12f6716666119a2ec39f6269b3b5815f&signature=8ffb81ff2c25ada19c0bdcdea047231e1633dc1d0851ac04ee43c5b8e6f65ed1
+https://edge.cdnlivetv.ru/secure/api/v1/us-ufc-328-prelims/playlist.m3u8?token=793782a67b9310674becd23a81351a365de8feb41f67a8e97aafc3f7e7309f7b.1778831013.a775462e5a04e332019176947d13f012.0167ca9af6302c7e19f70f1b656c2272.2b7ef8fd113ddc2bb703feefac83f9d9&signature=15f2fddaa7edb18c2b715148bf06f7fc744ce00921cabc742b7dacceff05abb6
 
-#EXTINF:-1 tvg-chno="113" tvg-id="universal.kids.us" tvg-name="[US] Universal Kids (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/universal-kids.svg" group-title="US",Universal Kids
+#EXTINF:-1 tvg-chno="114" tvg-id="universal.kids.us" tvg-name="[US] Universal Kids (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/universal-kids.svg" group-title="US",Universal Kids
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=universal+kids&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-universal-kids/playlist.m3u8?token=f663ab60efc4a5eb747375304a9b8b7d2ad68f0c1f5e20b677d73ba53d9535a3.1778818475.6f2c16b4f133077bbc3c821c88cfb7e3.036d43895a719e3d63ec2a018419822a.e53082fd3142cb795c6658fbd8106f54&signature=3861c61c89f486488eec886ebe642d1a796019245f59a143f551f5ad3520e218
+https://edge.cdnlivetv.ru/secure/api/v1/us-universal-kids/playlist.m3u8?token=6782b394036ba964eb209f9b74b3ffc415f9bd0472ff0d71b1fa845d4f57de5a.1778831014.6d1ad7752841fa5495f2378cf8bd283d.01b02d2eded3b6aa6525f3ae43d6a702.79461cdca2f9217d4133dc153686c617&signature=09f134b62b78a440dd2bd433a2cef37873991526790df195107082e98a1a5884
 
-#EXTINF:-1 tvg-chno="114" tvg-id="univision.us" tvg-name="[US] Univision (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/unvision.svg" group-title="US",Univision
+#EXTINF:-1 tvg-chno="115" tvg-id="univision.us" tvg-name="[US] Univision (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/unvision.svg" group-title="US",Univision
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=univision&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-univision/playlist.m3u8?token=7416438fc65413530b887f64761a12efd3d2f4c967845bf5bfc75325de0ed787.1778818476.cc3b0be2b4633a73379f5e54ae77d51a.9d8f757b6488df9466ac3943b0c4cdeb.a764521628635102ab80da74524c215b&signature=671a31b482287534b5db8a8c20c9510f49a80f9708148fc0c9169706f4d87633
+https://edge.cdnlivetv.ru/secure/api/v1/us-univision/playlist.m3u8?token=eb48d87b6aa0afb38b86263eac91ff5138bbe9d203e113b993783627a5afa929.1778831015.126f37cc0b8fbf49e0d51c1c357a8fec.5b711d95704d851b26a9b317b89eefdc.4877b54f01b012ebda40afd15f5c8b90&signature=c0493436e1c654210249aea7b58cb153b4a4d95527af3cd5b7ad1a88e7e39b62
 
-#EXTINF:-1 tvg-chno="115" tvg-id="usa.network.us" tvg-name="[US] USA Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/usa-network.png" group-title="US",USA Network
+#EXTINF:-1 tvg-chno="116" tvg-id="usa.network.us" tvg-name="[US] USA Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/usa-network.png" group-title="US",USA Network
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=usa+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-usa-network/playlist.m3u8?token=c17625e4a592c667696e643ad1cb1f759dac4641ca6d0fb61280820714067080.1778818476.bda7b8aef40246b03ff58169621875d0.354f468b0bc0462ad01be560b6aaf69b.fa27ebfa7ccd3fd3f063e58604f8c0d7&signature=66119c81a9ce64ce91fc26a6743998e16682ac5fd9831b11e4c5f86900c8427e
+https://edge.cdnlivetv.ru/secure/api/v1/us-usa-network/playlist.m3u8?token=ddf264c63b2061bf88dc9141921b4fe3f1f5932a33ae87f218cf68403fe89eb8.1778831015.c6774294c56a403b8423808d52338248.ff99b8c85cfc2ea08bafba09188cee0a.240bc3773258c483d593faa6ec6ba7bb&signature=5f0f1f66327563589c258516ce38fbb9f740d6f9f279232e5f39d24e100ef065
 
-#EXTINF:-1 tvg-chno="116" tvg-id="willow.cricket.us" tvg-name="[US] Willow Cricket (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/willow-cricket-1.svg" group-title="US",Willow Cricket
+#EXTINF:-1 tvg-chno="117" tvg-id="willow.cricket.us" tvg-name="[US] Willow Cricket (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/willow-cricket-1.svg" group-title="US",Willow Cricket
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=willow+cricket&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-willow-cricket/playlist.m3u8?token=51e604320abdffe81a68ab9f2ff686810ed93b66541ef6f2e089a27886f1314d.1778818477.899c2b5bfcdf63aef6ea142df4769a0f.e0e153c94261a44e5b040da270ce3483.d76be850d3b5be62d30322c844382d3a&signature=1c57e267fb433a2d3a9fc1db8ce2d397a01fc57882cf4d767cd76e1e7b1e072a
+https://edge.cdnlivetv.ru/secure/api/v1/us-willow-cricket/playlist.m3u8?token=29e7dc62d678ac338283999a21b50c5c7d18d36bc1de9485148b95e31c6715c1.1778831016.36f4d7a68510d9cb335ef80189df947f.a441a87378fcba1393ddfc9578b4860e.8165bf58dc42b7f8cff04956919d1b61&signature=b1b7dc3dfece7b6ed4075f60184efa548a6bf007c821bb6a4eb734eefbb949d3
 
-#EXTINF:-1 tvg-chno="117" tvg-id="wwe.us" tvg-name="[US] WWE (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/wwe.svg" group-title="US",WWE
+#EXTINF:-1 tvg-chno="118" tvg-id="wwe.us" tvg-name="[US] WWE (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/wwe.svg" group-title="US",WWE
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=wwe&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-wwe/playlist.m3u8?token=95895a84d0f62e53aab85c8009c870f54b6449e918fa9fdf26018a32f10059c3.1778818477.10659dd035559dc30eaeec51e86632e4.e07e744f8c55e7ac066bfa9cf871d747.38080f3aab3ad068638527a5f64ab460&signature=e2999bbe596dad8f74674b31651c89290055eb7dc45534527c58b8d240cdaeb7
+https://edge.cdnlivetv.ru/secure/api/v1/us-wwe/playlist.m3u8?token=0ca7e7d1c24e22dd4d4146a34b03e5dd885f76d5bac7618ca53d97530b8356eb.1778831017.278ddabf4864820d95b1cc0b1593b386.f45981c40fe1a4c3cd47ad61d9c755fd.ba92b88e7908d517ece0bd1425160e80&signature=464b36ddc3263d2fd8ede7f124481fb689b7a11498700971cf365a2e3f3c4484
 
-#EXTINF:-1 tvg-chno="118" tvg-id="yes.network.us" tvg-name="[US] Yes Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/yes.png" group-title="US",Yes Network
+#EXTINF:-1 tvg-chno="119" tvg-id="yes.network.us" tvg-name="[US] Yes Network (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/united-states/yes.png" group-title="US",Yes Network
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=yes+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-yes-network/playlist.m3u8?token=82c5899a00014fbd465b74ec6f84f73f748a24a7585b18da5cb54e21fd2999fe.1778818478.62ae6cc77a3be78196a0e310cc3b3442.e2bd0fca16ffa9fd08f5c18ece209230.c5d58fb2715a51f4cc72b1ef69274292&signature=80e07b63a1631d20183d6e9d81585a50f08f611d6fe665b2a9e63b3c57380e0e
+https://edge.cdnlivetv.ru/secure/api/v1/us-yes-network/playlist.m3u8?token=fb160f97bdc1ffd195824ccf82a8523a55d157c7851e8e71919ef00688f46848.1778831017.5a7646ec7a71a8b6ae73c0f15c765dab.9e56806f411870a8b659fa524ff8c30c.3cf95fe076b199fddff8ec87f822dffd&signature=3464ae0e694814652db1f2ac15625829700d4e36473380bd6d6d91e396c05497
 
-#EXTINF:-1 tvg-chno="119" tvg-id="cp24.ca" tvg-name="[CA] CP24 (CDNTV)" tvg-logo="None" group-title="CA",CP24
+#EXTINF:-1 tvg-chno="120" tvg-id="cp24.ca" tvg-name="[CA] CP24 (CDNTV)" tvg-logo="None" group-title="CA",CP24
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cp24&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-cp24/playlist.m3u8?token=217fbb0c62e106b8b6c372463dffacaf1556f29fca8dd3a41e352ebf1e0939f1.1778818479.d6d801d1267fdf7a059fb91b291a0929.d3a62b65c8fbb6e5ec4b58a8165dae7c.0c7f82284c11ab1179fb6ac68b06c03a&signature=9394e1fdf6e5f7467b6671dc4fc7e5329b48a1ca6169b7039f956c00e685e54f
+https://edge.cdnlivetv.ru/secure/api/v1/ca-cp24/playlist.m3u8?token=41c3ccb9a9335610664570a9427824fb199b45165a05db3a7ea46f73b553c21e.1778831018.78a63fa31838419ee46ff05e016b64e2.0b850fd25596d422dcb3aee85e3c9d60.1f9f81ee27a9ed7dc9939fc090517c79&signature=060eefb8bbe25d7cef1ebda2993119e49dd36b853c18c6928740934a96491b80
 
-#EXTINF:-1 tvg-chno="120" tvg-id="sportsnet.360.ca" tvg-name="[CA] Sportsnet 360 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/sportsnet-360.png" group-title="CA",Sportsnet 360
+#EXTINF:-1 tvg-chno="121" tvg-id="sportsnet.360.ca" tvg-name="[CA] Sportsnet 360 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/sportsnet-360.png" group-title="CA",Sportsnet 360
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+360&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-360/playlist.m3u8?token=1350c41c9b5b175a7598d1531a6301c92f7fe52df4dbc884a6a2b3f807636884.1778818479.55e42b49dc67c09bbd7d82559dfd7753.bd2fb8fd385e22ac02e24f1bd9a214f6.18087698a61d55376beed5b53062e621&signature=3c3246afe88d25fe591466b5b8f45ed793a3fedecfd3074b8d920825c674611a
+https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-360/playlist.m3u8?token=a09e24140389056f198da12155c28f8c523128d9580382dbfa2c665f02333cdb.1778831019.7faa79bb30ce00717605769d6c8fe3cb.06423b80e3d21a09618ca0b78c9c0e1d.0b38bf404812cfff3a17fff3ee5bd5c2&signature=eb454fbcefca734aa17c7b0a13bac1d074e68153d7a2f131dc5afe69dcdd5832
 
-#EXTINF:-1 tvg-chno="121" tvg-id="sportsnet.east.ca" tvg-name="[CA] Sportsnet East (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/sportsnet-east.png" group-title="CA",Sportsnet East
+#EXTINF:-1 tvg-chno="122" tvg-id="sportsnet.east.ca" tvg-name="[CA] Sportsnet East (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/sportsnet-east.png" group-title="CA",Sportsnet East
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+east&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-east/playlist.m3u8?token=acd34afaa3c6507ecf7a478508bdfdb2513bb5695049f12461e1358704f4d128.1778818480.aa05b5e0e81e5eba521fe8c6efd89a5f.055747052495ed709c2c7e4c5a69c9d1.ad889da54460015b9b36aa38fc5ee30b&signature=be9dc37bf49e58f2a606408ca33525edff07b77e8055656e0c3c6300f6920a91
+https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-east/playlist.m3u8?token=fa51511357fbb80798f6dd89285b070414f288446dd67f55c7ef482bb5608bbb.1778831019.1b2d33566eefed7efef674500a9d7bd2.e47fd49d830658ca76f58b3ae589f654.aea0475619992aa5e64ad8e0477f95a6&signature=b58ecd7545396e04c93b8c996ae1c316e2fff0e460699a9fcc92512f9815460f
 
-#EXTINF:-1 tvg-chno="122" tvg-id="sportsnet.one.ca" tvg-name="[CA] Sportsnet One (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/sportsnet-one.png" group-title="CA",Sportsnet One
+#EXTINF:-1 tvg-chno="123" tvg-id="sportsnet.one.ca" tvg-name="[CA] Sportsnet One (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/sportsnet-one.png" group-title="CA",Sportsnet One
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+one&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-one/playlist.m3u8?token=8df4cd0d3852ead4c665c9a610426f3f8551231a978ae43c972c7bf2c382ae9d.1778818480.72faf2dc48489404d6bd7a5e40445a3b.19c99b6ab80e5a3268640b0f51062dbd.b24d3ec16609a092eddb5933f1e65126&signature=40bca7b49a8b915448f24bd5b91f122d2c9d4cbf8a88f4227a70077fa97e5e51
+https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-one/playlist.m3u8?token=96f964de17514d5c0058d07c3d571c53fb759c8eb08f435a17bba9d390b75d2f.1778831020.8c93836057e839e12723ec06569f4cad.f7e78384c12ccfa1f5c252cdcb2194ee.6c056ad9096fac68a9a6e2dcd5500519&signature=c1a12a099f2a3bf7dfecea815fc56a9bd1de829be6f531d612e0954a0e72121c
 
-#EXTINF:-1 tvg-chno="123" tvg-id="sportsnet.ontario.ca" tvg-name="[CA] Sportsnet Ontario (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/sportsnet-ontario.png" group-title="CA",Sportsnet Ontario
+#EXTINF:-1 tvg-chno="124" tvg-id="sportsnet.ontario.ca" tvg-name="[CA] Sportsnet Ontario (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/sportsnet-ontario.png" group-title="CA",Sportsnet Ontario
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+ontario&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-ontario/playlist.m3u8?token=9f75f29e2fc3d89e5957d10df8bbbd2313e81b3b42f0beb75ac77953ae831aa8.1778818481.42dca4490cbdda3f80d62ac35ebcc8b7.464dc961252feab5fb79d1074d5ff52d.8ee10f07690c6fe8067c8f72eb6d3eed&signature=837832b7b36bc872d7ba7bc02f89bd65a111aaf8b2474490336a11d1bf01d97c
+https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-ontario/playlist.m3u8?token=d2a2069e6626de42ca34d1bceaa13004bd3889f9f93a7468a24facfc834049e5.1778831021.ba06c57057fd071b05fe65be9b130cd3.db82fafc784bea4481547b3d72d0b808.d1f49f5d105cd0007bec2eecc3df90fd&signature=d911c4e531437068a1be1c0e3396e06dfd24f8496e33a4bb6ac68dcd34061de0
 
-#EXTINF:-1 tvg-chno="124" tvg-id="sportsnet.west.ca" tvg-name="[CA] Sportsnet West (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/sportsnet-west.png" group-title="CA",Sportsnet West
+#EXTINF:-1 tvg-chno="125" tvg-id="sportsnet.west.ca" tvg-name="[CA] Sportsnet West (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/sportsnet-west.png" group-title="CA",Sportsnet West
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+west&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-west/playlist.m3u8?token=77e818e00a801b6235a7375f5a239a5ee175afb9ace87218ff566ab4de8263db.1778818482.7a8cd4156578215a3f5c369b94f14ac2.b5251fe5a455c0fd127cf75c65a0856e.5803a42df88c3c3e651ad81d6f7b2238&signature=7c6632ff593656053c1d2b78f47acbd307db6e819046cc12381cbcbb1e360a10
+https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-west/playlist.m3u8?token=25904b1f9bd87db94b6ebc24b3c2afdfcd09f8a970042030e6d44930f912d8f7.1778831022.21808e6a34e39b5e87b0b131be9f804d.6917cbf9e51b7d233b3ed3abe2450e4d.9bc10cf84e29daa8b268cd4055300d0c&signature=7743204d0a4fd5d3ff3c6780f0c4e4f71dde0ecbc8a48dfe54a449e89170bed6
 
-#EXTINF:-1 tvg-chno="125" tvg-id="sportsnet.world.ca" tvg-name="[CA] Sportsnet World (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/sportsnet-world.png" group-title="CA",Sportsnet World
+#EXTINF:-1 tvg-chno="126" tvg-id="sportsnet.world.ca" tvg-name="[CA] Sportsnet World (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/sportsnet-world.png" group-title="CA",Sportsnet World
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+world&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-world/playlist.m3u8?token=1db851aee4c83a4001294ed9d599d69cfcd0b1b0d065c7fe887cc43a9658f2d2.1778818482.8b90bffbb41603e2266a39de41b6f68d.12d2034ab057b8e3d37061f3ae572f6e.9507d75f58de9924f320b9ea1e1562f1&signature=475c3c0baa9bf6090847d39094cf8f27833b756ba73a7f12aef3fbfb71885c4c
+https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-world/playlist.m3u8?token=46a2c63f78049e7714e80e8f9abdd99ffd9918eb6c446dfb6f1f0c673ce8a9d8.1778831022.9910a582ff8e9bd5202c55f7716351c6.55e57d0d65b9d1a8b8ab0148564025ae.3a54331ecdf6e6a49ee7f24a77b9959c&signature=c0e9a7ff624d6b01d2063c79eaf56ba7deb79c8c3ed1403f0917d8cae529d3a4
 
-#EXTINF:-1 tvg-chno="126" tvg-id="tsn.1.ca" tvg-name="[CA] TSN 1 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/tsn-1.svg" group-title="CA",TSN 1
+#EXTINF:-1 tvg-chno="127" tvg-id="tsn.1.ca" tvg-name="[CA] TSN 1 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/tsn-1.svg" group-title="CA",TSN 1
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tsn+1&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-tsn-1/playlist.m3u8?token=6eb797a53b15e0b6fe1afc182f6c2fc8da99c2ece53508123bc7897493c3b460.1778818483.1fe0e5812615c8fe03eda05897d6b5f1.75de9a056780aec3ec1a2a1691b9388b.3574c26e33e781fcc90bd055dbdad781&signature=5fbdedf3cd6fa36f46f4ef7749aea64ac1948990041bbdd3b0d53cbd651801a5
+https://edge.cdnlivetv.ru/secure/api/v1/ca-tsn-1/playlist.m3u8?token=a9db5089b3a6cab9f4233c00285293bc1581ba379f55d64bc18f9c1b4feefdb7.1778831023.c577fd026d2a1be982b148a10010e597.3d37eecef5063d4dd92b0269525e2765.cf33552e00d8f05c489bf99332cf73d4&signature=2b417bec5a8ba4c7fb7045637711b044570dd94f705ebd21f3629cef3fb48d93
 
-#EXTINF:-1 tvg-chno="127" tvg-id="tsn.2.ca" tvg-name="[CA] TSN 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/tsn-2.svg" group-title="CA",TSN 2
+#EXTINF:-1 tvg-chno="128" tvg-id="tsn.2.ca" tvg-name="[CA] TSN 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/tsn-2.svg" group-title="CA",TSN 2
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tsn+2&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-tsn-2/playlist.m3u8?token=2e2597398a67dfecf9cafce731fd2da0ed2c219560323d2091279e6c52198e8d.1778818483.f10bee51279d7b9dc730d4b2a656c311.f5b1659b4c740e58a2d4723de14e401e.4013e9fe10a47b31d271de9d88bb0c70&signature=68c578148986241cf58043379b63335c7dc9bac3ecb406ef0fdea2921fff45a3
+https://edge.cdnlivetv.ru/secure/api/v1/ca-tsn-2/playlist.m3u8?token=1f3bbad50ffb7e0a4a7bcec30415e71f948ee9df3c94a66aeb547c9c8dba4ea4.1778831024.9dd7a33d717fabf06633a002c5bc1640.03ba7796539fcbe635d0c1dc076725b1.02a30526561eb15d8307090390edcf28&signature=c24df87b00c02472842c5d23fa66a079fbab967ee05f1336d03350f376161bde
 
-#EXTINF:-1 tvg-chno="128" tvg-id="tsn.3.ca" tvg-name="[CA] TSN 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/tsn-3.svg" group-title="CA",TSN 3
+#EXTINF:-1 tvg-chno="129" tvg-id="tsn.3.ca" tvg-name="[CA] TSN 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/tsn-3.svg" group-title="CA",TSN 3
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tsn+3&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-tsn-3/playlist.m3u8?token=94f5f54e911e87b07893ff3faaf43265c9e63f67453f464b54f182f69e87d992.1778818484.24a20f3518e228c138ef472b1c51c629.064739c36099279a4ffb43f0911b316f.73d4b2791fdc2bf29249c7b8fa4f4d5b&signature=b58301e7df56413d22630c38b848919f4febac4105f8ea00d8a9d0ca3247f9b4
+https://edge.cdnlivetv.ru/secure/api/v1/ca-tsn-3/playlist.m3u8?token=b68febd2fb471b0e88fb7a4d1dac345cc4956551f553e7be0345069ca4914ebb.1778831024.a0e26f84d0f23d188189f6a889d63f0e.e3783ebb2ddcbe8a3978a4fba3fb56e5.db1833d0ca105b53f2d80e3e4ebef3dd&signature=b3246774dbe7bff86c7db353b1f665028ff77d0bab5da08f19f43f187680d9c9
 
-#EXTINF:-1 tvg-chno="129" tvg-id="tsn.4.ca" tvg-name="[CA] TSN 4 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/tsn-4.svg" group-title="CA",TSN 4
+#EXTINF:-1 tvg-chno="130" tvg-id="tsn.4.ca" tvg-name="[CA] TSN 4 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/tsn-4.svg" group-title="CA",TSN 4
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tsn+4&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-tsn-4/playlist.m3u8?token=716eefce2b764a4b352f838b5e81389190a8168a3f4e64967db3ea1a70504ec6.1778818485.3fa31a7b87e3d047716233e610101b32.a767bc9f9b2bcddfc901bdc485b9ac3d.571e7e550f987a535a99ff5063e8e55d&signature=80472a93005858dd7a346fb1371d18eeb5cee886924a439f454e117d27945f72
+https://edge.cdnlivetv.ru/secure/api/v1/ca-tsn-4/playlist.m3u8?token=81d6badbb5217bad6e53ec91240f55b88c5d650713a06c388cf94da95d5d88b2.1778831025.19bf6bf57e9004bafcb881b84a5c928d.a3f0882a0d6eb61869f2105d9b69f799.254cb96255f10dc07ab409a065751e09&signature=95dd0780fd424ddfaac5a39bd41f54dadfa5df636b003ad4c3e44dce22652cdc
 
-#EXTINF:-1 tvg-chno="130" tvg-id="tsn.5.ca" tvg-name="[CA] TSN 5 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/tsn-5.svg" group-title="CA",TSN 5
+#EXTINF:-1 tvg-chno="131" tvg-id="tsn.5.ca" tvg-name="[CA] TSN 5 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/canada/tsn-5.svg" group-title="CA",TSN 5
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tsn+5&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ca-tsn-5/playlist.m3u8?token=4796a9903705d4148ca185f8b44e5c186644fbbcc6a30762259975f42492d87c.1778818485.79a96ea758a56e1ebb3b404cdf08e647.4f56136e834e2a03e7408c415fc89720.f3c7de97ee04008fb5c2cb889a1992e3&signature=5f3e4e15d1b4c74dbe343e7af9571ddecf3281ec1a82ee1a9def4748fd1f5648
+https://edge.cdnlivetv.ru/secure/api/v1/ca-tsn-5/playlist.m3u8?token=e87da86e5c425c593503fba711bcde3023c9bd46b61ec975f364cab83922c692.1778831026.c0e08449e3edc2f3b5b79bd1613767a9.9464c71b113dda0964d1a1e458099a11.8590904ff87d4e498cd1896c729ba37a&signature=45182b60ca8838933acbe1def8bf7415af432edfdeb9db9db408eb6596c21b5a
 
-#EXTINF:-1 tvg-chno="131" tvg-id="espn.ar" tvg-name="[AR] ESPN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/espn.svg" group-title="AR",ESPN
+#EXTINF:-1 tvg-chno="132" tvg-id="espn.ar" tvg-name="[AR] ESPN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/espn.svg" group-title="AR",ESPN
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=ar&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ar-espn/playlist.m3u8?token=0c9ea440bf47767337d90403c8efbbf124189d9c5e1aa18ab8d0209c5e0e0570.1778818486.419d4c04677efd869941e60ebf8f6d5c.70adb9a9b5316007b3a36a3f4554be9d.e2b973ba7def7d0a51def47b140b3fe9&signature=882b04270151e18277c97db772647d789a3b9f21545814ccbdc136308201d64b
+https://edge.cdnlivetv.ru/secure/api/v1/ar-espn/playlist.m3u8?token=485d574a7a77caeae3919ff07c79cccf6a034b25c941f1c9ce9262c60d08dff3.1778831026.87d64f1f5031a13f23e6aa75376f66c0.3ca39ac1f430aad52dbf7e4e8b5a4e1e.7c8ea50b28172c1627e4bf4c3132360b&signature=36bd9ec1803daa396705c442ccca747fabd08a450051bec3203f796ccaba6677
 
-#EXTINF:-1 tvg-chno="132" tvg-id="espn.2.ar" tvg-name="[AR] ESPN 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/espn-2.svg" group-title="AR",ESPN 2
+#EXTINF:-1 tvg-chno="133" tvg-id="espn.2.ar" tvg-name="[AR] ESPN 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/espn-2.svg" group-title="AR",ESPN 2
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+2&code=ar&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ar-espn-2/playlist.m3u8?token=4bf0dbd6da176a7ca661551e971003e7639cda52a090918f3ab7c3c194510624.1778818487.c9bd9a3fecb4131c8b6a8dc6394d0995.1913367b410eb89818e2542e64098ebb.065d1211e40c667c33476647a0dbd6bb&signature=d8b45790029fe17b72eb56a9fe4f3e33583feb0fd289a3e4e6e91a9e4a741ebb
+https://edge.cdnlivetv.ru/secure/api/v1/ar-espn-2/playlist.m3u8?token=1e43537b1c6beaed4b8c7320de5bc2050e684baa6e263ecd0a076e8af1cdb15c.1778831027.a9bd72ebde9dff579721a80323ad50ed.7295f31fc291dd1c4d10be90c487fbf7.538faa28c2c975ea4096d60a000a54f0&signature=9f54a582a244eaf21e7c0571086cdc95330e39273225c17e8100506c43c3c8c3
 
-#EXTINF:-1 tvg-chno="133" tvg-id="espn.3.ar" tvg-name="[AR] ESPN 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/espn-3.svg" group-title="AR",ESPN 3
+#EXTINF:-1 tvg-chno="134" tvg-id="espn.3.ar" tvg-name="[AR] ESPN 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/espn-3.svg" group-title="AR",ESPN 3
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+3&code=ar&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ar-espn-3/playlist.m3u8?token=52a2f3a7a40cc105c2116e9ae800e5c99b48d3d75900bdc291351e7b46dbbd97.1778818487.f55e12a0eecb46594a91505470ca3f0e.772d1ffd1db8a96eec58d9c6adc76e65.08935d896020e9e33fbb7eb7382fb87e&signature=a9f55611282ff451fe6e5fc5e5a0e8a694b393737d8bec3a04c58d1163037e60
+https://edge.cdnlivetv.ru/secure/api/v1/ar-espn-3/playlist.m3u8?token=235aa314a5554dbcdd2a975f377561f498f07e86c14bbc6ee930672bdb356348.1778831028.478d269580454f38e0b8064dbe49dc14.5e63aedbecd299b6728d113d6b4fa6bf.11dd599fb57b4d6195c2c4305fe95b21&signature=f69575aa32ab7f670c687d0a8c8595fed7b3277ce639cb750b9659477fab2024
 
-#EXTINF:-1 tvg-chno="134" tvg-id="espn.premium.ar" tvg-name="[AR] ESPN Premium (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/espn-premium.svg" group-title="AR",ESPN Premium
+#EXTINF:-1 tvg-chno="135" tvg-id="espn.premium.ar" tvg-name="[AR] ESPN Premium (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/espn-premium.svg" group-title="AR",ESPN Premium
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+premium&code=ar&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ar-espn-premium/playlist.m3u8?token=79cba179386b03040289593ed554377098567b321c145bf31af948c32b8ef0e0.1778818488.433406e8c741c113c63509795bd072d4.c8d9285577c67cc209116dc593da3732.8c9c6e37e5931b885428bffeb8e3c532&signature=68d989326988e3206586f55a4afe087b4d595b366cbc33b93dafb5dae7bb29b7
+https://edge.cdnlivetv.ru/secure/api/v1/ar-espn-premium/playlist.m3u8?token=d0bbf72842564156cc5d6b2c54b8eaa49cc55ec610548961bf0b12f04f3e503b.1778831029.7258e735fa8bfbc3ebb058c45eebc75a.bb8b6cdf82c9e7eb7e89c5aef86accaa.5b6b0c16175f6261540d60c0f81ffb40&signature=93752ebb389f44efcc6ef8fcb0e614290a819b619b3c580188d3fb40387e687d
 
-#EXTINF:-1 tvg-chno="135" tvg-id="fox.sports.ar" tvg-name="[AR] FOX Sports (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/fox-sports.svg" group-title="AR",FOX Sports
+#EXTINF:-1 tvg-chno="136" tvg-id="fox.sports.ar" tvg-name="[AR] FOX Sports (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/fox-sports.svg" group-title="AR",FOX Sports
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports&code=ar&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ar-fox-sports/playlist.m3u8?token=fd85bf4773a9e36b77fcf2ec61351ce03ec913ee76ec8dc0c8d864f9e5751f2e.1778818488.bfaecc516cebcb87ffdba633c7b73d3b.585870b38c6d80d3cae51ca1b8e7a9ab.0cdfc3cf616b3da0399270251217cece&signature=3ce84b800a0ef59ff7af1e18e8c20e4ea9cd5d9598e92a2f24b8442631ec446b
+https://edge.cdnlivetv.ru/secure/api/v1/ar-fox-sports/playlist.m3u8?token=472eeaf864893bde8ded8b3b09a8f7b1b5f54e9e28e94c765e7a2bb6379338f1.1778831029.46cd5867bb06c9c1dd11a3a0e4a2d6ac.077dc171b9690cfca35ee651ab04d3f0.fffdad9f5d6dc312c1e8500e68d98030&signature=9f0fb7740742312606b6fdb01f1087a27c5464da87c08d0a651f3c8ed7dd9382
 
-#EXTINF:-1 tvg-chno="136" tvg-id="fox.sports.2.ar" tvg-name="[AR] FOX Sports 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/fox-sports-2.svg" group-title="AR",FOX Sports 2
+#EXTINF:-1 tvg-chno="137" tvg-id="fox.sports.2.ar" tvg-name="[AR] FOX Sports 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/fox-sports-2.svg" group-title="AR",FOX Sports 2
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports+2&code=ar&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ar-fox-sports-2/playlist.m3u8?token=e2a4ef90f32a8762b317b83b9954cb3c7d537d29c48b5deebea210b292449561.1778818489.184ddbb31922d301cc72b9234be5b246.5716b0974831e35122ee96f198b41719.e4b12aa1c15f1658da065e3f86490ad0&signature=cd5fe13fe5b67ac3df9fade213a66cdb290e48e3c6f3f3e45cb03f6b7bca56c8
+https://edge.cdnlivetv.ru/secure/api/v1/ar-fox-sports-2/playlist.m3u8?token=fdec67846ad45fda2a15f961b7cd1f04f4135950bb4bd9516d1c6f03955342bd.1778831030.b5a81f30e077b1cc1cfe98a27c363be1.2be959381684c44265d34a703d9aed05.bd982013c17287a5b35bfaba42f159a2&signature=40352fbaaf38f146ed72e14216e1dbfc678d5ef4e99e7c79c6274a7c576e9615
 
-#EXTINF:-1 tvg-chno="137" tvg-id="fox.sports.3.ar" tvg-name="[AR] FOX Sports 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/fox-sports-3.svg" group-title="AR",FOX Sports 3
+#EXTINF:-1 tvg-chno="138" tvg-id="fox.sports.3.ar" tvg-name="[AR] FOX Sports 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/fox-sports-3.svg" group-title="AR",FOX Sports 3
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports+3&code=ar&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ar-fox-sports-3/playlist.m3u8?token=9974af0f90cb844b71ec155bd8bdfbf458d458d329744779af562947f66f3392.1778818490.162ebc51e294ef4eb1c0557ae4f42346.d3c4cde6e0190d6e9e6903a431e062fd.b1beac3e33c0b0c454b5fd70a695235a&signature=68ff4ab89d300af23ab46dda6a76963829abbd5f427f9acc2214c6a354932ce8
+https://edge.cdnlivetv.ru/secure/api/v1/ar-fox-sports-3/playlist.m3u8?token=a6b4e41c16bd11bd9ffa8be831df695cd4bc899d347efdc93c3fb0e1f15a40ec.1778831031.2564a779a87a1abf226f840a178fd7b0.11d3d34a45bae5496e0a7042f917e203.6bd6bb31c0418bcee7d56027d434ca9f&signature=e1710bb7194042806415da045069cda86c20dcc7adb04a1b9c51689d142a504b
 
-#EXTINF:-1 tvg-chno="138" tvg-id="tnt.sports.ar" tvg-name="[AR] TNT Sports (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/tnt-sports.png" group-title="AR",TNT Sports
+#EXTINF:-1 tvg-chno="139" tvg-id="tnt.sports.ar" tvg-name="[AR] TNT Sports (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/tnt-sports.png" group-title="AR",TNT Sports
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports&code=ar&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ar-tnt-sports/playlist.m3u8?token=ad152231ecf09a07cc04f085009b04ae9064ed1762ab6162a3ca168e4f221acd.1778818490.6ee5bdd40dc5bc88f67b2af5118e10b5.af9a79aa878b3d11fbf29a09ca2de43e.bce9f852c3a35ba36827c62b0439c8f1&signature=0759d153a1fe21766b0922a81fc50df8e7dccb65e0e77fa23dcbc94d2490434c
+https://edge.cdnlivetv.ru/secure/api/v1/ar-tnt-sports/playlist.m3u8?token=2eac9e4998cd43a5613f6efe4b7508e1922c36297b3ed9c781d79bddb718af1d.1778831031.a8829acfe51eb0c989fead4dcfbf3da9.e560b454727e6998a1fc807d854d042d.809a407ae24be667d6c6951a3fb0c2ad&signature=71de0b460c23a33aa31165bfc7c538cd64065f57ed80246f404326164dc070b4
 
-#EXTINF:-1 tvg-chno="139" tvg-id="tyc.sports.ar" tvg-name="[AR] Tyc Sports (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/tyc-sports.svg" group-title="AR",Tyc Sports
+#EXTINF:-1 tvg-chno="140" tvg-id="tyc.sports.ar" tvg-name="[AR] Tyc Sports (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/argentina/tyc-sports.svg" group-title="AR",Tyc Sports
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tyc+sports&code=ar&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ar-tyc-sports/playlist.m3u8?token=4f2321c6ed80d6ae1ab6b2208c6e6afbb4e96f2caa0133bde44298efe04bab01.1778818491.a0fe43cd728e3bdf1666f238942bf9b9.165008602e1f34ce8f6054b582bc58cf.c02a51eb9e51566cb47e308327d1ce93&signature=b674cb854bf03ce3ebe58803ad686b0ba79e16a5b88bb35b3d47b0db5069a4a9
+https://edge.cdnlivetv.ru/secure/api/v1/ar-tyc-sports/playlist.m3u8?token=7bd738a13d710cc3d225efe329f30d55aafafa3ac218b0c5496d0104b12d152e.1778831032.03567aadb433f5c18eca58b5442de6fa.60bb7b480d66fd11b5091841bf8c58be.d57fcff235ac22acbfb975abd5b8b958&signature=470509012fe9a0889e4666dca60a0ee2d785e4ca3ef1eaa22835cfc78ae36eda
 
-#EXTINF:-1 tvg-chno="140" tvg-id="espn.mx" tvg-name="[MX] ESPN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/espn.svg" group-title="MX",ESPN
+#EXTINF:-1 tvg-chno="141" tvg-id="espn.mx" tvg-name="[MX] ESPN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/espn.svg" group-title="MX",ESPN
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=mx&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/mx-espn/playlist.m3u8?token=fc7b210f9f9ab72556b96dcd695bcecbfe7ed1f1af065d5a0a3d849ff72a0df2.1778818491.d52b0ef3aa176ed3a5a0d2e4bb83e988.36abaa2df859ef1468f458ef13e45a6b.7a633f4653a6946fc676637f70f3f202&signature=76402758983bafc773a33166561f10db288d5dc0c5d22605d706c6bc8dbd44aa
+https://edge.cdnlivetv.ru/secure/api/v1/mx-espn/playlist.m3u8?token=97e247d7f6b449be968e34ae63d33cef67902893a83b47a31d4bc23e6fff6499.1778831033.b8a4f4371299472cceedee418a6b6ef3.dc8ea105cae4c9e7a5c62436f6770644.1829661d3a7cf0d7e8294d66b90a221a&signature=784ea8a3811443351313928ecc4d6b2d985b94fec0d02f776a9b66a4a86eab06
 
-#EXTINF:-1 tvg-chno="141" tvg-id="espn.2.mx" tvg-name="[MX] ESPN 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/espn-2.svg" group-title="MX",ESPN 2
+#EXTINF:-1 tvg-chno="142" tvg-id="espn.2.mx" tvg-name="[MX] ESPN 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/espn-2.svg" group-title="MX",ESPN 2
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+2&code=mx&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/mx-espn-2/playlist.m3u8?token=211d3365e4556f73d2b67d47877546a42d82781bf54771cf7e3364ab9663c945.1778818492.1d0fd6d7de631eff17a05ff2a55c81db.e5fa0e4d8c52ae1bb1dbc6a0ce7ed9f6.ff9aa299a21f683bed9ccff3ce91b2dd&signature=00a2dd0ac05af977a5cd5be3f9f2607968c35a28bf658b8706fd7e7a2988b699
+https://edge.cdnlivetv.ru/secure/api/v1/mx-espn-2/playlist.m3u8?token=89aac1e935ab04b093d7facbe69b4a5e53ce9d1172c36469a14be44f37888d1b.1778831033.ba6146dce00be56a6da1845bd17d7a5d.449a9281837e4e575b9cc1ca9feed6a8.5dbf2e22b3332107052361e9ae55e555&signature=01b35c08411a0ab448630fda3e61603e37ffa8304db2d92f3d48138d92e2d4d2
 
-#EXTINF:-1 tvg-chno="142" tvg-id="espn.3.mx" tvg-name="[MX] ESPN 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/espn-3.svg" group-title="MX",ESPN 3
+#EXTINF:-1 tvg-chno="143" tvg-id="espn.3.mx" tvg-name="[MX] ESPN 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/espn-3.svg" group-title="MX",ESPN 3
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+3&code=mx&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/mx-espn-3/playlist.m3u8?token=35d3e456f9dc1d03304c5a0e76077f7894bb0689808dc8d90759942c684d8d96.1778818493.211f0af184334c60934199fc21cacc84.77b0026d01894d1c77bb0e6df22fa469.987047e0efe1f93963a2afd0f3f056b5&signature=ea6ab4a6d987501530cbac8fbd5c6ea0a0a23ef802a2e223efafbdc9d623a537
+https://edge.cdnlivetv.ru/secure/api/v1/mx-espn-3/playlist.m3u8?token=ffb4e63599d9789fb543df792cd27864158950fd6f130cde06dcb6e06d9516f8.1778831034.c4259fd81a68ce58fe4dbdd37e154e45.d90e5fc0b6e9788b977a141e4f247065.5ee6d9a23c3d5adc8c8ceef2572ac199&signature=cc09b857b1523ec6e87ab054a64a60dd25d3dd61973ba2a5b911d5767a41cf7e
 
-#EXTINF:-1 tvg-chno="143" tvg-id="fox.sports.mx" tvg-name="[MX] FOX Sports (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/fox-sports.svg" group-title="MX",FOX Sports
+#EXTINF:-1 tvg-chno="144" tvg-id="fox.sports.mx" tvg-name="[MX] FOX Sports (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/fox-sports.svg" group-title="MX",FOX Sports
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports&code=mx&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/mx-fox-sports/playlist.m3u8?token=e90eb6393c24f72874cb1924ba9ec5d49d998f467c05195d59d2e0e0d6eb1270.1778818493.2757dfd51341c40b20ea0cecf30a0b91.e6fe4f60af189fdee4df87b222a1a47a.aec65aa3ed341ffc24b7ac065d944fb2&signature=e7b04d0f260a2e321097133abf037b79193b47e4a65b57fd45e06a30336f126b
+https://edge.cdnlivetv.ru/secure/api/v1/mx-fox-sports/playlist.m3u8?token=46b6275780a45ad72a2902bf16be9ce90b88663ecb8ce5608390391d2a25efaf.1778831035.1731f40a201c2522db33b19511b72354.8d409b4ad3382f2673f143f0e4f69897.3971da741b67a488b7724cdbfff81eeb&signature=9b5b07201c8125a5f03618477cac48aad73bf885b2f4ec018e49f07657bfa332
 
-#EXTINF:-1 tvg-chno="144" tvg-id="fox.sports.2.mx" tvg-name="[MX] FOX Sports 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/fox-sports-2.svg" group-title="MX",FOX Sports 2
+#EXTINF:-1 tvg-chno="145" tvg-id="fox.sports.2.mx" tvg-name="[MX] FOX Sports 2 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/fox-sports-2.svg" group-title="MX",FOX Sports 2
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports+2&code=mx&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/mx-fox-sports-2/playlist.m3u8?token=5a9998992fbed1e023f25acf3811fdab89eb6cabdc9be060aef5859104a375d5.1778818494.d2d0c9e9869abc8ef16a92d2e0cdacc6.9a8b41c2ef2d146f6f2a774056ae0abe.3dc60a70b4549bec870285edb2010215&signature=9bda71716b344c74633199ee5cfd4ca14779ed49f80d7d18859903ef2d09f3b1
+https://edge.cdnlivetv.ru/secure/api/v1/mx-fox-sports-2/playlist.m3u8?token=6a084d2d10ece4be9a003807180afdaf2d61ff33c90efcf71883f427fb3c46f9.1778831036.5922fbc48fb30e95460122a0f7dfb58a.bd804ba1ef554bf9ab5bed83bd4deec3.f049a083c0503fb0efc3c75b44420e4d&signature=f952f4dfdfc4f1100615344065528459acbe96790fc3cc5e9a568a964719f7c3
 
-#EXTINF:-1 tvg-chno="145" tvg-id="fox.sports.3.mx" tvg-name="[MX] FOX Sports 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/fox-sports-3.svg" group-title="MX",FOX Sports 3
+#EXTINF:-1 tvg-chno="146" tvg-id="fox.sports.3.mx" tvg-name="[MX] FOX Sports 3 (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/fox-sports-3.svg" group-title="MX",FOX Sports 3
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports+3&code=mx&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/mx-fox-sports-3/playlist.m3u8?token=a0c29c8253ef4deeb5724387a4bf86a7b9b706aa8713bcae87b88c4bf7040056.1778818494.3021566344301318b511268fd741ed6d.435cb52bd8a443a577eb32e3032518b9.4b516c7f120efbb388efd9d12aa7223a&signature=de416c04c6c0535985bd9c3488c919fe0ee213c6ea1f8f59631a78bca19afabd
+https://edge.cdnlivetv.ru/secure/api/v1/mx-fox-sports-3/playlist.m3u8?token=5037f415858791dd2f79865978f225a9360eb9d40b23aef5faf4f0e439d6cf2c.1778831036.3d47a04bd6a18ab4252e7d833032550d.04cefdfd3663dbfffebfcbceea206336.2210768b6e59f2e8fc2792a91910568d&signature=e6a2df3c2712237c94d92f552aa80c835702e6a3ab3181cfccee73dfb8f61204
 
-#EXTINF:-1 tvg-chno="146" tvg-id="fox.sports.premium.mx" tvg-name="[MX] FOX Sports Premium (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/fox-sports-premium.webp" group-title="MX",FOX Sports Premium
+#EXTINF:-1 tvg-chno="147" tvg-id="fox.sports.premium.mx" tvg-name="[MX] FOX Sports Premium (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/fox-sports-premium.webp" group-title="MX",FOX Sports Premium
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports+premium&code=mx&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/mx-fox-sports-premium/playlist.m3u8?token=f583c318884ded1de17d40bdffe4fc379c23dbf7d8f645f8c4629c30b8424047.1778818495.09d8850c24dd75e4c4432184ca50c060.0a5b8135e3eae96c64d0cd79d7019fc1.3043b322a2b466e34c1259d661637d8e&signature=e92fdcf5044d8b71739bb136489d7e10c6b29ebe237431a6e2ff5d00955f992b
+https://edge.cdnlivetv.ru/secure/api/v1/mx-fox-sports-premium/playlist.m3u8?token=18a7acd88a4947bfc97544fad46e5b89bd82b2b08653d4a9e5e976cbad6ab2ef.1778831037.8a7998f3e6e1b32ce573817a47f648ce.b3ecb69628488eb6cca74411b244f226.2bdaf30a9c9309cc8c3f2f239ae21c3f&signature=0d4b286a6167d4a74a38f54b7e22c115d2b57f30fb2118025969b2f4e7ec3ae0
 
-#EXTINF:-1 tvg-chno="147" tvg-id="tudn.mx" tvg-name="[MX] TUDN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/tudn.svg" group-title="MX",TUDN
+#EXTINF:-1 tvg-chno="148" tvg-id="tudn.mx" tvg-name="[MX] TUDN (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/mexico/tudn.svg" group-title="MX",TUDN
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tudn&code=mx&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/mx-tudn/playlist.m3u8?token=18dea89d464fb80df9a5a7b7afca621cf734f3393bdef3b32d02b90c0bee28bc.1778818496.4b15574348d4e25a2fd139776d0a2cab.547fc38b4061c0a7f8ade8db25d633da.efb7f2e54c70532ef08253649cd4e587&signature=72bdc6be2527b8a015099819b4881390f7892ecd5d66ddc60acdef743b3d8ba3
+https://edge.cdnlivetv.ru/secure/api/v1/mx-tudn/playlist.m3u8?token=6963415912ecb7dda00e576236840ce535195258c2c675e4e5ee1a8c53ed6422.1778831038.9f43934285938abe34a11fd24973178a.5d9fe0005efebf2450ad9c4ea7471be0.f698fedb648e4d13dfeb13164d04d294&signature=d10f1c23c9f5ba45e92645ff986a94b7b9047cb7512da492881cdce55aee29e7
 
-#EXTINF:-1 tvg-chno="148" tvg-id="vtv.uy" tvg-name="[UY] VTV (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/uruguay/vtv-plus.webp" group-title="UY",VTV
+#EXTINF:-1 tvg-chno="149" tvg-id="vtv.uy" tvg-name="[UY] VTV (CDNTV)" tvg-logo="https://api.cdnlivetv.tv/api/v1/channels/images6318/uruguay/vtv-plus.webp" group-title="UY",VTV
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=vtv&code=uy&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/uy-vtv/playlist.m3u8?token=5004fdb33a12350a544a6d8d7d4698064688dbf108157c6d39b7f25636d759b9.1778818496.0141776d57cae483d4ebc12f660edd6d.53c867790a052051f4c565af6d4c3fe3.41c12090605416ccd11443325676e023&signature=e210a09cd4f58f33b2546da44704e272abca1fe34e04716c6bd798d4adf5a523
+https://edge.cdnlivetv.ru/secure/api/v1/uy-vtv/playlist.m3u8?token=9f5d171c8b4576b9a88c3daebe9906a04d81e034e76edc2f11e1ec878cfe3eb0.1778831038.666066d3d88081474e2e0c995547f654.29ecf8ddce304bd333951926fca3f1e6.d08dc882b3f7b413bdfc25cba9515e5e&signature=2f84d431b5c08cbab55130ae9a387b97b59a59c75f67521dbd32b5ec026b2792
 
