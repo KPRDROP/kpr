@@ -1,37 +1,19 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] San Antonio Spurs vs Minnesota Timberwolves (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",San Antonio Spurs vs Minnesota Timberwolves
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nba+league+pass+1&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[FNL] Rodina Moskva vs Arsenal Tula (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="FNL",Rodina Moskva vs Arsenal Tula
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=match+tv&code=ru&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-nba-league-pass-1/playlist.m3u8?token=93313dc2f899e6cf6688ba27f0be9bd33d91a3068fd0cbdd3cbcb9ed131e0465.1778900146.d180a8c8078a2473b49fe68ab326dac1.62a4e38667b62dc5f3f09f7854306253.9f25b02ba414f4adebba17f6d8a1564b&signature=47aba0a3cb7f4bbe82f69fcf492e5b576d92c62fe330cc502dfd8958b402892c
+https://edge.cdnlivetv.ru/secure/api/v1/ru-match-tv/playlist.m3u8?token=21bb9353adddfb388203c0bde7915ee4c18eeee089482b49ac44e1bc4f7148f5.1778918751.bfff7c7e853b10df74817f5fdffdf1e1.7776df932859d92afe9bf66cd3e95401.c3610e55f65b1dcba6e1275dd0731f19&signature=cd70099285e9d701ffc75e434c344d15cc99cd161eb8d7d185f63472d15984a9
 
-#EXTINF:-1 tvg-chno="2" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Los Angeles Dodgers vs Los Angeles Angels (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Los Angeles Dodgers vs Los Angeles Angels
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=los+angeles+angels&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Segunda liga] Sporting CP II vs Academico Viseu (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/107.png" group-title="Segunda liga",Sporting CP II vs Academico Viseu
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+tv+1&code=pt&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-los-angeles-angels/playlist.m3u8?token=516538abfca8963c15c61f6367f8fb24d4a5e4fbd039931e22f0f3a06aca693c.1778900149.90bc91609805fae0013ba679b39dc9ef.1a63c483c59556b40cafc773ed0e1c0d.dd19649d373bf2701c0fab6819cd11f9&signature=a7aa3da6f172a446eec66c877072bdf5063964acf61b038e44507d9e54be524e
+https://edge.cdnlivetv.ru/secure/api/v1/pt-sport-tv-1/playlist.m3u8?token=9e5050ae415192b17564c4ae26f4ea21f37d02cf1708b4c80d74efda91cc82e0.1778918752.f5f047e15043cabd3b89a1e45127aa02.8c6cc146532e9fe4f1a673dc3ea957bb.f6ad5f2f4a147f7f613e6c7d6e348a97&signature=a6cea3116c98a73f73860d683e79378ed3bffc18140ab28b9b6b9dbf9f3389a5
 
-#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Diego Padres vs Seattle Mariners (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Diego Padres vs Seattle Mariners
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=seattle+mariners&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Segunda liga] Vizela vs Torreense (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/107.png" group-title="Segunda liga",Vizela vs Torreense
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+tv+2&code=pt&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-seattle-mariners/playlist.m3u8?token=815220b640bad123ce86e85e45d8155ea1efeea3e5748dd3fcee6c8bd761199b.1778900150.56cfecedd9be7b908fcd75406bb2378e.3ba2cae726f416d82a8586a15800be79.99d0f04b01c70fc46dedb5925aea3c8a&signature=f135d80fb3127d8bb54ed889a2b9bebae1f826e627e3b22ad2676afffd4a6a4c
-
-#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Francisco Giants vs Oakland Athletics (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Francisco Giants vs Oakland Athletics
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=oakland+athletics&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-oakland-athletics/playlist.m3u8?token=b87c964c31f18a62b0bc4f448c01d7a74e8895ffa036d7a330953692e83e26ec.1778900150.8c1f5d23113d4203ef7b43bafa0a6585.8a993f3ad9ce52e6c060e1a1b8705f35.c013f38b6324f73ca600f2a701509536&signature=08ca3e0c52a8f7a66a55d5250529b02ee4758a5fe0906150add32cfedeb3d5cc
-
-#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[College Softball] UCLA vs California Baptist (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Softball",UCLA vs California Baptist
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=56485512d377ea8840fa474c5f80cd513c7f5848250dc13dac37e71bf1192b26.1778900148.7c8df0f93e0276e975488332606c05a1.1bede77c4c5ed422f5922408932eb50e.ab2bf367ab43ba7ac0fb9db2df988302&signature=65d266c0daaea7c045546e181cff5540391667f1d33d842a22caba5f8fa807d4
-
-#EXTINF:-1 tvg-chno="6" tvg-id="Live.Event.us" tvg-name="[College Softball] Oregon vs Idaho State (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Softball",Oregon vs Idaho State
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+2&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn-2/playlist.m3u8?token=cbbb9690afb2eece696a809c2f1819b131ae401a54c3c093c1a085e0e35d3aa0.1778900148.5d0ad01e47f73f8ac504c9a12b988e6d.ef4ae94891f8c643314297492839e00e.3069681447546724b1db6b2a6559de59&signature=cc5d799c5b44ec0cdd92a392d4007421cd9ff9be69d6dd0ba69c87c564bb6bce
+https://edge.cdnlivetv.ru/secure/api/v1/pt-sport-tv-2/playlist.m3u8?token=8fe31efd28db5a56356726f35a75dc25de005d397857bd3a35760f55269e7038.1778918752.d52fdfabb3013df94802751b902a2f05.16679719be86a6ef125125472faf2bca.ca42cb2fb7af107fb5e9dde52554a739&signature=79f81abd5cf397db3cd8dcac14832d6709a20b9b21ca96feaf4b22239efd8501
 
