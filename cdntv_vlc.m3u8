@@ -1,37 +1,31 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Francisco Giants vs Oakland Athletics (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Francisco Giants vs Oakland Athletics
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=oakland+athletics&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-oakland-athletics/playlist.m3u8?token=ccfa3d69c8fab18e7ac770b7138262dc555eb160c9f49aac294fdd9130f647f4.1779054963.f6059872c1389218082d28d087ced251.8062385556297c00f2eb8e9fa504f741.9653cbce2e28765debc9c2a3be007cc2&signature=5694fedc29a55184d3be96396b1fca928e6ca4e2a488b69dd6b5dd2b1bf18186
-
-#EXTINF:-1 tvg-chno="2" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Los Angeles Dodgers vs Los Angeles Angels (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Los Angeles Dodgers vs Los Angeles Angels
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=los+angeles+angels&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-los-angeles-angels/playlist.m3u8?token=f3d1a789643af5169c0e16776f6145a0aef53de3d74fa962f4bd7be77b143f55.1779054964.8b673990e4f0b68dadae87863d759f72.ce845eb3c696d5c4d063f93e60b7fbbd.69885bb3fdcdd28c400353e056ab6ea8&signature=8fbc904df116a62b16efca7ecacfe278c597824978669c19cc48b36fb10606cd
-
-#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Primera Division] Ñublense vs Colo-Colo (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera Division",Ñublense vs Colo-Colo
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Primera Division] Ñublense vs Colo-Colo (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera Division",Ñublense vs Colo-Colo
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports&code=cl&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/cl-tnt-sports/playlist.m3u8?token=d57f88404ae1ba702c651e9dadaffabc6f9ad60bdc20767ce653be545df4d522.1779054962.a58b78a3be73c2d337d5ef16bf6a57c1.9522585c337abacdb732daa5f57d1fc1.61b347eb61f56a8176282b918c3fb567&signature=85a93efdab3ff0e5f98fb958487ca27dd6779f27dd9834faa56e2cb5a7d3e530
+https://edge.cdnlivetv.ru/secure/api/v1/cl-tnt-sports/playlist.m3u8?token=5d16fb50709c88e22cd5966fe687bb39fedc98a54b88f0368bff3f4fdda1ec5e.1779058536.7785d5451f1a9d9436b92d1f510462a4.2b663ef5c4be70cc39c6545a5970de6d.fa259b34ab9df2227bec65dc994ad023&signature=f329c59d63f20600aad0f088d2ec914aeb1e6775a59d68f7402ccd5601d5f91a
 
-#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Remo vs Chapecoense (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Remo vs Chapecoense
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Remo vs Chapecoense (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Remo vs Chapecoense
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports+7&code=gb&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/gb-tnt-sports-7/playlist.m3u8?token=c7f799a37236ac9ebe1b3b384ddddbc91e26ba8e1a9f5c57f245e0628770b9f2.1779054963.17657e99fd59423fc3a30e8c3aa631e4.2cfe8e94971e8edabb2b84d534aa4e46.63d58f414e4d541b82224bb25efa0286&signature=93566c69411f863de16393673dc973fbc2f159019fae60467e797ec40d10652b
+https://edge.cdnlivetv.ru/secure/api/v1/gb-tnt-sports-7/playlist.m3u8?token=a4e526909c4936723686fb383685b3987b8c3d7521774db53d5531afc0124568.1779058537.0dc27fb2297db87752313ed7dbacfa2e.ce5ef6133e78526d55d13393a3b0bf62.be257dbe6d6b0eeff2d622db08842c9e&signature=b4c71385fa02660c04e06fe291b8fa24450c18f509493b5c3756372f75478f48
 
-#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Flamengo vs Athletico-PR (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Flamengo vs Athletico-PR
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Flamengo vs Athletico-PR (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Flamengo vs Athletico-PR
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=m+liga+de+campeones+1&code=es&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/es-m-liga-de-campeones-1/playlist.m3u8?token=7ad4ecd6af93b72061747e242fc497fbc61a1ab9eb1d5fd22f5ce67c2c3aecd3.1779054963.40b2f648c4faf33f06ca04e0ea1fe0f4.d80b1a24351cae2ea323e574d85aff10.aa9257cd51d9184c7ff1872eb9878130&signature=a3765b97da7c62e6e15a4120799c2473333e8c417e84f35ef0c5fd62416e674d
+https://edge.cdnlivetv.ru/secure/api/v1/es-m-liga-de-campeones-1/playlist.m3u8?token=3959c6c27586a681df3a8223a084a4396fe396353b868e353e00092c657fea01.1779058538.8a6c431776b3891e1592fe94805101f4.300a0fd65179109c4d1bffecb9f5f838.82a639690a890f12d111aae518c639dc&signature=ba734072e787235e817ca10a6eb361a07a6f25561e58c282fee8b57ca914c818
 
-#EXTINF:-1 tvg-chno="6" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Diego Padres vs Seattle Mariners (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Diego Padres vs Seattle Mariners
+#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Diego Padres vs Seattle Mariners (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Diego Padres vs Seattle Mariners
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports+1&code=gb&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/gb-tnt-sports-1/playlist.m3u8?token=19db2f73349e98673011a0d7330ed2bc8fc268fb73ffbf98d086c7d8218869a0.1779054964.8d7ec6108674dffb0af2d7eaa4c16ef4.30f0c111eb87926788d19b8d5d2c748c.2ce8bda73f44c9ca93bcf096cd4a3303&signature=b358986e430276c8d22b088e72d582de5c3756addfdd9074f9499410268bd7c3
+https://edge.cdnlivetv.ru/secure/api/v1/gb-tnt-sports-1/playlist.m3u8?token=872ee946a245e387434e09a036cb5dc4c7eb45175b9b1dfadcbe8aa24ccfd773.1779058540.c209f34e5f57c1e64977381f046c0720.6f3417f0a76d7e35ed8141736c83988d.5cc65b56b0d0aeeb89a05c7f819f58a3&signature=8f8096a8fcb7c6f7367cf5662a697ee68ce6f0027235e7b027b6915711e7230f
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[Primera Division] Everton vs Deportes Concepción (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera Division",Everton vs Deportes Concepción
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports&code=cl&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/cl-tnt-sports/playlist.m3u8?token=c5d495018486b6412733aac0d25d1151d9ebb9316d1b241408c64a459c68d502.1779058539.84a54fe2283928a84faaca63fba17399.c7d90bcad5a94b0722707aaef9efbc1a.c482274e8df940a4995486d9dd0c3445&signature=710c039ba8ed8b222595093dfd6ce3dfe08fcb07b56fdb1caf171278837d31eb
 
