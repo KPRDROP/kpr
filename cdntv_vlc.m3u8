@@ -1,55 +1,67 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[College Baseball] Mississippi vs Missouri (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Mississippi vs Missouri
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sec+network&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-sec-network/playlist.m3u8?token=b009f5fcf88472d2903704aa1421bd63d5f716c2d6f1c94c4b6333f39b30b32b.1779207647.6ba1e1789b697e6746e72772b06a3c64.09c69dae2819e3a7e2cd192e12ace0bf.505d4d701e49b2477681233cec7191c6&signature=2f3797d6ab8f2d32ae36c6de7448cfc3264ea569abb2166def7c5676c913d165
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Liga Leumit] Hapoel Hadera vs Hapoel Acre (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Liga Leumit",Hapoel Hadera vs Hapoel Acre
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+5+plus&code=il&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/il-sport-5-plus/playlist.m3u8?token=f88ea7d0b0d7cab26bd30d4bc40b914f113ebefd465f3f441961791b5a64418f.1779207644.974f2a9181e7fadb72178bc71bf169b6.f56a9aa52eb922c1537904527c92a659.8a44414c8ac84cbcdbfe8bbb5fe7abde&signature=95f39ec9d36235d3e0c5cd80f61798fd9bda8c1117ccca99ed4cf48020c8faf1
-
-#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Bundesliga] Wolfsberger AC vs Ried (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/10.png" group-title="Bundesliga",Wolfsberger AC vs Ried
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Bundesliga] Wolfsberger AC vs Ried (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/10.png" group-title="Bundesliga",Wolfsberger AC vs Ried
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+1&code=at&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/at-sky-sport-1/playlist.m3u8?token=f7ae3a7f50ff0360fbd959b22a9317f71b0ed91ea2d9a12b007939587b11d401.1779207645.b6c256d22bd00ce429ea96984cc44442.00d93fe505b85e9fd9719ebd97247d30.a958c5a50ab4434cfaca69f6017433a7&signature=11423af6d1c6126a3c081fd4e4473bcc80db947efed1a1b061b3faa8126d54ab
+https://edge.cdnlivetv.ru/secure/api/v1/at-sky-sport-1/playlist.m3u8?token=a940e43434a793a65934c939a5b23665133b7628a3b927b67f3811e81b96fd4c.1779214896.4652d4332bc9f4a15a9801decc26446e.ca1f4192bdfe2cd027db246749a40fd6.fd30e740cd734a0bddb7ca15bda2f418&signature=d6d271173b6bd76420ab299665565261bdaa24b96678cd197d4208580d309e01
 
-#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Superettan] Varberg vs Helsingborg (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Superettan",Varberg vs Helsingborg
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Superettan] Varberg vs Helsingborg (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Superettan",Varberg vs Helsingborg
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tv4+football&code=se&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/se-tv4-football/playlist.m3u8?token=b5b1dde335ca851bbbcdc28fb07b3b431c324a4342a8c19ff5b972352c14619f.1779207645.4df212601db7150b5f876b6c69d69114.8a9f60b107737482ae4a1aead6f444f9.e42e971b3b5d620fdf8f2955daa430ac&signature=df9dab247057ff7b1f4f9b2c203032de0cb04ed681408aa7b493b7684f37cce5
+https://edge.cdnlivetv.ru/secure/api/v1/se-tv4-football/playlist.m3u8?token=6bebfeb0619f5500925494a446fe41ac1fbbc87acc9dc1da64f8aec1c660d06e.1779214897.8dd62ca8e9dd931bc80c3a597a60bf3e.dd9cea10df597f08f1f1ca24e2600ace.801c869c3c072eeca83a74dd13c2fa6d&signature=b8111afe39a26ebebc887c946a314208a13d6b50613cd07d3e569c668083615d
 
-#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[Ligat Ha'Al] Beitar Jerusalem vs Hapoel Petah Tikva (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Ligat Ha'Al",Beitar Jerusalem vs Hapoel Petah Tikva
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Ligat Ha'Al] Beitar Jerusalem vs Hapoel Petah Tikva (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Ligat Ha'Al",Beitar Jerusalem vs Hapoel Petah Tikva
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+4&code=il&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/il-sport-4/playlist.m3u8?token=cf1ec31d6ffc8b241f155cfc2a37d763359eaa085c0b6319686aaecc8213e52e.1779207646.56f06ce0f3fb03ad20ff49467c555e3b.98a05ca15cfa72330781df05282844f8.3e0c256100c688d68b07f02e90d7a363&signature=20306ff4fde1eff5116e3be7e7423f4e6ce577653ef14041ae6f6796bddc719c
+https://edge.cdnlivetv.ru/secure/api/v1/il-sport-4/playlist.m3u8?token=a397df3929c6ee2b445e4268dc6b993ca6fa51ae3f7aebbd6f58978b6c55d8be.1779214897.0e956de49ff8a39e4d1f4a8abf762725.0a3f8e0cc5c6d17ebd1bb03bc23e22e3.99c83c2611d74438df88a67c1a069bbd&signature=db2b9febfc7907d5d31fd0f33127b0d8826f2d9d8525e639e69c88ea5c89f658
 
-#EXTINF:-1 tvg-chno="6" tvg-id="Live.Event.us" tvg-name="[Ligat Ha'Al] Hapoel Tel Aviv vs Maccabi Haifa (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Ligat Ha'Al",Hapoel Tel Aviv vs Maccabi Haifa
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Ligat Ha'Al] Hapoel Tel Aviv vs Maccabi Haifa (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Ligat Ha'Al",Hapoel Tel Aviv vs Maccabi Haifa
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+3&code=il&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/il-sport-3/playlist.m3u8?token=658fd8a2261d49db5fdc73080bab3ac6341fe1f40193241ccb0bf27c36f2d8fa.1779207646.470e40165ebe8c23ba8153c762d3a3b1.e97fbbe8e74daa5061de15b40ad86f44.18aab242ac9fd8e58dc36a832eba1b8a&signature=1ce3a2d5fb77e062b2f4340813e0f203ed8a900403d0f54875c8b0a3247da1bb
+https://edge.cdnlivetv.ru/secure/api/v1/il-sport-3/playlist.m3u8?token=c4a1f65bf918fb8d10f03364c7008ed9b340360918b1c684b721d8acb66c86e0.1779214898.9422f7e25e275d22924ff792d46bd9df.ac252f5d35d9c293c0a443256184cf89.b8df8402a033e9f50a1f5181cb7994d0&signature=eec682890fea71152a3b22ab026fd6972a646055c7a37dc7fead951bfad0f015
 
-#EXTINF:-1 tvg-chno="7" tvg-id="Soccer.Dummy.us" tvg-name="[Serie B] Juve Stabia vs Monza (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/99.png" group-title="Serie B",Juve Stabia vs Monza
+#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[Serie B] Juve Stabia vs Monza (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/99.png" group-title="Serie B",Juve Stabia vs Monza
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+soccer+plus&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=b08eb17d325f7b768b7d59a10e834606c375631db041b1c99190e8365fc985bf.1779207647.474a48cb5f31e6a338833c9cce5fd525.9672c91e83bb3330589a2a5ac45d4998.813e6ec169ade63d5a473ca82834367b&signature=54a1cb560747c54f9f2b285c0dc4e25b16517a314f6c979cbfec8080c817791d
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=94010aecab600fd295b72fceafd44d8d3c4c43c6413977ac832645e3c2eafce2.1779214898.c52eff7323a088db4d3b0ef432e5e13c.6f5661186fc7fefae60167393d645572.118aab10fea056470ae852bfb75a836f&signature=3fb78383c5f1a1c2552a79139f43b625d5a571a1363a273481bbdedeca58662e
 
-#EXTINF:-1 tvg-chno="8" tvg-id="Live.Event.us" tvg-name="[College Baseball] Vanderbilt vs Kentucky (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Vanderbilt vs Kentucky
+#EXTINF:-1 tvg-chno="6" tvg-id="Live.Event.us" tvg-name="[College Baseball] Vanderbilt vs Kentucky (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Vanderbilt vs Kentucky
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sec+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-sec-network/playlist.m3u8?token=12ccb2adedb113bba199e8d2d769a1a6e33acf77e819fad4f004ed5ee99e3e81.1779207648.2e4f2af81a818b643f57050e2238290b.e432b1b333af3e09def8eaf1356d4f36.71d93388d95cb1110e3dcb1c09363648&signature=818938371166c5f4855c90840de2c0659e066a5cccfb4d979723c78cfb2f0b55
+https://edge.cdnlivetv.ru/secure/api/v1/us-sec-network/playlist.m3u8?token=355af2f811a6f19a05b98e26b3faafe29b340d58f31502adb7c78de2ef1f4bc8.1779214900.d30105517b7612454c27177f46598c37.746765f0e91c742b30d9c2317bf1506d.687c16f16271bd6807357bfa2abba34c&signature=217f6466305ff8af9a17515fda6e00db4534cb6689bbb018dbc6038e88e15f2b
 
-#EXTINF:-1 tvg-chno="9" tvg-id="Live.Event.us" tvg-name="[College Baseball] Iowa vs Illinois (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Iowa vs Illinois
+#EXTINF:-1 tvg-chno="7" tvg-id="Live.Event.us" tvg-name="[College Baseball] Iowa vs Illinois (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Iowa vs Illinois
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=btn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-btn/playlist.m3u8?token=8d5407fefa3ed869de450f0c0c28e652eb451f2067ad14cc9870bd7e312db438.1779207648.c6ef9f6458b46ce96849eca966a6f82a.173ea155efaf79139507721e54a977b0.43080ca8a6493bb03dd899a6a3bbb8ae&signature=2a61987c45057bde9ba6b7268357d55c7f39ca960372b0ce0c7d272f51106d77
+https://edge.cdnlivetv.ru/secure/api/v1/us-btn/playlist.m3u8?token=a1bed21ddb7c57d73cadb538dbaf8f0ec5e78064ca63f5dae3fc0eb6d987e017.1779214900.e5979cf43ad9ae1441bacdbf3169edbe.58269d65baee945b85024f1be567f71b.c0eb5f61494de3cfd1386ead33fa6315&signature=1520ad9a87f98f6dec9437b13ac767c54f35ab2b1a96a8d205ff37e43b5ece64
+
+#EXTINF:-1 tvg-chno="8" tvg-id="Soccer.Dummy.us" tvg-name="[Ligue 2] Laval vs Rouen (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/96.png" group-title="Ligue 2",Laval vs Rouen
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+1&code=fr&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/fr-bein-sports-1/playlist.m3u8?token=e252687346140909d926caeeab923efb5feb0ae703a5147f699b04aa8fb44f7d.1779214899.1563e79bbf6e408265e32216eac11a7c.898f2a0c98be73e83aac27d9bfbbf91d.04a551890876c4c9289a2b4a91d14933&signature=322cc9c8c0cc7d551c68cd4deb8ab9b465ef824aec01a630160af300db3b5d74
+
+#EXTINF:-1 tvg-chno="9" tvg-id="Soccer.Dummy.us" tvg-name="[Premier League] Manchester City vs AFC Bournemouth (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/23.png" group-title="Premier League",Manchester City vs AFC Bournemouth
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nbc&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-nbc/playlist.m3u8?token=a7d4e4eae2803c960fa327288524452db6eecb610b8c150e4419c9af6cdcecae.1779214899.0f15f8061f1d176e20ed3a7cd573fb20.ec3b79e708b75752cf9699771492f18c.2c9e9045e898f5fbf9bf01acbc920f35&signature=fed2daf14b1787ceb9453be75ef4e5b951dd17a329211741e335c305bb40ff17
+
+#EXTINF:-1 tvg-chno="10" tvg-id="Soccer.Dummy.us" tvg-name="[Premier League] Tottenham Hotspur vs Chelsea (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/23.png" group-title="Premier League",Tottenham Hotspur vs Chelsea
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=astro+premier+league&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-astro-premier-league/playlist.m3u8?token=02ca87a974a1ff40882e1ee4f67945d242dfbdc886dc87e136498fcaca3e0d44.1779214900.9487b681d420fe4d42395b7eeda4dc4f.2d4d87511f5b29d02e90668f542ae888.326b2b82634c4f02e3fb83c145976259&signature=b2d303d2863d3ecc4f5eb4ede921fcf5d65c776174b6555aa451378a9982f631
+
+#EXTINF:-1 tvg-chno="11" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Atlanta Braves vs Miami Marlins (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Atlanta Braves vs Miami Marlins
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=miami+marlins&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-miami-marlins/playlist.m3u8?token=32c2802188f0c44ab01562996a1d63d45e1c7efff05746f8db9cec80b874045c.1779214901.a5e8318d4ed84d4415032bca75b915bd.151679bdf4e24430e910cad16a7fb50a.e12c08d5a50533d92ffb1e7d154fc0d5&signature=4fb55e5ee0320f8eee959521321f62627f550f97f8a8c5192a5182f8c4ae1a33
 
