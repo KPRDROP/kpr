@@ -1,55 +1,85 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[UEFA Europa League] Aston Villa vs Freiburg (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2310.png" group-title="UEFA Europa League",Aston Villa vs Freiburg
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cbs+sports+network&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-cbs-sports-network/playlist.m3u8?token=4bacdeec3580541dbedaadf7a81e4692bf14cab983aaaddc10b8b4555d594090.1779310764.89af32417fac7a750d9e0a11deb74987.c920024327cb8b1f93308cae5f3b9325.e51c2d623715d529f47421cad8e452b9&signature=198a15f26f03f3353f6f2c322ee5d2e4e247fd06f2e88c3f8b137c8801747b1e
-
-#EXTINF:-1 tvg-chno="2" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Texas Rangers vs Colorado Rockies (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Texas Rangers vs Colorado Rockies
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=colorado+rockies&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-colorado-rockies/playlist.m3u8?token=1672a7ef7c6944de973d47cd2f384502548383b0f7b0c9d5bcdc4e55d7a185fe.1779310767.4032e0aac9d701de625de94bdaf4fe4d.b2411b3f1374c45e1d0ae357d08462a9.52ffbd6e078516bf02a461cd9abda455&signature=fd1e159fde534aac24a2589377c575ea924175ca891549e147031df59c893af1
-
-#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Francisco Giants vs Arizona Diamondbacks (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Francisco Giants vs Arizona Diamondbacks
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=arizona+diamondbacks&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-arizona-diamondbacks/playlist.m3u8?token=40f98107f2ddba80a785821c21b653d128a9c350425a36a74bb0a1532920780e.1779310768.adfd9180dc11cd490e125bd55b0eadbe.00c40d81aa5e3133ea7d16944984f664.d3cce7746c8ea8d4cada048fd2ef1511&signature=1623ee5e5fb0f8a0cb91b7de0c196462a1a382f3382df476af12697dc315ffdc
-
-#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Chicago White Sox vs Seattle Mariners (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Chicago White Sox vs Seattle Mariners
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=chicago+sports+network&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-chicago-sports-network/playlist.m3u8?token=8d3d77abf248e5aa80e3e5e16f1729bce302c2fd59c6b0e53849a3ea98981a49.1779310768.be6e7223d6fa57f28bce61752307e3d4.4e0d6276abddb87925ad9c3651e8f6eb.c5943cc1bfeacdab8a4b2a00df7e581c&signature=96ca8509d0d843fd2adec98af0c817e170929d55a206303d3e06dfecd143387e
-
-#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[College Baseball] Arkansas vs TBD (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Arkansas vs TBD
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[College Baseball] Arkansas vs TBD (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Arkansas vs TBD
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sec+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-sec-network/playlist.m3u8?token=54fdb9364bbb9909704a2a0a3d0ac6d247a3c4eb681b999b4d76bc31dacfedbc.1779310766.a01a4931ee17a9d50902fed176c55fd4.3f14faa1447e00c1b31b6506e8ed07c8.15c9c10232ea9d90b89da833fb77b5f3&signature=985985ab8f1f325840297820e46f2b74f3b6cdc3d838f71ccb7fe7a6afffbcb3
+https://edge.cdnlivetv.ru/secure/api/v1/us-sec-network/playlist.m3u8?token=0bcbd975536bfcf95c18582dffe88e32851e1692114c1fff86db744f7d0262d8.1779316772.491153fbe5177a31e6d2905623f6f37c.ed8fcef15cb690788894dd515296068a.9b670ff411615c394a3f0ed3d4ac981a&signature=85f2888f4ca3b357ede5404b795a2a02ec79b4de710ddfd97ec19e7a2e272550
 
-#EXTINF:-1 tvg-chno="6" tvg-id="Soccer.Dummy.us" tvg-name="[Copa Libertadores] Universitario vs Nacional (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/58.png" group-title="Copa Libertadores",Universitario vs Nacional
+#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Copa Libertadores] Universitario vs Nacional (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/58.png" group-title="Copa Libertadores",Universitario vs Nacional
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports/playlist.m3u8?token=4a897a4a2f11f76ec1a6c3b0614b0f3820536881e1fe20bce2be1b0ad009107c.1779310765.1005b013a18df01dbbd7a344355fc86a.68954446fd8ada31fba2bfa3718eba24.65120964c69885db439f03b17beca6a1&signature=dc1582fe831e8614a2e863b15bd974020a97534c3f595c0751a0e95384aaab4c
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports/playlist.m3u8?token=94ec022965fd29aee72dfc50b156927d77ce03024ee88cf6f6c460f23c541764.1779316767.e8e6bac077d2dd5858778e03df43039f.39f3d25cde97af4c24d90f0a8813cb8b.d56cf5def32c7865da0aade22616ae5c&signature=f48548d37834b6f071556000d1f2a71fa765ef3068c3021fdb147e4acc1544b2
 
-#EXTINF:-1 tvg-chno="7" tvg-id="Live.Event.us" tvg-name="[College Baseball] Florida Gulf Coast vs TBD (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Florida Gulf Coast vs TBD
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[College Baseball] Florida Gulf Coast vs TBD (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Florida Gulf Coast vs TBD
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=btn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-btn/playlist.m3u8?token=c76bfbd108dc34b90a5d750ffc3811e9a8c7580382ca2e8778ff2fcb8689a46c.1779310767.74431d9d0815e6e9b7aaa8dc6613a40d.bcdb3243cde6ddc8ee2e8338c3ccf27e.85b370bdb2f0d5a22297b851c0f3e144&signature=9dfd5156cb16aa8500c643c935b0f4dd73a14eeaf72a22cda728d39f698d78d4
+https://edge.cdnlivetv.ru/secure/api/v1/us-btn/playlist.m3u8?token=e2c677908f64dc70db9d3282ff0f7a1429b55b7827a2f28adb3c89cfd177e28d.1779316773.e23bc5493a74e72831ef5b22230a4012.f521ff68cf5d7801ce3ef1c2db0c3a0e.4728afa9d17f5178ca974d1bea527ad1&signature=9917aa3e3bf8764b6561501670efad2c995ab3137582e74c21f2d9a6e8e55785
 
-#EXTINF:-1 tvg-chno="8" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Cleveland Guardians vs Detroit Tigers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Cleveland Guardians vs Detroit Tigers
+#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Cleveland Guardians vs Detroit Tigers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Cleveland Guardians vs Detroit Tigers
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+bundesliga+7&code=de&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/de-sky-sport-bundesliga-7/playlist.m3u8?token=f551dc529015d8fa467df4ba93b7467d9fb23765ed6f34d187505df89e8cb9c1.1779310769.b4f838492e9613c8cf8a1fe778f4359d.71a18391d0013a71cddb9fa9f01abaa0.6e1bd548e55c09a54ea4ba39d19c6c81&signature=6b3baea4616f0693016083f91ddf1850133bf3b570d02cad35098c3a57261216
+https://edge.cdnlivetv.ru/secure/api/v1/de-sky-sport-bundesliga-7/playlist.m3u8?token=bdf484d9b94c20d03aac2371e3bd7d3e8a8addc8000f2c3214ffd05df6aa35a6.1779316773.bd220d68a5e7623af1559840e16881c3.a6c6071b20b9805603684daf3589f4a1.3cd60acd7e727ad07fecb84131a1f58f&signature=c53ba1f223da3f0e1dec3739c08a4ad4c65dedd3af1ad0909e05f41a300a78cc
 
-#EXTINF:-1 tvg-chno="9" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] New York Mets vs Washington Nationals (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",New York Mets vs Washington Nationals
+#EXTINF:-1 tvg-chno="5" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] New York Mets vs Washington Nationals (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",New York Mets vs Washington Nationals
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+new+york&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-sportsnet-new-york/playlist.m3u8?token=840aa4df8247c865f3be8bf4b5576af6b4a71004e23b9fc5337702c758473ded.1779310770.f2952a737349c946ce155c738f0e93f9.3d91d84bd52ada2169a78bd303a5cc57.56a30726423f962b8e081b0039933be7&signature=e3e3f2926afa1ff555a1a18ca42164f61972279bb6f4a782f35dd59f2bf99c87
+https://edge.cdnlivetv.ru/secure/api/v1/us-sportsnet-new-york/playlist.m3u8?token=7db500a9c653fddeb6d5e6c2bb0a9bdc4d46bbcdd0fffbad80f56ff4865c949d.1779316774.447865647ab0518dd0d7df3ac6449ca7.b8b48492d363b492fcc585e02ec51715.32c55687abb542b61626ccb744d122ea&signature=31b45e85ed497e35ad0aae577281bae5758163dcac61443c08478bdf33d2e701
+
+#EXTINF:-1 tvg-chno="6" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Toronto Blue Jays vs New York Yankees (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Toronto Blue Jays vs New York Yankees
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=mlb+network&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-network/playlist.m3u8?token=812ca7733b07803cb5ca6fd5b472ea690115abcde0423bb6d282bf2e01a52dc9.1779316775.7bff618ad0d60ea6af1f1d46c1f65e4d.7dcd0bf65164b3cacfa61fd42a761474.32412b445f19724bcab4a13edbe51076&signature=90ee58fc80730fdd1f843481808d120c0f139f2441b74eba01f3c95c73a4d5ae
+
+#EXTINF:-1 tvg-chno="7" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Boston Red Sox vs Kansas City Royals (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Boston Red Sox vs Kansas City Royals
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nesn&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-nesn/playlist.m3u8?token=df2c43b653410f7c2763b1fdf62458c92b51f889a4c3fab64ef2571b3e877be5.1779316775.919e5978b8d2a19cc1c10b6988a31a59.4c3f440b8f4dc1ce79003413741b80c0.d69199e8e8a5a71a8c2692a733e7ea33&signature=aeb37b8ec8e1b55291de6aa4ed9a20ba179cee3be50985af475f0d841996d3e3
+
+#EXTINF:-1 tvg-chno="8" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Milwaukee Brewers vs Chicago Cubs (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Milwaukee Brewers vs Chicago Cubs
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=marquee+sports+network&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-marquee-sports-network/playlist.m3u8?token=013129483bcd59db0fb69e7d1a3dabd5ab4709709755e4a1af11c293453dedaf.1779316776.eacab5de68c12e5ad05655b655752de2.7a807ab2b8c14503873a4b03ee505ae3.c5375df14f02b1a37121edb36d07a5d5&signature=7ff7159f1d074ca39314179ee7c70fd95446fa6515f5cb677718ccd6810eff8b
+
+#EXTINF:-1 tvg-chno="9" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Pittsburgh Pirates vs St. Louis Cardinals (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Pittsburgh Pirates vs St. Louis Cardinals
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+pittsburgh&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-sportsnet-pittsburgh/playlist.m3u8?token=1f381dd35f13fc9a2a8b01438487434336c4c6945e1fcac6f1249c54b9bcf345.1779316777.79a7a50dbb579e30ca4e9cabde38ba6e.13eb9a80a38d497a8acba8eb840226c6.7dff039595e9b39684aaee961d0c06d4&signature=7d5dbca3e150819f558866a70ff5d87d37d190a07cac732454f081b6bf885339
+
+#EXTINF:-1 tvg-chno="10" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Vegas Golden Knights vs Colorado Avalanche (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Vegas Golden Knights vs Colorado Avalanche
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=bae69e47dd2c330e655b3be30bfd6951c6023aac57e44ea2145b993e66406894.1779316772.7f4cb507460da1bd960c2cea5a56fa44.b96fc14396ecc7ff94ddf341911d5985.f230637673ab9bae368167f933075335&signature=48cf5e7a4b13dad0a29f35166130df057616a069cea90e4f3191a4e0ad1a8783
+
+#EXTINF:-1 tvg-chno="11" tvg-id="Soccer.Dummy.us" tvg-name="[Copa Libertadores] Estudiantes vs Flamengo (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/58.png" group-title="Copa Libertadores",Estudiantes vs Flamengo
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+n&code=es&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/es-bein-sports-n/playlist.m3u8?token=b80b93e0b737346b8ab63ebfa4abcd694bb0696c57a224b817bdd0169332ae9e.1779316769.aae1e3eb8ea803639d00a91da5652e8d.0c4ef7b0f79bd8af4312190c91acc167.1bb3dcd2d367dd920652789d60b417e4&signature=eb4efb963ff505b4ba71ca0adf4b8c55ec5ee2dc32b2a7452db9ced13dc9eb53
+
+#EXTINF:-1 tvg-chno="12" tvg-id="Soccer.Dummy.us" tvg-name="[Copa Libertadores] Lanús vs LDU Quito (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/58.png" group-title="Copa Libertadores",Lanús vs LDU Quito
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+mena+1&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-mena-1/playlist.m3u8?token=ee61fb04b7ccee54a670df08e945b25b1840541729f2e40b832ce6d7f4837e1d.1779316769.65460dabc779a9339e2a73d00a708771.59efc93efc3db28d406cfc90af5beb99.9b9066aff9f39a61698f927b69b7a9ac&signature=2c381e67abe480147278cf90750d335724ae64b11f522d1fd79321ba939beb51
+
+#EXTINF:-1 tvg-chno="13" tvg-id="Soccer.Dummy.us" tvg-name="[Copa Libertadores] Cerro Porteño vs Palmeiras (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/58.png" group-title="Copa Libertadores",Cerro Porteño vs Palmeiras
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+tv+1&code=pt&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/pt-sport-tv-1/playlist.m3u8?token=d31b2780dcd4e2ec831e751924292b10d818ba9f371236e0b2f128eeb32d743d.1779316770.e33868b708508006d20454771bc96a4f.1a891d403eec51b552ea4374ccc14123.204aed370768fe6ca61e182855e19a32&signature=a572bbbc917c3a9752656bc8ab22e760febc110179601b820fd24c80af2dffe8
+
+#EXTINF:-1 tvg-chno="14" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] San Antonio Spurs vs Oklahoma City Thunder (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",San Antonio Spurs vs Oklahoma City Thunder
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nba+league+pass+1&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-nba-league-pass-1/playlist.m3u8?token=b2222340f2f04ca253ebcf7a93b4433c5b25bc536183a19a1779bd8ab6f283ad.1779316770.ff56e24d7313f57ae386f8c66b514ba2.3aa6bd19893201beb24aa8247d025677.29b0131f422c506816d1561200bc7593&signature=11777769ae9c8deb2c5029f4967118d04316019a01101ac7f816aa3aa4508c5e
 
