@@ -1,109 +1,121 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Bundesliga] Salzburg vs Austria Wien (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/10.png" group-title="Bundesliga",Salzburg vs Austria Wien
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+1&code=at&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/at-sky-sport-1/playlist.m3u8?token=8c7988aef473c4a1c035db2f936b14b99b4c4b72adb69fc07664d32052dc84ac.1779544713.54c6b7e067d82733a754605db5e3b84d.9d9ed01fa60bd607cb48922ca6fc610c.ae28b392147ed06f343e91e5801f190d&signature=a2e71c154411f5870597e76f7e7fa917da6b2aaa5e8ccbf9297ee147ebdad035
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[DStv Premiership] Stellenbosch vs Marumo Gallants (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="DStv Premiership",Stellenbosch vs Marumo Gallants
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=supersport+laliga&code=za&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/za-supersport-laliga/playlist.m3u8?token=64ab3675be958c6aa3878d42fc92240be2251e0b3887f3af0a09cee31e6211b3.1779544713.4657633db72039b0c0e2f38e6389dfa0.85ea800965c54280430b800a3a4258c4.f510c596467efb1bdb5db8b365e07884&signature=390c03daed65347d1fdbf9458dae09945badc0a469708129c130c6427978bb0a
-
-#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[DStv Premiership] Chippa United vs Kaizer Chiefs (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="DStv Premiership",Chippa United vs Kaizer Chiefs
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=supersport+football&code=za&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/za-supersport-football/playlist.m3u8?token=cc67902cfb367e3dcdfc83a92e725d2d0d012268d6e4021308cdad2753ec5232.1779544714.417af12d961c2bd15495aff5ab23d19a.8a215bcef8d00ccfe2c063c07dbd2900.252e8806aa755b1181414ff9c327da71&signature=636614c69ea5069ec2209c6f40e9cfbc7eed951b6db5193f3ed7a5d2857f7cb3
-
-#EXTINF:-1 tvg-chno="4" tvg-id="Soccer.Dummy.us" tvg-name="[Championship] Middlesbrough vs Hull City (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/24.png" group-title="Championship",Middlesbrough vs Hull City
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Championship] Middlesbrough vs Hull City (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/24.png" group-title="Championship",Middlesbrough vs Hull City
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=astro+grandstand&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-astro-grandstand/playlist.m3u8?token=9cf345d1479060722f80b844568ce0cef0deed63b56495924db36b6b8d8be307.1779544714.66f4b8144b9550b9da5a1cedad47da19.1c9fba633b1f9e92a0783014eab71f19.a4406a2bc0846b248ae2289e7b562cf9&signature=c417f561f0e2b2c349eaa6c846b2a28bb7d3a076d590f76b508a9adb3c7be424
+https://edge.cdnlivetv.ru/secure/api/v1/us-astro-grandstand/playlist.m3u8?token=ab9dc7c3e1bbb16904f14f145720718d66146c51d57e6a795f3c3fc01229c5c4.1779548916.1233ba6df61720c3f93fc52435996c47.6c08359d1ee65506a111421ce42fbc28.d421bd4b42dcf97e36ac1b5581ba8f01&signature=ba6774fd7775ffd84b59ee5bfc5f65892e594a9e018c183b2dcd1c6ad5f8f451
 
-#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[Ligat Ha'Al] Maccabi Tel Aviv vs Hapoel Petah Tikva (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Ligat Ha'Al",Maccabi Tel Aviv vs Hapoel Petah Tikva
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Ligat Ha'Al] Maccabi Tel Aviv vs Hapoel Petah Tikva (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Ligat Ha'Al",Maccabi Tel Aviv vs Hapoel Petah Tikva
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+1&code=il&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/il-sport-1/playlist.m3u8?token=ba3ba81e7c2a50759d8707b79bee8159d3aebd11e49def14684c71a1d9eecaf3.1779544715.69f70fcebf7d4cd25833b78e48832b51.b19412da5fe4b3487bbae12d686d6877.ad4bfb22767d7acce04efdda8b97d134&signature=dd6612f49852827db293be261a4627b89ed6bfb49e4a216b65f4929dff4983f1
+https://edge.cdnlivetv.ru/secure/api/v1/il-sport-1/playlist.m3u8?token=5df34571dbf9659120a94d18b34cdfed2925a09a0047838e44f8c003fc86d541.1779548916.24ae23806e86babc28784501ec7589a4.7581d03806464f9b73cffdca58ead9ee.1da3a39d8699361ba941d6c76b00bc2d&signature=e72707e0fc2a56012b84c3066b9d61f92ccef0ae62488bdb10f65a0a61ac9728
 
-#EXTINF:-1 tvg-chno="6" tvg-id="Soccer.Dummy.us" tvg-name="[Liga I] Farul Constanța vs Chindia Târgovişte (CDNTV)" tvg-logo="https://i.gyazo.com/3fd4b38d5263ca391e45850eb58d11e6.png" group-title="Liga I",Farul Constanța vs Chindia Târgovişte
+#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Liga I] Farul Constanța vs Chindia Târgovişte (CDNTV)" tvg-logo="https://i.gyazo.com/3fd4b38d5263ca391e45850eb58d11e6.png" group-title="Liga I",Farul Constanța vs Chindia Târgovişte
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=digi+sport+1&code=ro&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ro-digi-sport-1/playlist.m3u8?token=1bdd955bc361a940a074f585f6e6ed89c7a1037db257d91abca3245fc7f95d7a.1779544715.f5819ca22338ba3bfc6385e96bed6c2f.b4eb136aa2561254ba8f9abfd66c563e.86d2002298a0f0cb89a3dfce965c2cd0&signature=2d3a54a2e9aba50f7d2647209251ef9884c3bc0679c9a90bbadb483460e13e24
+https://edge.cdnlivetv.ru/secure/api/v1/ro-digi-sport-1/playlist.m3u8?token=acfa28723f0db349516cc9939594c009677808ce35693b0106da5fd8409c9951.1779548917.70882ef70de2a11a45bffd0c757a92c6.97ef7376e7dc278e9cf8d591d487da16.c54cc41c9a4d52f51fb5f98e2a48dcae&signature=b81538ab41f50b30a74a99cf15c78dfdb6252927f89e6c245b35d5cdcb500196
 
-#EXTINF:-1 tvg-chno="7" tvg-id="Live.Event.us" tvg-name="[Superettan] Värnamo vs Falkenberg (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Superettan",Värnamo vs Falkenberg
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Superettan] Värnamo vs Falkenberg (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Superettan",Värnamo vs Falkenberg
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tv4+sportkanalen&code=se&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/se-tv4-sportkanalen/playlist.m3u8?token=917a12bc09db54d6979142f7284afac4d08ef352d845b650f1b2769f5ddf5549.1779544716.7552b005efbf6b706d00a31544a199c7.5d06efa8732acff6683325f49316303d.0cb22890778aa9ff81d3d8a03b4aaf39&signature=247807d0ebfbd0230d4753a5a31e0ea9b6f681178e572347636fbfc7c483d9bb
+https://edge.cdnlivetv.ru/secure/api/v1/se-tv4-sportkanalen/playlist.m3u8?token=c5ef4b4a66790941978436bd0fc8da0a9f710b9f11345d5635c1411b426fcff1.1779548917.13394292dfbd1f358e4634e50239a1ba.c31c346d6e05db59ddc70601965b5e9b.f1458ac5f4ebbeaafaeeccf34c2ae141&signature=1107d986f35bfd94b1d604f1578cd1a95af76829234a16b1848fa5b0dc9ce928
 
-#EXTINF:-1 tvg-chno="8" tvg-id="Live.Event.us" tvg-name="[College Softball] Georgia vs Tennessee (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Softball",Georgia vs Tennessee
+#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[College Softball] Georgia vs Tennessee (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Softball",Georgia vs Tennessee
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=ca81242c5e06311d0e0011b39d1a3216c22e69ded18c71a23562968d6fe18fb8.1779544720.d968d21feb295d4d9e7ec8680bbe1155.1b36872733599585ef02a6114f6b1861.4c645183949754992463fdc47b178c4c&signature=466826e719908fac5eb3403dd64740dcf6a64f5cc1f7930d7e5c6e39c5cb0b8c
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=96e76d43ad4d8a1fc131f2e4e606bc60a4eb16028265f1dbbd33b7d7b9a38e6a.1779548923.28287c1262d647e2c24bee93291cd99a.956fea0092bda62f1bf59b3e6490ca5b.2fec19076fda5418a925da4698d54e40&signature=00dd98f5119ef595c74bee56df4e8ebdf781005c4c441df8d107dd11c982dc65
 
-#EXTINF:-1 tvg-chno="9" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Arka Gdynia vs Raków Częstochowa (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Arka Gdynia vs Raków Częstochowa
+#EXTINF:-1 tvg-chno="6" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Arka Gdynia vs Raków Częstochowa (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Arka Gdynia vs Raków Częstochowa
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=canal+sport+3&code=pl&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-sport-3/playlist.m3u8?token=65c7c7dac8552cfae3b8b7ba1427f81c042a999b206cb386d56752b5e4ad9abb.1779544716.71d87888986c56b18adfd5beef713d4a.737ace7757cf8247e799cc075fd513ce.625eded33c6313aea36abe2d0ad10aa1&signature=83e8f5d28dcedb7d277c5d776ab525fe9ac94a6958bdcc9f441676d7de427633
+https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-sport-3/playlist.m3u8?token=63adfe9a9618b2758b73baa62b183651d82eb0cdb83b5a93a5a0d10f19fa1cdb.1779548918.3205221f7c3d4b66d371a61592937089.782bbfa7443047774b862bd9e41eb933.98aeef1729fd5dfdaebd5e9348e21a55&signature=ba01148966c4fc14e95b63dbefe42fafa4f53deacbc34c32e317c56284451434
 
-#EXTINF:-1 tvg-chno="10" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Zagłębie Lubin vs Jagiellonia Białystok (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Zagłębie Lubin vs Jagiellonia Białystok
+#EXTINF:-1 tvg-chno="7" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Zagłębie Lubin vs Jagiellonia Białystok (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Zagłębie Lubin vs Jagiellonia Białystok
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=arena+sport+2&code=rs&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/rs-arena-sport-2/playlist.m3u8?token=d5276777bd363a3d7a18873ee8bf9926a8b7f9af19f690615bd92d42386578bd.1779544716.c919a7c13903662b7691ff49fbbf564b.8ee91b7e8e2719f994d5611b88b7d861.af348e6e2107b71f0ab03aa3525230ed&signature=02f82fb161675b9a3c9deda1aeb5af56f47be93bbc0cf59ebef29223ea101849
+https://edge.cdnlivetv.ru/secure/api/v1/rs-arena-sport-2/playlist.m3u8?token=bc5ebe9d98b3b9d31e2d467294ed5b3572613313f798eac6c75fb136ffbfb23c.1779548918.ad3d7a74eeab68aa0a6b1d5059ecd457.b3ece1799aa2b21dd0ea21d5f0d21bb3.034bf658f7aed845984de31c38887ffd&signature=43e083ede602beb647a10dd58ad3a49d7583f662be4ff441b8daee444e5cf44b
 
-#EXTINF:-1 tvg-chno="11" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Radomiak Radom vs Górnik Zabrze (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Radomiak Radom vs Górnik Zabrze
+#EXTINF:-1 tvg-chno="8" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Radomiak Radom vs Górnik Zabrze (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Radomiak Radom vs Górnik Zabrze
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=gol+play&code=es&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/es-gol-play/playlist.m3u8?token=5d0617b85ce39a6ba5506f747bb79c71eeb7e128bd8d3ab324fba1a92a793ac3.1779544717.0afb4c0438a084e96d1d87a7cbcecc67.1ae8ed276eec38b4e61bfa3b2733d851.24041851814711ea83c0c88fe6f3ee50&signature=add549fbe8e873acdad9a0f1ae7d2068726daacdac2980d1af8d7756b9852855
+https://edge.cdnlivetv.ru/secure/api/v1/es-gol-play/playlist.m3u8?token=c72eaaf7afb21b4c038932db109742b648a09db7f326edffa450ea47809b6408.1779548918.d2b8b8328f5c5b0e4e1e1a18f21a84d7.c879559b748ff89f00b3f7c0a10c9298.617f70486624ec98c774f352ebb4c652&signature=da9059836f6a8c21243e1436fa99f277bb9871ef814417da30bb51bcb7fd914e
 
-#EXTINF:-1 tvg-chno="12" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Lechia Gdańsk vs Nieciecza (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Lechia Gdańsk vs Nieciecza
+#EXTINF:-1 tvg-chno="9" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Lechia Gdańsk vs Nieciecza (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Lechia Gdańsk vs Nieciecza
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=canal+sport+3&code=pl&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-sport-3/playlist.m3u8?token=c6d9aa59716f5f758452671e60e44555ab59c9a033e35b6ff7dbf1561f207d72.1779544717.5f40c3302aa4ba241a7383a55d3808b0.6ac695c3bddb18b9b461c17ddfc8785b.f307d53e0cf1af460351f5237f35bae5&signature=948e93eabd8fb5edfa6597a177a872b771fa2fbf1cd93c6e1f5f80c18db5190e
+https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-sport-3/playlist.m3u8?token=f7219774f7ed15da3dc483acd050e9369ea62dc8979fbfbea55f22b3f6af045b.1779548919.fe1b52bd32c83dda3fcff6366fd3ef97.1335b7c307417da09a7a9f41c25fba71.60e275ec4e833bc61be66922472db5ed&signature=13d0d1d080361ee502a01df47c02bd229ffcfae38b3b4c12f7ce3a513651b160
 
-#EXTINF:-1 tvg-chno="13" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Korona Kielce vs Cracovia Kraków (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Korona Kielce vs Cracovia Kraków
+#EXTINF:-1 tvg-chno="10" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Korona Kielce vs Cracovia Kraków (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Korona Kielce vs Cracovia Kraków
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=canal+sport+3&code=pl&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-sport-3/playlist.m3u8?token=153101c2e3997eb900b1ffaac89d2d915e8a27ddd4c8061af5a3c255cf6d450e.1779544718.4c02d106e63f9ea0a992e04be58c021c.3f2d8fdb5fcdfde55c824bb04cd64c26.f89a218feb2d1e70c7d6f80e0ee91a1f&signature=8cf05356fe9ca17720fd02e18ad749586b55a637311bd01c2dc906b144fa1620
+https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-sport-3/playlist.m3u8?token=cf80913d0b4cc3610bb2bf65b2cca6b54d74f4d7fb0ca9e106fd89896889c2a0.1779548919.fe3594e47c61731f4f8ad7716ae9d4dc.521cb237f1677e866df459ddd7362686.e05435c4d930bc4c1cde2eb569821f95&signature=fc539f1d71c6ca14ee3d41498200415fea3b12055966258e7622f6aeba1ec369
 
-#EXTINF:-1 tvg-chno="14" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Wisła Płock vs Lech Poznań (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Wisła Płock vs Lech Poznań
+#EXTINF:-1 tvg-chno="11" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Wisła Płock vs Lech Poznań (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Wisła Płock vs Lech Poznań
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportdigital+fussball&code=de&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/de-sportdigital-fussball/playlist.m3u8?token=46aace5472f9034f03f2dd2af6ac13b0169af6f1e677a5137cd277fa3b6402e3.1779544718.3be439469bb27fbfe6aa50ea45522a8b.d7563c92cd106f30313bbd56b7b12827.9fef1e3d4abd7795363025cb41bf5fbb&signature=d3a796e03803152463cb2056beb64bef28e0715b35c46c3376306d82ba045b0e
+https://edge.cdnlivetv.ru/secure/api/v1/de-sportdigital-fussball/playlist.m3u8?token=56122187c24bfd902f4efa410c22e5ccf2e59df0d9e1cf43e0b43a8714af8a5e.1779548920.faa19d8f2583cc9bde101592217d37fb.433c9db6f4656ca10e74f4e6475f258f.6fe102bd8bf4acd66ec181a942efb7b3&signature=54b89b7ea77ea62ddc9f270478bc05e36969d49ac7b77340b04d38711d94bc8d
 
-#EXTINF:-1 tvg-chno="15" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Motor Lublin vs Legia Warszawa (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Motor Lublin vs Legia Warszawa
+#EXTINF:-1 tvg-chno="12" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Motor Lublin vs Legia Warszawa (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Motor Lublin vs Legia Warszawa
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=canal+360&code=pl&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-360/playlist.m3u8?token=b1eaa8178bd494d4f4d5f6dca66aeb91438286b7b84d1ff02f54062705ce04e5.1779544719.7e7f1186fa31de412739fe5599fdbff1.932519a1b6d2017cf7f66f5c2e91e1c0.a39bd91ac453735f4b74a48514014cdc&signature=e66f70243cbce5f92ffcf0e782be834af0bd53ffe3a7953942bd0705895ce033
+https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-360/playlist.m3u8?token=76635f11e73a679fab1f8ad0992b156f44ef508410e5ae6dff69e950ea627955.1779548920.6769255dca44d45dc65d131f8b9aa381.677e8bddc329688eee70766ab7f27aba.2ad96c26ad9f50acd4d51175acbf37dc&signature=63b4580eb7de391c084c7301370d3b0bc0f7d32d8f216713a2c27543645cdd77
 
-#EXTINF:-1 tvg-chno="16" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Katowice vs Pogoń Szczecin (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Katowice vs Pogoń Szczecin
+#EXTINF:-1 tvg-chno="13" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Katowice vs Pogoń Szczecin (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Katowice vs Pogoń Szczecin
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=canal+sport+3&code=pl&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-sport-3/playlist.m3u8?token=d1d037a53b0f559ce0945ea886d2b0ca3f632c2dfd0f3ffadc0e1f1d71844720.1779544719.4fa875d64d208100b43fe2a22443e5ff.658e3cee216c417ce7e62b0c0bef0824.8485f198211dcf9e1760b544de00de9e&signature=33c56d7425ca220e6b0b30f2220e59521f3a4ff7ba24e26e3b121f9bf4d68ded
+https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-sport-3/playlist.m3u8?token=a604952ed5a43e305d7fd9548fd8b51523aafcdcf81957ab470cd4eea6349e6a.1779548921.671ca853a02883bf862694469d5a2a79.1f2fbe760762b087d322ada309360e2a.d5edb6417900362ca824325659b901bf&signature=61af9a005ba7d2134118037b8047283779996c7c6156d09393e3b18d96213df9
 
-#EXTINF:-1 tvg-chno="17" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Piast Gliwice vs Widzew Łódź (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Piast Gliwice vs Widzew Łódź
+#EXTINF:-1 tvg-chno="14" tvg-id="Soccer.Dummy.us" tvg-name="[Ekstraklasa] Piast Gliwice vs Widzew Łódź (CDNTV)" tvg-logo="https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png" group-title="Ekstraklasa",Piast Gliwice vs Widzew Łódź
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=canal+sport+2&code=pl&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-sport-2/playlist.m3u8?token=e7709669e16a05ca9b9fd59d86b5747d8841ae0bf41d010190e7127fbd7e63f8.1779544719.630e6d76e34c7fccb7fc7ede80869537.94ff563dcab72d3d54f5bcbcbc6191c8.351705c61cc0d7e20ee779f79a7527e2&signature=d3e27079c480df2f403778280731a8ed12638fec5f6bca5951d941e421c305db
+https://edge.cdnlivetv.ru/secure/api/v1/pl-canal-sport-2/playlist.m3u8?token=872f61a75b5900656273c19b04a08028986ff2e11b0930cc6de705bebbe4fd9f.1779548921.500e0906db48cb1f1ff2664bc652f975.91dc5f432017e0342696b73c9f6a5fbf.784c4c67ec0f91181c1c1cd99042a486&signature=8fa95dc179fedf19a8a8b979f3360bcb79450b6fcd8347881dfc7806cc52876b
 
-#EXTINF:-1 tvg-chno="18" tvg-id="Soccer.Dummy.us" tvg-name="[Africa Cup of Nations] Mozambique U17 vs Ethiopia U17 (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/76.png" group-title="Africa Cup of Nations",Mozambique U17 vs Ethiopia U17
+#EXTINF:-1 tvg-chno="15" tvg-id="Soccer.Dummy.us" tvg-name="[Africa Cup of Nations] Mozambique U17 vs Ethiopia U17 (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/76.png" group-title="Africa Cup of Nations",Mozambique U17 vs Ethiopia U17
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports/playlist.m3u8?token=515ed2d6fbc21eb3e3c9b5973a168f4c6c7e3528770bb300aff4ca01f68ea473.1779544720.bd459d4e99421f66776a3423faacd3f0.7d53a00d07cf144cb1fecd80bbcfb11d.45512258491ef8fd562e9425b61a844d&signature=e63c8fa42ee15dd9de76b368ba3da63a0696f9bf4b1212480f8c8ff605a4ed43
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports/playlist.m3u8?token=f8bf808165279d0cfaef30d86035cf3244e6278e6e8d3e773e887f5cc529c2b2.1779548921.d5ac8836ef0fb50be821e7b428e64b86.09bc9445c2d9054ffa71db0deab630b5.4a90ddd07e4d79241dd7c4d19ffacb80&signature=a0b493053a3bacdb9f85a858ed1db13628fb499cda18be13243b8fae8f77a4d9
+
+#EXTINF:-1 tvg-chno="16" tvg-id="Soccer.Dummy.us" tvg-name="[Serie A] Internazionale vs Bologna (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png" group-title="Serie A",Internazionale vs Bologna
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=supersport+football&code=za&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/za-supersport-football/playlist.m3u8?token=ef080bae0637e9ab71ae0781aec72c6333b44193cfd4f785ca3e0bacbaf8649a.1779548922.211357f8cef5860a60a86468ef485384.cf728801589e98562816db2e730271c5.70bcfbfea8b29692bd0b8301970fd8d6&signature=dad80459a42db6777f5448d2547f45b7012a7bf33a4b124d602318eb6ab4ea68
+
+#EXTINF:-1 tvg-chno="17" tvg-id="Soccer.Dummy.us" tvg-name="[Primera Division] Cobresal vs Audax Italiano (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png" group-title="Primera Division",Cobresal vs Audax Italiano
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports&code=cl&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/cl-tnt-sports/playlist.m3u8?token=ab14a0f4884132a472ff92a0e5233570c47200710a35068f656d353726baac3d.1779548922.f5c1defe5262809ec72d66adbd502910.b6679cb5e3be00d325a11ae9ae3b53ff.8048b97423fe95ae8fd63d2a9cef5b2f&signature=4e97a9a0e70087bbf41f654067bba515cec7ace105da36bd69d38aef10304d58
+
+#EXTINF:-1 tvg-chno="18" tvg-id="Live.Event.us" tvg-name="[College Softball] Texas Tech vs Florida (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Softball",Texas Tech vs Florida
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=abc&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-abc/playlist.m3u8?token=8f88b35e28cdffeba42ffdaa77202e61883b133129199bad9d1cdd63b6c21bcc.1779548923.5c162e037c686d41ebd86c33e8f4071f.73ea8d85ec2b726027095da2295ad635.461c2a26a03746c1f3ad8849a8a10327&signature=4c0b331ce89ff3ee5ea9c1a3af124c3f80cfc01e6c988b365b7a1eee53b4248c
+
+#EXTINF:-1 tvg-chno="19" tvg-id="Live.Event.us" tvg-name="[College Baseball] TBD vs TBD (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",TBD vs TBD
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sec+network&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-sec-network/playlist.m3u8?token=9e8aed9631edaeac3434a3171dc8e4020ba73e2ca0c6bda2c820f77d87842c0f.1779548923.18d28217a04500dbfd90844abce0a6bf.4a5449f6ce47eec8af6ebbd4bab81d1e.bd359660778954278147c03a0e9c61f7&signature=74ec528efa1f8ab0eb94faa8dd37860ae14a413ac759165550e8e4b6356f7105
+
+#EXTINF:-1 tvg-chno="20" tvg-id="Live.Event.us" tvg-name="[College Softball] Mississippi State University vs Oklahoma (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Softball",Mississippi State University vs Oklahoma
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=8555e103083a178bb298c6d7f2cec45eddbe3e92e1fdec71b0927c38334b1e7c.1779548924.aa842863d397dd198b3269af3fd37026.50a63ac3c1f244309f1ef34b5fec40e3.0e23072c3a5502c95bdd00d49d756d76&signature=f68ef6f8541db10301d53fd774ddbcea58683578b32fb7e068a48e350f3959fb
 
