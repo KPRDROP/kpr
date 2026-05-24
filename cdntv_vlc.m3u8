@@ -1,13 +1,19 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Eredivisie] Utrecht vs Ajax (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/11.png" group-title="Eredivisie",Utrecht vs Ajax
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=viaplay+sports+1&code=gb&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/gb-viaplay-sports-1/playlist.m3u8?token=14c78bc46edf68fb03631a3df3eaaa42dfca4429ffaa2c947e423b67d810fe1a.1779621459.7de1eb024caf69d165fda884532703b8.0f82a165eb8c68b2b324e8aa3877558f.478a93d8b69cf5e39b5b31f3077a9032&signature=e717995572f6b1ed4ddabc9c58b59b354b11eb433e519be5d800e9929674d976
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Serie A] Sassuolo vs Parma (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png" group-title="Serie A",Sassuolo vs Parma
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Serie A] Sassuolo vs Parma (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png" group-title="Serie A",Sassuolo vs Parma
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=astro+football&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-astro-football/playlist.m3u8?token=7e763c722118edd652624c21f77a40a1650bb90393ccbcd5d5e9a5daa0981f95.1779621460.c8f29b324d8eec42bd8928f3a06f35ea.90c972746251f72b2baba2e10d3387cd.0dc8d887a1dfa882d54d0973df930305&signature=9bd4e6896c98c0c82e1ee5c238c0a08deade249ce72407d2031b1ffe7ec4cb37
+https://edge.cdnlivetv.ru/secure/api/v1/us-astro-football/playlist.m3u8?token=266d97852de25b1243e3e0fa544aa920dd788a4629696583f53e78f994800586.1779626500.ce119885e816c6ff76bda702c46a84da.43c5fbb99cb9dd5457e80d64d274ecaa.efb79b45d39b168c78d3bfbb3907ed43&signature=f6d6c4115a6805d7df1854100d47e777bd36e60b32c441db9fa0772d8334dc2c
+
+#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Segunda Division] Real Sociedad II vs Albacete (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/107.png" group-title="Segunda Division",Real Sociedad II vs Albacete
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=laliga+tv+hypermotion+1&code=es&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/es-laliga-tv-hypermotion-1/playlist.m3u8?token=d526933177e6fc69bdf0480ef97459f91e462b629b0423ec50a1b80d9e153c26.1779626501.0725a197d9ccd7e62aa2ac660bee14d5.74bcc65b6ce6be8b08321fac1dd9a9c4.3fb30570eb6f1c877b9ae17877cf62dd&signature=3c4fcf6aa418d1e370706577511e2a1da4967ac95ebc9cc94b8b1eed5a13659f
+
+#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Liga I] Hermannstadt vs Voluntari (CDNTV)" tvg-logo="https://i.gyazo.com/3fd4b38d5263ca391e45850eb58d11e6.png" group-title="Liga I",Hermannstadt vs Voluntari
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=digi+sport+1&code=ro&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/ro-digi-sport-1/playlist.m3u8?token=f4dd1e47757d5e7419fc39c664c9d654efc39a42a07ff9f3901d121ded80ab63.1779626502.57f4bc41d23193fca422b0fabd339a49.a9bf4a1edc0f2589e7abf042c09df8a0.6c857cdf0ce97216d5f73921f3130e09&signature=91ec9548258bee7c983410a1502ef587e4661976c38f4515eda2303afe420b76
 
