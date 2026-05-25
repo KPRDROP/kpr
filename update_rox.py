@@ -84,44 +84,74 @@ def clean_event_title(raw_title):
     """Clean the raw title: strip, unescape, and remove common site suffix noise."""
     if not raw_title:
         return ""
+    
+    # Don't clean if it's a URL
+    if raw_title.startswith("http://") or raw_title.startswith("https://"):
+        return ""
+    
     t = html.unescape(raw_title).strip()
-
+    
     # remove weird repeated whitespace and newlines
     t = " ".join(t.split())
-
-    # common site-suffixes to remove (example patterns)
-    # We remove trailing phrases like: "- Roxiestreams - Watch Live Sports, F1, UFC, NFL, TV"
-    # or " - Watch Live Sports..." or " - Roxiestreams"
+    
+    # Remove URL patterns from title
+    t = re.sub(r'https?://[^\s]+', '', t)
+    
+    # common site-suffixes to remove
     t = re.sub(r"\s*-\s*Roxiestreams.*$", "", t, flags=re.IGNORECASE)
     t = re.sub(r"\s*-\s*Watch Live.*$", "", t, flags=re.IGNORECASE)
     t = re.sub(r"\s*-\s*Watch.*$", "", t, flags=re.IGNORECASE)
     t = re.sub(r"\s*-\s*Live Stream.*$", "", t, flags=re.IGNORECASE)
     t = re.sub(r"\s*\|.*$", "", t)  # strip trailing pipe content
+    
+    # Remove common prefixes
+    t = re.sub(r'^(Watch|Live|Stream|Event|Game|Match)\s+', '', t, flags=re.IGNORECASE)
+    
     t = t.strip(" -,:")
+    
+    # If after cleaning we have nothing or just a single word, try to extract from URL
+    if len(t) < 3:
+        return ""
+    
     return t
 
 def derive_title_from_page(soup, fallback_url=None):
     """Pick best title from page: anchor text already preferred externally; fallback to H1 -> meta og:title -> title tag -> url slug"""
     if not soup:
         return ""
+    
     # H1
     h1 = soup.find("h1")
     if h1 and h1.get_text(strip=True):
-        return clean_event_title(h1.get_text(strip=True))
+        title = clean_event_title(h1.get_text(strip=True))
+        if title:
+            return title
+    
     # meta og:title
     og = soup.find("meta", property="og:title") or soup.find("meta", attrs={"name":"og:title"})
     if og and og.get("content"):
-        return clean_event_title(og.get("content"))
+        title = clean_event_title(og.get("content"))
+        if title:
+            return title
+    
     # title
-    title = soup.find("title")
-    if title and title.get_text(strip=True):
-        return clean_event_title(title.get_text(strip=True))
+    title_tag = soup.find("title")
+    if title_tag and title_tag.get_text(strip=True):
+        title = clean_event_title(title_tag.get_text(strip=True))
+        if title:
+            return title
+    
     # fallback from url slug
     if fallback_url:
         path = urlparse(fallback_url).path.rstrip("/")
         if path:
-            slug = path.split("/")[-1].replace("-", " ")
-            return clean_event_title(slug)
+            slug = path.split("/")[-1].replace("-", " ").replace("_", " ")
+            # Clean up common patterns
+            slug = re.sub(r'\d+$', '', slug)  # Remove trailing numbers
+            slug = slug.strip()
+            if slug and len(slug) > 3:
+                return slug.title()
+    
     return ""
 
 def get_event_m3u8(event_href, anchor_text=None):
@@ -139,7 +169,19 @@ def get_event_m3u8(event_href, anchor_text=None):
     # If the href already contains a direct m3u8, return it quickly (cleaned)
     direct = extract_m3u8_from_text(event_href, base=event_url)
     if direct:
-        title = clean_event_title(anchor_text or derive_title_from_page(None, fallback_url=event_url) or direct)
+        # Try to get title from anchor text first
+        title = ""
+        if anchor_text:
+            title = clean_event_title(anchor_text)
+        if not title:
+            title = derive_title_from_page(None, fallback_url=event_url)
+        if not title:
+            # Extract from URL as last resort
+            path = urlparse(event_url).path
+            if path:
+                title = path.split("/")[-1].replace("-", " ").replace("_", " ").title()
+        if not title or title.startswith("http"):
+            title = "Live Event"
         return [(title, direct)]
 
     # Fetch event page
@@ -148,9 +190,16 @@ def get_event_m3u8(event_href, anchor_text=None):
         return []
 
     # preferred base title sequence: anchor_text -> H1 -> meta -> title -> url slug
-    base_title = clean_event_title(anchor_text) if anchor_text else ""
+    base_title = ""
+    if anchor_text:
+        base_title = clean_event_title(anchor_text)
+    
     if not base_title:
         base_title = derive_title_from_page(soup, fallback_url=event_url)
+    
+    # If still no title, use a fallback
+    if not base_title:
+        base_title = "Live Event"
 
     seen = set()
 
@@ -165,9 +214,13 @@ def get_event_m3u8(event_href, anchor_text=None):
                 cand = "https:" + cand
             if cand not in seen:
                 seen.add(cand)
-                title = a.get_text(strip=True) or base_title or cand
-                title = clean_event_title(title)
-                results.append((title, cand))
+                title = a.get_text(strip=True)
+                if title:
+                    title = clean_event_title(title)
+                if not title:
+                    title = base_title
+                if title and not title.startswith("http"):
+                    results.append((title, cand))
 
     # 2) <source src=...> or <video src=...>
     for tag in soup.find_all(["source", "video"], src=True):
@@ -175,9 +228,13 @@ def get_event_m3u8(event_href, anchor_text=None):
         cand = extract_m3u8_from_text(src, base=event_url)
         if cand and cand not in seen:
             seen.add(cand)
-            title = tag.get("title") or tag.get("alt") or base_title or cand
-            title = clean_event_title(title)
-            results.append((title, cand))
+            title = tag.get("title") or tag.get("alt")
+            if title:
+                title = clean_event_title(title)
+            if not title:
+                title = base_title
+            if title and not title.startswith("http"):
+                results.append((title, cand))
 
     # 3) iframes: fetch iframe content and search
     for iframe in soup.find_all("iframe", src=True):
@@ -189,31 +246,44 @@ def get_event_m3u8(event_href, anchor_text=None):
             cand = extract_m3u8_from_text(html_if, base=iframe_url)
             if cand and cand not in seen:
                 seen.add(cand)
-                title = iframe.get("title") or iframe.get("name") or base_title or cand
-                title = clean_event_title(title)
-                results.append((title, cand))
+                title = iframe.get("title") or iframe.get("name")
+                if title:
+                    title = clean_event_title(title)
+                if not title:
+                    title = base_title
+                if title and not title.startswith("http"):
+                    results.append((title, cand))
             # also inspect anchors/sources inside iframe
             if soup_if:
                 for a in soup_if.find_all("a", href=True):
                     cand = extract_m3u8_from_text(a["href"], base=iframe_url)
                     if cand and cand not in seen:
                         seen.add(cand)
-                        title = a.get_text(strip=True) or base_title or cand
-                        title = clean_event_title(title)
-                        results.append((title, cand))
+                        title = a.get_text(strip=True)
+                        if title:
+                            title = clean_event_title(title)
+                        if not title:
+                            title = base_title
+                        if title and not title.startswith("http"):
+                            results.append((title, cand))
                 for tag in soup_if.find_all(["source", "video"], src=True):
                     cand = extract_m3u8_from_text(tag.get("src", ""), base=iframe_url)
                     if cand and cand not in seen:
                         seen.add(cand)
-                        title = tag.get("title") or tag.get("alt") or base_title or cand
-                        title = clean_event_title(title)
-                        results.append((title, cand))
+                        title = tag.get("title") or tag.get("alt")
+                        if title:
+                            title = clean_event_title(title)
+                        if not title:
+                            title = base_title
+                        if title and not title.startswith("http"):
+                            results.append((title, cand))
 
     # 4) inline JS / page HTML search for m3u8
-    cand = extract_m3u8_from_text(html_text, base=event_url)
-    if cand and cand not in seen:
-        seen.add(cand)
-        results.append((base_title or cand, cand))
+    if not results:  # Only use this if we didn't find any structured data
+        cand = extract_m3u8_from_text(html_text, base=event_url)
+        if cand and cand not in seen:
+            seen.add(cand)
+            results.append((base_title, cand))
 
     # Final normalization: absolute urls and dedupe
     final = []
@@ -230,11 +300,11 @@ def get_event_m3u8(event_href, anchor_text=None):
             continue
         final_seen.add(u)
         # ensure title is clean and short
-        title_clean = clean_event_title(t)
-        if not title_clean:
-            # fallback
-            title_clean = derive_title_from_page(soup, fallback_url=event_url) or u
+        title_clean = clean_event_title(t) if t and not t.startswith("http") else base_title
+        if not title_clean or title_clean.startswith("http"):
+            title_clean = base_title
         final.append((title_clean, u))
+    
     return final
 
 def get_category_event_candidates(category_path):
@@ -267,14 +337,19 @@ def get_category_event_candidates(category_path):
         if ".m3u8" in href or any(k in low for k in ("stream", "streams", "match", "game", "event")) or re.search(r"-\d+$", low):
             if full not in seen:
                 seen.add(full)
-                candidates.append((text.strip(), full))
-    # If nothing found, try scanning JS blobs for m3u8 candidates
+                # Clean the anchor text to remove URLs
+                clean_text = clean_event_title(text)
+                if not clean_text or clean_text.startswith("http"):
+                    clean_text = ""
+                candidates.append((clean_text, full))
+    
+    # If nothing found, search inline for m3u8
     if not candidates:
-        # search inline for m3u8
         for m in M3U8_RE.findall(html_text):
             if m and m not in seen:
                 seen.add(m)
                 candidates.append(("", m))
+    
     print(f"  → Found {len(candidates)} candidate links on category page")
     return candidates
 
@@ -299,6 +374,9 @@ def write_playlists(streams):
     with open(VLC_OUTPUT, "w", encoding="utf-8") as f:
         f.write(header)
         for cat_name, ev_name, url in streams:
+            # Ensure we don't have URLs in the event name
+            if ev_name.startswith("http"):
+                ev_name = "Live Event"
             tvg_id, logo, group_name = get_tv_data_for_category(cat_name)
             f.write(f'#EXTINF:-1 tvg-logo="{logo}" tvg-id="{tvg_id}" group-title="Roxiestreams - {group_name}",{ev_name}\n')
             f.write(f'{url}\n\n')
@@ -308,6 +386,9 @@ def write_playlists(streams):
     with open(TIVIMATE_OUTPUT, "w", encoding="utf-8") as f:
         f.write(header)
         for cat_name, ev_name, url in streams:
+            # Ensure we don't have URLs in the event name
+            if ev_name.startswith("http"):
+                ev_name = "Live Event"
             tvg_id, logo, group_name = get_tv_data_for_category(cat_name)
             f.write(f'#EXTINF:-1 tvg-logo="{logo}" tvg-id="{tvg_id}" group-title="Roxiestreams - {group_name}",{ev_name}\n')
             f.write(f'{url}|referer={REFERER}|user-agent={ua_enc}\n\n')
@@ -330,9 +411,12 @@ def main():
                 clean = extract_m3u8_from_text(href, base=href) or href
                 if clean and clean not in seen_urls:
                     seen_urls.add(clean)
-                    title = clean_event_title(anchor_text) or derive_title_from_page(None, fallback_url=href) or clean
-                    display_name = f"{(cat or 'Roxiestreams').title()} - {title}"
-                    all_streams.append(((cat or "misc"), display_name, clean))
+                    title = clean_event_title(anchor_text) if anchor_text else ""
+                    if not title:
+                        title = derive_title_from_page(None, fallback_url=href)
+                    if not title or title.startswith("http"):
+                        title = f"{cat.title() if cat else 'Sports'} Event"
+                    all_streams.append(((cat or "misc"), title, clean))
                 continue
 
             # Inspect event page
@@ -346,11 +430,13 @@ def main():
                 if clean in seen_urls:
                     continue
                 seen_urls.add(clean)
-                # prefer event title; if anchor_text is meaningful and shorter, keep anchor_text
-                final_title = ev_title or anchor_text or derive_title_from_page(None, fallback_url=href) or clean
-                final_title = clean_event_title(final_title)
-                display_name = f"{(cat or 'Roxiestreams').title()} - {final_title}"
-                all_streams.append(((cat or "misc"), display_name, clean))
+                # Use the event title, fallback to anchor_text if needed
+                final_title = ev_title if ev_title and not ev_title.startswith("http") else ""
+                if not final_title and anchor_text:
+                    final_title = clean_event_title(anchor_text)
+                if not final_title:
+                    final_title = f"{cat.title() if cat else 'Sports'} Event"
+                all_streams.append(((cat or "misc"), final_title, clean))
 
     if not all_streams:
         print("No streams found.")
