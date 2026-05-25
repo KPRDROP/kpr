@@ -394,7 +394,7 @@ def write_playlists(streams):
             f.write(f'{url}|referer={REFERER}|user-agent={ua_enc}\n\n')
 
 def main():
-    print("Starting RoxieStreams playlist generation...")
+    print("Starting Roxie playlist generation...")
     all_streams = []
     seen_urls = set()
 
