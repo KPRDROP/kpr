@@ -378,7 +378,7 @@ def write_playlists(streams):
             if ev_name.startswith("http"):
                 ev_name = "Live Event"
             tvg_id, logo, group_name = get_tv_data_for_category(cat_name)
-            f.write(f'#EXTINF:-1 tvg-logo="{logo}" tvg-id="{tvg_id}" group-title="Roxiestreams - {group_name}",{ev_name}\n')
+            f.write(f'#EXTINF:-1 tvg-logo="{logo}" tvg-id="{tvg_id}" group-title="Roxie - {group_name}",{ev_name}\n')
             f.write(f'{url}\n\n')
 
     # TiviMate output (pipe headers with encoded UA)
@@ -390,7 +390,7 @@ def write_playlists(streams):
             if ev_name.startswith("http"):
                 ev_name = "Live Event"
             tvg_id, logo, group_name = get_tv_data_for_category(cat_name)
-            f.write(f'#EXTINF:-1 tvg-logo="{logo}" tvg-id="{tvg_id}" group-title="Roxiestreams - {group_name}",{ev_name}\n')
+            f.write(f'#EXTINF:-1 tvg-logo="{logo}" tvg-id="{tvg_id}" group-title="Roxie - {group_name}",{ev_name}\n')
             f.write(f'{url}|referer={REFERER}|user-agent={ua_enc}\n\n')
 
 def main():
