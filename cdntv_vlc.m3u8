@@ -1,25 +1,37 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Los Angeles Angels vs Detroit Tigers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Los Angeles Angels vs Detroit Tigers
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=mlb+network&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-network/playlist.m3u8?token=55cf44db65f4f0bc688a13a43662ff53e1b97db1f86104e11d493359b2b35dfd.1779985222.196e0e0b844d8f68be135a97bd453185.90cba46922d337d063f91b21493a0b58.03c6f5d9e37051472ed2c91d1e19955a&signature=3991dc67aef50d6ebb1d65c556b6851fdc0b23cc231d8f267ff4af68bea5501a
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Serie A] Powered By Dazn Bet Club vs Tutti In Gioco (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png" group-title="Serie A",Powered By Dazn Bet Club vs Tutti In Gioco
+#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[Serie A] Powered By Dazn Bet Club vs Tutti In Gioco (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png" group-title="Serie A",Powered By Dazn Bet Club vs Tutti In Gioco
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+5&code=nz&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/nz-sky-sport-5/playlist.m3u8?token=37355771901a4acd050fa9c08b0c7e798d91b47de5fd94aa197bcd5ffc90c4fa.1779985221.fe1816f346008f1a936c85a60bd99da2.33666ceccde39e321c29f5f230a55b3b.cbb16c95428daf03a662395d0854321e&signature=b19355215bf138b1cfff6ca2d2d62b43952272eb4cc6b7d7d7e5b4410fd0d2bb
+https://edge.cdnlivetv.ru/secure/api/v1/nz-sky-sport-5/playlist.m3u8?token=1fa95a426ad899f0caa0677f25f3e80d374e57bce4c93706b1e355da89ea7666.1779995502.650d6fa89a8803490b814650386c904d.e7074a3466cbb612b04500cc9d37dc0d.cd6dc9341e9a2c4f3e70cc0b91719d08&signature=690155ed99b66713a6f2665fa6a09f880ceeac94412fca477974a6955b585caf
 
-#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Friendly] Russia vs Egypt (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Russia vs Egypt
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Friendly] Russia vs Egypt (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Russia vs Egypt
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+deportes&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-fox-deportes/playlist.m3u8?token=7af5d1116f55259c77789d862e49fdd91b6dcf8ac10d79eb385bd5b768aedfb3.1779985221.f074fee0db2ee307ae1cd3aee8f8b2fd.115ae73e62ad6a7335ae12941330d1f0.8ed1df86ff0478115b5c565d3dcb8566&signature=8c204a613b4c82657ecd9cada3330199b7d492a803297766913a5988f8a4059b
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-deportes/playlist.m3u8?token=9b8b79df5fead8d62abc9967580154db90e71f1fe6c99de8a7b3ec869329a792.1779995503.48cbc05d49efa763c30dad461f1829fe.c8cc38c19bd2f55fc301234b3932d574.ff885c0c3d6152037e47a7b1b8b7c093&signature=a363a626993856c71d342c2038cab07d6f7bd66d7ad5a7bcf13a166f806406d9
 
-#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Minnesota Twins vs Chicago White Sox (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Minnesota Twins vs Chicago White Sox
+#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Minnesota Twins vs Chicago White Sox (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Minnesota Twins vs Chicago White Sox
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=chicago+sports+network&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-chicago-sports-network/playlist.m3u8?token=ca1a418e1502b9706e165eea2027df5775cfd2b3a30931c8cae92a9e1c925059.1779985222.b8888c0c125c835bd42e5010172a1482.57df9c738e3bf388820ff93887ae4358.8b3525e91889cda9ec2f3b11ab6be147&signature=d677b811219d33ace0b65d03571eb1e96bc82ec08b2a13e2b2e152bca30c0ecd
+https://edge.cdnlivetv.ru/secure/api/v1/us-chicago-sports-network/playlist.m3u8?token=0a6bb838e4032ca30dbbe81872afd1f64c1186ee8554118547f53ae1a45f6248.1779995504.ab36633509c8825af591f627b7c723dd.f701f31f2973f1bd682de9e00fb3c1c1.4cce0bee2ef7e658aacd93eb907df6c8&signature=f5f617b529d1f300198cc873d042057230b98170d04c1d4848730af39692861a
+
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Friendly] Qatar vs Ireland Republic (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Qatar vs Ireland Republic
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports+2&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-sports-2/playlist.m3u8?token=d858e625a11fd480f57b778a83465076aed95097694b2600e99f5df0a75a38db.1779995503.efbce600cd79f40f2092876e5a6f3203.f6236aa3467b794d3e6cea676cec89a4.1f6be2039c2c87a249800c0c459bd0a8&signature=631fd420c1dbd18b5d6ff9d34b33ccc7d03bdccd3bd3b8ae01c762855dccd1e0
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[Primeira Liga] Torreense vs Casa Pia (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/14.png" group-title="Primeira Liga",Torreense vs Casa Pia
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sport+tv+1&code=pt&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/pt-sport-tv-1/playlist.m3u8?token=f55d5eefe572cc9a5f1e560abe0c6b100bdefd4e2131903256449cafc0d24964.1779995504.59e5d2b9836b7fed060b9dbcc6a47857.9a5ebec928446fe7a5cde6237ab2999d.03a073506a5950614ff166a59fe81102&signature=c274dbab9fa01549a22e1a17146c38525b3005cfb0ea4b5b09e72ff4ca36df73
+
+#EXTINF:-1 tvg-chno="6" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Atlanta Braves vs Boston Red Sox (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Atlanta Braves vs Boston Red Sox
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=mlb+network&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-network/playlist.m3u8?token=a6c6eef8621950748a415ea4db2c21539337a53ec9bc8efd594b4043f80e0638.1779995505.0c786195300c2537e88451e3119828d2.ed0be30c71cd9dc2fe9bed5bcacf515e.4a8874594f311d5e1cf7c2c77f96fe7e&signature=1d5d7c4ff01ef00f73bddde9e41ce7a85a023a285a3d5a402a05ab1182546335
 
