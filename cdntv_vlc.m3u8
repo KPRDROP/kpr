@@ -1,61 +1,43 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[College Baseball] Wake Forest vs Kentucky (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Wake Forest vs Kentucky
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+2&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn-2/playlist.m3u8?token=632d8752a3fa0bd6b7fa3eee994a152ef2771e216284ce2ab7d77fa47251ff86.1780076031.eab6cd2ff43992416bb62a878cbeeb3c.c00088ac25e97da2f0065856eb7284f0.456739ed857626f3e828ac5a9f7e1fcb&signature=b1979adc9842314c84e0a4c63e6dccf67dee712610042baadcae50f439583e87
-
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[College Baseball] Tennessee vs East Carolina (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Tennessee vs East Carolina
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+u&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn-u/playlist.m3u8?token=971bd466f9df31459170149e81080d7d1b3cdc930d1c8eb2ef6a436c000e062d.1780076032.d92cf2fd79d8bc4cceb5f7858de570af.5046a83e1b9ea7e276f84cbe7e0c64e9.566f52422c25a15013cc71409975bd64&signature=814c8c6469657b42d3a95744b089087d4f6eb5e8cc2c3678535c8d307f3f985f
-
-#EXTINF:-1 tvg-chno="3" tvg-id="Soccer.Dummy.us" tvg-name="[Bundesliga] Salzburg vs Sturm Graz (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/10.png" group-title="Bundesliga",Salzburg vs Sturm Graz
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+1&code=at&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/at-sky-sport-1/playlist.m3u8?token=43b45850a286319ecdea5bcea816eeebdeb4d9fcf9143e96152fd9f791d0e0ad.1780076028.698fcd2c20ffc0bea3f762b6f43653c5.3b609d8283c2c92b5fc7a163d0e37211.d243249f7dcc889ef63304696e5295a7&signature=605725104eef5f43b68722720284d1ee7c106896b081056d4ebd2933232c039d
-
-#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[College Baseball] Texas vs Holy Cross (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Texas vs Holy Cross
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sec+network&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-sec-network/playlist.m3u8?token=6322fc518a9bc10b41960017fe33db4ecdc36f7417022f29009739689188e844.1780076032.dfb02fe5c5be333c54f0d6a5ec74fd97.6a4b0525f2df2a995aa59bb79dd92b86.fd8798038747fd7bd55da7e421ccdd91&signature=2c7a2e536a6dfb76ea9ec993cbd2cd0349d1d3dc6c8b3a5f44a1a9c323de5437
-
-#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[Liga I] FCSB vs Dinamo Bucureşti (CDNTV)" tvg-logo="https://i.gyazo.com/3fd4b38d5263ca391e45850eb58d11e6.png" group-title="Liga I",FCSB vs Dinamo Bucureşti
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=digi+sport+1&code=ro&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/ro-digi-sport-1/playlist.m3u8?token=dc86700b7725f642c503b10aa2817f21d2f6ff7042a494fa397b0c5251023e2d.1780076030.21dd1d07111af4ae8a948137eefdd9b7.57f8e104cbba960d3e89ef5da896e4b7.243432259a4eec01794b99432c201fa1&signature=2da8193ce0a2286bc991c487b67d84b0bd6b5293210a8cde737e830aa29e7450
-
-#EXTINF:-1 tvg-chno="6" tvg-id="Soccer.Dummy.us" tvg-name="[Serie B] Catanzaro vs Monza (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/99.png" group-title="Serie B",Catanzaro vs Monza
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+uno&code=it&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/it-sky-sport-uno/playlist.m3u8?token=a8d98b67a0656292745971bd653b17b72c81e898bfae1fdee88cecf54af51209.1780076030.b21b6f39e0f8b82bb60a541cdb97930e.83d87ac6ef694e6aa35ae9eaf494eec5.e1622be6fa75bdcb584eea4bbb9cc1f2&signature=d72115a47454dd2fda2804d61d98b5da9ac6ddd7a116ffdf890feb9bb515bc0e
-
-#EXTINF:-1 tvg-chno="7" tvg-id="Live.Event.us" tvg-name="[Friendly] North Macedonia vs Bosnia and Herzegovina (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",North Macedonia vs Bosnia and Herzegovina
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Friendly] North Macedonia vs Bosnia and Herzegovina (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",North Macedonia vs Bosnia and Herzegovina
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+soccer+plus&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=93980cf91f0fcc6e3608979e444d45fccdfe6298e631ad6dbadfc0c7b711123c.1780076030.f9197c73407e498f77b941c11141a4b9.08ad90907ba2dd1f5fd6934e380a1ebc.933dc3eaf6494c4d5df7852f67b819f2&signature=f15928b66101020b126120d4fd431c418beebc8ec1d242726d02da7c1be42f02
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=6b31dfa127a404874e2b64415ddfc60847593a52a2dd1f3c5748a31852317efa.1780086389.3f7f2cabd404e69dca3f9db9c2fd407f.ccc6e376ff1b8614a8bfa42440e43a2f.b40023deb6804838f000a3a6ab05aa92&signature=4e2b21c86f3b588ef8b67dccde1fff55503cd264b3123ff48ef4e956826d06b0
 
-#EXTINF:-1 tvg-chno="8" tvg-id="Soccer.Dummy.us" tvg-name="[Ligue 1] Saint-Étienne vs Nice (CDNTV)" tvg-logo="https://ligue1.com/images/Logo_Ligue_1.webp" group-title="Ligue 1",Saint-Étienne vs Nice
+#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[Ligue 1] Saint-Étienne vs Nice (CDNTV)" tvg-logo="https://ligue1.com/images/Logo_Ligue_1.webp" group-title="Ligue 1",Saint-Étienne vs Nice
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports/playlist.m3u8?token=f20517a0c2554ce9af4ca5eac73578cbfe6975750f620a0127b04ee6f4284a2a.1780076031.4097504052293706fafd59a0fa738203.1334be4ad03028595480d461c643dc33.c2d2cf2e094ab25db9bc60f195357bf7&signature=92f53a452ec04b695885683f5f87b34c2d05e417960ef77bf9c2fc08109f8767
+https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports/playlist.m3u8?token=5c793e65f7ef8f03f13f70c870f1fd2e66a3af34eac132754e169b119dfabfe8.1780086390.18ea4708cfabec56c46b290aa4b9a044.aa3d46de47a1ee97f46ef60ab0a454ee.e038c7cc01f829596049ca6854f71357&signature=f2a7b8fa393d84a57403e5212656c278791c19b411ced2d9b07b0eded6c0751c
 
-#EXTINF:-1 tvg-chno="9" tvg-id="Live.Event.us" tvg-name="[College Baseball] Oregon State vs Washington State (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Oregon State vs Washington State
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[College Baseball] Oregon State vs Washington State (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Oregon State vs Washington State
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+u&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn-u/playlist.m3u8?token=abed2ce86b504275760e898129fd064af0dffab312dbfed3602d9024be4fc5da.1780076033.6c8e2e40d491edec076b28f74a1242fc.6723ac86c3e72f80c214eefc9e5a1501.e437f77eb16d55949f955fc6c0f2bbbf&signature=766ed4cbd54748494c58ccc2a63de914afcdd1791bdd71dbffcba6e96c92a822
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn-u/playlist.m3u8?token=0380a23664e64aea9287703d8c273e89968e132c0efbdea3e7ef2854e92aaea8.1780086391.ec28450f4e6c74409fb455d36e5b75e8.f4611642c41b4d37886597e6474a5a49.e3e35e5bdfc1fb6ec738718d62859a49&signature=c937c7d2d8fb0f89cb244cf3360eef4a98d003fc17514fa07e75bd266a286297
 
-#EXTINF:-1 tvg-chno="10" tvg-id="Live.Event.us" tvg-name="[College Baseball] UCLA vs St. Mary's (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",UCLA vs St. Mary's
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[College Baseball] UCLA vs St. Mary's (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",UCLA vs St. Mary's
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+2&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn-2/playlist.m3u8?token=faae538d0a46c4ca22b24e5986485101d58f1910d814d2c113b33e81fa9b511a.1780076033.6ff273115065e89ac7321f663c7e8916.01bfd30611d57713e45450cec697756b.287156854489a63c926bfe71430585ab&signature=17e45f9cf4998a1e351e6d3b625aa5d83432efa8c770480c184a53e247d1e55a
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn-2/playlist.m3u8?token=06a8b6b65da430047f9330fe9a3582b0c3ba9565d0c866a0c1af9372d9024441.1780086392.8fa1370e8c92c9e75737608736e90684.634a702315d74951e52d6c6f4a97215a.3cd9fa2b45ad75128b10e0e3ff7877eb&signature=46af541e81ee9af942229dd3f1e9454563db10362886fe282394defcb5dab367
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[College Baseball] Texas A&M vs Lamar (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Texas A&M vs Lamar
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sec+network&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-sec-network/playlist.m3u8?token=4930de0adfa99f831ef888933409c016ce8c096438de24b5a23d893a8484251d.1780086393.55dbf140412cc684de0b942cb2230b34.8dd31319fb39fa9fbd3b25201a6fde15.6d20dd3d7e9f5ad7ae996eb817dfcb5e&signature=2678345fcacc0c6ea7ef175587df94c52d457acf04e5412591d7aae33d969214
+
+#EXTINF:-1 tvg-chno="6" tvg-id="Live.Event.us" tvg-name="[College Baseball] UCF vs NC State (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",UCF vs NC State
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+2&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn-2/playlist.m3u8?token=870a9fb1a9fc030db5da2a268ee0e47433de1efcb5e4f4c67bd74e8a7d4e6a24.1780086393.faf4524d462e451e8c3f7ef78febce00.71f44381286aa1eb522e19e3f9713b23.c5791c9eb32cdcaa65fd96408e4f5586&signature=75b2e319d35a1a79b2dfd63cab1e98aa01ac454ae66d3086bcb8fddbd0872dd5
+
+#EXTINF:-1 tvg-chno="7" tvg-id="Live.Event.us" tvg-name="[College Baseball] Arkansas vs Missouri State (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Baseball",Arkansas vs Missouri State
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn+u&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-espn-u/playlist.m3u8?token=4cc096b0dbf9559925599e6caa32a95b71f05d14ef4bb0bc6d773408c3f6c57b.1780086394.54ebc6c5310c145bccf2d46342763f53.bb87e5eef47af01d7f99bec5dfb47d9a.ccdc2911c5fe5b80fac711f90092db61&signature=522dd7b41a861c68da0e321c8be8f59c4e42d11cb9e9cf022a8d6075b720546b
 
