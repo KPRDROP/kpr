@@ -14,7 +14,7 @@ import requests
 
 BASE = "https://pixelsport.tv"
 
-# 🔐 API URL MUST come from env (GitHub Secrets / Variables)
+#  API URL MUST come from env (GitHub Secrets / Variables)
 API_EVENTS = os.getenv("PIXELSPORTS_API_URL")
 
 OUT_VLC = "Pixelsports_VLC.m3u8"
@@ -30,7 +30,7 @@ def log(*a):
     sys.stdout.flush()
 
 if not API_EVENTS:
-    log("❌ Missing API URL. Set PIXELSPORTS_API_URL env variable.")
+    log("Missing API URL. Set PIXELSPORTS_API_URL env variable.")
     sys.exit(1)
 
 # ---------------- TIME HELPERS ---------------- #
@@ -62,26 +62,26 @@ def fetch_events() -> list:
         )
         r.raise_for_status()
     except Exception as e:
-        log("❌ API request failed:", e)
+        log("API request failed:", e)
         return []
 
     raw = r.text.strip()
 
     if not raw.startswith("{") and not raw.startswith("["):
-        log("❌ API did not return JSON")
+        log("API did not return JSON")
         log(raw[:200])
         return []
 
     try:
         data = json.loads(raw)
     except Exception as e:
-        log("❌ JSON parse failed:", e)
+        log("JSON parse failed:", e)
         log(raw[:200])
         return []
 
     events = data.get("events", [])
     if not isinstance(events, list):
-        log("❌ Invalid API format")
+        log("Invalid API format")
         return []
 
     return events
@@ -130,7 +130,7 @@ async def main():
     events = fetch_events()
 
     if not events:
-        log("❌ No events found")
+        log("No events found")
         return
 
     with open(OUT_VLC, "w", encoding="utf-8") as f:
