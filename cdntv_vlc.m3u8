@@ -1,25 +1,7 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[College Softball] TBD vs TBD (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Softball",TBD vs TBD
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Superettan] Brage vs Landskrona (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Superettan",Brage vs Landskrona
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tv4+sportkanalen&code=se&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=17b5d80e939f18aa1d66910ee3299511a13ffdf6e75debd56f23e9d31015eff5.1780111670.5dd5a7ab301a25f924819ab75bbe1a06.ec6334c4013afc1ea76b194e1297991b.553d1aa1ae6ffb40d593acf56a34541d&signature=34f6546c3c301f772b97e8e5fc8f603c89289a0e505c4ac9ae26db8e48650aa3
-
-#EXTINF:-1 tvg-chno="2" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] New York Yankees vs Oakland Athletics (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",New York Yankees vs Oakland Athletics
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=oakland+athletics&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-oakland-athletics/playlist.m3u8?token=2ff287c9f72c0489b90584aa9243c474ede1f3af30a8e24252db9eaadcfc79d6.1780111672.b8a6fbb20711b44013f6386544fe9373.a1643dce1daedd72fbf363b68f13e797.edc60faf3e6fd082475adb32cfe37053&signature=267ed97dc743a732a5c202adcddda84a77587890276cf007f73ec14e38b67baa
-
-#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Arizona Diamondbacks vs Seattle Mariners (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Arizona Diamondbacks vs Seattle Mariners
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=seattle+mariners&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-seattle-mariners/playlist.m3u8?token=087e1035c2d5947bebacfad4a2b01bc681dbac44f6a5aad7d7e4b704c2c5add6.1780111673.6658f6df6461ad305806f3853edf52bb.7ca8487d771d66ea7b5d9127409379df.847bb7150d880d7b975219fcd8cbf03a&signature=c40b44c8b97022b2f304ac4005454471af6da77d9302fb373c3abae7290aad1a
-
-#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Philadelphia Phillies vs Los Angeles Dodgers (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Philadelphia Phillies vs Los Angeles Dodgers
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=los+angeles+dodgers&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-los-angeles-dodgers/playlist.m3u8?token=0b9630fcb121c2447128f827dd135d8c66f5d7675bd4b9518614f05593acf320.1780111673.e84b6e00396f5922900760623b4453af.b445650cfd999c02894ea4c8be539fd7.2ccff829920e7da9e74cb2610427d849&signature=816cac800b4c50bd5c183cb141828f489d4e62435948fb93ef0861013a2f2cfa
+https://edge.cdnlivetv.ru/secure/api/v1/se-tv4-sportkanalen/playlist.m3u8?token=45ec18834718f97c8afdbb4e3a27dfd81d4b0105ada8785aa5c884202372a20f.1780132711.419acaa94d1e9c29813c544a5ff59c3e.ef28b62083b14af9b79b5311aed14e11.0eac926fb789458119b17ee072b2566c&signature=8ebb776cc6a5fdac651e2654f4770e21f6c6534cb6c203e2cd0f23efc662f288
 
