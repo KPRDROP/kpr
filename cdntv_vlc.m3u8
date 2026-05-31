@@ -1,55 +1,7 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[College Softball] TBD vs TBD (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="College Softball",TBD vs TBD
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=espn&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Friendly] Iceland vs Japan (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Iceland vs Japan
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+7&code=nz&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-espn/playlist.m3u8?token=c62e3f8d2ec3af300741a1d1518d1aa5997b703543949db059526c2dd4b3412c.1780185935.961bbd0ce906d951f8825fb5d157ec22.3f9ed4229fcc6bacfbd177e929b3b7ab.6b700250cf9c999eb5ba26b4b4afbba5&signature=8c9edcc6fa6150122bc6c4673efe3504156bcb6f26367f61df591d77a9ac2325
-
-#EXTINF:-1 tvg-chno="2" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Atlanta Braves vs Cincinnati Reds (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Atlanta Braves vs Cincinnati Reds
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-fox/playlist.m3u8?token=d5ce3437c7c949110a8b3513274652ec93df307396928c25a3022cbf15f40d73.1780185935.b2c324c9a552081d8580183cb81541fa.a64d68d97d70265081a9eff5c1f5ef0f.833d757cd449aaac39cfeef3364118bf&signature=9303da678a2c5152b6f71f8548c056d1c522e23dc71b018020bcba302d32cc7e
-
-#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Chicago Cubs vs St. Louis Cardinals (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Chicago Cubs vs St. Louis Cardinals
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports+1&code=gb&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/gb-tnt-sports-1/playlist.m3u8?token=bb3e2b3b7c5cb5314010ce75a3af64d8bd59218a6098ccd3de1023641286d014.1780185935.e9ab17a0e3439edc5bae18ce8c6731fe.869b72ea683ff05b6a5f12499462f738.d0862f0a9dd86b1aa424f838fc30dc2d&signature=2e3a5b66eede4de64f6eac907659b8f644230a324a7de28d11f814bafca8abf1
-
-#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Friendly] Saudi Arabia vs Ecuador (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Saudi Arabia vs Ecuador
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=m+liga+de+campeones+1&code=es&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/es-m-liga-de-campeones-1/playlist.m3u8?token=41f33900fbe77011a46bc6d2234d475c442e32fbc51994244147a2e577be6211.1780185932.138efec1534e7e60be2e2d92e148d162.18e73c0d17c8bb5ebeb419a989514aec.075df5ec1f28cc066015d23b57a00849&signature=d2b817e03f300a0dde82efa7eaaed75a570766d29ed57ad11cc7cf1a604e68bb
-
-#EXTINF:-1 tvg-chno="5" tvg-id="Live.Event.us" tvg-name="[Brasileirão] Vitória vs Santos (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Brasileirão",Vitória vs Santos
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=canal+11&code=pt&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/pt-canal-11/playlist.m3u8?token=e9bf059a4b258e47af3a6478023b1317f3b47a9e95bc2667dc83f9c445dca670.1780185933.d61fc0f9ed6392c86e8bf7255f7a1a18.348b17f4201544ee717bf0df7cf3fe80.6f953b29160fcc009fc57b88cf57fd2e&signature=b9a5d134ca0176173d91c196855853f16f54344ed61f23da3c62f08b1b33768e
-
-#EXTINF:-1 tvg-chno="6" tvg-id="NBA.Basketball.Dummy.us" tvg-name="[NBA] Oklahoma City Thunder vs San Antonio Spurs (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png" group-title="NBA",Oklahoma City Thunder vs San Antonio Spurs
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sports+arena&code=gb&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/gb-sky-sports-arena/playlist.m3u8?token=f792f7ecaf8f564a150b48e6a021076ee8991171ca5ebe90e44343ea9df93243.1780185934.8edb59dc93d1a13c5ccd0e9996b71d19.b4fc1cedffbf7442b8edfe7a53ae9334.9d4dd4009080ae4feccbbd9692ffdd2e&signature=cec6554075bb0b5b3897dfffd9c969e7bfe861c854a52eb663a4d5b30fd3ddd0
-
-#EXTINF:-1 tvg-chno="7" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Francisco Giants vs Colorado Rockies (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Francisco Giants vs Colorado Rockies
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=colorado+rockies&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-colorado-rockies/playlist.m3u8?token=2e3ec380bba5c9ad121072768c7fb68cec081f4fdbe7d12a2b6711e80c9d0528.1780185936.3ed91319fc00441c707426f081006e1c.c20a58feb7489c148b66e4a48125b5c3.8e161dd638bbcb8d1557cc1d70aa2041&signature=d612eb597211775913904b128ea148034cecba5c5425d7683e2581b37842a7ac
-
-#EXTINF:-1 tvg-chno="8" tvg-id="Live.Event.us" tvg-name="[Friendly] Australia vs Mexico (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Australia vs Mexico
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tudn&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-tudn/playlist.m3u8?token=c50322cb56a8e228149336957ffe05bcd83237af796166817e33928ea0b97237.1780185934.0c2b1251bb1ecc5cfb559b60fa41f83e.8fa26892182055d4816b386cb2ffa63f.982df0b3a74b20cd9052636fc0ce9932&signature=4be1cd6bf46e0699fc7936e611a8c7424fc5abda0ccb5eb1deede13543b69c9d
-
-#EXTINF:-1 tvg-chno="9" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] New York Yankees vs Oakland Athletics (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",New York Yankees vs Oakland Athletics
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=oakland+athletics&code=us&user=cdnlivetv&plan=free
-#EXTVLCOPT:http-origin=https://cdnlivetv.tv
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-oakland-athletics/playlist.m3u8?token=25cdf0be850c11136f4c527023fbf7de2af6f413c2d2755bd86fc21bd22b4017.1780185936.b46cc011cb7601a4675ee187d541334a.85aa839ed5469a9d8e77cad819675dab.0326d37f176d5a892767aa9017582727&signature=e4cdfb2903db8cdb38ef472a4455427a4678e662988fcf14fe77839674bed1bf
+https://edge.cdnlivetv.ru/secure/api/v1/nz-sky-sport-7/playlist.m3u8?token=aa7eb3e80cd322d8bc38a7ceb146ddd7f9f6d6b178181c2e3dff0c9e7d908c09.1780215967.f717b18a4be73f5e18fc69ed08719239.b037939bd592399db634c9c673f89445.026903060f9100899b563b01d815de01&signature=9624b4e461fa11ecddcd26fcd8a849c91523d1d2ac363f798d56f36d7ab19d8b
 
