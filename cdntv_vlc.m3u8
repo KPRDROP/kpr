@@ -1,7 +1,43 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Friendly] Cyprus vs Slovenia (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Cyprus vs Slovenia
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=bein+sports+mena+1&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Friendly] Finland U21 vs Sweden U21 (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Finland U21 vs Sweden U21
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=supersport+maximo+1&code=za&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-bein-sports-mena-1/playlist.m3u8?token=3de40d6144a2443fb59fde134f46e71e0de3d2e9832aaeb2078f95b11e71d291.1780576067.3cff768f41cf04387269a639496ee737.e5c45c9322d8966087f87cd5dfa3ed9a.7326c4995d1ea86f2d994631ca48a2a6&signature=dba247f6d7832426f23a4cc543fcf473fe7ba9346e02df9e8fae7b961656b8b0
+https://edge.cdnlivetv.ru/secure/api/v1/za-supersport-maximo-1/playlist.m3u8?token=aeaa8a0120cf9451afdc905938efaa2ef01ca58b19428548b9b6a813f8f41a28.1780588851.3990bf4260bde3919a7f3a22a31987cc.a078f43c2c7b1a5ebf85c8b321101bd4.43226508a23b30c24019fceec0579a70&signature=a34aaaca75158aabcb9d9f8baa9e3fb6bcaada6738d5afc923204542d5e2818b
+
+#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Friendly] Guinea vs Northern Ireland (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Guinea vs Northern Ireland
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=tnt+sports+7&code=gb&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/gb-tnt-sports-7/playlist.m3u8?token=d30c9c70453eb37d64f0591d9f270fe4a058716329862700f31633359bff344e.1780588852.580d32d0f589af3629b36abe0b7ce764.b079cdfbea20ea91ffcfcb921ad39c31.ede9f7f67800039610088a831a3a804b&signature=82dd6a394be356cf571d2abebeef609ce058991965d2b5746e33e539226df5c5
+
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Friendly] Liechtenstein vs Andorra (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Liechtenstein vs Andorra
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+soccer+plus&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=a2faaaea667966289beca2bc93a3c74897cff6715309970bdc8225b6a60bfdd8.1780588853.4757971c0d8638b3fd0c6c563bcb9c94.f42b875bfb6845f03a5249551ce21efa.5c77989a8792860951f5540d10f56f14&signature=6b91633c805e6bc8aaead1ac87136a652cc158800e92cb5ef8a3e831947bbf20
+
+#EXTINF:-1 tvg-chno="4" tvg-id="Live.Event.us" tvg-name="[Friendly] Greece vs Sweden (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Greece vs Sweden
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+select&code=nz&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/nz-sky-sport-select/playlist.m3u8?token=8bba774dd71b339aa5315c4803aa909e64e8be5c437b91530f754bbf6684cc54.1780588853.32b68b9181b85d2be5b4ca294870ec87.9b9a067c28e236b3357306a854711799.5bffba86aa0ed83039c778caeaa2b7c7&signature=9a9ec585aced1af1decb6f2953edf1151efe92697a39b32cf72b5ba9b774481c
+
+#EXTINF:-1 tvg-chno="5" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Diego Padres vs Philadelphia Phillies (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Diego Padres vs Philadelphia Phillies
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=philadelphia+phillies&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-philadelphia-phillies/playlist.m3u8?token=34989775527a6406923ce0d113485a13990a3161770f224ec7ffcfdedf43db9e.1780588854.9b2333ed8e249f2cc3e6f3d88bc5cf0f.c27f2ac9eb9c1e66f3d4496e42cf3092.ae28070e735a81d0b4b78a783451dabf&signature=9ac16bea08e37c56ac734fec8ebf16a728a928c0776a5828e852ba6f6c3f13b4
+
+#EXTINF:-1 tvg-chno="6" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Baltimore Orioles vs Boston Red Sox (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Baltimore Orioles vs Boston Red Sox
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=boston+red+sox&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-boston-red-sox/playlist.m3u8?token=665859a10d55266ab38221a9190a8c948d9be6fff559ae08ee5f3d0415ee56d9.1780588854.12ab9774ac5df7005923ad093d5338f6.124bf2f7d1302f771c36f63e7e48d515.4d96d1af69963f67b9013b9ce2df962a&signature=96a2efa75d6275e621c09268977d39ff0dad4afacf6042c91bc9f0991486a6a5
+
+#EXTINF:-1 tvg-chno="7" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Cleveland Guardians vs New York Yankees (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Cleveland Guardians vs New York Yankees
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=new+york+yankees&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-new-york-yankees/playlist.m3u8?token=545523d91ddc334bfe98837f6a1b1002dbc00647afc14884876cbe37c0605377.1780588855.1ef2b37591b183c315553abbc40f6071.8fa0c99dd5dac1cedadf03fca7e0d844.1f669540beb9ae4ce7b4673a70faa42e&signature=82326b3ded48c5aa6136b67078d17bec6312ed4a31118cb633f186cc52a5a003
 
