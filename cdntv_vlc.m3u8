@@ -1,13 +1,37 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Live.Event.us" tvg-name="[Friendly] Iraq vs Spain (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Iraq vs Spain
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+6&code=nz&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Toronto Blue Jays vs Atlanta Braves (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Toronto Blue Jays vs Atlanta Braves
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+ontario&code=ca&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/nz-sky-sport-6/playlist.m3u8?token=21cdc380b3e754f2c7b4e6d4a6644c8cf6d412a9e2346ec5382c2e7000fe36b1.1780605219.1d5b78370edf3377531b82c54a266fa3.536f6b6b026a841c03bf0b5cb4b1f92e.8001203196d0a923a5f328c7c10dc8dd&signature=e7d9dc7423f477eacd1cdf50d408298401e12c1c1dc5fa3e6c93659efa42f143
+https://edge.cdnlivetv.ru/secure/api/v1/ca-sportsnet-ontario/playlist.m3u8?token=bf8168e41451ebd8c09c12229e686ce2842d0a8df4a2a5bcaab2e810db899c17.1780611728.170b15786aa6e6b06cfa872bb5c84566.6be8a84862da7ef3fc90f8df5a3eec66.8e7b4b1e48c15ab5f07e9d483bef6e64&signature=9e67db1c5d379fd193dda11290fc124f6b9af6ec6025fd8b15331e14870b0982
 
-#EXTINF:-1 tvg-chno="2" tvg-id="Live.Event.us" tvg-name="[Friendly] Côte d'Ivoire vs France (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Côte d'Ivoire vs France
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+soccer+plus&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="2" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Kansas City Royals vs Minnesota Twins (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Kansas City Royals vs Minnesota Twins
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sky+sport+bundesliga+7&code=de&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-fox-soccer-plus/playlist.m3u8?token=d4732941410a9f93b570d69aad07b5a7041d7fae9554b5f7639c01d520fc7972.1780605220.01adf64e38ba1e295d462c75a905e89a.5c8b62554b14ce5d52b0bd326206ab8c.0c63d3200ed6c38dc7e491ea1c6793cf&signature=9f9a4b1d8b0572840c6491ce0df136bdc06f62bf247777bb4f4e46c8f2ac75d3
+https://edge.cdnlivetv.ru/secure/api/v1/de-sky-sport-bundesliga-7/playlist.m3u8?token=1e2c2594a6838b920e9cd688cf4390f8b55d6f6324ef63a41493b43401a36cd3.1780611728.ff116342187ea1a35c9742081af595a5.6684adf3c0ab480bb1f9cd3253da5871.6aa333201c98a13018409369e1dfa10f&signature=bab4292e53e669aaa20f3c2fd50746b080d14ee2a88bb29b9675fefffc27ff38
+
+#EXTINF:-1 tvg-chno="3" tvg-id="Live.Event.us" tvg-name="[Friendly] Czech Republic vs Guatemala (CDNTV)" tvg-logo="https://i.gyazo.com/4a5e9fa2525808ee4b65002b56d3450e.png" group-title="Friendly",Czech Republic vs Guatemala
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports+2&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-sports-2/playlist.m3u8?token=00ef967dab47cd27fe976d726ec81a94f3720a722a87e65684b4f17e95a7ed91.1780611725.57d2914a0cc8ec6af6232ef7719d0c22.78245fec757a6f1c4e906b96de0fd724.53cda5680adfc233cb7100afc414c087&signature=c5236589ac89ff41de66f5f06c9f65dc42b9d7ac938069d87ba4e3c9dcab961e
+
+#EXTINF:-1 tvg-chno="4" tvg-id="NHL.Hockey.Dummy.us" tvg-name="[NHL] Vegas Golden Knights vs Carolina Hurricanes (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png" group-title="NHL",Vegas Golden Knights vs Carolina Hurricanes
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=abc&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-abc/playlist.m3u8?token=d06bd113d9d411e2cf795760ccb27f1a1cdb7182dee75d89f6ce4ffe2a85efa7.1780611727.123ab634a906b083d9fd5b91a5043e0a.1a9810ebec389c7f4b51269f3adfde82.79069beb429a70dddfab645f81cdea2f&signature=474c22d6de6fe67fe656e99063f538bac1c9b12648a03588e68cccb4eaccb614
+
+#EXTINF:-1 tvg-chno="5" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Oakland Athletics vs Chicago Cubs (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Oakland Athletics vs Chicago Cubs
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=nbcs+california&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-nbcs-california/playlist.m3u8?token=f952e0041d0b561d7463052134c4f70c05456d1699776e76d52b2d42e721e222.1780611729.8133dd07ff7df60f728a6b5b7428a98e.38d07e34cb716aee06b68ad56bf5e976.96c6efac270e384eac5d07ac9d917e27&signature=72e2101da1ba6187dbe5c6dab4d3f3c343eeab794c977a23ed7f162173214ef3
+
+#EXTINF:-1 tvg-chno="6" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Pittsburgh Pirates vs Houston Astros (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Pittsburgh Pirates vs Houston Astros
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=fox+sports+1&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-fox-sports-1/playlist.m3u8?token=bb967429ea7c09d91a9169840c8a244d69283e7c97f1bb3304d51310a2faae40.1780611729.51d6c6dfa8cf2234d64d1de5519e78b8.ee09a66da7cf8c70249ac9d1e72b42f3.ce9071408eb13fa48a3b133b264d4581&signature=44b87320a8a76a5aaaee70b52124804fb896a61495ce44f289cd2ff2eb7b19b6
 
