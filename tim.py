@@ -2,7 +2,8 @@ import asyncio
 import os
 import re
 import json
-from urllib.parse import quote
+import time
+from urllib.parse import quote, urlparse, parse_qs
 
 from playwright.async_api import Browser
 from selectolax.parser import HTMLParser
@@ -17,10 +18,8 @@ TAG = "TIM"
 
 CACHE_FILE = Cache(TAG, exp=10_800)
 
-# New API endpoint
 API_URL = "https://api.saduvisvesvaraya.workers.dev/api/live-upcoming"
 
-# Headers for requests
 HEADERS = {
     "Referer": "https://junkieembeds.pages.dev/",
     "Origin": "https://junkieembeds.pages.dev/",
@@ -30,17 +29,10 @@ HEADERS = {
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
 
 
-# ---------------------------------------------------------
-# PLAYLIST GENERATOR
-# ---------------------------------------------------------
-
 def generate_playlists():
-    """
-    Generate VLC and TiviMate M3U8 playlists from captured streams.
-    """
+    """Generate VLC and TiviMate M3U8 playlists from captured streams."""
     vlc_lines = ["#EXTM3U"]
     tivimate_lines = ["#EXTM3U"]
-
     ua_encoded = quote(USER_AGENT, safe="")
 
     for chno, (name, data) in enumerate(urls.items(), start=1):
@@ -52,66 +44,39 @@ def generate_playlists():
         if not url:
             continue
 
-        # Sanitize name for playlist
         safe_name = name.replace('"', '').replace("'", "")
-
         extinf = (
             f'#EXTINF:-1 tvg-chno="{chno}" tvg-id="{tvg_id}" '
             f'tvg-name="{safe_name}" tvg-logo="{logo}" group-title="Live Events",{safe_name}'
         )
 
-        # VLC (no pipe encoding needed)
         vlc_lines.append(extinf)
         vlc_lines.append(f"#EXTVLCOPT:http-referrer={base}")
         vlc_lines.append(f"#EXTVLCOPT:http-origin={base}")
         vlc_lines.append(f"#EXTVLCOPT:http-user-agent={USER_AGENT}")
         vlc_lines.append(url)
 
-        # TiviMate (pipe format with encoded user agent)
         tivimate_lines.append(extinf)
-
-        # Build the pipe-formatted URL
-        tiv_url = (
-            f"{url}"
-            f"|referer={base}"
-            f"|origin={base}"
-            f"|user-agent={ua_encoded}"
-        )
-
+        tiv_url = f"{url}|referer={base}|origin={base}|user-agent={ua_encoded}"
         tivimate_lines.append(tiv_url)
 
-    # Write VLC playlist
     with open("tim_vlc.m3u8", "w", encoding="utf8") as f:
         f.write("\n".join(vlc_lines))
-
-    # Write TiviMate playlist
     with open("tim_tivimate.m3u8", "w", encoding="utf8") as f:
         f.write("\n".join(tivimate_lines))
 
     log.info(f"Playlists generated: {len(urls)} streams -> tim_vlc.m3u8 / tim_tivimate.m3u8")
 
 
-# ---------------------------------------------------------
-# CAPTURE M3U8 FROM EMBED PAGE
-# ---------------------------------------------------------
-
-async def capture_m3u8_from_embed(
-    page,
-    embed_url: str,
-    url_num: int,
-    timeout: int = 45,
-) -> str | None:
+async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: int = 60) -> str | None:
     """
     Navigate to embed URL and capture the m3u8 stream URL.
-    Uses network sniffing and interaction with the player.
+    Uses network sniffing, JS evaluation, and pattern matching.
     """
     captured_m3u8 = []
     got_m3u8 = asyncio.Event()
-
-    # Track seen URLs to avoid duplicates
     seen_urls = set()
 
-    # Filter for valid m3u8 URLs
     def is_valid_m3u8(url: str) -> bool:
         url_lower = url.lower()
         return (
@@ -120,28 +85,26 @@ async def capture_m3u8_from_embed(
             "analytics" not in url_lower and
             "tracking" not in url_lower and
             "collect" not in url_lower and
-            "hmembeds" not in url_lower
+            "hmembeds" not in url_lower and
+            "junkieembeds" not in url_lower
         )
 
-    # Request listener
     async def handle_request(request):
         req_url = request.url
         if is_valid_m3u8(req_url) and req_url not in seen_urls:
             seen_urls.add(req_url)
             captured_m3u8.append(req_url)
             got_m3u8.set()
-            log.info(f"URL {url_num}) M3U8 request: {req_url[:100]}...")
+            log.info(f"URL {url_num}) M3U8 request: {req_url[:120]}...")
 
-    # Response listener
     async def handle_response(response):
         resp_url = response.url
         if is_valid_m3u8(resp_url) and resp_url not in seen_urls:
             seen_urls.add(resp_url)
             captured_m3u8.append(resp_url)
             got_m3u8.set()
-            log.info(f"URL {url_num}) M3U8 response: {resp_url[:100]}...")
+            log.info(f"URL {url_num}) M3U8 response: {resp_url[:120]}...")
 
-        # Also check content-type header for m3u8
         try:
             content_type = response.headers.get("content-type", "").lower()
             if "mpegurl" in content_type or "application/vnd.apple.mpegurl" in content_type:
@@ -149,7 +112,7 @@ async def capture_m3u8_from_embed(
                     seen_urls.add(resp_url)
                     captured_m3u8.append(resp_url)
                     got_m3u8.set()
-                    log.info(f"URL {url_num}) M3U8 by content-type: {resp_url[:100]}...")
+                    log.info(f"URL {url_num}) M3U8 by content-type: {resp_url[:120]}...")
         except:
             pass
 
@@ -159,14 +122,13 @@ async def capture_m3u8_from_embed(
     try:
         log.info(f"URL {url_num}) Navigating to embed: {embed_url}")
 
-        # Navigate to embed page
+        # Navigate with proper headers
         await page.goto(embed_url, wait_until="domcontentloaded", timeout=15000)
 
-        # Wait for page to settle
+        # Wait for page to load
         await asyncio.sleep(3)
 
-        # Try multiple interaction methods to trigger video playback
-        # Method 1: Click on various play button selectors
+        # Try to find and click play button
         click_selectors = [
             "video",
             ".vjs-big-play-button",
@@ -185,7 +147,7 @@ async def capture_m3u8_from_embed(
 
         for selector in click_selectors:
             try:
-                element = await page.wait_for_selector(selector, timeout=1500)
+                element = await page.wait_for_selector(selector, timeout=2000)
                 if element:
                     await element.click()
                     log.info(f"URL {url_num}) Clicked: {selector}")
@@ -194,7 +156,7 @@ async def capture_m3u8_from_embed(
             except:
                 continue
 
-        # Method 2: Click center of page
+        # Click center of page
         try:
             await page.mouse.click(500, 300)
             log.info(f"URL {url_num}) Clicked center")
@@ -202,39 +164,78 @@ async def capture_m3u8_from_embed(
         except:
             pass
 
-        # Method 3: Execute JavaScript to trigger playback
-        try:
-            await page.evaluate("""
-                () => {
-                    const videos = document.querySelectorAll('video');
-                    videos.forEach(v => { try { v.play(); } catch(e) {} });
-                    
-                    const frames = document.querySelectorAll('iframe');
-                    frames.forEach(f => {
-                        try {
-                            const doc = f.contentDocument || f.contentWindow.document;
-                            const vids = doc.querySelectorAll('video');
-                            vids.forEach(v => { try { v.play(); } catch(e) {} });
-                        } catch(e) {}
-                    });
-                    
-                    document.body.dispatchEvent(new MouseEvent('click', {
-                        view: window, bubbles: true, cancelable: true, clientX: 500, clientY: 300
-                    }));
+        # Execute JavaScript to find m3u8 URLs in the page
+        js_code = """
+        () => {
+            const results = [];
+            
+            // Check all script tags for m3u8 patterns
+            const scripts = document.querySelectorAll('script');
+            scripts.forEach(script => {
+                if (script.textContent) {
+                    const matches = script.textContent.match(/https?:\\/\\/[^\\s"']+\\.m3u8[^\\s"']*/gi);
+                    if (matches) results.push(...matches);
                 }
-            """)
-            log.info(f"URL {url_num}) JS execution complete")
-        except Exception as e:
-            log.debug(f"URL {url_num}) JS error: {e}")
-
-        # Method 4: Press space key
+            });
+            
+            // Check all iframe sources
+            const frames = document.querySelectorAll('iframe');
+            frames.forEach(frame => {
+                if (frame.src) results.push(frame.src);
+            });
+            
+            // Check video sources
+            const videos = document.querySelectorAll('video');
+            videos.forEach(video => {
+                if (video.src) results.push(video.src);
+                const sources = video.querySelectorAll('source');
+                sources.forEach(source => {
+                    if (source.src) results.push(source.src);
+                });
+            });
+            
+            // Check for JWPlayer setup
+            if (typeof jwplayer !== 'undefined') {
+                try {
+                    const instances = jwplayer();
+                    if (instances && instances.getConfig) {
+                        const config = instances.getConfig();
+                        if (config.file) results.push(config.file);
+                        if (config.sources) config.sources.forEach(s => { if (s.file) results.push(s.file); });
+                    }
+                } catch(e) {}
+            }
+            
+            // Check for video.js player
+            if (typeof videojs !== 'undefined') {
+                try {
+                    const players = videojs.getAllPlayers();
+                    for (const playerId in players) {
+                        const player = players[playerId];
+                        if (player.src) results.push(player.src());
+                    }
+                } catch(e) {}
+            }
+            
+            // Force click on any video element to start playback
+            document.querySelectorAll('video').forEach(v => { try { v.play(); } catch(e) {} });
+            
+            return results.filter(r => r && r.includes('.m3u8'));
+        }
+        """
+        
         try:
-            await page.keyboard.press("Space")
-            await asyncio.sleep(0.5)
-        except:
-            pass
+            js_results = await page.evaluate(js_code)
+            for url in js_results:
+                if is_valid_m3u8(url) and url not in seen_urls:
+                    seen_urls.add(url)
+                    captured_m3u8.append(url)
+                    got_m3u8.set()
+                    log.info(f"URL {url_num}) Found m3u8 in JS: {url[:120]}...")
+        except Exception as e:
+            log.debug(f"URL {url_num}) JS evaluation error: {e}")
 
-        # Wait for m3u8 capture
+        # Wait for m3u8 capture with timeout
         try:
             await asyncio.wait_for(got_m3u8.wait(), timeout=timeout)
             log.info(f"URL {url_num}) M3U8 captured!")
@@ -244,15 +245,21 @@ async def capture_m3u8_from_embed(
         if captured_m3u8:
             return captured_m3u8[0]
 
-        # Fallback: Search HTML for m3u8 URLs
+        # Fallback: Search full HTML content
         try:
             html = await page.content()
-            pattern = r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*'
-            matches = re.findall(pattern, html)
-            for match in matches:
-                if not any(x in match.lower() for x in ['manifest', 'analytics', 'tracking', 'hmembeds']):
-                    log.info(f"URL {url_num}) Found in HTML: {match[:100]}...")
-                    return match
+            patterns = [
+                r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*',
+                r'file:\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
+                r'src:\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
+                r'source:\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
+            ]
+            for pattern in patterns:
+                matches = re.findall(pattern, html)
+                for match in matches:
+                    if is_valid_m3u8(match) and match not in seen_urls:
+                        log.info(f"URL {url_num}) Found in HTML: {match[:120]}...")
+                        return match
         except Exception as e:
             log.debug(f"URL {url_num}) HTML search error: {e}")
 
@@ -268,68 +275,42 @@ async def capture_m3u8_from_embed(
         page.remove_listener("response", handle_response)
 
 
-# ---------------------------------------------------------
-# FETCH EVENTS FROM API
-# ---------------------------------------------------------
-
 async def fetch_events_from_api(cached_keys: set) -> list[dict]:
-    """
-    Fetch live and upcoming events from the API.
-    Returns list of events to process.
-    """
+    """Fetch live and upcoming events from the API."""
     events = []
-
     log.info(f"Fetching events from API: {API_URL}")
 
     try:
-        response = await network.request(
-            API_URL,
-            headers=HEADERS,
-            log=log,
-            timeout=30
-        )
-
+        response = await network.request(API_URL, headers=HEADERS, log=log, timeout=30)
         if not response:
             log.error("Failed to fetch from API - no response")
             return events
 
-        # Parse JSON response
         try:
             data = json.loads(response.content)
         except json.JSONDecodeError as e:
             log.error(f"Failed to parse JSON: {e}")
             return events
 
-        # Extract events array
         events_list = data.get("events", [])
         if not events_list:
             log.warning("No events found in API response")
             return events
 
-        # Get genres mapping
         genres = data.get("genres", {})
-
         log.info(f"Found {len(events_list)} events in API response")
 
         for event in events_list:
             event_name = event.get("name", "")
             event_logo = event.get("logo", "")
             genre_id = event.get("genre", 0)
-            event_time = event.get("time", "")
             is_vip = event.get("vip", False)
-            is_featured = event.get("featured", False)
-            
-            # Get streams - IMPORTANT: streams array contains the embed URLs
             streams = event.get("streams", [])
             
             if not event_name or not streams:
-                log.debug(f"Skipping event with missing name or streams: {event_name}")
                 continue
 
-            # Get sport name from genre mapping
             sport = genres.get(str(genre_id), f"Genre_{genre_id}")
-            
-            # Simplify sport names
             sport_map = {
                 "Soccer": "Soccer",
                 "Motorsport": "Motorsport",
@@ -345,26 +326,21 @@ async def fetch_events_from_api(cached_keys: set) -> list[dict]:
             }
             sport = sport_map.get(sport, sport)
 
-            # Process each stream for this event
             for stream in streams:
                 stream_name = stream.get("name", "")
                 stream_url = stream.get("url", "")
-                stream_vip = stream.get("vip", False)
                 
                 if not stream_url:
                     continue
                 
-                # Build full embed URL if needed
                 if not stream_url.startswith("http"):
                     embed_full_url = f"https://junkieembeds.pages.dev/{stream_url}"
                 else:
                     embed_full_url = stream_url
                 
-                # Create cache key with stream name to differentiate multiple streams per event
                 stream_suffix = f" - {stream_name}" if stream_name else ""
                 key = f"[{sport}] {event_name}{stream_suffix} ({TAG})"
                 
-                # Skip if already in cache
                 if key in cached_keys:
                     continue
                 
@@ -375,9 +351,7 @@ async def fetch_events_from_api(cached_keys: set) -> list[dict]:
                     "stream_name": stream_name,
                     "url": embed_full_url,
                     "logo": event_logo,
-                    "time": event_time,
-                    "vip": is_vip or stream_vip,
-                    "featured": is_featured,
+                    "vip": is_vip,
                 })
                 
                 log.info(f"New event: [{sport}] {event_name} - {stream_name or 'Main'}")
@@ -388,41 +362,23 @@ async def fetch_events_from_api(cached_keys: set) -> list[dict]:
     return events
 
 
-# ---------------------------------------------------------
-# GET TVG ID AND LOGO
-# ---------------------------------------------------------
-
 def get_tvg_info(sport: str, event_name: str) -> tuple[str, str]:
-    """
-    Get TVG ID and logo for event using leagues utility.
-    """
+    """Get TVG ID and logo for event."""
     try:
         tvg_id, logo = leagues.get_tvg_info(sport, event_name)
         return tvg_id, logo
-    except Exception as e:
-        log.debug(f"Error getting TVG info: {e}")
+    except Exception:
         return "Live.Event.us", ""
 
 
-# ---------------------------------------------------------
-# MAIN SCRAPER
-# ---------------------------------------------------------
-
 async def scrape(browser: Browser) -> None:
-    """
-    Main scraping function - fetches events from API and captures m3u8 streams.
-    """
-    # Load cached URLs
+    """Main scraping function."""
     cached_urls = CACHE_FILE.load()
     cached_keys = set(cached_urls.keys())
-
-    # Keep valid cached URLs (with actual stream URLs)
     valid_urls = {k: v for k, v in cached_urls.items() if v.get("url")}
     urls.update(valid_urls)
-
     log.info(f"Loaded {len(valid_urls)} valid event(s) from cache")
 
-    # Fetch new events from API
     events = await fetch_events_from_api(cached_keys)
 
     if not events:
@@ -435,7 +391,6 @@ async def scrape(browser: Browser) -> None:
     now = Time.clean(Time.now())
     successful_count = 0
 
-    # Process each event with a dedicated page
     async with network.event_context(browser, stealth=False) as context:
         for i, event in enumerate(events, start=1):
             log.info(f"--- [{i}/{len(events)}]: {event['event']} ({event['stream_name']}) ---")
@@ -443,22 +398,21 @@ async def scrape(browser: Browser) -> None:
             async with network.event_page(context) as page:
                 # Set extra headers
                 await page.set_extra_http_headers(HEADERS)
+                
+                # Add a small delay between requests
+                if i > 1:
+                    await asyncio.sleep(2)
 
-                # Capture m3u8 from embed URL
                 m3u8_url = await capture_m3u8_from_embed(
                     page=page,
                     embed_url=event["url"],
                     url_num=i,
-                    timeout=45,
+                    timeout=60,
                 )
 
-                # Get TVG info
                 tvg_id, logo = get_tvg_info(event["sport"], event["event"])
-
-                # Use provided logo if available
                 final_logo = event["logo"] or logo
 
-                # Create cache entry
                 entry = {
                     "url": m3u8_url,
                     "logo": final_logo,
@@ -470,7 +424,6 @@ async def scrape(browser: Browser) -> None:
                     "stream_name": event["stream_name"],
                 }
 
-                # Update cache and urls
                 cached_urls[event["key"]] = entry
 
                 if m3u8_url:
@@ -481,27 +434,15 @@ async def scrape(browser: Browser) -> None:
                 else:
                     log.warning(f"✗ [{i}] No stream captured")
 
-                # Small delay between requests
-                await asyncio.sleep(2)
-
     log.info(f"Scraping complete: {successful_count}/{len(events)} streams captured")
-
-    # Save cache and generate playlists
     CACHE_FILE.write(cached_urls)
     generate_playlists()
 
-
-# ---------------------------------------------------------
-# MAIN ENTRY POINT
-# ---------------------------------------------------------
 
 from playwright.async_api import async_playwright
 
 
 async def main():
-    """
-    Main async entry point.
-    """
     log.info("=" * 50)
     log.info("Starting TIM Streams Updater")
     log.info(f"API URL: {API_URL}")
@@ -516,6 +457,7 @@ async def main():
                 "--disable-dev-shm-usage",
                 "--autoplay-policy=no-user-gesture-required",
                 "--disable-web-security",
+                "--disable-features=IsolateOrigins,site-per-process",
             ],
         )
 
