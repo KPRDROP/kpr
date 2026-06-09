@@ -2,8 +2,7 @@ import asyncio
 import os
 import re
 import json
-import time
-from urllib.parse import quote, urlparse, parse_qs
+from urllib.parse import quote
 
 from playwright.async_api import Browser
 from selectolax.parser import HTMLParser
@@ -68,10 +67,10 @@ def generate_playlists():
     log.info(f"Playlists generated: {len(urls)} streams -> tim_vlc.m3u8 / tim_tivimate.m3u8")
 
 
-async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: int = 60) -> str | None:
+async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: int = 45) -> str | None:
     """
     Navigate to embed URL and capture the m3u8 stream URL.
-    Uses network sniffing, JS evaluation, and pattern matching.
+    Listens for fetch requests to /fetch endpoint and extracts m3u8 URL.
     """
     captured_m3u8 = []
     got_m3u8 = asyncio.Event()
@@ -84,13 +83,29 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
             "manifest" not in url_lower and
             "analytics" not in url_lower and
             "tracking" not in url_lower and
-            "collect" not in url_lower and
             "hmembeds" not in url_lower and
             "junkieembeds" not in url_lower
         )
 
     async def handle_request(request):
         req_url = request.url
+        # Check for fetch requests to /fetch endpoint - this returns the m3u8 URL
+        if "/fetch" in req_url:
+            log.info(f"URL {url_num}) Fetch request detected: {req_url[:120]}...")
+            try:
+                # Wait for response to get the actual m3u8 URL
+                response = await request.response()
+                if response:
+                    body = await response.text()
+                    # The response body is the m3u8 URL
+                    if body and is_valid_m3u8(body) and body not in seen_urls:
+                        seen_urls.add(body)
+                        captured_m3u8.append(body)
+                        got_m3u8.set()
+                        log.info(f"URL {url_num}) M3U8 from fetch response: {body[:120]}...")
+            except:
+                pass
+        
         if is_valid_m3u8(req_url) and req_url not in seen_urls:
             seen_urls.add(req_url)
             captured_m3u8.append(req_url)
@@ -104,6 +119,22 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
             captured_m3u8.append(resp_url)
             got_m3u8.set()
             log.info(f"URL {url_num}) M3U8 response: {resp_url[:120]}...")
+
+        # Check response body for m3u8 URLs
+        try:
+            content_type = response.headers.get("content-type", "").lower()
+            if "json" in content_type or "text" in content_type:
+                body = await response.text()
+                # Look for m3u8 URLs in the response body
+                matches = re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', body)
+                for match in matches:
+                    if is_valid_m3u8(match) and match not in seen_urls:
+                        seen_urls.add(match)
+                        captured_m3u8.append(match)
+                        got_m3u8.set()
+                        log.info(f"URL {url_num}) M3U8 in response body: {match[:120]}...")
+        except:
+            pass
 
         try:
             content_type = response.headers.get("content-type", "").lower()
@@ -122,105 +153,60 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
     try:
         log.info(f"URL {url_num}) Navigating to embed: {embed_url}")
 
-        # Navigate with proper headers
+        # Navigate to embed page
         await page.goto(embed_url, wait_until="domcontentloaded", timeout=15000)
 
-        # Wait for page to load
+        # Wait for page to load and player to initialize
         await asyncio.sleep(3)
 
-        # Try to find and click play button
-        click_selectors = [
-            "video",
-            ".vjs-big-play-button",
-            ".jw-icon-play",
-            ".play-button",
-            "[aria-label='Play']",
-            "button[aria-label*='Play']",
-            ".fp-playbtn",
-            ".mejs-playpause-button",
-            ".plyr__control--overlaid",
-            "[data-testid='play-button']",
-            "div[class*='play']",
-            ".play",
-            "button",
-        ]
-
-        for selector in click_selectors:
-            try:
-                element = await page.wait_for_selector(selector, timeout=2000)
-                if element:
-                    await element.click()
-                    log.info(f"URL {url_num}) Clicked: {selector}")
-                    await asyncio.sleep(1)
-                    break
-            except:
-                continue
-
-        # Click center of page
-        try:
-            await page.mouse.click(500, 300)
-            log.info(f"URL {url_num}) Clicked center")
-            await asyncio.sleep(1)
-        except:
-            pass
-
-        # Execute JavaScript to find m3u8 URLs in the page
+        # Execute JavaScript to monitor JWPlayer and extract m3u8 URL
         js_code = """
         () => {
             const results = [];
             
-            // Check all script tags for m3u8 patterns
-            const scripts = document.querySelectorAll('script');
-            scripts.forEach(script => {
+            // Check if JWPlayer is available
+            if (typeof jwplayer !== 'undefined') {
+                try {
+                    const player = jwplayer();
+                    if (player && player.getConfig) {
+                        const config = player.getConfig();
+                        if (config.file) results.push(config.file);
+                        if (config.sources) {
+                            config.sources.forEach(s => {
+                                if (s.file && s.file.includes('.m3u8')) results.push(s.file);
+                            });
+                        }
+                    }
+                    // Get current playlist
+                    const playlist = player.getPlaylist();
+                    if (playlist && playlist.length) {
+                        playlist.forEach(item => {
+                            if (item.file && item.file.includes('.m3u8')) results.push(item.file);
+                            if (item.sources) {
+                                item.sources.forEach(s => {
+                                    if (s.file && s.file.includes('.m3u8')) results.push(s.file);
+                                });
+                            }
+                        });
+                    }
+                } catch(e) {}
+            }
+            
+            // Check all script tags for embedded m3u8 URLs
+            document.querySelectorAll('script').forEach(script => {
                 if (script.textContent) {
                     const matches = script.textContent.match(/https?:\\/\\/[^\\s"']+\\.m3u8[^\\s"']*/gi);
                     if (matches) results.push(...matches);
                 }
             });
             
-            // Check all iframe sources
-            const frames = document.querySelectorAll('iframe');
-            frames.forEach(frame => {
-                if (frame.src) results.push(frame.src);
+            // Check video elements
+            document.querySelectorAll('video').forEach(video => {
+                if (video.src && video.src.includes('.m3u8')) results.push(video.src);
             });
             
-            // Check video sources
-            const videos = document.querySelectorAll('video');
-            videos.forEach(video => {
-                if (video.src) results.push(video.src);
-                const sources = video.querySelectorAll('source');
-                sources.forEach(source => {
-                    if (source.src) results.push(source.src);
-                });
-            });
-            
-            // Check for JWPlayer setup
-            if (typeof jwplayer !== 'undefined') {
-                try {
-                    const instances = jwplayer();
-                    if (instances && instances.getConfig) {
-                        const config = instances.getConfig();
-                        if (config.file) results.push(config.file);
-                        if (config.sources) config.sources.forEach(s => { if (s.file) results.push(s.file); });
-                    }
-                } catch(e) {}
-            }
-            
-            // Check for video.js player
-            if (typeof videojs !== 'undefined') {
-                try {
-                    const players = videojs.getAllPlayers();
-                    for (const playerId in players) {
-                        const player = players[playerId];
-                        if (player.src) results.push(player.src());
-                    }
-                } catch(e) {}
-            }
-            
-            // Force click on any video element to start playback
-            document.querySelectorAll('video').forEach(v => { try { v.play(); } catch(e) {} });
-            
-            return results.filter(r => r && r.includes('.m3u8'));
+            // Remove duplicates
+            return [...new Set(results)];
         }
         """
         
@@ -231,7 +217,7 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
                     seen_urls.add(url)
                     captured_m3u8.append(url)
                     got_m3u8.set()
-                    log.info(f"URL {url_num}) Found m3u8 in JS: {url[:120]}...")
+                    log.info(f"URL {url_num}) Found m3u8 in JWPlayer: {url[:120]}...")
         except Exception as e:
             log.debug(f"URL {url_num}) JS evaluation error: {e}")
 
@@ -240,7 +226,7 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
             await asyncio.wait_for(got_m3u8.wait(), timeout=timeout)
             log.info(f"URL {url_num}) M3U8 captured!")
         except asyncio.TimeoutError:
-            log.warning(f"URL {url_num}) Timeout waiting for M3U8")
+            log.warning(f"URL {url_num}) Timeout waiting for M3U8 after {timeout}s")
 
         if captured_m3u8:
             return captured_m3u8[0]
@@ -252,7 +238,6 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
                 r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*',
                 r'file:\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
                 r'src:\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
-                r'source:\s*["\']([^"\']+\.m3u8[^"\']*)["\']',
             ]
             for pattern in patterns:
                 matches = re.findall(pattern, html)
@@ -304,7 +289,6 @@ async def fetch_events_from_api(cached_keys: set) -> list[dict]:
             event_name = event.get("name", "")
             event_logo = event.get("logo", "")
             genre_id = event.get("genre", 0)
-            is_vip = event.get("vip", False)
             streams = event.get("streams", [])
             
             if not event_name or not streams:
@@ -351,7 +335,6 @@ async def fetch_events_from_api(cached_keys: set) -> list[dict]:
                     "stream_name": stream_name,
                     "url": embed_full_url,
                     "logo": event_logo,
-                    "vip": is_vip,
                 })
                 
                 log.info(f"New event: [{sport}] {event_name} - {stream_name or 'Main'}")
@@ -398,16 +381,12 @@ async def scrape(browser: Browser) -> None:
             async with network.event_page(context) as page:
                 # Set extra headers
                 await page.set_extra_http_headers(HEADERS)
-                
-                # Add a small delay between requests
-                if i > 1:
-                    await asyncio.sleep(2)
 
                 m3u8_url = await capture_m3u8_from_embed(
                     page=page,
                     embed_url=event["url"],
                     url_num=i,
-                    timeout=60,
+                    timeout=50,
                 )
 
                 tvg_id, logo = get_tvg_info(event["sport"], event["event"])
@@ -433,6 +412,9 @@ async def scrape(browser: Browser) -> None:
                     log.info(f"   M3U8: {m3u8_url[:100]}...")
                 else:
                     log.warning(f"✗ [{i}] No stream captured")
+                
+                # Small delay between requests
+                await asyncio.sleep(2)
 
     log.info(f"Scraping complete: {successful_count}/{len(events)} streams captured")
     CACHE_FILE.write(cached_urls)
@@ -457,7 +439,6 @@ async def main():
                 "--disable-dev-shm-usage",
                 "--autoplay-policy=no-user-gesture-required",
                 "--disable-web-security",
-                "--disable-features=IsolateOrigins,site-per-process",
             ],
         )
 
