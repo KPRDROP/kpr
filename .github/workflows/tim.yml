@@ -1,8 +1,8 @@
-name: TIM Playlist Updater
+name: TIM Streams Updater
 
 on:
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -11,35 +11,34 @@ permissions:
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
-          pip install playwright selectolax httpx[http2] pytz
+          pip install playwright selectolax aiohttp httpx[http2] pytz
           playwright install chromium
+          playwright install-deps
 
-      - name: Run scraper
+      - name: Run TIM scraper
         env:
-          TIM_BASE_URL: ${{ secrets.TIM_BASE_URL }}
-          
+          TIM_BASE_URL: "https://junkieembeds.pages.dev/"
         run: |
           python tim.py
 
-      - name: Commit playlists
+      - name: Commit and push changes
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-
-          git add tim_vlc.m3u8 tim_tivimate.m3u8
-
-          git commit -m "Update TIM playlists" || echo "No changes"
-
-          git push
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tim_vlc.m3u8 tim_tivimate.m3u8 cache_TIM.json 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "chore: update TIM streams [skip ci]" && git push)
