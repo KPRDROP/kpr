@@ -86,55 +86,107 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
             "hmembeds" not in url_lower and
             "junkieembeds" not in url_lower
         )
-
-    async def handle_request(request):
-        req_url = request.url
-        # Check for fetch requests to /fetch endpoint - this returns the m3u8 URL
-        if "/fetch" in req_url:
-            log.info(f"URL {url_num}) Fetch request detected: {req_url[:120]}...")
-            try:
-                # Wait for response to get the actual m3u8 URL
-                response = await request.response()
-                if response:
-                    body = await response.text()
-                    # The response body is the m3u8 URL
-                    if body and is_valid_m3u8(body) and body not in seen_urls:
-                        seen_urls.add(body)
-                        captured_m3u8.append(body)
-                        got_m3u8.set()
-                        log.info(f"URL {url_num}) M3U8 from fetch response: {body[:120]}...")
-            except:
-                pass
         
         if is_valid_m3u8(req_url) and req_url not in seen_urls:
             seen_urls.add(req_url)
             captured_m3u8.append(req_url)
             got_m3u8.set()
             log.info(f"URL {url_num}) M3U8 request: {req_url[:120]}...")
+            
+
+def extract_m3u8(text: str) -> list[str]:
+    results = []
+
+    patterns = [
+        r'https?://[^\s"\']+\.m3u8[^\s"\']*',
+        r'"url"\s*:\s*"([^"]+\.m3u8[^"]*)"',
+        r'"stream"\s*:\s*"([^"]+\.m3u8[^"]*)"',
+        r'"src"\s*:\s*"([^"]+\.m3u8[^"]*)"',
+        r'"file"\s*:\s*"([^"]+\.m3u8[^"]*)"',
+    ]
+
+    for pattern in patterns:
+        matches = re.findall(pattern, text, re.I)
+        if matches:
+            if isinstance(matches[0], tuple):
+                results.extend(matches[0])
+            else:
+                results.extend(matches)
+
+    return list(set(results))
 
     async def handle_response(response):
+    try:
         resp_url = response.url
-        if is_valid_m3u8(resp_url) and resp_url not in seen_urls:
+
+        if "/fetch" in resp_url:
+            log.info(
+                f"URL {url_num}) Fetch response detected: {resp_url[:120]}..."
+            )
+
+            try:
+                body = await response.text()
+
+                for stream_url in extract_m3u8(body):
+                    if (
+                        is_valid_m3u8(stream_url)
+                        and stream_url not in seen_urls
+                    ):
+                        seen_urls.add(stream_url)
+                        captured_m3u8.append(stream_url)
+                        got_m3u8.set()
+
+                        log.info(
+                            f"URL {url_num}) M3U8 from fetch JSON: "
+                            f"{stream_url[:120]}..."
+                        )
+
+            except Exception as e:
+                log.debug(f"Fetch body error: {e}")
+
+        if (
+            is_valid_m3u8(resp_url)
+            and resp_url not in seen_urls
+        ):
             seen_urls.add(resp_url)
             captured_m3u8.append(resp_url)
             got_m3u8.set()
-            log.info(f"URL {url_num}) M3U8 response: {resp_url[:120]}...")
 
-        # Check response body for m3u8 URLs
-        try:
-            content_type = response.headers.get("content-type", "").lower()
-            if "json" in content_type or "text" in content_type:
+            log.info(
+                f"URL {url_num}) M3U8 response: "
+                f"{resp_url[:120]}..."
+            )
+
+        content_type = response.headers.get(
+            "content-type", ""
+        ).lower()
+
+        if (
+            "json" in content_type
+            or "text" in content_type
+            or "javascript" in content_type
+        ):
+            try:
                 body = await response.text()
-                # Look for m3u8 URLs in the response body
-                matches = re.findall(r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*', body)
-                for match in matches:
-                    if is_valid_m3u8(match) and match not in seen_urls:
-                        seen_urls.add(match)
-                        captured_m3u8.append(match)
+
+                for stream_url in extract_m3u8(body):
+                    if (
+                        is_valid_m3u8(stream_url)
+                        and stream_url not in seen_urls
+                    ):
+                        seen_urls.add(stream_url)
+                        captured_m3u8.append(stream_url)
                         got_m3u8.set()
-                        log.info(f"URL {url_num}) M3U8 in response body: {match[:120]}...")
-        except:
-            pass
+
+                        log.info(
+                            f"URL {url_num}) M3U8 in response body: "
+                            f"{stream_url[:120]}..."
+                        )
+            except:
+                pass
+
+    except Exception as e:
+        log.debug(f"Response handler error: {e}")
 
         try:
             content_type = response.headers.get("content-type", "").lower()
@@ -155,6 +207,17 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
 
         # Navigate to embed page
         await page.goto(embed_url, wait_until="domcontentloaded", timeout=15000)
+
+for frame in page.frames:
+    try:
+        frame_url = frame.url
+
+        if ".m3u8" in frame_url:
+            captured_m3u8.append(frame_url)
+            got_m3u8.set()
+            break
+    except:
+        pass
 
         # Wait for page to load and player to initialize
         await asyncio.sleep(3)
@@ -386,7 +449,7 @@ async def scrape(browser: Browser) -> None:
                     page=page,
                     embed_url=event["url"],
                     url_num=i,
-                    timeout=50,
+                    timeout=90,
                 )
 
                 tvg_id, logo = get_tvg_info(event["sport"], event["event"])
