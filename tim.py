@@ -2,6 +2,7 @@ import asyncio
 import os
 import re
 import json
+import base64
 from urllib.parse import quote
 
 from playwright.async_api import Browser
@@ -67,6 +68,43 @@ def generate_playlists():
     log.info(f"Playlists generated: {len(urls)} streams -> tim_vlc.m3u8 / tim_tivimate.m3u8")
 
 
+def decode_stream_url(encoded_url: str) -> str | None:
+    """
+    Decode the stream URL from the /fetch response.
+    The URL appears to be base64 encoded, possibly with additional encoding.
+    """
+    if not encoded_url:
+        return None
+    
+    try:
+        # Try base64 decode first
+        decoded = base64.b64decode(encoded_url).decode('utf-8', errors='ignore')
+        
+        # Look for m3u8 URL in the decoded data
+        m3u8_pattern = r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*'
+        matches = re.findall(m3u8_pattern, decoded)
+        
+        if matches:
+            return matches[0]
+        
+        # If no m3u8 found but decoded looks like a URL, return it
+        if decoded.startswith('http'):
+            return decoded
+            
+        return None
+        
+    except Exception as e:
+        log.debug(f"Base64 decode failed: {e}")
+        
+        # Try to find m3u8 URL directly in the string
+        m3u8_pattern = r'https?://[^\s"\'<>]+\.m3u8[^\s"\'<>]*'
+        matches = re.findall(m3u8_pattern, encoded_url)
+        if matches:
+            return matches[0]
+        
+        return None
+
+
 def extract_m3u8_from_text(text: str) -> list[str]:
     """Extract m3u8 URLs from text using multiple patterns."""
     results = []
@@ -79,6 +117,7 @@ def extract_m3u8_from_text(text: str) -> list[str]:
         r'"file"\s*:\s*"([^"]+\.m3u8[^"]*)"',
         r'"source"\s*:\s*"([^"]+\.m3u8[^"]*)"',
         r'"playlist"\s*:\s*"([^"]+\.m3u8[^"]*)"',
+        r'([A-Za-z0-9+/=]+)\.m3u8',  # base64-like pattern ending with .m3u8
     ]
     
     for pattern in patterns:
@@ -89,7 +128,19 @@ def extract_m3u8_from_text(text: str) -> list[str]:
             else:
                 results.append(match)
     
-    return list(set(results))
+    # Filter and clean results
+    valid_results = []
+    for url in results:
+        if '.m3u8' in url:
+            # Try to decode if it looks like base64
+            if not url.startswith('http') and len(url) > 50:
+                decoded = decode_stream_url(url)
+                if decoded:
+                    valid_results.append(decoded)
+            else:
+                valid_results.append(url)
+    
+    return list(set(valid_results))
 
 
 def is_valid_m3u8(url: str) -> bool:
@@ -111,7 +162,7 @@ def is_valid_m3u8(url: str) -> bool:
 async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: int = 90) -> str | None:
     """
     Navigate to embed URL and capture the m3u8 stream URL.
-    Uses network sniffing with focus on /fetch endpoint responses.
+    Focuses on capturing the /fetch response and decoding it.
     """
     captured_m3u8 = []
     got_m3u8 = asyncio.Event()
@@ -121,25 +172,32 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
         try:
             resp_url = response.url
             
-            # Handle /fetch endpoint responses (this returns the m3u8 URL)
+            # Handle /fetch endpoint responses (this returns encoded stream URL)
             if "/fetch" in resp_url:
-                log.info(f"URL {url_num}) Fetch response detected: {resp_url[:100]}...")
+                log.info(f"URL {url_num}) Fetch response detected")
                 
                 try:
                     body = await response.text()
+                    log.debug(f"URL {url_num}) Fetch response body: {body[:200]}...")
                     
-                    # Try to parse as JSON first
+                    # Parse JSON response
                     try:
                         json_data = json.loads(body)
-                        # Check common JSON fields for stream URL
-                        for key in ['url', 'stream', 'src', 'file', 'source', 'playlist']:
-                            if key in json_data and json_data[key]:
-                                stream_url = json_data[key]
-                                if is_valid_m3u8(stream_url) and stream_url not in seen_urls:
-                                    seen_urls.add(stream_url)
-                                    captured_m3u8.append(stream_url)
+                        if json_data.get("success") and json_data.get("url"):
+                            encoded_url = json_data["url"]
+                            log.info(f"URL {url_num}) Got encoded URL from fetch")
+                            
+                            # Decode the stream URL
+                            decoded_url = decode_stream_url(encoded_url)
+                            if decoded_url and is_valid_m3u8(decoded_url):
+                                if decoded_url not in seen_urls:
+                                    seen_urls.add(decoded_url)
+                                    captured_m3u8.append(decoded_url)
                                     got_m3u8.set()
-                                    log.info(f"URL {url_num}) M3U8 from fetch JSON [{key}]: {stream_url[:100]}...")
+                                    log.info(f"URL {url_num}) ✓ Decoded M3U8: {decoded_url[:100]}...")
+                            elif decoded_url:
+                                log.info(f"URL {url_num}) Decoded but not m3u8: {decoded_url[:100]}...")
+                                
                     except json.JSONDecodeError:
                         # Not JSON, try regex patterns
                         for stream_url in extract_m3u8_from_text(body):
@@ -152,23 +210,8 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
                 except Exception as e:
                     log.debug(f"URL {url_num}) Fetch body read error: {e}")
             
-            # Direct m3u8 response
-            if is_valid_m3u8(resp_url) and resp_url not in seen_urls:
-                seen_urls.add(resp_url)
-                captured_m3u8.append(resp_url)
-                got_m3u8.set()
-                log.info(f"URL {url_num}) Direct M3U8 response: {resp_url[:100]}...")
-            
-            # Check content-type headers for m3u8
+            # Check for m3u8 in response body (any content type)
             content_type = response.headers.get("content-type", "").lower()
-            if "mpegurl" in content_type or "application/vnd.apple.mpegurl" in content_type:
-                if is_valid_m3u8(resp_url) and resp_url not in seen_urls:
-                    seen_urls.add(resp_url)
-                    captured_m3u8.append(resp_url)
-                    got_m3u8.set()
-                    log.info(f"URL {url_num}) M3U8 by content-type: {resp_url[:100]}...")
-            
-            # Check JSON/text responses for embedded m3u8 URLs
             if "json" in content_type or "text" in content_type or "javascript" in content_type:
                 try:
                     body = await response.text()
@@ -177,7 +220,7 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
                             seen_urls.add(stream_url)
                             captured_m3u8.append(stream_url)
                             got_m3u8.set()
-                            log.info(f"URL {url_num}) M3U8 in response body: {stream_url[:100]}...")
+                            log.info(f"URL {url_num}) M3U8 in response: {stream_url[:100]}...")
                 except:
                     pass
                     
@@ -204,7 +247,7 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
         # Wait for page to load and player to initialize
         await asyncio.sleep(5)
 
-        # Execute JavaScript to extract stream info from JWPlayer
+        # Execute JavaScript to intercept JWPlayer and extract stream info
         js_code = """
         () => {
             const results = [];
@@ -232,20 +275,6 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
                                 });
                             }
                         });
-                    }
-                } catch(e) {}
-            }
-            
-            // Check video.js
-            if (typeof videojs !== 'undefined') {
-                try {
-                    const players = videojs.getAllPlayers();
-                    for (const id in players) {
-                        const player = players[id];
-                        if (player.currentSource && player.currentSource().src) {
-                            const src = player.currentSource().src;
-                            if (src && src.includes('.m3u8')) results.push(src);
-                        }
                     }
                 } catch(e) {}
             }
@@ -294,16 +323,6 @@ async def capture_m3u8_from_embed(page, embed_url: str, url_num: int, timeout: i
 
         if captured_m3u8:
             return captured_m3u8[0]
-
-        # Final fallback: search full HTML content
-        try:
-            html = await page.content()
-            for stream_url in extract_m3u8_from_text(html):
-                if is_valid_m3u8(stream_url) and stream_url not in seen_urls:
-                    log.info(f"URL {url_num}) Found m3u8 in HTML: {stream_url[:100]}...")
-                    return stream_url
-        except Exception as e:
-            log.debug(f"URL {url_num}) HTML search error: {e}")
 
         log.warning(f"URL {url_num}) No m3u8 found")
         return None
@@ -443,7 +462,7 @@ async def scrape(browser: Browser) -> None:
                     page=page,
                     embed_url=event["url"],
                     url_num=i,
-                    timeout=90,
+                    timeout=60,
                 )
 
                 tvg_id, logo = get_tvg_info(event["sport"], event["event"])
@@ -471,7 +490,7 @@ async def scrape(browser: Browser) -> None:
                     log.warning(f"✗ [{i}] No stream captured")
                 
                 # Delay between requests
-                await asyncio.sleep(3)
+                await asyncio.sleep(2)
 
     log.info(f"Scraping complete: {successful_count}/{len(events)} streams captured")
     CACHE_FILE.write(cached_urls)
