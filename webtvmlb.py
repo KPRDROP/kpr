@@ -122,16 +122,35 @@ async def request(url, headers=None, params=None, max_retries=3):
     return None
 
 
-# ================= EVENT DETECTION (from team-logo links) =================
+# ================= EVENT DETECTION =================
 
 async def get_events(page):
-    """Extract team events from homepage using team-logo links (always visible)"""
+    """Extract team events from homepage by finding all team-logo links"""
     log(f"Loading page: {BASE_URL}")
 
     try:
         await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=30000)
-        await page.wait_for_timeout(5000)
         
+        # Wait for page to load
+        await page.wait_for_timeout(3000)
+        
+        # Click the Teams button to reveal team logos
+        try:
+            teams_button = await page.query_selector("#show")
+            if teams_button:
+                await teams_button.click()
+                log("Clicked Teams button to reveal team logos")
+                await page.wait_for_timeout(2000)
+        except Exception as e:
+            log(f"Could not click Teams button: {e}")
+        
+        # Wait for team logo elements to appear
+        try:
+            await page.wait_for_selector("li.team-logo a", timeout=10000)
+        except PlaywrightTimeoutError:
+            log("Timeout waiting for team logos, trying alternative selectors...")
+        
+        # Get page HTML
         html = await page.content()
         
     except PlaywrightTimeoutError:
@@ -145,24 +164,52 @@ async def get_events(page):
     events = []
     sport = "MLB"
 
-    # Extract team links from team-logo list (always visible)
+    # Find all team logo links - multiple selector attempts
+    team_links = []
+    
+    # Primary selector
     team_links = soup.css("li.team-logo a")
+    
+    if not team_links:
+        # Fallback: look for any link ending with -live
+        team_links = soup.css("a[href*='-live']")
+    
+    if not team_links:
+        # Fallback: look in div with id team-logo
+        team_logo_div = soup.css_first("#team-logo")
+        if team_logo_div:
+            team_links = team_logo_div.css("a")
+    
     log(f"Found {len(team_links)} team links")
     
     for a in team_links:
         href = a.attributes.get("href")
-        title = a.attributes.get("title", "").strip()
-        
         if not href:
             continue
         
+        # Only include links that look like team pages
+        if not ("-live" in href or "live" in href):
+            continue
+        
         link = urljoin(BASE_URL, href)
-        event_name = clean_event_name(title) if title else "MLB Team Game"
+        
+        # Get team name from title attribute or text
+        title = a.attributes.get("title", "")
+        event_name = title.strip()
+        
+        if not event_name:
+            # Try to get from text content
+            event_name = a.text(strip=True)
+        
+        # Clean up event name
+        event_name = clean_event_name(event_name)
         
         # Get logo from img
         logo = DEFAULT_LOGO
-        if img := a.css_first("img"):
-            if src := img.attributes.get("src"):
+        img = a.css_first("img")
+        if img:
+            src = img.attributes.get("src")
+            if src:
                 logo = src
         
         events.append({
@@ -172,12 +219,12 @@ async def get_events(page):
             "logo": logo
         })
         
-        log(f"  Found team: {event_name} -> {link}")
+        log(f"  Found: {event_name} -> {link}")
 
     return events
 
 
-# ================= STREAM CAPTURE (Original working method) =================
+# ================= STREAM CAPTURE =================
 
 async def process_event(url: str, url_num: int, sport: str) -> str | None:
     """Process event page and extract m3u8 stream URL using iframe and Clappr data"""
@@ -344,7 +391,7 @@ async def main():
         log(f"Detected {len(events)} events")
 
         if not events:
-            log("No events found")
+            log("No events found - please check if website structure changed")
             await browser.close()
             return
 
