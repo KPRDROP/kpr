@@ -1,19 +1,43 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Los Angeles Dodgers vs Pittsburgh Pirates (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Los Angeles Dodgers vs Pittsburgh Pirates
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=pittsburgh+pirates&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="1" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Miami Marlins vs Pittsburgh Pirates (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Miami Marlins vs Pittsburgh Pirates
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=sportsnet+pittsburgh&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-pittsburgh-pirates/playlist.m3u8?token=a81b5020c3bc6b83c56bd98ccb85053ae09c1d1249b67995cbd1b51f694db7dd.1781220143.1ce548da31556bc6c81a121e294765c3.414f51beb028ced29a9aacbb1cf6a591.33d959d08820e487a77ac6cf76a783c9&signature=f24b1505eda26d89a4eae58ea7b201f6c6c4d518e614c0c36acdbe9052204772
+https://edge.cdnlivetv.ru/secure/api/v1/us-sportsnet-pittsburgh/playlist.m3u8?token=f5c7af2a1b04e14dca8d0ff0457e169dbab5f925cd278104c1d0da9c113c8305.1781299042.f0860b39dd81d8e5b400c960e8fa668a.06299091e7ad4acb6793264cf700a304.889b58dc69acd1abf557d0b74f7f6159&signature=8c8d8df448eea18cf773afcaef00a792270c0a072ae673cbcddd64865698fca7
 
-#EXTINF:-1 tvg-chno="2" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Seattle Mariners vs Baltimore Orioles (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Seattle Mariners vs Baltimore Orioles
+#EXTINF:-1 tvg-chno="2" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Seattle Mariners vs Washington Nationals (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Seattle Mariners vs Washington Nationals
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=washington+nationals&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-washington-nationals/playlist.m3u8?token=3a7aec89528fb9d827f039c4eb5fc309ebd8a508d5d94b4074f5b9ab1ca253da.1781299043.b53126c0aa22bc5a1c224cbe8337018e.2f30ca239d5c9061f299879f56e5c43b.66d415ff41db192db1dcae281df402ed&signature=42e011b6f4940b84f68b9cb2020862c10314dcc557440421892ae33b8083e78d
+
+#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Diego Padres vs Baltimore Orioles (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Diego Padres vs Baltimore Orioles
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=baltimore+orioles&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-baltimore-orioles/playlist.m3u8?token=94a0b952f5d9cef266ebe7ff6c32ac177f7a09c25c287913d52328a4294930c9.1781220144.d227e6b6b7dd8d26be03412cc0780934.59ef710cdc715f184c3046022b86a4ec.6b51933d8d1d0dd5bc3cb123c13dd82d&signature=0ae73d8a32242baaf9e8514f644e1979ab1f7e8f790860b7168f7ed822fec87a
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-baltimore-orioles/playlist.m3u8?token=d1e656ad48da5f4c331355e84d69d8895cf41abf7918145ac40a3daa520a0dd6.1781299043.32246c3ee9e90c3e933796f9feb4e9a9.e293818e76b18026345206f0788ba3a5.6f9caafb07a52fdcfaccb1f23bf6d70e&signature=c4cc452e6436d649cdeb44b60bfaff0276ef22c1507f13eef001dcfeb66c2b71
 
-#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Atlanta Braves vs Chicago White Sox (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Atlanta Braves vs Chicago White Sox
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=chicago+white+sox&code=us&user=cdnlivetv&plan=free
+#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Arizona Diamondbacks vs Cincinnati Reds (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Arizona Diamondbacks vs Cincinnati Reds
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cincinnati+reds&code=us&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-chicago-white-sox/playlist.m3u8?token=3a19dd2688e1c12a72e68d79b5c9cdd26c516e88db323b2ef2745d2a3429cf2e.1781220144.0f476d66ca74f75967fffdff5c2f184a.ea326ff4c1dffaedaf3c8482ebaafe38.5ca26c32b201980bfa17590c12b14388&signature=9e26b2710b8b311c65496cfbc53ad55886d967a85e019a1ce463802e40c90283
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-cincinnati-reds/playlist.m3u8?token=e774a25b9567d7fc1632b06c0025ee8aa7e2ffdd2f69e50eb74a68bcd9454a25.1781299044.a5c50b405d0c2106ffc14f988cebcdc2.ac7f19d76f21ab262e49e1e76e7f0193.1efb84f98f94b7482179030b1ce5e4ca&signature=ca94dae0efd2d0ec44f9d89322f6897a23a2e7de055274b87fe9f31bb592b225
+
+#EXTINF:-1 tvg-chno="5" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Atlanta Braves vs New York Mets (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Atlanta Braves vs New York Mets
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=new+york+mets&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-new-york-mets/playlist.m3u8?token=2bfe36efaa4a05be04bd4e40cc290ddbffc4f5c27a06cda9b9e944705e7ff4fa.1781299044.30cda94c6fed479d5e6b5f94459a7a62.d960ada979b1bd2d1bc928de3374c125.ecab2d257e41afe3eb7c54613ce6525f&signature=697ce42ed4b7f6a56bedc030a4b9d847314ea19409d9fd5ae1db6639309f723c
+
+#EXTINF:-1 tvg-chno="6" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Detroit Tigers vs Cleveland Guardians (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Detroit Tigers vs Cleveland Guardians
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=cleveland+guardians&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-cleveland-guardians/playlist.m3u8?token=5313aca0c225f10768260208bfa0bc9e67ec28f75c2fd193bb9daa4b6b0866e7.1781299045.cd1870cd5d76bec72dac81d594dd045b.f1f3282d8cbc89532cee8181da76040c.62830c8b67e24d065cded6197ea827ff&signature=0e5b8b6d191d24ad5af8609389ba98268ac44e2bfc6d7248d1aa3b2e0c843dee
+
+#EXTINF:-1 tvg-chno="7" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Texas Rangers vs Boston Red Sox (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Texas Rangers vs Boston Red Sox
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=boston+red+sox&code=us&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://edge.cdnlivetv.ru/secure/api/v1/us-mlb-boston-red-sox/playlist.m3u8?token=2cb7dd38838a424d385f2fa90e79ca8db75e5ebeab3deb41c17158384dad78a4.1781299045.c38bb4a0cc04bc5e5bad4ee2ca925170.9e3402071a82135469c455aa4e35daa9.60a36d7c41fc2b41623a305c57c08b19&signature=219daedbdf39a0c3ffaf0210d9a9b89580007d2c9d7a88e0709eb9eebdcd4e66
 
