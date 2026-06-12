@@ -9,10 +9,8 @@ import time
 from pathlib import Path
 from urllib.parse import urljoin, quote_plus
 
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 from selectolax.parser import HTMLParser
-
-from utils import Cache, Time, get_logger, leagues, network
 
 # ================= CONFIG =================
 
@@ -78,31 +76,51 @@ def save_cache(data):
 
 # ================= HTTP REQUEST HELPERS =================
 
-async def request(url, headers=None, params=None):
-    """Simple HTTP request using playwright"""
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(user_agent=USER_AGENT)
-        
-        if headers:
-            await context.set_extra_http_headers(headers)
-        
-        page = await context.new_page()
-        
+async def request(url, headers=None, params=None, max_retries=3):
+    """Simple HTTP request using playwright with retries"""
+    for attempt in range(max_retries):
         try:
-            if params:
-                from urllib.parse import urlencode
-                separator = '&' if '?' in url else '?'
-                url = f"{url}{separator}{urlencode(params)}"
-            
-            response = await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-            content = await response.text()
-            return type('Response', (), {'content': content, 'text': lambda: content, 'json': lambda: json.loads(content)})()
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)
+                context = await browser.new_context(user_agent=USER_AGENT)
+                
+                if headers:
+                    await context.set_extra_http_headers(headers)
+                
+                page = await context.new_page()
+                
+                try:
+                    if params:
+                        from urllib.parse import urlencode
+                        separator = '&' if '?' in url else '?'
+                        url = f"{url}{separator}{urlencode(params)}"
+                    
+                    await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                    content = await page.content()
+                    
+                    # Create response-like object
+                    class ResponseObj:
+                        def __init__(self, content, url):
+                            self.content = content
+                            self._url = url
+                        def text(self):
+                            return self.content
+                        def json(self):
+                            return json.loads(self.content)
+                        @property
+                        def url(self):
+                            return self._url
+                    
+                    return ResponseObj(content, url)
+                finally:
+                    await browser.close()
         except Exception as e:
-            log(f"Request error: {e}")
-            return None
-        finally:
-            await browser.close()
+            log(f"Request error (attempt {attempt + 1}/{max_retries}): {e}")
+            if attempt == max_retries - 1:
+                return None
+            await asyncio.sleep(2)
+    
+    return None
 
 
 # ================= EVENT DETECTION =================
@@ -110,17 +128,38 @@ async def request(url, headers=None, params=None):
 async def get_events(page):
     log(f"Loading page: {BASE_URL}")
 
-    await page.goto(BASE_URL, wait_until="networkidle", timeout=30000)
-    await page.wait_for_timeout(5000)
+    try:
+        # Use domcontentloaded instead of networkidle to avoid timeout
+        await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=30000)
+        
+        # Wait for table or team logos to appear
+        try:
+            await page.wait_for_selector("tr.singele_match_date, li.team-logo a", timeout=15000)
+        except PlaywrightTimeoutError:
+            log("Selector not found, waiting additional time...")
+            await page.wait_for_timeout(5000)
+        
+        # Additional wait for dynamic content
+        await page.wait_for_timeout(3000)
+        
+        html = await page.content()
+        
+    except PlaywrightTimeoutError:
+        log("Page load timeout, attempting to get content anyway...")
+        html = await page.content()
+    except Exception as e:
+        log(f"Error loading page: {e}")
+        return []
 
-    html = await page.content()
     soup = HTMLParser(html)
-
     events = []
     sport = "MLB"
 
-    # Extract events from table rows (original working method)
-    for row in soup.css("tr.singele_match_date"):
+    # Extract events from table rows (primary method)
+    rows = soup.css("tr.singele_match_date")
+    log(f"Found {len(rows)} match rows")
+    
+    for row in rows:
         if not (vs_node := row.css_first("td.teamvs a")):
             continue
 
@@ -137,14 +176,24 @@ async def get_events(page):
         event = fix_event(event_name)
         link = urljoin(BASE_URL, href)
 
+        # Get logo if available
+        logo = DEFAULT_LOGO
+        if logo_td := row.css_first("td.teamlogo img"):
+            if src := logo_td.attributes.get("src"):
+                logo = src
+
         events.append({
             "sport": sport,
             "event": event,
-            "link": link
+            "link": link,
+            "logo": logo
         })
+        
+        log(f"  Found event: {event}")
 
     # Fallback: look for team-logo links if no table rows found
     if not events:
+        log("No table rows found, trying team-logo links...")
         for a in soup.css("li.team-logo a"):
             href = a.attributes.get("href")
             title = a.attributes.get("title", "").strip()
@@ -155,11 +204,20 @@ async def get_events(page):
             link = urljoin(BASE_URL, href)
             event_name = clean_event_name(title) if title else "MLB TV"
             
+            # Get logo from img
+            logo = DEFAULT_LOGO
+            if img := a.css_first("img"):
+                if src := img.attributes.get("src"):
+                    logo = src
+            
             events.append({
                 "sport": sport,
                 "event": event_name,
-                "link": link
+                "link": link,
+                "logo": logo
             })
+            
+            log(f"  Found team: {event_name}")
 
     return events
 
@@ -169,61 +227,94 @@ async def get_events(page):
 async def process_event(url: str, url_num: int, sport: str) -> str | None:
     """Process event page and extract m3u8 stream URL"""
     
+    log(f"  Processing URL: {url}")
+    
     # Step 1: Load the event page
     event_data = await request(url)
     if not event_data:
-        log(f"URL {url_num}) Failed to load url.")
+        log(f"  URL {url_num}) Failed to load url.")
         return None
 
     soup = HTMLParser(event_data.content)
 
     # Step 2: Find iframe with name="srcFrame"
-    if not (iframe := soup.css_first('iframe[name="srcFrame"]')):
-        log(f"URL {url_num}) No iframe element found.")
+    iframe = soup.css_first('iframe[name="srcFrame"]')
+    if not iframe:
+        # Try alternative iframe selectors
+        iframe = soup.css_first('iframe[src*="stream"]')
+    
+    if not iframe:
+        log(f"  URL {url_num}) No iframe element found.")
         return None
 
     if not (iframe_src := iframe.attributes.get("src")):
-        log(f"URL {url_num}) No iframe source found.")
+        log(f"  URL {url_num}) No iframe source found.")
         return None
+    
+    log(f"  Found iframe: {iframe_src[:100]}...")
 
     # Step 3: Load iframe source
-    if not (iframe_src_data := await request(iframe_src, headers={"Referer": url})):
-        log(f"URL {url_num}) Failed to load iframe source.")
+    iframe_src_data = await request(iframe_src, headers={"Referer": url})
+    if not iframe_src_data:
+        log(f"  URL {url_num}) Failed to load iframe source.")
         return None
 
     # Step 4: Extract Clappr player data from JavaScript
     pattern = re.compile(r'var\s+\w*=\[([^"]*)\];', re.I)
 
-    if not (match := pattern.search(iframe_src_data.text())):
-        log(f"URL {url_num}) No Clappr source found.")
+    match = pattern.search(iframe_src_data.text())
+    if not match:
+        log(f"  URL {url_num}) No Clappr source found.")
         return None
 
     try:
-        ev_id, ev_ts, ev_pt = ast.literal_eval(match[1])
-    except ValueError:
-        log(f"URL {url_num}) Failed to parse event info.")
+        ev_data = ast.literal_eval(match[1])
+        if len(ev_data) >= 3:
+            ev_id, ev_ts, ev_pt = ev_data[0], ev_data[1], ev_data[2]
+        else:
+            log(f"  URL {url_num}) Invalid event data length.")
+            return None
+    except (ValueError, SyntaxError) as e:
+        log(f"  URL {url_num}) Failed to parse event info: {e}")
         return None
 
-    params: dict[str, int | str] = dict(zip(["id", "ts", "pt"], [ev_id, ev_ts, ev_pt]))
+    params = {
+        "id": ev_id,
+        "ts": ev_ts,
+        "pt": ev_pt
+    }
+
+    log(f"  Making API request with params: id={ev_id}, ts={ev_ts}, pt={ev_pt}")
 
     # Step 5: Make PHP API request to get m3u8 URL
-    if not (api_data := await request(
-        urljoin(BASE_URL, "stream/check_stream.php"),
+    api_url = urljoin(BASE_URL, "stream/check_stream.php")
+    api_data = await request(
+        api_url,
         headers={"Referer": iframe_src},
         params=params,
-    )):
-        log(f"URL {url_num}) Failed to make php request.")
+    )
+    
+    if not api_data:
+        log(f"  URL {url_num}) Failed to make php request.")
         return None
 
-    data = api_data.json()
+    try:
+        data = api_data.json()
+    except json.JSONDecodeError:
+        log(f"  URL {url_num}) Invalid JSON response.")
+        return None
     
     if data.get("error"):
-        log(f"URL {url_num}) API returned error: {data.get('error')}")
+        log(f"  URL {url_num}) API returned error: {data.get('error')}")
         return None
 
-    log(f"URL {url_num}) Captured M3U8")
-    
-    return data.get("url")
+    stream_url = data.get("url")
+    if stream_url:
+        log(f"  URL {url_num}) Captured M3U8")
+        return stream_url
+    else:
+        log(f"  URL {url_num}) No URL in API response.")
+        return None
 
 
 # ================= WRITE OUTPUT =================
@@ -237,10 +328,11 @@ def write_outputs(entries):
     with open(OUT_VLC, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for i, e in enumerate(entries, 1):
+            safe_name = e["name"].replace(",", "").strip()
             f.write(
                 f'#EXTINF:-1 tvg-chno="{i}" tvg-id="{TVG_ID}" '
-                f'tvg-name="{e["name"]}" tvg-logo="{DEFAULT_LOGO}" '
-                f'group-title="{GROUP}",{e["name"]}\n'
+                f'tvg-name="{safe_name}" tvg-logo="{e.get("logo", DEFAULT_LOGO)}" '
+                f'group-title="{GROUP}",{safe_name}\n'
             )
             f.write(f"#EXTVLCOPT:http-referrer={REFERER}\n")
             f.write(f"#EXTVLCOPT:http-origin={ORIGIN}\n")
@@ -251,16 +343,17 @@ def write_outputs(entries):
     with open(OUT_TIVI, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for i, e in enumerate(entries, 1):
+            safe_name = e["name"].replace(",", "").strip()
             f.write(
                 f'#EXTINF:-1 tvg-chno="{i}" tvg-id="{TVG_ID}" '
-                f'tvg-name="{e["name"]}" tvg-logo="{DEFAULT_LOGO}" '
-                f'group-title="{GROUP}",{e["name"]}\n'
+                f'tvg-name="{safe_name}" tvg-logo="{e.get("logo", DEFAULT_LOGO)}" '
+                f'group-title="{GROUP}",{safe_name}\n'
             )
             f.write(
                 f"{e['url']}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}\n\n"
             )
 
-    log("Playlists generated successfully")
+    log(f"Playlists generated: {OUT_VLC} / {OUT_TIVI}")
 
 
 # ================= MAIN =================
@@ -272,10 +365,18 @@ async def main():
     now = int(time.time())
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-blink-features=AutomationControlled",
+            ]
+        )
 
         context = await browser.new_context(
             user_agent=USER_AGENT,
+            viewport={'width': 1280, 'height': 720},
             extra_http_headers={
                 "Referer": BASE_URL,
                 "Origin": BASE_URL,
@@ -293,7 +394,6 @@ async def main():
             return
 
         collected = []
-        cached_urls = {}
 
         for i, ev in enumerate(events, 1):
             key = f"[{ev['sport']}] {ev['event']} ({TAG})"
@@ -302,20 +402,24 @@ async def main():
             if key in cache and now - cache[key]["ts"] < CACHE_EXP:
                 log(f"[{i}/{len(events)}] {ev['event']} (cached)")
                 collected.append(cache[key]["data"])
-                cached_urls[key] = cache[key]["data"]
                 continue
 
             log(f"[{i}/{len(events)}] {ev['event']}")
 
-            # Process event to get stream URL
-            stream = await process_event(ev["link"], i, ev["sport"])
+            # Create a new page for each event to avoid state issues
+            event_page = await context.new_page()
+            try:
+                stream = await process_event(ev["link"], i, ev["sport"])
+            finally:
+                await event_page.close()
 
             if stream:
                 log(f"  ✓ STREAM CAPTURED")
 
                 entry = {
-                    "name": f"[MLB] {ev['event']} (WEBCAST)",
-                    "url": stream
+                    "name": f"[MLB] {ev['event']}",
+                    "url": stream,
+                    "logo": ev.get("logo", DEFAULT_LOGO)
                 }
 
                 cache[key] = {
@@ -323,7 +427,6 @@ async def main():
                     "data": entry
                 }
 
-                cached_urls[key] = entry
                 collected.append(entry)
             else:
                 log(f"  ✗ No stream found")
