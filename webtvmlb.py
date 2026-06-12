@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import asyncio
-import ast
 import json
 import os
 import re
@@ -9,9 +8,8 @@ import time
 from pathlib import Path
 from urllib.parse import urljoin, quote_plus
 
-from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+import httpx
 from selectolax.parser import HTMLParser
-from utils import Cache, Time, get_logger, leagues, network
 
 # ================= CONFIG =================
 
@@ -42,22 +40,90 @@ DEFAULT_LOGO = "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/ml
 
 TAG = "EMELB"
 
+# ================= TEAM LIST (Static - avoids homepage parsing) =================
+
+TEAM_SLUGS = [
+    "arizona-diamondbacks",
+    "atlanta-braves",
+    "baltimore-orioles",
+    "boston-red-sox",
+    "chicago-cubs",
+    "chicago-white-sox",
+    "cincinnati-reds",
+    "cleveland-guardians",
+    "colorado-rockies",
+    "detroit-tigers",
+    "houston-astros",
+    "kansas-city-royals",
+    "los-angeles-angels",
+    "los-angeles-dodgers",
+    "miami-marlins",
+    "milwaukee-brewers",
+    "minnesota-twins",
+    "new-york-mets",
+    "new-york-yankees",
+    "oakland-athletics",
+    "philadelphia-phillies",
+    "pittsburgh-pirates",
+    "san-diego-padres",
+    "san-francisco-giants",
+    "seattle-mariners",
+    "st-louis-cardinals",
+    "tampa-bay-rays",
+    "texas-rangers",
+    "toronto-blue-jays",
+    "washington-nationals",
+]
+
+# Team logo mapping
+TEAM_LOGOS = {
+    "arizona-diamondbacks": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Arizona-Diamondbacks.svg",
+    "atlanta-braves": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Atlanta-Braves.svg",
+    "baltimore-orioles": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Baltimore-Orioles.svg",
+    "boston-red-sox": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Boston-Red-Sox.svg",
+    "chicago-cubs": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Chicago-Cubs.svg",
+    "chicago-white-sox": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Chicago-White-Sox.svg",
+    "cincinnati-reds": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Cincinnati-Reds.svg",
+    "cleveland-guardians": "https://mlbwebcast.com/wp-content/uploads/2023/04/Logo-Cleveland-Guardians.svg",
+    "colorado-rockies": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Colorado-Rockies.svg",
+    "detroit-tigers": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Detroit-Tigers.svg",
+    "houston-astros": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Houston-Astros.svg",
+    "kansas-city-royals": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Kansas-City-Royals.svg",
+    "los-angeles-angels": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Los-Angeles-Angels.svg",
+    "los-angeles-dodgers": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Los-Angeles-Dodgers.svg",
+    "miami-marlins": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Miami-Marlins.svg",
+    "milwaukee-brewers": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Milwaukee-Brewers.svg",
+    "minnesota-twins": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Minnesota-Twins.svg",
+    "new-york-mets": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-New-York-Mets.svg",
+    "new-york-yankees": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-New-York-Yankees.svg",
+    "oakland-athletics": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Oakland-Athletics.svg",
+    "philadelphia-phillies": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Philadelphia-Phillies.svg",
+    "pittsburgh-pirates": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Pittsburgh-Pirates.svg",
+    "san-diego-padres": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-San-Diego-Padres.svg",
+    "san-francisco-giants": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-San-Francisco-Giants.svg",
+    "seattle-mariners": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Seattle-Mariners.svg",
+    "st-louis-cardinals": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-St-Louis-Cardinals.svg",
+    "tampa-bay-rays": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Tampa-Bay-Rays.svg",
+    "texas-rangers": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Texas-Rangers.svg",
+    "toronto-blue-jays": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Toronto-Blue-Jays.svg",
+    "washington-nationals": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Washington-Nationals.svg",
+}
+
 # ================= HELPERS =================
 
 def log(msg):
     print(msg, flush=True)
 
 
-def clean_event_name(text: str) -> str:
-    text = text.replace("@", "vs")
-    text = text.replace(",", "")
-    text = re.sub(r"\s+", " ", text)
-    return text.strip()
-
-
-def fix_event(s: str) -> str:
-    """Convert @ to vs for event names"""
-    return " vs ".join(s.split("@"))
+def clean_event_name(slug: str) -> str:
+    """Convert slug to readable team name"""
+    name = slug.replace("-", " ").title()
+    # Special cases
+    replacements = {
+        "Mlb Network": "MLB Network",
+        "Fox Sports": "FOX Sports",
+    }
+    return replacements.get(name, name)
 
 
 def load_cache():
@@ -75,249 +141,147 @@ def save_cache(data):
         json.dump(data, f, indent=2)
 
 
-# ================= HTTP REQUEST HELPERS =================
+# ================= HTTP REQUEST =================
 
-async def request(url, headers=None, params=None, max_retries=3):
-    """Simple HTTP request using playwright with retries"""
-    for attempt in range(max_retries):
+async def fetch_html(url: str) -> str | None:
+    """Fetch HTML content with proper headers"""
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Referer": BASE_URL,
+        "Origin": BASE_URL,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate, br",
+        "DNT": "1",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+    }
+    
+    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
         try:
-            async with async_playwright() as p:
-                browser = await p.chromium.launch(headless=True)
-                context = await browser.new_context(user_agent=USER_AGENT)
-                
-                if headers:
-                    await context.set_extra_http_headers(headers)
-                
-                page = await context.new_page()
-                
-                try:
-                    if params:
-                        from urllib.parse import urlencode
-                        separator = '&' if '?' in url else '?'
-                        url = f"{url}{separator}{urlencode(params)}"
-                    
-                    await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-                    content = await page.content()
-                    
-                    class ResponseObj:
-                        def __init__(self, content, url):
-                            self.content = content
-                            self._url = url
-                        def text(self):
-                            return self.content
-                        def json(self):
-                            return json.loads(self.content)
-                        @property
-                        def url(self):
-                            return self._url
-                    
-                    return ResponseObj(content, url)
-                finally:
-                    await browser.close()
+            response = await client.get(url, headers=headers)
+            response.raise_for_status()
+            return response.text
         except Exception as e:
-            log(f"Request error (attempt {attempt + 1}/{max_retries}): {e}")
-            if attempt == max_retries - 1:
-                return None
-            await asyncio.sleep(2)
-    
-    return None
-
-
-# ================= EVENT DETECTION =================
-
-async def get_events(page):
-    """Extract team events from homepage by finding all team-logo links"""
-    log(f"Loading page: {BASE_URL}")
-
-    try:
-        await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=30000)
-        
-        # Wait for page to load
-        await page.wait_for_timeout(3000)
-        
-        # Click the Teams button to reveal team logos
-        try:
-            teams_button = await page.query_selector("#show")
-            if teams_button:
-                await teams_button.click()
-                log("Clicked Teams button to reveal team logos")
-                await page.wait_for_timeout(2000)
-        except Exception as e:
-            log(f"Could not click Teams button: {e}")
-        
-        # Wait for team logo elements to appear
-        try:
-            await page.wait_for_selector("li.team-logo a", timeout=10000)
-        except PlaywrightTimeoutError:
-            log("Timeout waiting for team logos, trying alternative selectors...")
-        
-        # Get page HTML
-        html = await page.content()
-        
-    except PlaywrightTimeoutError:
-        log("Page load timeout, attempting to get content anyway...")
-        html = await page.content()
-    except Exception as e:
-        log(f"Error loading page: {e}")
-        return []
-
-    soup = HTMLParser(html)
-    events = []
-    sport = "MLB"
-
-    # Find all team logo links - multiple selector attempts
-    team_links = []
-    
-    # Primary selector
-    team_links = soup.css("li.team-logo a")
-    
-    if not team_links:
-        # Fallback: look for any link ending with -live
-        team_links = soup.css("a[href*='-live']")
-    
-    if not team_links:
-        # Fallback: look in div with id team-logo
-        team_logo_div = soup.css_first("#team-logo")
-        if team_logo_div:
-            team_links = team_logo_div.css("a")
-    
-    log(f"Found {len(team_links)} team links")
-    
-    for a in team_links:
-        href = a.attributes.get("href")
-        if not href:
-            continue
-        
-        # Only include links that look like team pages
-        if not ("-live" in href or "live" in href):
-            continue
-        
-        link = urljoin(BASE_URL, href)
-        
-        # Get team name from title attribute or text
-        title = a.attributes.get("title", "")
-        event_name = title.strip()
-        
-        if not event_name:
-            # Try to get from text content
-            event_name = a.text(strip=True)
-        
-        # Clean up event name
-        event_name = clean_event_name(event_name)
-        
-        # Get logo from img
-        logo = DEFAULT_LOGO
-        img = a.css_first("img")
-        if img:
-            src = img.attributes.get("src")
-            if src:
-                logo = src
-        
-        events.append({
-            "sport": sport,
-            "event": event_name,
-            "link": link,
-            "logo": logo
-        })
-        
-        log(f"  Found: {event_name} -> {link}")
-
-    return events
+            log(f"  Fetch error: {e}")
+            return None
 
 
 # ================= STREAM CAPTURE =================
 
-async def process_event(url: str, url_num: int, sport: str) -> str | None:
-    """Process event page and extract m3u8 stream URL using iframe and Clappr data"""
+async def capture_stream(team_slug: str, team_name: str) -> str | None:
+    """Capture m3u8 stream URL for a team"""
     
-    log(f"  Processing URL: {url}")
+    team_url = f"{BASE_URL.rstrip('/')}/{team_slug}-live"
+    log(f"  Processing: {team_name} ({team_url})")
     
-    # Step 1: Load the event page
-    event_data = await request(url)
-    if not event_data:
-        log(f"  URL {url_num}) Failed to load url.")
+    # Step 1: Fetch team page
+    html = await fetch_html(team_url)
+    if not html:
+        log(f"  Failed to fetch team page")
         return None
-
-    soup = HTMLParser(event_data.content)
-
+    
+    soup = HTMLParser(html)
+    
     # Step 2: Find iframe with name="srcFrame"
     iframe = soup.css_first('iframe[name="srcFrame"]')
     if not iframe:
-        # Try alternative iframe selectors
         iframe = soup.css_first('iframe[src*="stream"]')
     
     if not iframe:
-        log(f"  URL {url_num}) No iframe element found.")
-        return None
-
-    if not (iframe_src := iframe.attributes.get("src")):
-        log(f"  URL {url_num}) No iframe source found.")
+        log(f"  No iframe found")
         return None
     
-    log(f"  Found iframe: {iframe_src[:100]}...")
-
-    # Step 3: Load iframe source
-    iframe_src_data = await request(iframe_src, headers={"Referer": url})
-    if not iframe_src_data:
-        log(f"  URL {url_num}) Failed to load iframe source.")
+    iframe_src = iframe.attributes.get("src")
+    if not iframe_src:
+        log(f"  No iframe src")
         return None
-
-    # Step 4: Extract Clappr player data from JavaScript
-    pattern = re.compile(r'var\s+\w*=\[([^"]*)\];', re.I)
-
-    match = pattern.search(iframe_src_data.text())
-    if not match:
-        log(f"  URL {url_num}) No Clappr source found.")
+    
+    log(f"  Found iframe: {iframe_src[:80]}...")
+    
+    # Step 3: Fetch iframe content
+    iframe_html = await fetch_html(iframe_src)
+    if not iframe_html:
+        log(f"  Failed to fetch iframe")
         return None
-
-    try:
-        ev_data = ast.literal_eval(match[1])
-        if len(ev_data) >= 3:
-            ev_id, ev_ts, ev_pt = ev_data[0], ev_data[1], ev_data[2]
-        else:
-            log(f"  URL {url_num}) Invalid event data length.")
-            return None
-    except (ValueError, SyntaxError) as e:
-        log(f"  URL {url_num}) Failed to parse event info: {e}")
+    
+    # Step 4: Extract event data from JavaScript
+    # Look for patterns like: var params=[134,1781299050,'9c323f2f8d80ab4e'];
+    patterns = [
+        r'var\s+\w+\s*=\s*\[(\d+),\s*(\d+),\s*[\'"](\w+)[\'"]\];',
+        r'\[(\d+),\s*(\d+),\s*[\'"](\w+)[\'"]\]',
+        r'id["\']?\s*:\s*(\d+).*?ts["\']?\s*:\s*(\d+).*?pt["\']?\s*:\s*[\'"]([^\'"]+)[\'"]',
+    ]
+    
+    ev_id = ev_ts = ev_pt = None
+    
+    for pattern in patterns:
+        match = re.search(pattern, iframe_html, re.DOTALL | re.IGNORECASE)
+        if match:
+            groups = match.groups()
+            if len(groups) >= 3:
+                ev_id = groups[0]
+                ev_ts = groups[1]
+                ev_pt = groups[2]
+                break
+    
+    if not ev_id:
+        # Try to find in script tags
+        for script in soup.css("script"):
+            script_text = script.text()
+            for pattern in patterns:
+                match = re.search(pattern, script_text, re.DOTALL)
+                if match:
+                    groups = match.groups()
+                    if len(groups) >= 3:
+                        ev_id = groups[0]
+                        ev_ts = groups[1]
+                        ev_pt = groups[2]
+                        break
+            if ev_id:
+                break
+    
+    if not ev_id:
+        log(f"  Could not extract event data")
         return None
-
-    params = {
+    
+    log(f"  Event data: id={ev_id}, ts={ev_ts}, pt={ev_pt[:20]}...")
+    
+    # Step 5: Call check_stream.php API
+    api_url = urljoin(BASE_URL, "stream/check_stream.php")
+    api_params = {
         "id": ev_id,
         "ts": ev_ts,
-        "pt": ev_pt
+        "pt": ev_pt,
     }
-
-    log(f"  Making API request with params: id={ev_id}, ts={ev_ts}, pt={ev_pt}")
-
-    # Step 5: Make PHP API request to get m3u8 URL
-    api_url = urljoin(BASE_URL, "stream/check_stream.php")
-    api_data = await request(
-        api_url,
-        headers={"Referer": iframe_src},
-        params=params,
-    )
     
-    if not api_data:
-        log(f"  URL {url_num}) Failed to make php request.")
-        return None
-
-    try:
-        data = api_data.json()
-    except json.JSONDecodeError:
-        log(f"  URL {url_num}) Invalid JSON response.")
-        return None
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Referer": team_url,
+        "Origin": BASE_URL,
+        "X-Requested-With": "XMLHttpRequest",
+    }
     
-    if data.get("error"):
-        log(f"  URL {url_num}) API returned error: {data.get('error')}")
-        return None
-
-    stream_url = data.get("url")
-    if stream_url:
-        log(f"  URL {url_num}) Captured M3U8")
-        return stream_url
-    else:
-        log(f"  URL {url_num}) No URL in API response.")
-        return None
+    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        try:
+            response = await client.get(api_url, headers=headers, params=api_params)
+            data = response.json()
+            
+            if data.get("error"):
+                log(f"  API error: {data.get('error')}")
+                return None
+            
+            stream_url = data.get("url")
+            if stream_url:
+                log(f"  ✓ Captured stream")
+                return stream_url
+            else:
+                log(f"  No URL in response")
+                return None
+                
+        except Exception as e:
+            log(f"  API request failed: {e}")
+            return None
 
 
 # ================= WRITE OUTPUT =================
@@ -363,79 +327,53 @@ def write_outputs(entries):
 
 async def main():
     log("Starting MLB WebTV updater...")
-
+    
     cache = load_cache()
     now = int(time.time())
-
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-blink-features=AutomationControlled",
-            ]
-        )
-
-        context = await browser.new_context(
-            user_agent=USER_AGENT,
-            viewport={'width': 1280, 'height': 720},
-            extra_http_headers={
-                "Referer": BASE_URL,
-                "Origin": BASE_URL,
+    
+    # Build events from static team list
+    events = []
+    for slug in TEAM_SLUGS:
+        events.append({
+            "slug": slug,
+            "name": clean_event_name(slug),
+            "logo": TEAM_LOGOS.get(slug, DEFAULT_LOGO),
+        })
+    
+    log(f"Loaded {len(events)} teams")
+    
+    collected = []
+    
+    for i, ev in enumerate(events, 1):
+        key = f"[MLB] {ev['name']} ({TAG})"
+        
+        # Check cache
+        if key in cache and now - cache[key]["ts"] < CACHE_EXP:
+            log(f"[{i}/{len(events)}] {ev['name']} (cached)")
+            collected.append(cache[key]["data"])
+            continue
+        
+        log(f"[{i}/{len(events)}] {ev['name']}")
+        
+        # Capture stream
+        stream_url = await capture_stream(ev["slug"], ev["name"])
+        
+        if stream_url:
+            entry = {
+                "name": f"[MLB] {ev['name']}",
+                "url": stream_url,
+                "logo": ev["logo"]
             }
-        )
-
-        page = await context.new_page()
-
-        events = await get_events(page)
-        log(f"Detected {len(events)} events")
-
-        if not events:
-            log("No events found - please check if website structure changed")
-            await browser.close()
-            return
-
-        collected = []
-
-        for i, ev in enumerate(events, 1):
-            key = f"[{ev['sport']}] {ev['event']} ({TAG})"
-
-            # Check cache
-            if key in cache and now - cache[key]["ts"] < CACHE_EXP:
-                log(f"[{i}/{len(events)}] {ev['event']} (cached)")
-                collected.append(cache[key]["data"])
-                continue
-
-            log(f"[{i}/{len(events)}] {ev['event']}")
-
-            # Create a new page for each event to avoid state issues
-            event_page = await context.new_page()
-            try:
-                stream = await process_event(ev["link"], i, ev["sport"])
-            finally:
-                await event_page.close()
-
-            if stream:
-                log(f"  ✓ STREAM CAPTURED")
-
-                entry = {
-                    "name": f"[MLB] {ev['event']}",
-                    "url": stream,
-                    "logo": ev.get("logo", DEFAULT_LOGO)
-                }
-
-                cache[key] = {
-                    "ts": now,
-                    "data": entry
-                }
-
-                collected.append(entry)
-            else:
-                log(f"  ✗ No stream found")
-
-        await browser.close()
-
+            
+            cache[key] = {
+                "ts": now,
+                "data": entry
+            }
+            
+            collected.append(entry)
+        else:
+            log(f"  ✗ No stream found")
+    
     save_cache(cache)
     write_outputs(collected)
 
