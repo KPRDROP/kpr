@@ -98,7 +98,6 @@ async def request(url, headers=None, params=None, max_retries=3):
                     await page.goto(url, wait_until="domcontentloaded", timeout=30000)
                     content = await page.content()
                     
-                    # Create response-like object
                     class ResponseObj:
                         def __init__(self, content, url):
                             self.content = content
@@ -123,24 +122,15 @@ async def request(url, headers=None, params=None, max_retries=3):
     return None
 
 
-# ================= EVENT DETECTION =================
+# ================= EVENT DETECTION (from team-logo links) =================
 
 async def get_events(page):
+    """Extract team events from homepage using team-logo links (always visible)"""
     log(f"Loading page: {BASE_URL}")
 
     try:
-        # Use domcontentloaded instead of networkidle to avoid timeout
         await page.goto(BASE_URL, wait_until="domcontentloaded", timeout=30000)
-        
-        # Wait for table or team logos to appear
-        try:
-            await page.wait_for_selector("tr.singele_match_date, li.team-logo a", timeout=15000)
-        except PlaywrightTimeoutError:
-            log("Selector not found, waiting additional time...")
-            await page.wait_for_timeout(5000)
-        
-        # Additional wait for dynamic content
-        await page.wait_for_timeout(3000)
+        await page.wait_for_timeout(5000)
         
         html = await page.content()
         
@@ -155,69 +145,34 @@ async def get_events(page):
     events = []
     sport = "MLB"
 
-    # Extract events from table rows (primary method)
-    rows = soup.css("tr.singele_match_date")
-    log(f"Found {len(rows)} match rows")
+    # Extract team links from team-logo list (always visible)
+    team_links = soup.css("li.team-logo a")
+    log(f"Found {len(team_links)} team links")
     
-    for row in rows:
-        if not (vs_node := row.css_first("td.teamvs a")):
+    for a in team_links:
+        href = a.attributes.get("href")
+        title = a.attributes.get("title", "").strip()
+        
+        if not href:
             continue
-
-        event_name = vs_node.text(strip=True)
-
-        # Remove date from event name
-        for span in vs_node.css("span.mtdate"):
-            date = span.text(strip=True)
-            event_name = event_name.replace(date, "").strip()
-
-        if not (href := vs_node.attributes.get("href")):
-            continue
-
-        event = fix_event(event_name)
+        
         link = urljoin(BASE_URL, href)
-
-        # Get logo if available
+        event_name = clean_event_name(title) if title else "MLB Team Game"
+        
+        # Get logo from img
         logo = DEFAULT_LOGO
-        if logo_td := row.css_first("td.teamlogo img"):
-            if src := logo_td.attributes.get("src"):
+        if img := a.css_first("img"):
+            if src := img.attributes.get("src"):
                 logo = src
-
+        
         events.append({
             "sport": sport,
-            "event": event,
+            "event": event_name,
             "link": link,
             "logo": logo
         })
         
-        log(f"  Found event: {event}")
-
-    # Fallback: look for team-logo links if no table rows found
-    if not events:
-        log("No table rows found, trying team-logo links...")
-        for a in soup.css("li.team-logo a"):
-            href = a.attributes.get("href")
-            title = a.attributes.get("title", "").strip()
-            
-            if not href:
-                continue
-            
-            link = urljoin(BASE_URL, href)
-            event_name = clean_event_name(title) if title else "MLB TV"
-            
-            # Get logo from img
-            logo = DEFAULT_LOGO
-            if img := a.css_first("img"):
-                if src := img.attributes.get("src"):
-                    logo = src
-            
-            events.append({
-                "sport": sport,
-                "event": event_name,
-                "link": link,
-                "logo": logo
-            })
-            
-            log(f"  Found team: {event_name}")
+        log(f"  Found team: {event_name} -> {link}")
 
     return events
 
@@ -225,7 +180,7 @@ async def get_events(page):
 # ================= STREAM CAPTURE (Original working method) =================
 
 async def process_event(url: str, url_num: int, sport: str) -> str | None:
-    """Process event page and extract m3u8 stream URL"""
+    """Process event page and extract m3u8 stream URL using iframe and Clappr data"""
     
     log(f"  Processing URL: {url}")
     
