@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import asyncio
+import ast
 import json
 import os
 import re
@@ -8,10 +9,8 @@ import time
 from pathlib import Path
 from urllib.parse import urljoin, quote_plus
 
-import httpx
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 from selectolax.parser import HTMLParser
-
-from utils import Cache, Time, get_logger, leagues, network
 
 # ================= CONFIG =================
 
@@ -42,90 +41,45 @@ DEFAULT_LOGO = "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/ml
 
 TAG = "EMELB"
 
-# ================= TEAM LIST (Static - avoids homepage parsing) =================
+# ================= TEAM LIST (Fallback if homepage parsing fails) =================
 
-TEAM_SLUGS = [
-    "arizona-diamondbacks",
-    "atlanta-braves",
-    "baltimore-orioles",
-    "boston-red-sox",
-    "chicago-cubs",
-    "chicago-white-sox",
-    "cincinnati-reds",
-    "cleveland-guardians",
-    "colorado-rockies",
-    "detroit-tigers",
-    "houston-astros",
-    "kansas-city-royals",
-    "los-angeles-angels",
-    "los-angeles-dodgers",
-    "miami-marlins",
-    "milwaukee-brewers",
-    "minnesota-twins",
-    "new-york-mets",
-    "new-york-yankees",
-    "oakland-athletics",
-    "philadelphia-phillies",
-    "pittsburgh-pirates",
-    "san-diego-padres",
-    "san-francisco-giants",
-    "seattle-mariners",
-    "st-louis-cardinals",
-    "tampa-bay-rays",
-    "texas-rangers",
-    "toronto-blue-jays",
-    "washington-nationals",
+FALLBACK_TEAMS = [
+    ("arizona-diamondbacks", "Arizona Diamondbacks", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Arizona-Diamondbacks.svg"),
+    ("atlanta-braves", "Atlanta Braves", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Atlanta-Braves.svg"),
+    ("baltimore-orioles", "Baltimore Orioles", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Baltimore-Orioles.svg"),
+    ("boston-red-sox", "Boston Red Sox", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Boston-Red-Sox.svg"),
+    ("chicago-cubs", "Chicago Cubs", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Chicago-Cubs.svg"),
+    ("chicago-white-sox", "Chicago White Sox", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Chicago-White-Sox.svg"),
+    ("cincinnati-reds", "Cincinnati Reds", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Cincinnati-Reds.svg"),
+    ("cleveland-guardians", "Cleveland Guardians", "https://mlbwebcast.com/wp-content/uploads/2023/04/Logo-Cleveland-Guardians.svg"),
+    ("colorado-rockies", "Colorado Rockies", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Colorado-Rockies.svg"),
+    ("detroit-tigers", "Detroit Tigers", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Detroit-Tigers.svg"),
+    ("houston-astros", "Houston Astros", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Houston-Astros.svg"),
+    ("kansas-city-royals", "Kansas City Royals", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Kansas-City-Royals.svg"),
+    ("los-angeles-angels", "Los Angeles Angels", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Los-Angeles-Angels.svg"),
+    ("los-angeles-dodgers", "Los Angeles Dodgers", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Los-Angeles-Dodgers.svg"),
+    ("miami-marlins", "Miami Marlins", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Miami-Marlins.svg"),
+    ("milwaukee-brewers", "Milwaukee Brewers", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Milwaukee-Brewers.svg"),
+    ("minnesota-twins", "Minnesota Twins", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Minnesota-Twins.svg"),
+    ("new-york-mets", "New York Mets", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-New-York-Mets.svg"),
+    ("new-york-yankees", "New York Yankees", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-New-York-Yankees.svg"),
+    ("oakland-athletics", "Oakland Athletics", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Oakland-Athletics.svg"),
+    ("philadelphia-phillies", "Philadelphia Phillies", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Philadelphia-Phillies.svg"),
+    ("pittsburgh-pirates", "Pittsburgh Pirates", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Pittsburgh-Pirates.svg"),
+    ("san-diego-padres", "San Diego Padres", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-San-Diego-Padres.svg"),
+    ("san-francisco-giants", "San Francisco Giants", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-San-Francisco-Giants.svg"),
+    ("seattle-mariners", "Seattle Mariners", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Seattle-Mariners.svg"),
+    ("st-louis-cardinals", "St. Louis Cardinals", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-St-Louis-Cardinals.svg"),
+    ("tampa-bay-rays", "Tampa Bay Rays", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Tampa-Bay-Rays.svg"),
+    ("texas-rangers", "Texas Rangers", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Texas-Rangers.svg"),
+    ("toronto-blue-jays", "Toronto Blue Jays", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Toronto-Blue-Jays.svg"),
+    ("washington-nationals", "Washington Nationals", "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Washington-Nationals.svg"),
 ]
-
-# Team logo mapping
-TEAM_LOGOS = {
-    "arizona-diamondbacks": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Arizona-Diamondbacks.svg",
-    "atlanta-braves": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Atlanta-Braves.svg",
-    "baltimore-orioles": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Baltimore-Orioles.svg",
-    "boston-red-sox": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Boston-Red-Sox.svg",
-    "chicago-cubs": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Chicago-Cubs.svg",
-    "chicago-white-sox": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Chicago-White-Sox.svg",
-    "cincinnati-reds": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Cincinnati-Reds.svg",
-    "cleveland-guardians": "https://mlbwebcast.com/wp-content/uploads/2023/04/Logo-Cleveland-Guardians.svg",
-    "colorado-rockies": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Colorado-Rockies.svg",
-    "detroit-tigers": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Detroit-Tigers.svg",
-    "houston-astros": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Houston-Astros.svg",
-    "kansas-city-royals": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Kansas-City-Royals.svg",
-    "los-angeles-angels": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Los-Angeles-Angels.svg",
-    "los-angeles-dodgers": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Los-Angeles-Dodgers.svg",
-    "miami-marlins": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Miami-Marlins.svg",
-    "milwaukee-brewers": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Milwaukee-Brewers.svg",
-    "minnesota-twins": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Minnesota-Twins.svg",
-    "new-york-mets": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-New-York-Mets.svg",
-    "new-york-yankees": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-New-York-Yankees.svg",
-    "oakland-athletics": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Oakland-Athletics.svg",
-    "philadelphia-phillies": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Philadelphia-Phillies.svg",
-    "pittsburgh-pirates": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Pittsburgh-Pirates.svg",
-    "san-diego-padres": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-San-Diego-Padres.svg",
-    "san-francisco-giants": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-San-Francisco-Giants.svg",
-    "seattle-mariners": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Seattle-Mariners.svg",
-    "st-louis-cardinals": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-St-Louis-Cardinals.svg",
-    "tampa-bay-rays": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Tampa-Bay-Rays.svg",
-    "texas-rangers": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Texas-Rangers.svg",
-    "toronto-blue-jays": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Toronto-Blue-Jays.svg",
-    "washington-nationals": "https://mlbwebcast.com/wp-content/uploads/2023/02/Logo-Washington-Nationals.svg",
-}
 
 # ================= HELPERS =================
 
 def log(msg):
     print(msg, flush=True)
-
-
-def clean_event_name(slug: str) -> str:
-    """Convert slug to readable team name"""
-    name = slug.replace("-", " ").title()
-    # Special cases
-    replacements = {
-        "Mlb Network": "MLB Network",
-        "Fox Sports": "FOX Sports",
-    }
-    return replacements.get(name, name)
 
 
 def load_cache():
@@ -143,49 +97,143 @@ def save_cache(data):
         json.dump(data, f, indent=2)
 
 
-# ================= HTTP REQUEST =================
+# ================= FETCH PAGE WITH PLAYWRIGHT =================
 
-async def fetch_html(url: str) -> str | None:
-    """Fetch HTML content with proper headers"""
-    headers = {
-        "User-Agent": USER_AGENT,
-        "Referer": BASE_URL,
-        "Origin": BASE_URL,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-    }
+async def fetch_page_with_playwright(url: str) -> str | None:
+    """Fetch page content using Playwright to bypass 403/Cloudflare"""
+    try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(
+                headless=True,
+                args=[
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-blink-features=AutomationControlled",
+                ]
+            )
+            context = await browser.new_context(
+                user_agent=USER_AGENT,
+                viewport={'width': 1280, 'height': 720},
+                extra_http_headers={
+                    "Referer": BASE_URL,
+                    "Origin": BASE_URL,
+                }
+            )
+            page = await context.new_page()
+            
+            try:
+                await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                await page.wait_for_timeout(3000)
+                content = await page.content()
+                return content
+            finally:
+                await browser.close()
+    except Exception as e:
+        log(f"  Playwright fetch error: {e}")
+        return None
+
+
+# ================= EVENT DETECTION (using Playwright) =================
+
+async def get_events():
+    """Extract team events from homepage using Playwright to bypass 403"""
+    log(f"Loading homepage with Playwright: {BASE_URL}")
     
-    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-        try:
-            response = await client.get(url, headers=headers)
-            response.raise_for_status()
-            return response.text
-        except Exception as e:
-            log(f"  Fetch error: {e}")
-            return None
+    html = await fetch_page_with_playwright(BASE_URL)
+    if not html:
+        log("Failed to load homepage, using fallback team list")
+        # Use fallback team list
+        events = []
+        for slug, name, logo in FALLBACK_TEAMS:
+            events.append({
+                "sport": "MLB",
+                "event": name,
+                "link": f"{BASE_URL.rstrip('/')}/{slug}-live",
+                "logo": logo
+            })
+        return events
+    
+    soup = HTMLParser(html)
+    events = []
+    
+    # Find team logo links
+    team_links = soup.css("li.team-logo a")
+    
+    if not team_links:
+        team_links = soup.css("a[href*='-live']")
+    
+    if not team_links:
+        # Try looking in the team-logo div
+        team_div = soup.css_first("#team-logo")
+        if team_div:
+            team_links = team_div.css("a")
+    
+    log(f"Found {len(team_links)} team links on homepage")
+    
+    for a in team_links:
+        href = a.attributes.get("href")
+        if not href:
+            continue
+        
+        # Only include team links
+        if "-live" not in href:
+            continue
+        
+        link = urljoin(BASE_URL, href)
+        
+        # Get team name from title attribute
+        title = a.attributes.get("title", "")
+        event_name = title.replace("Live Stream", "").strip()
+        
+        if not event_name:
+            # Extract from href
+            slug = href.rstrip("/").split("/")[-1].replace("-live", "")
+            event_name = slug.replace("-", " ").title()
+        
+        # Get logo
+        logo = DEFAULT_LOGO
+        img = a.css_first("img")
+        if img:
+            src = img.attributes.get("src")
+            if src:
+                logo = src
+        
+        events.append({
+            "sport": "MLB",
+            "event": event_name,
+            "link": link,
+            "logo": logo
+        })
+    
+    if not events:
+        log("No events found on homepage, using fallback team list")
+        for slug, name, logo in FALLBACK_TEAMS:
+            events.append({
+                "sport": "MLB",
+                "event": name,
+                "link": f"{BASE_URL.rstrip('/')}/{slug}-live",
+                "logo": logo
+            })
+    
+    return events
 
 
 # ================= STREAM CAPTURE =================
 
-async def capture_stream(team_slug: str, team_name: str) -> str | None:
-    """Capture m3u8 stream URL for a team"""
+async def capture_stream(team_url: str, team_name: str, team_logo: str) -> str | None:
+    """Capture m3u8 stream URL for a team using Playwright"""
     
-    team_url = f"{BASE_URL.rstrip('/')}/{team_slug}-live"
-    log(f"  Processing: {team_name} ({team_url})")
+    log(f"  Fetching team page: {team_url}")
     
-    # Step 1: Fetch team page
-    html = await fetch_html(team_url)
+    # Fetch team page with Playwright
+    html = await fetch_page_with_playwright(team_url)
     if not html:
         log(f"  Failed to fetch team page")
         return None
     
     soup = HTMLParser(html)
     
-    # Step 2: Find iframe with name="srcFrame"
+    # Find iframe with name="srcFrame"
     iframe = soup.css_first('iframe[name="srcFrame"]')
     if not iframe:
         iframe = soup.css_first('iframe[src*="stream"]')
@@ -201,89 +249,67 @@ async def capture_stream(team_slug: str, team_name: str) -> str | None:
     
     log(f"  Found iframe: {iframe_src[:80]}...")
     
-    # Step 3: Fetch iframe content
-    iframe_html = await fetch_html(iframe_src)
+    # Fetch iframe content with Playwright
+    iframe_html = await fetch_page_with_playwright(iframe_src)
     if not iframe_html:
         log(f"  Failed to fetch iframe")
         return None
     
-    # Step 4: Extract event data from JavaScript
-    # Look for patterns like: var params=[134,1781299050,'9c323f2f8d80ab4e'];
-    patterns = [
-        r'var\s+\w+\s*=\s*\[(\d+),\s*(\d+),\s*[\'"](\w+)[\'"]\];',
-        r'\[(\d+),\s*(\d+),\s*[\'"](\w+)[\'"]\]',
-        r'id["\']?\s*:\s*(\d+).*?ts["\']?\s*:\s*(\d+).*?pt["\']?\s*:\s*[\'"]([^\'"]+)[\'"]',
-    ]
+    # Extract event data from JavaScript
+    # Pattern: var params=[134,1781299050,'9c323f2f8d80ab4e'];
+    pattern = re.compile(r'var\s+\w*\s*=\s*\[(\d+),\s*(\d+),\s*[\'"]([a-fA-F0-9]+)[\'"]\];', re.DOTALL)
     
-    ev_id = ev_ts = ev_pt = None
+    match = pattern.search(iframe_html)
+    if not match:
+        # Try alternative pattern
+        pattern2 = re.compile(r'\[(\d+),\s*(\d+),\s*[\'"]([a-fA-F0-9]+)[\'"]\]', re.DOTALL)
+        match = pattern2.search(iframe_html)
     
-    for pattern in patterns:
-        match = re.search(pattern, iframe_html, re.DOTALL | re.IGNORECASE)
-        if match:
-            groups = match.groups()
-            if len(groups) >= 3:
-                ev_id = groups[0]
-                ev_ts = groups[1]
-                ev_pt = groups[2]
-                break
-    
-    if not ev_id:
-        # Try to find in script tags
-        for script in soup.css("script"):
-            script_text = script.text()
-            for pattern in patterns:
-                match = re.search(pattern, script_text, re.DOTALL)
-                if match:
-                    groups = match.groups()
-                    if len(groups) >= 3:
-                        ev_id = groups[0]
-                        ev_ts = groups[1]
-                        ev_pt = groups[2]
-                        break
-            if ev_id:
-                break
-    
-    if not ev_id:
+    if not match:
         log(f"  Could not extract event data")
         return None
     
+    ev_id = match.group(1)
+    ev_ts = match.group(2)
+    ev_pt = match.group(3)
+    
     log(f"  Event data: id={ev_id}, ts={ev_ts}, pt={ev_pt[:20]}...")
     
-    # Step 5: Call check_stream.php API
-    api_url = urljoin(BASE_URL, "stream/check_stream.php")
-    api_params = {
-        "id": ev_id,
-        "ts": ev_ts,
-        "pt": ev_pt,
-    }
+    # Build API URL
+    api_url = urljoin(BASE_URL, f"stream/check_stream.php?id={ev_id}&ts={ev_ts}&pt={ev_pt}")
     
-    headers = {
-        "User-Agent": USER_AGENT,
-        "Referer": team_url,
-        "Origin": BASE_URL,
-        "X-Requested-With": "XMLHttpRequest",
-    }
+    log(f"  Calling API: {api_url[:100]}...")
     
-    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-        try:
-            response = await client.get(api_url, headers=headers, params=api_params)
-            data = response.json()
-            
-            if data.get("error"):
-                log(f"  API error: {data.get('error')}")
-                return None
-            
-            stream_url = data.get("url")
-            if stream_url:
-                log(f"  ✓ Captured stream")
-                return stream_url
-            else:
-                log(f"  No URL in response")
-                return None
-                
-        except Exception as e:
-            log(f"  API request failed: {e}")
+    # Fetch API response with Playwright
+    api_html = await fetch_page_with_playwright(api_url)
+    if not api_html:
+        log(f"  Failed to fetch API")
+        return None
+    
+    # Parse JSON response
+    try:
+        # The API returns JSON, but might have HTML wrapper
+        json_match = re.search(r'\{[^{}]*"url"[^{}]*\}', api_html)
+        if json_match:
+            data = json.loads(json_match.group(0))
+        else:
+            data = json.loads(api_html)
+        
+        if data.get("error"):
+            log(f"  API error: {data.get('error')}")
             return None
+        
+        stream_url = data.get("url")
+        if stream_url:
+            log(f"  ✓ Stream captured")
+            return stream_url
+        else:
+            log(f"  No URL in API response")
+            return None
+            
+    except json.JSONDecodeError as e:
+        log(f"  JSON parse error: {e}")
+        return None
 
 
 # ================= WRITE OUTPUT =================
@@ -333,38 +359,35 @@ async def main():
     cache = load_cache()
     now = int(time.time())
     
-    # Build events from static team list
-    events = []
-    for slug in TEAM_SLUGS:
-        events.append({
-            "slug": slug,
-            "name": clean_event_name(slug),
-            "logo": TEAM_LOGOS.get(slug, DEFAULT_LOGO),
-        })
+    # Get events from homepage (with Playwright to bypass 403)
+    events = await get_events()
+    log(f"Detected {len(events)} events")
     
-    log(f"Loaded {len(events)} teams")
+    if not events:
+        log("No events found")
+        return
     
     collected = []
     
     for i, ev in enumerate(events, 1):
-        key = f"[MLB] {ev['name']} ({TAG})"
+        key = f"[{ev['sport']}] {ev['event']} ({TAG})"
         
         # Check cache
         if key in cache and now - cache[key]["ts"] < CACHE_EXP:
-            log(f"[{i}/{len(events)}] {ev['name']} (cached)")
+            log(f"[{i}/{len(events)}] {ev['event']} (cached)")
             collected.append(cache[key]["data"])
             continue
         
-        log(f"[{i}/{len(events)}] {ev['name']}")
+        log(f"[{i}/{len(events)}] {ev['event']}")
         
         # Capture stream
-        stream_url = await capture_stream(ev["slug"], ev["name"])
+        stream_url = await capture_stream(ev["link"], ev["event"], ev.get("logo", DEFAULT_LOGO))
         
         if stream_url:
             entry = {
-                "name": f"[MLB] {ev['name']}",
+                "name": f"[MLB] {ev['event']}",
                 "url": stream_url,
-                "logo": ev["logo"]
+                "logo": ev.get("logo", DEFAULT_LOGO)
             }
             
             cache[key] = {
