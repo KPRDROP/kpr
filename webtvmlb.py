@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
 import asyncio
+import ast
 import json
 import os
 import re
 import time
 from pathlib import Path
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import urljoin, quote_plus
 
 from playwright.async_api import async_playwright
 from selectolax.parser import HTMLParser
@@ -38,6 +39,8 @@ TVG_ID = "MLB.Baseball.Dummy.us"
 GROUP = "Live Events"
 DEFAULT_LOGO = "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png"
 
+TAG = "EMELB"
+
 # ================= HELPERS =================
 
 def log(msg):
@@ -49,6 +52,11 @@ def clean_event_name(text: str) -> str:
     text = text.replace(",", "")
     text = re.sub(r"\s+", " ", text)
     return text.strip()
+
+
+def fix_event(s: str) -> str:
+    """Convert @ to vs for event names"""
+    return " vs ".join(s.split("@"))
 
 
 def load_cache():
@@ -66,107 +74,154 @@ def save_cache(data):
         json.dump(data, f, indent=2)
 
 
+# ================= HTTP REQUEST HELPERS =================
+
+async def request(url, headers=None, params=None):
+    """Simple HTTP request using playwright"""
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        context = await browser.new_context(user_agent=USER_AGENT)
+        
+        if headers:
+            await context.set_extra_http_headers(headers)
+        
+        page = await context.new_page()
+        
+        try:
+            if params:
+                from urllib.parse import urlencode
+                separator = '&' if '?' in url else '?'
+                url = f"{url}{separator}{urlencode(params)}"
+            
+            response = await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            content = await response.text()
+            return type('Response', (), {'content': content, 'text': lambda: content, 'json': lambda: json.loads(content)})()
+        except Exception as e:
+            log(f"Request error: {e}")
+            return None
+        finally:
+            await browser.close()
+
+
 # ================= EVENT DETECTION =================
 
 async def get_events(page):
-    log(f"Loading page with Playwright: {BASE_URL}")
+    log(f"Loading page: {BASE_URL}")
 
-    await page.goto(BASE_URL, timeout=30000)
+    await page.goto(BASE_URL, wait_until="networkidle", timeout=30000)
     await page.wait_for_timeout(5000)
 
     html = await page.content()
     soup = HTMLParser(html)
 
     events = []
-    seen = set()
+    sport = "MLB"
 
-    # MAIN selector (NEW STRUCTURE)
-    for a in soup.css("a[href*='-live']"):
-        href = a.attributes.get("href")
-        title = a.attributes.get("title", "").strip()
-
-        if not href:
+    # Extract events from table rows (original working method)
+    for row in soup.css("tr.singele_match_date"):
+        if not (vs_node := row.css_first("td.teamvs a")):
             continue
 
-        url = urljoin(BASE_URL, href)
+        event_name = vs_node.text(strip=True)
 
-        if url in seen:
+        # Remove date from event name
+        for span in vs_node.css("span.mtdate"):
+            date = span.text(strip=True)
+            event_name = event_name.replace(date, "").strip()
+
+        if not (href := vs_node.attributes.get("href")):
             continue
-        seen.add(url)
 
-        name = clean_event_name(title) if title else "MLB TV"
+        event = fix_event(event_name)
+        link = urljoin(BASE_URL, href)
 
         events.append({
-            "event": name,
-            "link": url
+            "sport": sport,
+            "event": event,
+            "link": link
         })
+
+    # Fallback: look for team-logo links if no table rows found
+    if not events:
+        for a in soup.css("li.team-logo a"):
+            href = a.attributes.get("href")
+            title = a.attributes.get("title", "").strip()
+            
+            if not href:
+                continue
+            
+            link = urljoin(BASE_URL, href)
+            event_name = clean_event_name(title) if title else "MLB TV"
+            
+            events.append({
+                "sport": sport,
+                "event": event_name,
+                "link": link
+            })
 
     return events
 
 
-# ================= STREAM CAPTURE =================
+# ================= STREAM CAPTURE (Original working method) =================
 
-async def capture_stream(page, url, idx):
-    stream_url = None
+async def process_event(url: str, url_num: int, sport: str) -> str | None:
+    """Process event page and extract m3u8 stream URL"""
+    
+    # Step 1: Load the event page
+    event_data = await request(url)
+    if not event_data:
+        log(f"URL {url_num}) Failed to load url.")
+        return None
 
-    def handle_response(res):
-        nonlocal stream_url
-        try:
-            if ".m3u8" in res.url and not stream_url:
-                stream_url = res.url
-        except:
-            pass
+    soup = HTMLParser(event_data.content)
 
-    page.on("response", handle_response)
+    # Step 2: Find iframe with name="srcFrame"
+    if not (iframe := soup.css_first('iframe[name="srcFrame"]')):
+        log(f"URL {url_num}) No iframe element found.")
+        return None
+
+    if not (iframe_src := iframe.attributes.get("src")):
+        log(f"URL {url_num}) No iframe source found.")
+        return None
+
+    # Step 3: Load iframe source
+    if not (iframe_src_data := await request(iframe_src, headers={"Referer": url})):
+        log(f"URL {url_num}) Failed to load iframe source.")
+        return None
+
+    # Step 4: Extract Clappr player data from JavaScript
+    pattern = re.compile(r'var\s+\w*=\[([^"]*)\];', re.I)
+
+    if not (match := pattern.search(iframe_src_data.text())):
+        log(f"URL {url_num}) No Clappr source found.")
+        return None
 
     try:
-        # STEP 1: open homepage first
-        await page.goto(BASE_URL, timeout=30000)
-        await page.wait_for_timeout(2000)
+        ev_id, ev_ts, ev_pt = ast.literal_eval(match[1])
+    except ValueError:
+        log(f"URL {url_num}) Failed to parse event info.")
+        return None
 
-        # STEP 2: open event with referer
-        await page.goto(url, timeout=30000, referer=BASE_URL)
-        await page.wait_for_timeout(5000)
+    params: dict[str, int | str] = dict(zip(["id", "ts", "pt"], [ev_id, ev_ts, ev_pt]))
 
-        # STEP 3: click to trigger player
-        for _ in range(3):
-            try:
-                await page.mouse.click(500, 400)
-                await asyncio.sleep(1)
-            except:
-                pass
+    # Step 5: Make PHP API request to get m3u8 URL
+    if not (api_data := await request(
+        urljoin(BASE_URL, "stream/check_stream.php"),
+        headers={"Referer": iframe_src},
+        params=params,
+    )):
+        log(f"URL {url_num}) Failed to make php request.")
+        return None
 
-        # STEP 4: iframe clicks
-        for frame in page.frames:
-            try:
-                await frame.click("body", timeout=2000)
-                await asyncio.sleep(1)
-            except:
-                pass
+    data = api_data.json()
+    
+    if data.get("error"):
+        log(f"URL {url_num}) API returned error: {data.get('error')}")
+        return None
 
-        # STEP 5: wait for stream
-        waited = 0
-        while waited < 20 and not stream_url:
-            await asyncio.sleep(1)
-            waited += 1
-
-        # STEP 6: fallback regex
-        if not stream_url:
-            html = await page.content()
-            m = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\']*', html)
-            if m:
-                stream_url = m.group(0)
-
-    except Exception as e:
-        log(f"[{idx}] ERROR: {e}")
-
-    finally:
-        try:
-            page.remove_listener("response", handle_response)
-        except:
-            pass
-
-    return stream_url
+    log(f"URL {url_num}) Captured M3U8")
+    
+    return data.get("url")
 
 
 # ================= WRITE OUTPUT =================
@@ -200,7 +255,7 @@ def write_outputs(entries):
                 f'group-title="{GROUP}",{e["name"]}\n'
             )
             f.write(
-                f"{e['url']}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}\n"
+                f"{e['url']}|referer={REFERER}|origin={ORIGIN}|user-agent={UA_ENC}\n\n"
             )
 
     log("Playlists generated successfully")
@@ -230,23 +285,31 @@ async def main():
         events = await get_events(page)
         log(f"Detected {len(events)} events")
 
+        if not events:
+            log("No events found")
+            await browser.close()
+            return
+
         collected = []
+        cached_urls = {}
 
         for i, ev in enumerate(events, 1):
-            key = ev["event"]
+            key = f"[{ev['sport']}] {ev['event']} ({TAG})"
 
+            # Check cache
             if key in cache and now - cache[key]["ts"] < CACHE_EXP:
+                log(f"[{i}/{len(events)}] {ev['event']} (cached)")
                 collected.append(cache[key]["data"])
+                cached_urls[key] = cache[key]["data"]
                 continue
 
             log(f"[{i}/{len(events)}] {ev['event']}")
 
-            p2 = await context.new_page()
-            stream = await capture_stream(p2, ev["link"], i)
-            await p2.close()
+            # Process event to get stream URL
+            stream = await process_event(ev["link"], i, ev["sport"])
 
             if stream:
-                log(f"STREAM FOUND: {stream}")
+                log(f"  ✓ STREAM CAPTURED")
 
                 entry = {
                     "name": f"[MLB] {ev['event']} (WEBCAST)",
@@ -258,9 +321,10 @@ async def main():
                     "data": entry
                 }
 
+                cached_urls[key] = entry
                 collected.append(entry)
             else:
-                log("No stream found")
+                log(f"  ✗ No stream found")
 
         await browser.close()
 
