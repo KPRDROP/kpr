@@ -48,7 +48,12 @@
       {
         "MLB": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png",
-          "names": ["MAJOR LEAGUE BASEBALL", "MLB BASEBALL", "MLB PLAYOFFS"]
+          "names": [
+            "BASEBALL (MLB)",
+            "MAJOR LEAGUE BASEBALL",
+            "MLB BASEBALL",
+            "MLB PLAYOFFS"
+          ]
         }
       }
     ],
@@ -120,6 +125,7 @@
         "NHL": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png",
           "names": [
+            "ICE HOCKEY (NHL)",
             "NATIONAL HOCKEY LEAGUE",
             "NHL HOCKEY",
             "NHL PLAYOFFS",
@@ -138,7 +144,7 @@
       {
         "WRESTLING": {
           "logo": null,
-          "names": ["AEW", "WWE"]
+          "names": ["AEW", "WRESTLING (NXT)", "WWE"]
         }
       }
     ],
@@ -412,7 +418,13 @@
       {
         "FIFA WORLD CUP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/4.png",
-          "names": ["FIFA WC", "WC"]
+          "names": [
+            "FIFA WC",
+            "FIFA WORLD CUP 2026",
+            "WC",
+            "WORLD CUP",
+            "WORLD CUP 2026"
+          ]
         }
       },
       {
@@ -795,9 +807,21 @@
         }
       },
       {
+        "USL CUP": {
+          "logo": "https://i.gyazo.com/d4b236306f77980094ebd1488138d837.png",
+          "names": ["USL CUP SOCCER"]
+        }
+      },
+      {
         "USL LEAGUE ONE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2452.png",
           "names": ["UNITED SOCCER LEAGUE LEAGUE ONE", "USL 1", "USL1"]
+        }
+      },
+      {
+        "USL LEAGUE TWO": {
+          "logo": "https://i.gyazo.com/2eb31f1e8e120c648d7f8b4547fec91a.png",
+          "names": ["UNITED SOCCER LEAGUE LEAGUE TWO", "USL 2", "USL2"]
         }
       },
       {
