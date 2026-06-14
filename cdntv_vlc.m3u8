@@ -1,25 +1,43 @@
 #EXTM3U
-#EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[FIFA World Cup] Curaçao vs Germany (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/4.png" group-title="FIFA World Cup",Curaçao vs Germany
+#EXTINF:-1 tvg-chno="1" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Miami Marlins vs Pittsburgh Pirates (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Miami Marlins vs Pittsburgh Pirates
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=TNT%20Sports%202%20UK&code=&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://cdnlivetv.tv/secure/api/v1/6a288d2a81d8192bb76cc345/playlist.m3u8?token=NmEyODhkMmE4MWQ4MTkyYmI3NmNjMzQ1OjE3ODE0NzQyNDQ1MjY6Y2RubGl2ZXR2LnR2OjY1ODVkNTAwZWMyMjM0ZTguYjE0OWM2MTQ3MGM0ZGMzOGVmMDI5NTVjMmQzNjhlZDQ4N2YyNWIwOTBlNmU2NzcyMjllNWU5NjgyMGQ1ZjRhMw
+
+#EXTINF:-1 tvg-chno="2" tvg-id="Soccer.Dummy.us" tvg-name="[FIFA World Cup] Curaçao vs Germany (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/4.png" group-title="FIFA World Cup",Curaçao vs Germany
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=FOX%20US&code=&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://cdnlivetv.tv/secure/api/v1/6a288d2781d8192bb76cb38e/playlist.m3u8?token=NmEyODhkMjc4MWQ4MTkyYmI3NmNiMzhlOjE3ODE0Njg1MjkyODg6Y2RubGl2ZXR2LnR2OmM2N2E3OWNmOTgwYzA0MTIuYjdhNTYwOGVkMmZmN2Q4MDA0Y2Y2MzM4NTk0YTkyYzI4MzA1MDJhYjY3ODU5ODI4OTRkMTNiYzA0NDFlZjFlZA
+https://cdnlivetv.tv/secure/api/v1/6a288d2781d8192bb76cb38e/playlist.m3u8?token=NmEyODhkMjc4MWQ4MTkyYmI3NmNiMzhlOjE3ODE0NzQyNDM5NzA6Y2RubGl2ZXR2LnR2OmU0ZWNhZDg2OTk1YTU1ZTEuNThhZDQ2ODdkOTYxZjdjMGM0N2IyNTMwZTIwY2QwOGFlZWJhODE5NWYxMjgwYjlmMmJjN2RjYTdjNGMyZjg4NA
 
-#EXTINF:-1 tvg-chno="2" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Diego Padres vs Baltimore Orioles (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Diego Padres vs Baltimore Orioles
+#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Diego Padres vs Baltimore Orioles (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Diego Padres vs Baltimore Orioles
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=MASN%202%20US&code=&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://cdnlivetv.tv/secure/api/v1/6a288d2781d8192bb76cb4d1/playlist.m3u8?token=NmEyODhkMjc4MWQ4MTkyYmI3NmNiNGQxOjE3ODE0Njg1Mjk4MzU6Y2RubGl2ZXR2LnR2Ojg4Yzg0Mzg0ZTc3YTYzODkuMjQ5ZTE1MDYwNGRlNmNjYzFhMjk4NThiZDM0YmM3MWI2NjRlZGQzYTQxYWI5ZjNhM2E1NTE0MWI1MDAzMjEzMw
+https://cdnlivetv.tv/secure/api/v1/6a288d2781d8192bb76cb4d1/playlist.m3u8?token=NmEyODhkMjc4MWQ4MTkyYmI3NmNiNGQxOjE3ODE0NzQyNDUwMjg6Y2RubGl2ZXR2LnR2OjQ3N2VhZWFlMGZkOTc5ZjUuMjk4MTI4Zjg0MzNiNTViM2MyZmY4NjBlMmY4NmU2MWQ3MmRiOWRjOGFhZTIxNDNlNmEwOGY2YmE0NTY0Yjg3OQ
 
-#EXTINF:-1 tvg-chno="3" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] New York Yankees vs Toronto Blue Jays (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",New York Yankees vs Toronto Blue Jays
+#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] New York Yankees vs Toronto Blue Jays (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",New York Yankees vs Toronto Blue Jays
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=TVA%20Sports%20CA&code=&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://cdnlivetv.tv/secure/api/v1/6a288d2a81d8192bb76cc159/playlist.m3u8?token=NmEyODhkMmE4MWQ4MTkyYmI3NmNjMTU5OjE3ODE0Njg1MzAzNjE6Y2RubGl2ZXR2LnR2OmMyMGQ2ZDNkNmM4YjAzMzMuMzY4OWQxMGU0YTYyNDcwZGE2YWIyNWRlOGJiNjM0YTMwYzg5OTU3MjA0YWYwYWZhM2Y1ODgyNjdlMWNmYTI2OA
+https://cdnlivetv.tv/secure/api/v1/6a288d2a81d8192bb76cc159/playlist.m3u8?token=NmEyODhkMmE4MWQ4MTkyYmI3NmNjMTU5OjE3ODE0NzQyNDU1MzQ6Y2RubGl2ZXR2LnR2OjhiZTk0MzZmNjIyZDI2MjcuOWMzNjZhZjJhYTkwYTQ5ZmEwMDYyN2YwNmI2Yjk0M2E0NWVhZjI1YThkOTYzZDE1NGM0YjYzOGRmYjU5MTEyNg
 
-#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Los Angeles Dodgers vs Chicago White Sox (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Los Angeles Dodgers vs Chicago White Sox
+#EXTINF:-1 tvg-chno="5" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Los Angeles Dodgers vs Chicago White Sox (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Los Angeles Dodgers vs Chicago White Sox
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=TNT%20Sports%201%20UK&code=&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://cdnlivetv.tv/secure/api/v1/6a288d2a81d8192bb76cc341/playlist.m3u8?token=NmEyODhkMmE4MWQ4MTkyYmI3NmNjMzQxOjE3ODE0Njg1MzA4NzE6Y2RubGl2ZXR2LnR2OjIyMTRmNjhkNzk0NTg2MDAuMmEzZDMwMTEzYTUxZTNiODdmY2VjMzEwNzZmZGEzNmM3MmE1ODRiNjk2OWExMGM4OTJiMDI2OGMzNWYzYmU1Yw
+https://cdnlivetv.tv/secure/api/v1/6a288d2a81d8192bb76cc341/playlist.m3u8?token=NmEyODhkMmE4MWQ4MTkyYmI3NmNjMzQxOjE3ODE0NzQyNDYwMzg6Y2RubGl2ZXR2LnR2OmE5NGU0MWQzZDgwYTUyZGQuOWFjMGQzNjczOGQwOWFlZTMwOWE0YWRhMGQ4OWE2NmIwMGQ3YmU5N2IxNWE1MjI4ZWNiNTZkMDVhNWYzZTRkYg
+
+#EXTINF:-1 tvg-chno="6" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Colorado Rockies vs Athletics (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Colorado Rockies vs Athletics
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=NBC%20Sports%20California%20Plus%20US&code=&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://cdnlivetv.tv/secure/api/v1/6a288d2781d8192bb76cb515/playlist.m3u8?token=NmEyODhkMjc4MWQ4MTkyYmI3NmNiNTE1OjE3ODE0NzQyNDY1Mzc6Y2RubGl2ZXR2LnR2OjE1MjQyMTAxZjg3YjY2MGEuNTg4M2ZhNjgzYzZmNTJhYTIxZTA3OWE4NDQ2MTdkZDYwYjlmZDdjOWJlMWFhYTc2NzhkN2M2MjNiNDZjZGU4ZQ
+
+#EXTINF:-1 tvg-chno="7" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Chicago Cubs vs San Francisco Giants (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Chicago Cubs vs San Francisco Giants
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=ESPN%20Deportes%20US&code=&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://cdnlivetv.tv/secure/api/v1/6a288d2781d8192bb76cb34c/playlist.m3u8?token=NmEyODhkMjc4MWQ4MTkyYmI3NmNiMzRjOjE3ODE0NzQyNDcwMjg6Y2RubGl2ZXR2LnR2OmMzYWMzYjFiNDc1YjU3NDkuNmFiMjU3NzFmYmM1ODU1NDA4YWQ3MjYzODg2NDE2ZGY1MjI3ZmY0OWY3MzY4ZTI1Yzc0YjJiZGM1ZDdiNzJkNg
 
