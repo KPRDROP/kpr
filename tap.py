@@ -11,16 +11,16 @@ BASE_URL = "https://thetvapp.to"
 CHANNEL_LIST_URL = f"{BASE_URL}/tv"
 
 SECTIONS_TO_APPEND = {
-    "/nba": "NBA",
+    #"/nba": "NBA",
     "/mlb": "MLB",
     "/wnba": "WNBA",
-    "/nfl": "NFL",
+    #"/nfl": "NFL",
     "/ncaaf": "NCAAF",
     "/ncaab": "NCAAB",
     "/soccer": "Soccer",
     "/ppv": "PPV",
     "/events": "Events",
-    "/nhl": "NHL",
+    #"/nhl": "NHL",
 }
 
 SPORTS_METADATA = {
