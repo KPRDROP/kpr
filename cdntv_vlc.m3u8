@@ -1,13 +1,31 @@
 #EXTM3U
 #EXTINF:-1 tvg-chno="1" tvg-id="Soccer.Dummy.us" tvg-name="[FIFA World Cup] Norway vs Iraq (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/4.png" group-title="FIFA World Cup",Norway vs Iraq
-#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=TSN%205%20CA&code=&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=TSN%203%20FHD%20CA&code=&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://cdnlivetv.tv/secure/api/v1/6a288d2a81d8192bb76cc16d/playlist.m3u8?token=NmEyODhkMmE4MWQ4MTkyYmI3NmNjMTZkOjE3ODE2NTk1NzE0NDY6Y2RubGl2ZXR2LnR2OjcxNGUzZTMwMzA0NmM4ZTUuMWNhNTkxY2VmYmUxMjBkOTNkYmJiMDhjNTViMDUyODM0OTMwNjhiYjBmMWY0MDMwNzBiZGU5NjBmZjJhYWYzNA
+https://cdnlivetv.tv/secure/api/v1/6a288d2a81d8192bb76cc176/playlist.m3u8?token=NmEyODhkMmE4MWQ4MTkyYmI3NmNjMTc2OjE3ODE2NjU1MDc2ODE6Y2RubGl2ZXR2LnR2OjY1YWM4OTUxNmYyYTI3ZTcuNWY2ZGJiNTYzYmRmNmE2YWVlNWYzN2Q1MTcyNzMzODFiZGNlODJiMjIzZGIyZWFhYjE1ODMyMDRkZDJiM2YzMg
 
 #EXTINF:-1 tvg-chno="2" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] Toronto Blue Jays vs Boston Red Sox (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",Toronto Blue Jays vs Boston Red Sox
 #EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=NESN%20Plus%20US&code=&user=cdnlivetv&plan=free
 #EXTVLCOPT:http-origin=https://cdnlivetv.tv
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-https://cdnlivetv.tv/secure/api/v1/6a288d2781d8192bb76cb51a/playlist.m3u8?token=NmEyODhkMjc4MWQ4MTkyYmI3NmNiNTFhOjE3ODE2NTk1NzIwMDg6Y2RubGl2ZXR2LnR2OjdlZTRkNmUyMDVmODBlMTIuZTljZTU3OWQ0OWQ2NzNhNDUzOWFkMzkzYmNkNDZlNTUyY2I5YTI5MTJiNjU0YTdhZDllOGMxMjYxMjM5NDRhNw
+https://cdnlivetv.tv/secure/api/v1/6a288d2781d8192bb76cb51a/playlist.m3u8?token=NmEyODhkMjc4MWQ4MTkyYmI3NmNiNTFhOjE3ODE2NjU1MDg3OTI6Y2RubGl2ZXR2LnR2OjcwYTNjMDBkZGI4MmNhODEuNjI1ZTk3MzQyNjJiNmQ4MmUxYTIwZDEyMDMzNGFkNGMwYTdjOGEzOWQ4ODE2YmE5MzJhYjg5ZTIxNWE4OTkzZQ
+
+#EXTINF:-1 tvg-chno="3" tvg-id="WNBA.dummy.us" tvg-name="[WNBA] Toronto Tempo vs Indiana Fever (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/wnba.png" group-title="WNBA",Toronto Tempo vs Indiana Fever
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=TSN%202%20CA&code=&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://cdnlivetv.tv/secure/api/v1/6a288d2a81d8192bb76cc171/playlist.m3u8?token=NmEyODhkMmE4MWQ4MTkyYmI3NmNjMTcxOjE3ODE2NjU1MTA3Nzg6Y2RubGl2ZXR2LnR2OjZjZWI4ZGUzNzA5OTM0YzAuNGUwYTQxOGU0ZWE4ZDFlMGE1ZjdjZDVhNTNlOWU0NjQ3YmNjYmIzNjBiMTk0YzM3OTI5ZmNlN2ZhNTg5NDAwMQ
+
+#EXTINF:-1 tvg-chno="4" tvg-id="MLB.Baseball.Dummy.us" tvg-name="[MLB] San Diego Padres vs St. Louis Cardinals (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png" group-title="MLB",San Diego Padres vs St. Louis Cardinals
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=TNT%20Sports%201%20UK&code=&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://cdnlivetv.tv/secure/api/v1/6a288d2a81d8192bb76cc341/playlist.m3u8?token=NmEyODhkMmE4MWQ4MTkyYmI3NmNjMzQxOjE3ODE2NjU1MDkzMDI6Y2RubGl2ZXR2LnR2OmRjMGY4M2UyNzA0YjI2MGYuNzA4OGYxNjNmYzNkZTRiNjkxZmJmZTBiNDA2NjA0MmY0NTFjZTY5ZGQxNGZiNTlhYTk3ZjA1MDc3MGI5MDBhZA
+
+#EXTINF:-1 tvg-chno="5" tvg-id="Soccer.Dummy.us" tvg-name="[FIFA World Cup] Algeria vs Argentina (CDNTV)" tvg-logo="https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/4.png" group-title="FIFA World Cup",Algeria vs Argentina
+#EXTVLCOPT:http-referrer=https://cdnlivetv.tv/api/v1/channels/player/?name=TSN%203%20FHD%20CA&code=&user=cdnlivetv&plan=free
+#EXTVLCOPT:http-origin=https://cdnlivetv.tv
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+https://cdnlivetv.tv/secure/api/v1/6a288d2a81d8192bb76cc176/playlist.m3u8?token=NmEyODhkMmE4MWQ4MTkyYmI3NmNjMTc2OjE3ODE2NjU1MDgyMzQ6Y2RubGl2ZXR2LnR2OjYyNGFkYzAxMmE2OTBlZDQuMmYwYmEwNjE5NzQxNjk2YTk5MjkxNTkxZjVjOWYyNWY5ZjYzODI1YTAzMDBkY2FkNTdiZDdkZDFkYjQ0MGNjMA
 
