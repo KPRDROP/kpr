@@ -37,15 +37,15 @@ API_FILE = Cache(f"{TAG}-api", exp=19_800)
 
 SPORT_ENDPOINTS = [
     "soccer",
-    "nfl",
-    "nba",
+    #"nfl",
+    #"nba",
     "cfb",
     "mlb",
-    "nhl",
+    #"nhl",
     "ufc",
     "box",
     "f1",
-    "olympics",
+    #"olympics",
 ]
 
 urls: dict[str, dict[str, Any]] = {}
