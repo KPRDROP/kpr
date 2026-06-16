@@ -21,12 +21,12 @@ BASE_URL = os.environ["CENTERSTRM_API"]
 EMBED_BASE = "https://streams.center/"
 
 CATEGORIES = {
-    4: "Basketball",
+    #4: "Basketball",
     9: "Football",
     13: "Baseball",
     #14: "American Football",
     15: "Motor Sport",
-    16: "Hockey",
+    #16: "Hockey",
     17: "Fight MMA",
     18: "Boxing",
     19: "NCAA Sports",
