@@ -2,7 +2,7 @@ name: STGATE Updater
 
 on:
   schedule:
-    - cron: '0 * * * *'   # Every hour
+    - cron: '0 */1 * * *'
   workflow_dispatch:
 
 permissions:
