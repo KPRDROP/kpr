@@ -4,20 +4,5 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 "Educational Purposes Only"
 </div>
 
-&nbsp;
-<div align="center">
-  
-[![PIXNINE Scraper](https://github.com/KPRDROP/kpr/actions/workflows/pixnine.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/pixnine.yml)
-&nbsp;
-[![SportsWeb Updater](https://github.com/KPRDROP/kpr/actions/workflows/castwebsports.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/castwebsports.yml)
-&nbsp;
-</div>
-
-  
-<div align="center">
-  
-[![STGATE Updater](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml) &nbsp; [![Roxie Updater](https://github.com/KPRDROP/kpr/actions/workflows/update_rox.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/update_rox.yml) &nbsp; [![AWAF Updater](https://github.com/KPRDROP/kpr/actions/workflows/awaf.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/awaf.yml) &nbsp; [![AWAP Updater](https://github.com/KPRDROP/kpr/actions/workflows/awap.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/awap.yml)
-
-[![CenterStrm Updater](https://github.com/KPRDROP/kpr/actions/workflows/centerstrm.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/centerstrm.yml) &nbsp; [![Shark Updater](https://github.com/KPRDROP/kpr/actions/workflows/srtmshark.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/srtmshark.yml) &nbsp; [![Pixel Updater](https://github.com/KPRDROP/kpr/actions/workflows/update_pixelsports.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/update_pixelsports.yml) &nbsp; [![STGATE Updater](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/stgate.yml)
-
-[![BTW Updater](https://github.com/KPRDROP/kpr/actions/workflows/streambtw.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/streambtw.yml) &nbsp; [![XEAST Updater](https://github.com/KPRDROP/kpr/actions/workflows/east.yml/badge.svg)](https://github.com/KPRDROP/kpr/actions/workflows/east.yml)
+&nbsp;  
+![](https://komarev.com/ghpvc/?username=kprdrop&style=for-the-badge&color=154D9C)
