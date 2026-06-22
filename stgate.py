@@ -41,13 +41,13 @@ SPORT_ENDPOINTS = [
     "soccer",
     #"nfl",
     #"nba",
-    "cfb",
+    #"cfb",
     "mlb",
     #"nhl",
     "ufc",
     "box",
     "f1",
-    "olympics",
+    #"olympics",
 ]
 
 urls: dict[str, dict[str, Any]] = {}
