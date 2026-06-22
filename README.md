@@ -4,5 +4,8 @@ DISCLAIMER: The scripts and links provided on this GitHub page are for informati
 "Educational Purposes Only"
 </div>
 
+<div align="center">
+  
 &nbsp;  
 ![](https://komarev.com/ghpvc/?username=kprdrop&style=for-the-badge&color=154D9C)
+</div>
