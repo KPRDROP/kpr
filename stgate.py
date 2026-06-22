@@ -39,15 +39,15 @@ API_FILE = Cache(f"{TAG}-api", exp=19_800)
 # Expanded sports endpoints for more events
 SPORT_ENDPOINTS = [
     "soccer",
-    #"nfl",      
-    #"nba",      
+    #"nfl",
+    #"nba",
     "cfb",
     "mlb",
-    #"nhl",      
+    #"nhl",
     "ufc",
     "box",
     "f1",
-    "olympics", 
+    "olympics",
 ]
 
 urls: dict[str, dict[str, Any]] = {}
@@ -122,12 +122,11 @@ def clean_sport_name(sport: str) -> str:
 async def refresh_api_cache(now_ts: float) -> list[dict[str, Any]]:
     log.info("Refreshing JSON API cache")
 
-    # Add retry logic for failed endpoints
+    # Simple requests without retries parameter
     tasks = [
         network.request(
             urljoin(BASE_URL, f"data/{sport}.json"),
             log=log,
-            retries=2,
         )
         for sport in SPORT_ENDPOINTS
     ]
@@ -435,7 +434,7 @@ async def main():
                     "--no-sandbox",
                     "--disable-dev-shm-usage",
                     "--autoplay-policy=no-user-gesture-required",
-                    "--disable-web-security",  # Added for better compatibility
+                    "--disable-web-security",
                     "--disable-features=IsolateOrigins,site-per-process",
                 ],
             )
