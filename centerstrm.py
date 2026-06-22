@@ -2,6 +2,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 import os
 import asyncio
+from collections import defaultdict
 
 from playwright.async_api import async_playwright
 
@@ -75,7 +76,10 @@ def build_playlist(data: dict) -> str:
 # -------------------------------------------------
 async def get_events(cached_ids: set[str]) -> list[dict]:
     now = Time.clean(Time.now())
-
+    
+    # Track language variants to avoid duplicates
+    event_counter = defaultdict(int)
+    
     api_data = API_FILE.load(per_entry=False, index=-1)
     if not api_data:
         log.info("Refreshing API cache")
@@ -90,9 +94,9 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
             return []
 
     events = []
-
-    PRE_START = 6
-    POST_END = 2
+    
+    PRE_START = 12  # Increased from 6 to catch more upcoming events
+    POST_END = 4    # Increased from 2 to catch events that just ended
 
     for row in api_data:
         event_id = row.get("id")
@@ -115,6 +119,7 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
         start_dt = Time.from_str(begin, timezone="CET")
         end_dt = Time.from_str(end, timezone="CET")
 
+        # Extended time window to catch more events
         if not (
             start_dt.delta(hours=-PRE_START)
             <= now
@@ -122,29 +127,68 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
         ):
             continue
 
-        embed_url = embed.split("<")[0].strip()
-        if not embed_url.startswith("http"):
-            embed_url = urljoin(EMBED_BASE, embed_url)
+        # Parse embed URLs - handle multiple streams
+        embed_urls = []
+        if ";" in embed:
+            # Multiple streams separated by semicolon
+            for stream_entry in embed.split(";"):
+                if "<" in stream_entry:
+                    url, lang = stream_entry.split("<", 1)
+                    embed_urls.append((url.strip(), lang.strip()))
+                else:
+                    embed_urls.append((stream_entry.strip(), "Main"))
+        else:
+            # Single stream
+            if "<" in embed:
+                url, lang = embed.split("<", 1)
+                embed_urls.append((url.strip(), lang.strip()))
+            else:
+                embed_urls.append((embed.strip(), "Main"))
 
-        events.append(
-            {
-                "id": str(event_id),
-                "sport": sport,
-                "event": name,
-                "embed": embed_url,
-                "timestamp": start_dt.timestamp(),
-            }
-        )
+        for url, lang in embed_urls:
+            if not url.startswith("http"):
+                url = urljoin(EMBED_BASE, url)
+            
+            # Create unique event name with language/counter
+            event_key = f"{name}|{lang}"
+            event_counter[event_key] += 1
+            
+            event_name = f"{name} ({lang})" if lang != "Main" else name
+            if event_counter[event_key] > 1:
+                event_name = f"{event_name} #{event_counter[event_key]}"
 
+            events.append(
+                {
+                    "id": f"{event_id}_{lang}_{event_counter[event_key]}",
+                    "sport": sport,
+                    "event": event_name,
+                    "embed": url,
+                    "timestamp": start_dt.timestamp(),
+                    "original_id": str(event_id),
+                    "language": lang,
+                }
+            )
+
+    # Sort by timestamp to process oldest first
+    events.sort(key=lambda x: x["timestamp"])
+    
     return events
 
 
 # -------------------------------------------------
-# MAIN SCRAPER (FIXED)
+# MAIN SCRAPER
 # -------------------------------------------------
 async def scrape() -> None:
     cached = CACHE_FILE.load()
-    cached_ids = set(cached.keys())
+    cached_ids = set()
+    
+    # Track both original IDs and generated IDs
+    for key in cached.keys():
+        # Extract original event ID if possible
+        if "_" in key:
+            orig_id = key.split("_")[0]
+            cached_ids.add(orig_id)
+        cached_ids.add(key)
 
     log.info(f"Loaded {len(cached)} cached events")
 
@@ -185,12 +229,17 @@ async def scrape() -> None:
                             ev["sport"], ev["event"]
                         )
 
-                        cached[ev["id"]] = {
+                        # Use unique ID for caching
+                        cache_key = ev["id"]
+                        
+                        cached[cache_key] = {
                             "name": f"[{ev['sport']}] {ev['event']} ({TAG})",
                             "url": stream,
                             "logo": logo,
                             "timestamp": ev["timestamp"],
                             "id": tvg_id or "Live.Event.us",
+                            "language": ev.get("language", "Main"),
+                            "original_id": ev.get("original_id", ev["id"]),
                         }
 
         finally:
@@ -206,5 +255,5 @@ async def scrape() -> None:
 # ENTRY POINT
 # -------------------------------------------------
 if __name__ == "__main__":
-    log.info("Starting StreamCenter scraper...")
+    log.info("Starting StreamCenter updater...")
     asyncio.run(scrape())
