@@ -41,11 +41,11 @@ jobs:
           pip install playwright
           playwright install firefox
 
-      - name: Run Pixel scraper
+      - name: Run Pixel updater
         env:
           PIXELSPORTS_API_URL: ${{ secrets.PIXELSPORTS_API_URL }}
         run: |
-          echo "Running PixelSport scraper..."
+          echo "Running PixelSport updater..."
           python Pixelsports_Playlist_Generator.py
 
       - name: Commit and push playlists
