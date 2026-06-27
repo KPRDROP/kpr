@@ -25,9 +25,9 @@ if not BASE_URL:
     raise RuntimeError("Missing STGATE_BASE_URL secret")
 
 USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) "
-    "Gecko/20100101 Firefox/146.0"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
 )
+
 UA_ENC = quote(USER_AGENT)
 
 OUT_VLC = Path("stgate_vlc.m3u8")
