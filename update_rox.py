@@ -12,7 +12,7 @@ BASE_URL = "https://roxiestreams.su"
 CATEGORIES = [
     "",
     "soccer",
-    "soccer-stream"
+    "soccer-stream",
     "mlb",
     #"nba",
     "nfl",
@@ -29,6 +29,7 @@ CATEGORIES = [
     "wec",
     "wwe-streams",
     "ppv-streams",
+    "ppv-streams-1",
     "arca"
 ]
 
