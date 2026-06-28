@@ -9,23 +9,32 @@ import html
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
+import json
 
 BASE_URL = "https://roxiestreams.su"
 CATEGORIES = [
     "soccer",
     "nba",
-    #"nfl",
-    #"nhl",
+    "nfl",
+    "nhl",
     "fighting"
 ]
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"
 REFERER = BASE_URL
 
 VLC_OUTPUT = "Roxiestreams_VLC.m3u8"
 TIVIMATE_OUTPUT = "Roxiestreams_TiviMate.m3u8"
 
-HEADERS = {"User-Agent": USER_AGENT, "Referer": REFERER, "Accept-Language": "en-US,en;q=0.9"}
+HEADERS = {
+    "User-Agent": USER_AGENT,
+    "Referer": REFERER,
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1"
+}
 
 # Logo / Metadata Dictionary
 TV_INFO = {
@@ -45,24 +54,23 @@ TV_INFO = {
     "misc": ("Sports.Dummy.us", "https://i.postimg.cc/qMm0rc3L/247.png", "Random Events"),
 }
 
-# Regex to find .m3u8 in arbitrary text (capture the URL)
+# Regex to find .m3u8 in arbitrary text
 M3U8_RE = re.compile(r"(https?://[^\s\"'<>`]+?\.m3u8(?:\?[^\"'<>`\s]*)?)", re.IGNORECASE)
 
 # Session
 SESSION = requests.Session()
 SESSION.headers.update(HEADERS)
-SESSION.timeout = 10
+SESSION.timeout = 15
 
-# Cache for fetched pages to avoid duplicate requests
+# Cache
 PAGE_CACHE = {}
-CACHE_DURATION = 300  # 5 minutes
+CACHE_DURATION = 300
 
 
-def fetch(url, timeout=12, use_cache=True):
+def fetch(url, timeout=15, use_cache=True):
     """Fetch a page and return (soup, text) or (None, '') on failure with caching."""
     cache_key = url
     
-    # Check cache
     if use_cache and cache_key in PAGE_CACHE:
         cache_time, cached_soup, cached_text = PAGE_CACHE[cache_key]
         if time.time() - cache_time < CACHE_DURATION:
@@ -74,7 +82,6 @@ def fetch(url, timeout=12, use_cache=True):
         text = r.text
         soup = BeautifulSoup(text, "html.parser")
         
-        # Store in cache
         if use_cache:
             PAGE_CACHE[cache_key] = (time.time(), soup, text)
         
@@ -162,163 +169,183 @@ def derive_title_from_page(soup, fallback_url=None):
     return ""
 
 
-def process_event_page(event_href, anchor_text=None):
-    """Process a single event page and return (title, m3u8_url)."""
-    event_url = event_href if event_href.startswith("http") else urljoin(BASE_URL, event_href)
+def get_event_links_from_category(soup, category_path):
+    """Extract event links from category page using the table structure."""
+    events = []
     
-    # Check for direct m3u8
-    direct = extract_m3u8_from_text(event_href, base=event_url)
-    if direct:
-        title = ""
-        if anchor_text:
-            title = clean_event_title(anchor_text)
-        if not title:
-            title = derive_title_from_page(None, fallback_url=event_url)
-        if not title or title.startswith("http"):
-            path = urlparse(event_url).path
-            title = path.split("/")[-1].replace("-", " ").replace("_", " ").title() if path else "Live Event"
-        return (title, direct) if not title.startswith("http") else ("Live Event", direct)
+    # Find the events table
+    table = soup.find("table", {"id": "eventsTable"})
+    if not table:
+        # Try alternative selectors
+        table = soup.find("table", class_=re.compile(r"event|schedule|match"))
     
-    # Fetch event page
-    soup, html_text = fetch(event_url)
-    if not soup and not html_text:
-        return None
-    
-    # Get base title
-    base_title = ""
-    if anchor_text:
-        base_title = clean_event_title(anchor_text)
-    if not base_title:
-        base_title = derive_title_from_page(soup, fallback_url=event_url)
-    if not base_title:
-        base_title = "Live Event"
-    
-    # Search for m3u8 in various places
-    seen = set()
-    results = []
-    
-    # Check anchors
-    for a in soup.find_all("a", href=True):
-        href = a["href"].strip()
-        cand = extract_m3u8_from_text(href, base=event_url) or extract_m3u8_from_text(str(a), base=event_url)
-        if cand and cand not in seen:
-            seen.add(cand)
-            title = clean_event_title(a.get_text(strip=True)) or base_title
-            if not title.startswith("http"):
-                results.append((title, cand))
-    
-    # Check source/video tags
-    for tag in soup.find_all(["source", "video"], src=True):
-        src = tag.get("src", "").strip()
-        cand = extract_m3u8_from_text(src, base=event_url)
-        if cand and cand not in seen:
-            seen.add(cand)
-            title = clean_event_title(tag.get("title") or tag.get("alt") or "") or base_title
-            if not title.startswith("http"):
-                results.append((title, cand))
-    
-    # Check iframes
-    for iframe in soup.find_all("iframe", src=True):
-        src = iframe.get("src", "").strip()
-        iframe_url = urljoin(event_url, src)
-        soup_if, html_if = fetch(iframe_url, use_cache=True)
-        if html_if:
-            cand = extract_m3u8_from_text(html_if, base=iframe_url)
-            if cand and cand not in seen:
-                seen.add(cand)
-                title = clean_event_title(iframe.get("title") or iframe.get("name") or "") or base_title
-                if not title.startswith("http"):
-                    results.append((title, cand))
+    if table:
+        # Look for rows in tbody
+        tbody = table.find("tbody")
+        rows = tbody.find_all("tr") if tbody else table.find_all("tr")
+        
+        for row in rows:
+            # Find the link in the row
+            link_tag = row.find("a")
+            if not link_tag:
+                continue
             
-            if soup_if:
-                for a in soup_if.find_all("a", href=True):
-                    cand = extract_m3u8_from_text(a["href"], base=iframe_url)
-                    if cand and cand not in seen:
-                        seen.add(cand)
-                        title = clean_event_title(a.get_text(strip=True)) or base_title
-                        if not title.startswith("http"):
-                            results.append((title, cand))
-                
-                for tag in soup_if.find_all(["source", "video"], src=True):
-                    cand = extract_m3u8_from_text(tag.get("src", ""), base=iframe_url)
-                    if cand and cand not in seen:
-                        seen.add(cand)
-                        title = clean_event_title(tag.get("title") or tag.get("alt") or "") or base_title
-                        if not title.startswith("http"):
-                            results.append((title, cand))
+            href = link_tag.get("href")
+            if not href:
+                continue
+            
+            # Get event name
+            event_name = link_tag.get_text(strip=True)
+            if not event_name:
+                # Try other columns
+                cells = row.find_all("td")
+                for cell in cells:
+                    text = cell.get_text(strip=True)
+                    if text and len(text) > 5 and not text.replace(":", "").isdigit():
+                        event_name = text
+                        break
+            
+            if event_name and href:
+                full_url = urljoin(BASE_URL, href)
+                events.append((clean_event_title(event_name), full_url))
     
-    # Check page HTML as last resort
-    if not results:
-        cand = extract_m3u8_from_text(html_text, base=event_url)
-        if cand:
-            results.append((base_title, cand))
+    # If table method failed, try finding direct links
+    if not events:
+        for a in soup.find_all("a", href=True):
+            href = a["href"].strip()
+            text = a.get_text(" ", strip=True)
+            
+            if not href or href.startswith(("mailto:", "javascript:", "#")):
+                continue
+            
+            # Check if it looks like an event link
+            if any(k in href.lower() for k in ["stream", "event", "match", "game"]) or re.search(r"/\d+/?$", href):
+                full_url = urljoin(BASE_URL, href)
+                if text and len(text) > 3:
+                    events.append((clean_event_title(text), full_url))
     
-    # Clean and deduplicate results
-    final_results = []
+    return events
+
+
+def process_event_page(event_url, event_name, category):
+    """Process an event page to extract m3u8 URL."""
+    try:
+        soup, html_text = fetch(event_url)
+        if not soup:
+            return None
+        
+        # Try to find m3u8 in various places
+        m3u8_url = None
+        
+        # 1. Check for m3u8 in script tags
+        scripts = soup.find_all("script")
+        for script in scripts:
+            if script.string:
+                content = script.string
+                m3u8_match = M3U8_RE.search(content)
+                if m3u8_match:
+                    m3u8_url = m3u8_match.group(1)
+                    break
+        
+        # 2. Check for m3u8 in iframe sources
+        if not m3u8_url:
+            iframes = soup.find_all("iframe")
+            for iframe in iframes:
+                src = iframe.get("src")
+                if src:
+                    if ".m3u8" in src:
+                        m3u8_url = src
+                        break
+                    # Try fetching iframe content
+                    iframe_url = urljoin(event_url, src)
+                    iframe_soup, iframe_html = fetch(iframe_url)
+                    if iframe_html:
+                        m3u8_match = M3U8_RE.search(iframe_html)
+                        if m3u8_match:
+                            m3u8_url = m3u8_match.group(1)
+                            break
+        
+        # 3. Check for m3u8 in anchor tags
+        if not m3u8_url:
+            for a in soup.find_all("a", href=True):
+                href = a["href"]
+                if ".m3u8" in href:
+                    m3u8_url = href
+                    break
+        
+        # 4. Check page HTML as last resort
+        if not m3u8_url:
+            m3u8_match = M3U8_RE.search(html_text)
+            if m3u8_match:
+                m3u8_url = m3u8_match.group(1)
+        
+        if m3u8_url:
+            # Clean and normalize URL
+            if m3u8_url.startswith("//"):
+                m3u8_url = "https:" + m3u8_url
+            if not urlparse(m3u8_url).scheme:
+                m3u8_url = urljoin(event_url, m3u8_url)
+            
+            return m3u8_url
+        
+        return None
+        
+    except Exception as e:
+        print(f"Error processing event {event_name}: {e}")
+        return None
+
+
+def process_category(category):
+    """Process a single category and return streams."""
+    streams = []
     seen_urls = set()
-    for t, u in results:
-        if not u:
-            continue
-        u = u.strip()
-        if u.startswith("//"):
-            u = "https:" + u
-        if not urlparse(u).scheme:
-            u = urljoin(event_url, u)
-        if u in seen_urls:
-            continue
-        seen_urls.add(u)
+    
+    try:
+        cat_url = urljoin(BASE_URL, category)
+        print(f"Processing category: {category} -> {cat_url}")
         
-        title_clean = clean_event_title(t) if t and not t.startswith("http") else base_title
-        if not title_clean or title_clean.startswith("http"):
-            title_clean = base_title
-        final_results.append((title_clean, u))
-    
-    return final_results[0] if final_results else None
-
-
-def get_category_event_candidates(category_path):
-    """Fetch category page and return candidates."""
-    cat_url = BASE_URL if not category_path else urljoin(BASE_URL, category_path)
-    
-    print(f"Processing category: {category_path or 'root'} -> {cat_url}")
-    soup, html_text = fetch(cat_url)
-    if not soup and not html_text:
-        return []
-    
-    candidates = []
-    seen = set()
-    
-    # Find event links
-    for a in soup.find_all("a", href=True):
-        href = a["href"].strip()
-        text = a.get_text(" ", strip=True) or ""
+        soup, html_text = fetch(cat_url)
+        if not soup:
+            print(f"  ✗ Failed to fetch category: {category}")
+            return streams
         
-        if not href or href.startswith(("mailto:", "javascript:")):
-            continue
+        # Get event links
+        events = get_event_links_from_category(soup, category)
+        print(f"  → Found {len(events)} events in {category}")
         
-        full = href if href.startswith("http") else urljoin(cat_url, href)
-        low = href.lower()
+        if not events:
+            # Try finding direct m3u8 links
+            for m in M3U8_RE.findall(html_text):
+                if m and m not in seen_urls:
+                    seen_urls.add(m)
+                    streams.append((category, f"{category.title()} Event", m))
+            return streams
         
-        # Heuristics for event links
-        if (".m3u8" in href or 
-            any(k in low for k in ("stream", "streams", "match", "game", "event", category_path.lower() if category_path else "")) or 
-            re.search(r"-\d+$", low)):
-            if full not in seen:
-                seen.add(full)
-                clean_text = clean_event_title(text)
-                if not clean_text or clean_text.startswith("http"):
-                    clean_text = ""
-                candidates.append((clean_text, full))
+        # Process each event
+        for event_name, event_url in events:
+            try:
+                # Skip if already seen
+                if event_url in seen_urls:
+                    continue
+                seen_urls.add(event_url)
+                
+                # Get the stream URL
+                m3u8_url = process_event_page(event_url, event_name, category)
+                
+                if m3u8_url:
+                    final_name = event_name if event_name else f"{category.title()} Event"
+                    streams.append((category, final_name, m3u8_url))
+                    print(f"  ✓ {final_name[:50]}...")
+                else:
+                    print(f"  ✗ No stream: {event_name[:40]}...")
+                    
+            except Exception as e:
+                print(f"  ✗ Error processing {event_name}: {e}")
+        
+    except Exception as e:
+        print(f"Failed to process category {category}: {e}")
     
-    # Fallback: search for m3u8 in page
-    if not candidates:
-        for m in M3U8_RE.findall(html_text):
-            if m and m not in seen:
-                seen.add(m)
-                candidates.append(("", m))
-    
-    print(f"  → Found {len(candidates)} candidate links")
-    return candidates
+    return streams
 
 
 def get_tv_data_for_category(cat_path):
@@ -334,49 +361,6 @@ def get_tv_data_for_category(cat_path):
             return TV_INFO[k]
     
     return TV_INFO["misc"]
-
-
-def process_category(cat):
-    """Process a single category and return streams."""
-    streams = []
-    seen_urls = set()
-    
-    try:
-        candidates = get_category_event_candidates(cat)
-    except Exception as e:
-        print(f"Failed to parse category {cat}: {e}")
-        return streams
-    
-    for anchor_text, href in candidates:
-        # Direct m3u8
-        if ".m3u8" in href:
-            clean = extract_m3u8_from_text(href, base=href) or href
-            if clean and clean not in seen_urls:
-                seen_urls.add(clean)
-                title = clean_event_title(anchor_text) if anchor_text else ""
-                if not title:
-                    title = derive_title_from_page(None, fallback_url=href)
-                if not title or title.startswith("http"):
-                    title = f"{cat.title() if cat else 'Sports'} Event"
-                streams.append(((cat or "misc"), title, clean))
-            continue
-        
-        # Process event page
-        result = process_event_page(href, anchor_text)
-        if result:
-            ev_title, ev_url = result
-            if ev_url and ".m3u8" in ev_url:
-                clean = extract_m3u8_from_text(ev_url, base=href) or ev_url
-                if clean and clean not in seen_urls:
-                    seen_urls.add(clean)
-                    final_title = ev_title if ev_title and not ev_title.startswith("http") else ""
-                    if not final_title and anchor_text:
-                        final_title = clean_event_title(anchor_text)
-                    if not final_title:
-                        final_title = f"{cat.title() if cat else 'Sports'} Event"
-                    streams.append(((cat or "misc"), final_title, clean))
-    
-    return streams
 
 
 def write_playlists(streams):
@@ -414,11 +398,9 @@ def main():
     all_streams = []
     
     # Process categories in parallel
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        # Submit all category tasks
+    with ThreadPoolExecutor(max_workers=3) as executor:
         future_to_cat = {executor.submit(process_category, cat): cat for cat in CATEGORIES}
         
-        # Collect results as they complete
         for future in as_completed(future_to_cat):
             cat = future_to_cat[future]
             try:
