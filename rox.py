@@ -5,7 +5,7 @@ from functools import partial
 from urllib.parse import urljoin, quote
 from datetime import datetime
 
-from playwright.async_api import Browser, Page, TimeoutError
+from playwright.async_api import async_playwright, Browser, Page, TimeoutError
 from selectolax.parser import HTMLParser
 
 from utils import Cache, Time, get_logger, leagues, network
@@ -25,7 +25,7 @@ VLC_OUTPUT = "rox_vlc.m3u8"
 TIVIMATE_OUTPUT = "rox_tivimate.m3u8"
 
 # Headers
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
 TIVIMATE_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
 REFERER = BASE_URL
 ORIGIN = BASE_URL
@@ -145,46 +145,51 @@ async def scrape(browser: Browser) -> None:
     if events := await get_events():
         log.info(f"Processing {len(events)} URL(s)")
 
-        async with network.event_context(browser) as context:
-            for i, ev in enumerate(events, start=1):
-                async with network.event_page(context) as page:
-                    handler = partial(
-                        process_event,
-                        url=(link := ev["link"]),
-                        url_num=i,
-                        page=page,
-                    )
+        # Use browser context from the passed browser
+        context = browser.contexts[0] if browser.contexts else await browser.new_context()
+        
+        for i, ev in enumerate(events, start=1):
+            page = await context.new_page()
+            try:
+                handler = partial(
+                    process_event,
+                    url=(link := ev["link"]),
+                    url_num=i,
+                    page=page,
+                )
 
-                    url = await network.safe_process(
-                        handler,
-                        url_num=i,
-                        semaphore=network.PW_S,
-                        log=log,
-                    )
+                url = await network.safe_process(
+                    handler,
+                    url_num=i,
+                    semaphore=network.PW_S,
+                    log=log,
+                )
 
-                    sport, event, ts = (
-                        ev["sport"],
-                        ev["event"],
-                        ev["timestamp"],
-                    )
+                sport, event, ts = (
+                    ev["sport"],
+                    ev["event"],
+                    ev["timestamp"],
+                )
 
-                    tvg_id, logo = leagues.get_tvg_info(sport, event)
+                tvg_id, logo = leagues.get_tvg_info(sport, event)
 
-                    key = f"[{sport}] {event} ({TAG})"
+                key = f"[{sport}] {event} ({TAG})"
 
-                    entry = {
-                        "url": url,
-                        "logo": logo,
-                        "base": BASE_URL,
-                        "timestamp": ts,
-                        "id": tvg_id or "Live.Event.us",
-                        "link": link,
-                    }
+                entry = {
+                    "url": url,
+                    "logo": logo,
+                    "base": BASE_URL,
+                    "timestamp": ts,
+                    "id": tvg_id or "Live.Event.us",
+                    "link": link,
+                }
 
-                    cached_urls[key] = entry
+                cached_urls[key] = entry
 
-                    if url:
-                        urls[key] = entry
+                if url:
+                    urls[key] = entry
+            finally:
+                await page.close()
 
         log.info(f"Collected and cached {len(urls)} event(s)")
 
@@ -269,8 +274,8 @@ async def main() -> None:
     log.info("Starting ROXIE playlist generator")
     
     try:
-        # Launch browser and scrape
-        async with network.playwright_manager() as pw:
+        # Launch playwright browser
+        async with async_playwright() as pw:
             browser = await pw.chromium.launch(headless=True)
             try:
                 await scrape(browser)
