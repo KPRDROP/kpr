@@ -30,6 +30,7 @@ CATEGORIES = {
     #14: "American Football",
     15: "Motor Sport",
     #16: "Hockey",
+    16: "NHL",
     17: "Fight MMA",
     18: "Boxing",
     19: "NCAA Sports",
