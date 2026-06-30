@@ -23,8 +23,10 @@ EMBED_BASE = "https://streams.center/"
 
 CATEGORIES = {
     #4: "Basketball",
-    9: "Football",
-    13: "Baseball",
+    #9: "Football",
+    9: "FIFA World Cup",,
+    #13: "Baseball",
+    13: "MLB",
     #14: "American Football",
     15: "Motor Sport",
     #16: "Hockey",
