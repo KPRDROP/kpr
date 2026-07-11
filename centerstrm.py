@@ -19,7 +19,7 @@ OUTPUT_FILE = Path("centerstrm.m3u")
 
 # API URL FROM SECRET
 BASE_URL = os.environ["CENTERSTRM_API"]
-EMBED_BASE = "https://streams.center/"
+EMBED_BASE = "https://streame.center/"
 
 CATEGORIES = {
     #4: "Basketball",
