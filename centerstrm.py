@@ -27,7 +27,7 @@ UA_ENC = (
 )
 
 CATEGORIES = {
-    #4: "Basketball",
+    4: "Basketball",
     9: "Football",
     13: "Baseball",
     #14: "American Football",
