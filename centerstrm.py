@@ -22,7 +22,7 @@ BASE_URL = os.environ["CENTERSTRM_API"]
 EMBED_BASE = "https://streame.center/"
 
 CATEGORIES = {
-    #4: "Basketball",
+    4: "Basketball",
     #9: "Football",
     9: "FIFA World Cup",
     #13: "Baseball",
