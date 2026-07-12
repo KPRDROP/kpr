@@ -36,7 +36,7 @@ jobs:
           echo "Starting StreamCenter scraper..."
           python centerstrm.py
 
-      -      - name: Commit & Push safely
+      - name: Commit & Push safely
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
