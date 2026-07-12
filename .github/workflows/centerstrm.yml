@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -27,14 +29,14 @@ jobs:
           playwright install --with-deps
           playwright install chromium
 
-      - name: Run scraper
+      - name: Run updater
         env:
           CENTERSTRM_API: ${{ secrets.CENTERSTRM_API }}
         run: |
           echo "Starting StreamCenter scraper..."
           python centerstrm.py
 
-      - name: Commit & Push safely
+      -      - name: Commit & Push safely
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
@@ -42,19 +44,20 @@ jobs:
           git add centerstrm.m3u
 
           if git diff --cached --quiet; then
-            echo "No changes to commit"
+            echo "No changes to commit."
             exit 0
           fi
 
           git commit -m "Update CenterStrm playlist"
 
-          # FIX: stash before rebase
-          if ! git push origin main; then
-            echo "Push rejected — rebasing safely..."
-            git stash
-            git pull --rebase origin main
-            git stash pop
-            git add centerstrm.m3u
-            git commit -m "Update CenterStrm playlist (rebased)" || true
-            git push origin main
+          # First push attempt
+          if git push origin HEAD:main; then
+            exit 0
           fi
+
+          echo "Remote updated. Rebasing..."
+
+          git fetch origin main
+          git rebase origin/main
+
+          git push origin HEAD:main
