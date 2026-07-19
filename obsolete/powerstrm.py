@@ -122,7 +122,7 @@ async def scrape():
 
             for card in cards:
 
-                # 🔥 Find closest previous category-title
+                #  Find closest previous category-title
                 category_locator = card.locator(
                     "xpath=preceding::div[contains(@class,'category-title')][1]"
                 )
