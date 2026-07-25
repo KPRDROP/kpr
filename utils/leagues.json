@@ -1,10 +1,18 @@
 {
   "leagues": {
+    "AUS.Rules.Football.Dummy.us": [
+      {
+        "AFL": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/afl.png",
+          "aliases": ["AUSTRALIAN FOOTBALL", "AUSTRALIAN FOOTBALL LEAGUE"]
+        }
+      }
+    ],
     "Baseball.Dummy.us": [
       {
         "BASEBALL": {
           "logo": "https://i.gyazo.com/3e1119df65dee3290afdad55b84ac332.webp",
-          "names": ["WBC", "WORLD BASEBALL CLASSIC"]
+          "aliases": ["WBC", "WORLD BASEBALL CLASSIC"]
         }
       }
     ],
@@ -12,13 +20,35 @@
       {
         "BASKETBALL": {
           "logo": "https://1000logos.net/wp-content/uploads/2024/04/Basketball-Emoji-1536x864.png",
-          "names": ["BALONCESTO"]
+          "aliases": ["BALONCESTO"]
         }
       },
       {
         "EUROLEAGUE": {
           "logo": "https://www.euroleaguebasketball.net/images/logo-default.png",
-          "names": ["BASKETBALL EUROLEAGUE", "EUROLEAGUE BASKETBALL"]
+          "aliases": ["BASKETBALL EUROLEAGUE", "EUROLEAGUE BASKETBALL"]
+        }
+      }
+    ],
+    "Darts.Dummy.us": [
+      {
+        "DARTS": {
+          "logo": "https://i.gyazo.com/4cd43600457c8611d5cd10d2c8bdf244.png",
+          "aliases": []
+        }
+      }
+    ],
+    "Football.Dummy.us": [
+      {
+        "AMERICAN FOOTBALL": {
+          "logo": "https://1000logos.net/wp-content/uploads/2024/01/Football-Emoji-500x281.png",
+          "aliases": []
+        }
+      },
+      {
+        "CFL": {
+          "logo": "https://i.gyazo.com/52d415fe2f1c6acfbbc4a928feb2f7ab.png",
+          "aliases": ["CANADIAN FOOTBALL", "CANADIAN FOOTBALL LEAGUE"]
         }
       }
     ],
@@ -26,13 +56,13 @@
       {
         "GOLF": {
           "logo": "https://i.gyazo.com/14a883f22796f631e6f97c34dbeb6ada.png",
-          "names": []
+          "aliases": []
         }
       },
       {
         "PGA": {
           "logo": "https://1000logos.net/wp-content/uploads/2024/10/PGA-Tour-Logo-500x281.png",
-          "names": ["GOLF PGA", "PGA TOUR"]
+          "aliases": ["GOLF LPGA", "GOLF PGA", "PGA TOUR"]
         }
       }
     ],
@@ -40,7 +70,7 @@
       {
         "HOCKEY": {
           "logo": "https://images.emojiterra.com/google/noto-emoji/unicode-15/color/512px/1f3d2.png",
-          "names": []
+          "aliases": []
         }
       }
     ],
@@ -48,7 +78,7 @@
       {
         "MLB": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png",
-          "names": [
+          "aliases": [
             "BASEBALL (MLB)",
             "MAJOR LEAGUE BASEBALL",
             "MLB BASEBALL",
@@ -61,7 +91,7 @@
       {
         "NBA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nba.png",
-          "names": [
+          "aliases": [
             "NATIONAL BASKETBALL ASSOCIATION",
             "NBA BASKETBALL",
             "NBA CUP",
@@ -77,7 +107,7 @@
       {
         "NCAA": {
           "logo": "https://1000logos.net/wp-content/uploads/2021/12/NCAA-Logo-500x281.png",
-          "names": [
+          "aliases": [
             "CBB",
             "CFB",
             "CFB PLAYOFFS",
@@ -113,8 +143,7 @@
       {
         "NFL": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nfl.png",
-          "names": [
-            "AMERICAN FOOTBALL",
+          "aliases": [
             "NATIONAL FOOTBALL LEAGUE",
             "NFL PLAYOFFS",
             "NFL PRESEASON",
@@ -127,7 +156,7 @@
       {
         "NHL": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png",
-          "names": [
+          "aliases": [
             "ICE HOCKEY (NHL)",
             "NATIONAL HOCKEY LEAGUE",
             "NHL HOCKEY",
@@ -141,13 +170,13 @@
       {
         "PAY PER VIEW": {
           "logo": null,
-          "names": ["PAY-PER-VIEW", "PAYPERVIEW", "PPV"]
+          "aliases": ["PAY-PER-VIEW", "PAYPERVIEW", "PPV"]
         }
       },
       {
         "WRESTLING": {
           "logo": null,
-          "names": ["AEW", "WRESTLING (NXT)", "WWE"]
+          "aliases": ["AEW", "WRESTLING (NXT)", "WWE", "WWE WRESTLING"]
         }
       }
     ],
@@ -155,7 +184,7 @@
       {
         "F1": {
           "logo": "https://1000logos.net/wp-content/uploads/2021/06/F1-logo-500x281.png",
-          "names": [
+          "aliases": [
             "FORMULA 1",
             "FORMULA 1 GP",
             "FORMULA ONE",
@@ -166,13 +195,21 @@
       {
         "MOTO GP": {
           "logo": "https://1000logos.net/wp-content/uploads/2021/03/MotoGP-Logo-500x281.png",
-          "names": ["MOTOGP"]
+          "aliases": ["MOTOGP"]
         }
       },
       {
         "RACING": {
           "logo": null,
-          "names": []
+          "aliases": []
+        }
+      }
+    ],
+    "Rugby.Dummy.us": [
+      {
+        "RUGBY": {
+          "logo": null,
+          "aliases": []
         }
       }
     ],
@@ -180,7 +217,7 @@
       {
         "2. BUNDESLIGA": {
           "logo": "https://i.gyazo.com/6c343e57acf501f4df3502d7ec646897.png",
-          "names": [
+          "aliases": [
             "BUNDESLIGA 2",
             "GERMAN 2 BUNDESLIGA",
             "GERMAN 2. BUNDESLIGA"
@@ -190,13 +227,13 @@
       {
         "3. LIGA": {
           "logo": "https://i.gyazo.com/9f4f2e8370377b6214b4103003196de7.png",
-          "names": ["GERMAN 3 LIGA"]
+          "aliases": ["GERMAN 3 LIGA"]
         }
       },
       {
         "AFC CHAMPIONS LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2200.png&scale=crop&cquality=40&location=origin&w=500&h=500",
-          "names": [
+          "aliases": [
             "ACL",
             "ACL ELITE",
             "AFC CHAMPIONS LEAGUE ELITE",
@@ -207,49 +244,127 @@
       {
         "AFRICA CUP OF NATIONS": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/76.png",
-          "names": ["AFCON"]
+          "aliases": ["AFCON"]
+        }
+      },
+      {
+        "ALLSVENSKAN": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/16.png",
+          "aliases": [
+            "FOTBOLLSALLSVENSKAN",
+            "SWEDEN ALLSVENSKAN",
+            "SWEDISH ALLSVENSKAN"
+          ]
+        }
+      },
+      {
+        "ASEAN CHAMPIONSHIP": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2261.png",
+          "aliases": ["AFF CHAMPIONSHIP", "AFF CUP", "ASEAN UNITED FC"]
         }
       },
       {
         "AUSTRIA 2 LIGA": {
           "logo": "https://i.gyazo.com/5d1464502b841fef6e5d78c8b0764b52.png",
-          "names": ["ADMIRAL 2. LIGA"]
+          "aliases": ["ADMIRAL 2. LIGA"]
         }
       },
       {
         "AUSTRIA BUNDESLIGA": {
           "logo": "https://i.gyazo.com/83d851fb1110f1e395690403f9cf01bb.webp",
-          "names": ["ADMIRAL BUNDESLIGA", "FEDERAL LEAGUE"]
+          "aliases": ["ADMIRAL BUNDESLIGA", "FEDERAL LEAGUE"]
         }
       },
       {
         "BELGIAN PRO LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/6.png",
-          "names": ["BELGIUM PRO LEAGUE", "JUPILER PRO LEAGUE"]
+          "aliases": ["BELGIUM PRO LEAGUE", "JUPILER PRO LEAGUE"]
+        }
+      },
+      {
+        "BOLIVIAN LIGA PROFESIONAL": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1949.png",
+          "aliases": [
+            "BOLIVIA DIVISION PROFESIONAL",
+            "BOLIVIA DIVISIÓN PROFESIONAL",
+            "FBF DIVISION PROFESIONAL",
+            "FBF DIVISIÓN PROFESIONAL",
+            "LIGA BOLIVIA"
+          ]
+        }
+      },
+      {
+        "BRASILEIRÃO": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/85.png",
+          "aliases": [
+            "BRASIL BRASILEIRÃO",
+            "BRASIL BRASILEIRÃO",
+            "BRASIL SERIE A",
+            "BRASILEIRAO",
+            "BRAZIL BRASILEIRAO",
+            "BRAZIL BRASILEIRÃO",
+            "BRAZIL SERIE A",
+            "BRAZILIAN SERIE A",
+            "BRAZILIAN SÉRIE A",
+            "CAMPEONATO BRASILEIRAO SERIE A",
+            "CAMPEONATO BRASILEIRO SERIE A",
+            "CAMPEONATO BRASILEIRO SÉRIE A",
+            "CAMPEONATO BRASILEIRÃO SÉRIE A"
+          ]
+        }
+      },
+      {
+        "BRASILEIRÃO SÉRIE B": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2299.png",
+          "aliases": [
+            "BRASIL BRASILEIRÃO",
+            "BRASIL BRASILEIRÃO",
+            "BRASIL SERIE B",
+            "BRAZIL BRASILEIRAO",
+            "BRAZIL BRASILEIRÃO",
+            "BRAZIL SERIE B",
+            "BRAZILIAN SERIE B",
+            "BRAZILIAN SÉRIE B",
+            "CAMPEONATO BRASILEIRAO SERIE B",
+            "CAMPEONATO BRASILEIRO SERIE B",
+            "CAMPEONATO BRASILEIRO SÉRIE B",
+            "CAMPEONATO BRASILEIRÃO SÉRIE B"
+          ]
         }
       },
       {
         "BUNDESLIGA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/10.png",
-          "names": ["BUNDESLIG", "GERMAN BUNDESLIGA", "GERMANY BUNDESLIGA"]
+          "aliases": ["BUNDESLIG", "GERMAN BUNDESLIGA", "GERMANY BUNDESLIGA"]
         }
       },
       {
         "CAF CHAMPIONS LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2391.png",
-          "names": ["AFRICA CAF CHAMPIONS LEAGUE"]
+          "aliases": ["AFRICA CAF CHAMPIONS LEAGUE"]
         }
       },
       {
         "CANADIAN PREMIER LEAGUE": {
           "logo": "https://i.gyazo.com/f61986e2ccfbf88f7d753b4e7f2c9fdc.png",
-          "names": ["CANPL", "CPL"]
+          "aliases": ["CANPL", "CPL"]
+        }
+      },
+      {
+        "CANADIAN PREMIER LEAGUE": {
+          "logo": "https://i.gyazo.com/b0b49528463ce3833cf287ba2e2e2d5d.png",
+          "aliases": [
+            "CANADA CANADIAN PREMIER LEAGUE",
+            "CANADA PREMIER LEAGUE",
+            "CANPL",
+            "CPL"
+          ]
         }
       },
       {
         "CHAMPIONSHIP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/24.png",
-          "names": [
+          "aliases": [
             "ENGLAND CHAMPIONSHIP",
             "ENGLISH CHAMPIONSHIP",
             "ENGLISH FOOTBALL LEAGUE CHAMPIONSHIP",
@@ -261,37 +376,37 @@
       {
         "CONCACAF CENTRAL AMERICAN CUP": {
           "logo": "https://b.fssta.com/uploads/application/soccer/competition-logos/CONCACAFCentralAmericanCup.png",
-          "names": ["COPA CENTROAMERICANA DE CONCACAF"]
+          "aliases": ["COPA CENTROAMERICANA DE CONCACAF"]
         }
       },
       {
         "CONCACAF CHAMPIONS LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2298.png",
-          "names": ["CONCACAF CHAMPIONS CUP"]
+          "aliases": ["CONCACAF CHAMPIONS CUP"]
         }
       },
       {
         "CONCACAF GOLD CUP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/59.png",
-          "names": ["COPA ORO CONCACAF"]
+          "aliases": ["COPA ORO CONCACAF"]
         }
       },
       {
         "CONCACAF W CHAMPIONS CUP": {
           "logo": "https://i.gyazo.com/c1caff728e9a32711254b98d008194b2.png",
-          "names": []
+          "aliases": []
         }
       },
       {
         "CONCACAF W CHAMPIONSHIP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/18969.png",
-          "names": []
+          "aliases": []
         }
       },
       {
         "COPA AMÉRICA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/83.png",
-          "names": [
+          "aliases": [
             "CONMEBOL COPA AMERICA",
             "COPA AMERICA",
             "COPA LIBERTADORES DE AMÉRICA",
@@ -302,13 +417,25 @@
       {
         "COPA CHILE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2331.png",
-          "names": ["CHILE CUP"]
+          "aliases": ["CHILE CUP"]
+        }
+      },
+      {
+        "COPA DE PRIMERA": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1892.png",
+          "aliases": [
+            "APF DIVISION DE HONOR",
+            "APF DIVISIÓN DE HONOR",
+            "PARAGUAY PRIMERA DIVISION",
+            "PARAGUAYAN PRIMERA DIVISION",
+            "PARAGUAYAN PRIMERA DIVISIÓN"
+          ]
         }
       },
       {
         "COPA DEL REY": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/80.png",
-          "names": [
+          "aliases": [
             "KING'S CUP",
             "KINGS CUP",
             "LA COPA",
@@ -321,7 +448,7 @@
       {
         "COPA LIBERTADORES": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/58.png",
-          "names": [
+          "aliases": [
             "CONMEBOL LIBERTADORES",
             "COPA LIBERTADORES DE AMERICA",
             "COPA LIBERTADORES DE AMÉRICA",
@@ -332,31 +459,35 @@
       {
         "COPA SUDAMERICANA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1208.png",
-          "names": ["CONMEBOL SUDAMERICANA", "COPA CONMEBOL SUDAMERICANA"]
+          "aliases": [
+            "CONMEBOL SUDAMERICANA",
+            "COPA CONMEBOL SUDAMERICANA",
+            "SOUTH AMERICA COPA SUDAMERICANA"
+          ]
         }
       },
       {
         "COPPA ITALIA": {
           "logo": "https://i.gyazo.com/8fd7660cca8f8b690f50979b72b295c3.png",
-          "names": ["ITALIAN CUP"]
+          "aliases": ["ITALIAN CUP"]
         }
       },
       {
         "COUPE DE FRANCE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/182.png",
-          "names": ["FRANCE CUP", "FRENCH CUP"]
+          "aliases": ["FRANCE CUP", "FRENCH CUP"]
         }
       },
       {
         "EERSTE DIVISIE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/105.png",
-          "names": ["KEUKEN KAMPIOEN DIVISIE"]
+          "aliases": ["KEUKEN KAMPIOEN DIVISIE"]
         }
       },
       {
         "EFL": {
           "logo": "https://i.gyazo.com/c8842fbcb2eeb6a53bc69fa6055b8b5d.png",
-          "names": [
+          "aliases": [
             "CARABAO CUP",
             "EFL CUP",
             "ENGLISH CARABAO CUP",
@@ -369,7 +500,7 @@
       {
         "EFL LEAGUE ONE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/25.png",
-          "names": [
+          "aliases": [
             "ENGLAND LEAGUE TWO",
             "ENGLISH FOOTBALL LEAGUE ONE",
             "ENGLISH LEAGUE ONE",
@@ -381,7 +512,7 @@
       {
         "EFL LEAGUE TWO": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/26.png",
-          "names": [
+          "aliases": [
             "ENGLAND LEAGUE TWO",
             "ENGLISH FOOTBALL LEAGUE TWO",
             "ENGLISH LEAGUE TWO",
@@ -393,13 +524,24 @@
       {
         "EKSTRAKLASA": {
           "logo": "https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png",
-          "names": ["PKO BANK POLSKI EKSTRAKLASA", "POLAND EKSTRAKLASA"]
+          "aliases": [
+            "EKSTRAKLASA - REGULAR SEASON",
+            "PKO BANK POLSKI EKSTRAKLASA",
+            "POLAND EKSTRAKLASA",
+            "POLAND – EKSTRAKLASA"
+          ]
+        }
+      },
+      {
+        "ELITESERIEN": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/13.png",
+          "aliases": ["NORWEGIAN ELITESERIEN"]
         }
       },
       {
         "EREDIVISIE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/11.png",
-          "names": [
+          "aliases": [
             "DUTCH EERSTE EREDIVISIE",
             "DUTCH EREDIVISIE",
             "NETHERLANDS EREDIVISIE",
@@ -410,7 +552,7 @@
       {
         "FA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/40.png&w=500&h=500",
-          "names": [
+          "aliases": [
             "EMIRATES FA CUP",
             "ENGLISH FA CUP",
             "FA CUP",
@@ -421,41 +563,32 @@
       {
         "FIFA CLUB WORLD CUP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1932.png",
-          "names": ["FIFA CWC"]
+          "aliases": ["FIFA CWC"]
         }
       },
       {
         "FIFA WORLD CUP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/4.png",
-          "names": [
+          "aliases": [
             "COPA DEL MUNDO",
-            "COPA DEL MUNDO 2026",
             "COPA MUNDIAL",
             "FIFA WC",
-            "FIFA WORLD CUP 2026",
             "WC",
             "WORLD CHAMPIONSHIP",
-            "WORLD CUP",
-            "WORLD CUP 2026"
+            "WORLD CUP"
           ]
         }
       },
       {
         "FIFA'S WOMEN WORLD CUP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/60.png",
-          "names": ["FIFA WOMEN WC"]
-        }
-      },
-      {
-        "FOOTBALL": {
-          "logo": "https://i.gyazo.com/1c4aa937f5ea01b0f29bb27adb59884c.png",
-          "names": []
+          "aliases": ["FIFA WOMEN WC"]
         }
       },
       {
         "FRAUEN BUNDESLIGA": {
           "logo": "https://i.gyazo.com/d13d4c0330be96801aa4b2d8b83d3a8f.png",
-          "names": [
+          "aliases": [
             "GERMAN WOMEN BUNDESLIGA",
             "GOOGLE PIXEL FRAUEN-BUNDESLIGA",
             "WOMEN'S FEDERAL LEAGUE"
@@ -465,25 +598,25 @@
       {
         "GREECE CUP": {
           "logo": "https://i.gyazo.com/f80306df9b94a90f991b3cce386dc2b5.png",
-          "names": ["BETSSON GREECE UP", "GREEK CUP", "GREEK FOOTBALL CUP"]
+          "aliases": ["BETSSON GREECE UP", "GREEK CUP", "GREEK FOOTBALL CUP"]
         }
       },
       {
         "J1 LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2199.png",
-          "names": ["J.LEAGUE", "JAPANESE J.LEAGUE", "MEIJI YASUDA J1 LEAGUE"]
+          "aliases": ["J.LEAGUE", "JAPANESE J.LEAGUE", "MEIJI YASUDA J1 LEAGUE"]
         }
       },
       {
         "K LEAGUE 1": {
           "logo": "https://i.gyazo.com/721eba6c954e2015d999ead7a0bd5c69.png",
-          "names": []
+          "aliases": []
         }
       },
       {
         "LA LIGA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png",
-          "names": [
+          "aliases": [
             "CAMPEONATO NACIONAL DE LIGA DE PRIMERA DIVISION",
             "CAMPEONATO NACIONAL DE LIGA DE PRIMERA DIVISIÓN",
             "LA-LIGA",
@@ -500,7 +633,7 @@
       {
         "LA LIGA 2": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/107.png",
-          "names": [
+          "aliases": [
             "CAMPEONATO NACIONAL DE LIGA DE SEGUNDA DIVISION",
             "CAMPEONATO NACIONAL DE LIGA DE SEGUNDA DIVISIÓN",
             "LALIGA 2",
@@ -517,7 +650,7 @@
       {
         "LA PRIMERA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2244.png",
-          "names": [
+          "aliases": [
             "LA LIGA MAYOR",
             "PRIMERA DIVISION DE FUTBOL PROFESIONAL DE EL SALVADOR",
             "PRIMERA DIVISIÓN DE EL SALVADOR",
@@ -529,19 +662,68 @@
       {
         "LEAGUES CUP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2410.png",
-          "names": []
+          "aliases": []
         }
       },
       {
-        "LIGA DE EXPANSIÓN MX": {
+        "LIGA 1": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1813.png",
+          "aliases": [
+            "LIGA 1 DE FUTBOL PROFESIONAL",
+            "LIGA 1 DE FÚTBOL PROFESIONAL",
+            "LIGA 1 TE APUESTO",
+            "PERU LIGA 1",
+            "PERU LIGA 1 APERTURA",
+            "PERU LIGA I",
+            "PERU LIGA I APERTURA",
+            "PERU PRIMERA DIVISION",
+            "PERUVIAN LIGA 1",
+            "PERUVIAN LIGA I"
+          ]
+        }
+      },
+      {
+        "LIGA AUF URUGUAYA": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1592.png",
+          "aliases": [
+            "LIGA PROFESIONAL DE PRIMERA DIVISION",
+            "LIGA PROFESIONAL DE PRIMERA DIVISIÓN",
+            "LIGA URUGUAY",
+            "URUGUAY LIGA AUF"
+          ]
+        }
+      },
+      {
+        "LIGA BBVA EXPANSIÓN MX": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2306.png",
-          "names": ["LIGA BBVA EXPANSIÓN MX"]
+          "aliases": [
+            "LIGA BBVA EXPANSION MX",
+            "LIGA DE EXPANSION MX",
+            "LIGA DE EXPANSIÓN MX",
+            "MEXICAN LIGA DE EXPANSION MX",
+            "MEXICAN LIGA DE EXPANSIÓN MX",
+            "MEXICO LIGA DE EXPANSION MX",
+            "MEXICO LIGA DE EXPANSIÓN MX"
+          ]
+        }
+      },
+      {
+        "LIGA DE PRIMERA": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/86.png",
+          "aliases": [
+            "CAMPEONATO NACIONAL DE LA PRIMERA DIVISION DEL FUTBOL PROFESIONAL CHILENO",
+            "CAMPEONATO NACIONAL DE LA PRIMERA DIVISIÓN DEL FÚTBOL PROFESIONAL CHILENO",
+            "CHILE LIGA DE PRIMERA",
+            "CHILE PRIMERA DIVISION",
+            "CHILE PRIMERA DIVISIÓN",
+            "LIGA CHILE"
+          ]
         }
       },
       {
         "LIGA FPD": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2245.png",
-          "names": [
+          "aliases": [
             "COSTA RICAN PRIMERA DIVISION",
             "LIGA DE FUTBOL DE PRIMERA DIVISION",
             "LIGA DE FÚTBOL DE PRIMERA DIVISIÓN",
@@ -554,7 +736,7 @@
       {
         "LIGA GUATE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2248.png",
-          "names": [
+          "aliases": [
             "LIGA GUATE BANRURAL",
             "LIGA NACIONAL",
             "LIGA NACIONAL DE FUTBOL DE GUATEMALA",
@@ -565,7 +747,7 @@
       {
         "LIGA HONDUBET": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2247.png",
-          "names": [
+          "aliases": [
             "HONDURAN LIGA NACIONAL",
             "LIGA NACIONAL DE FUTBOL PROFESIONAL DE HONDURAS",
             "LIGA NACIONAL DE FÚTBOL PROFESIONAL DE HONDURAS"
@@ -575,10 +757,11 @@
       {
         "LIGA I": {
           "logo": "https://i.gyazo.com/3fd4b38d5263ca391e45850eb58d11e6.png",
-          "names": [
+          "aliases": [
             "ROMANIA LIGA 1",
             "ROMANIA LIGA I",
             "ROMANIA SUPERLIGA",
+            "ROMANIA – LIGA I",
             "ROMANIAN LIGA 1",
             "ROMANIAN LIGA I",
             "SUPERLIGA"
@@ -588,7 +771,7 @@
       {
         "LIGA MX": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22.png",
-          "names": [
+          "aliases": [
             "LIGA BBVA MX",
             "MEXICAN LIGA BBVA MX",
             "MEXICO LIGA MX",
@@ -600,15 +783,26 @@
       {
         "LIGA MX FEMENIL": {
           "logo": "https://i.gyazo.com/ee0e1ba5ea748951b7ec7f46fb411c4f.png",
-          "names": ["LIGA BBVA MX FEMENIL", "MEXICO WOMEN LIGA MX"]
+          "aliases": ["LIGA BBVA MX FEMENIL", "MEXICO WOMEN LIGA MX"]
         }
       },
       {
         "LIGA PROFESIONAL ARGENTINA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1.png",
-          "names": [
+          "aliases": [
+            "ARGENTINA LIGA PROFESIONAL",
+            "ARGENTINA PRIMERA DIVISION",
+            "ARGENTINA PRIMERA DIVISIÓN",
+            "ARGENTINA – PRIMERA DIVISION",
+            "ARGENTINA – PRIMERA DIVISIÓN",
+            "ARGENTINE LIGA PROFESIONAL",
+            "ARGENTINE LIGA PROFESIONAL DE FUTBOL",
+            "ARGENTINE LIGA PROFESIONAL DE FÚTBOL",
+            "ARGENTINE LPF",
             "ARGENTINE PRIMERA DIVISION",
             "ARGENTINE PRIMERA DIVISIÓN",
+            "LIGA ARGENTINA",
+            "LIGA PROFESIONAL",
             "LIGA PROFESIONAL DE FUTBOL",
             "LIGA PROFESIONAL DE FÚTBOL",
             "PRIMERA DIVISION",
@@ -620,49 +814,57 @@
       {
         "LIGUE 1": {
           "logo": "https://ligue1.com/images/Logo_Ligue_1.webp",
-          "names": ["FRANCE LIGUE 1", "FRENCH LIGUE 1", "LIGUE 1 FRANCE"]
+          "aliases": ["FRANCE LIGUE 1", "FRENCH LIGUE 1", "LIGUE 1 FRANCE"]
         }
       },
       {
         "LIGUE 2": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/96.png",
-          "names": ["FRANCE LIGUE 2", "FRENCH LIGUE 2"]
+          "aliases": ["FRANCE LIGUE 2", "FRENCH LIGUE 2"]
         }
       },
       {
         "MLS": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/19.png",
-          "names": ["MAJOR LEAGUE SOCCER"]
+          "aliases": [
+            "MAJOR LEAGUE SOCCER",
+            "MLS NEXT PRO",
+            "USA/CANADA MAJOR LEAGUE SOCCER"
+          ]
         }
       },
       {
         "NORTHERN SUPER LEAGUE": {
           "logo": "https://i.gyazo.com/042f5bf51ab721bede2d9b56ce1818ae.png",
-          "names": ["NSL"]
+          "aliases": ["NSL"]
         }
       },
       {
         "NWSL": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2323.png",
-          "names": ["NATIONAL WOMEN'S SOCCER LEAGUE", "NWSL WOMEN"]
+          "aliases": [
+            "NATIONAL WOMEN'S SOCCER LEAGUE",
+            "NWSL WOMEN",
+            "USA NWSL WOMEN"
+          ]
         }
       },
       {
         "NWSL CHALLENGE CUP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2445.png",
-          "names": []
+          "aliases": []
         }
       },
       {
         "PREMIER LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/23.png",
-          "names": ["ENGLISH PREMIER LEAGUE", "EPL"]
+          "aliases": ["ENGLISH PREMIER LEAGUE", "EPL"]
         }
       },
       {
         "PRIMEIRA LIGA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/14.png",
-          "names": [
+          "aliases": [
             "LIGA PORTUGAL",
             "PORTUGAL PRIMEIRA LIGA",
             "PORTUGUESE PRIMEIRA LIGA"
@@ -672,55 +874,73 @@
       {
         "PRIMERA A": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png",
-          "names": ["COLOMBIA PRIMERA A", "COLOMBIAN PRIMERA A"]
+          "aliases": [
+            "CATEGORÍA PRIMERA A",
+            "COLOMBIA PRIMERA A",
+            "COLOMBIAN PRIMERA A",
+            "LIGA BETPLAY",
+            "LIGA BETPLAY DIMAYOR",
+            "LIGA COLOMBIA",
+            "LIGA DIMAYOR"
+          ]
         }
       },
       {
         "PRIMERA B": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2295.png",
-          "names": ["COLOMBIA PRIMERA B", "COLOMBIAN PRIMERA B"]
+          "aliases": ["COLOMBIA PRIMERA B", "COLOMBIAN PRIMERA B"]
+        }
+      },
+      {
+        "RUSSIAN PREMIER LEAGUE": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/106.png",
+          "aliases": [
+            "RPL",
+            "RUSSIA RUSSIAN PREMIER LEAGUE",
+            "RUSSIAN PREMIER LIGA"
+          ]
         }
       },
       {
         "SAUDI PRO LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2488.png",
-          "names": ["ROSHN SAUDI LEAGUE", "SAUDI PREMIER LEAGUE"]
+          "aliases": ["ROSHN SAUDI LEAGUE", "SAUDI PREMIER LEAGUE"]
         }
       },
       {
         "SCOTTISH CHAMPIONSHIP": {
           "logo": "https://i.gyazo.com/e1a8b0c2a85a16494bcee4a3422ba514.png",
-          "names": []
+          "aliases": []
         }
       },
       {
         "SCOTTISH PREMIERSHIP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/45.png",
-          "names": ["PREMIERSHIP", "SPFL"]
+          "aliases": ["PREMIERSHIP", "SPFL"]
         }
       },
       {
         "SERBIA SUPERLIGA": {
           "logo": "https://i.gyazo.com/0992f078dcacfef489477fc7bb1f5220.webp",
-          "names": ["MOZZART SUPERLIGA", "SERBIAN SUPER LEAGUE"]
+          "aliases": ["MOZZART SUPERLIGA", "SERBIAN SUPER LEAGUE"]
         }
       },
       {
         "SERIE A": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png",
-          "names": ["ITALIAN SERIE A", "ITALY SERIE A", "SERIE-A"]
+          "aliases": ["ITALIAN SERIE A", "ITALY SERIE A", "SERIE-A"]
         }
       },
       {
         "SERIE B": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/99.png",
-          "names": ["ITALIAN SERIE B", "ITALY SERIE B", "SERIE-B"]
+          "aliases": ["ITALIAN SERIE B", "ITALY SERIE B", "SERIE-B"]
         }
       },
       {
         "SINGAPORE PREMIER LEAGUE": {
-          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2292.png",
-          "names": [
+          "logo": "https://i.gyazo.com/5e75574af1ca8a6cef587618b0f50c04.png",
+          "aliases": [
             "AIA SINGAPORE PREMIER LEAGUE",
             "SINGAPOREAN PREMIER LEAGUE"
           ]
@@ -729,13 +949,22 @@
       {
         "SOCCER": {
           "logo": "https://i.gyazo.com/1c4aa937f5ea01b0f29bb27adb59884c.png",
-          "names": ["FUTBOL", "FÚTBOL"]
+          "aliases": [
+            "CLUB FRIENDLIES",
+            "CLUB FRIENDLY GAMES",
+            "CONCACAF SUB-20",
+            "FOOTBALL",
+            "FUTBOL",
+            "FÚTBOL",
+            "WORLD CLUB FRIENDLY",
+            "WORLD CUP QUALIFIERS"
+          ]
         }
       },
       {
         "SUPER LEAGUE GREECE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/98.png",
-          "names": [
+          "aliases": [
             "A1 ETHNIKI KATIGORIA",
             "GREECE SUPER LEAGUE",
             "GREEK SUPER LEAGUE",
@@ -746,7 +975,7 @@
       {
         "SÜPER LIG": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/18.png",
-          "names": [
+          "aliases": [
             "SUPER LIG",
             "SUPERLIG",
             "SÜPERLIG",
@@ -758,25 +987,25 @@
       {
         "TURKEY 1 LIG": {
           "logo": "https://i.gyazo.com/730673f84223a85c9b9ae66123907bba.png",
-          "names": ["TFF 1. LIG", "TRENDYOL 1. LIG", "TURKEY LIG 1"]
+          "aliases": ["TFF 1. LIG", "TRENDYOL 1. LIG", "TURKEY LIG 1"]
         }
       },
       {
         "U.S. OPEN CUP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/69.png",
-          "names": ["LAMAR HUNT U.S. OPEN CUP", "US OPEN CUP", "USOC"]
+          "aliases": ["LAMAR HUNT U.S. OPEN CUP", "US OPEN CUP", "USOC"]
         }
       },
       {
         "UEFA CHAMPIONS LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2.png",
-          "names": ["CHAMPIONS LEAGUE", "EUROPE UEFA CHAMPIONS LEAGUE", "UCL"]
+          "aliases": ["CHAMPIONS LEAGUE", "EUROPE UEFA CHAMPIONS LEAGUE", "UCL"]
         }
       },
       {
         "UEFA CONFERENCE LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/20296.png",
-          "names": [
+          "aliases": [
             "EUROPA CONFERENCE LEAGUE",
             "EUROPE UEFA CONFERENCE LEAGUE",
             "UEFA EUROPA CONFERENCE LEAGUE"
@@ -786,25 +1015,31 @@
       {
         "UEFA EUROPA LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2310.png",
-          "names": ["EUROPA LEAGUE"]
+          "aliases": ["EUROPA LEAGUE"]
         }
       },
       {
         "UEFA EUROPEAN CHAMPIONSHIP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/74.png",
-          "names": ["EUROS", "UEFA EUROS"]
+          "aliases": ["EUROS", "UEFA EUROS"]
+        }
+      },
+      {
+        "UEFA NATIONS LEAGUE": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2395.png",
+          "aliases": ["NATIONS LEAGUE", "UEFA NATIONS"]
         }
       },
       {
         "UEFA SUPER CUP": {
           "logo": "https://i.gyazo.com/3b786181aba130321b85c0e2f9604652.png",
-          "names": ["EUROPEAN SUPER CUP"]
+          "aliases": ["EUROPEAN SUPER CUP"]
         }
       },
       {
         "UEFA WOMEN'S CHAMPIONS LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2408.png",
-          "names": [
+          "aliases": [
             "UCL WOMEN",
             "UEFA WOMEN",
             "UEFA WOMEN CHAMPIONS LEAGUE",
@@ -816,37 +1051,31 @@
       {
         "USL CHAMPIONSHIP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2292.png",
-          "names": ["UNITED SOCCER LEAGUE CHAMPIONSHIP", "USLC"]
+          "aliases": ["UNITED SOCCER LEAGUE CHAMPIONSHIP", "USLC"]
         }
       },
       {
         "USL CUP": {
           "logo": "https://i.gyazo.com/d4b236306f77980094ebd1488138d837.png",
-          "names": ["USL CUP SOCCER"]
+          "aliases": ["USL CUP SOCCER"]
         }
       },
       {
         "USL LEAGUE ONE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2452.png",
-          "names": ["UNITED SOCCER LEAGUE LEAGUE ONE", "USL 1", "USL1"]
+          "aliases": ["UNITED SOCCER LEAGUE LEAGUE ONE", "USL 1", "USL1"]
         }
       },
       {
         "USL LEAGUE TWO": {
           "logo": "https://i.gyazo.com/2eb31f1e8e120c648d7f8b4547fec91a.png",
-          "names": ["UNITED SOCCER LEAGUE LEAGUE TWO", "USL 2", "USL2"]
-        }
-      },
-      {
-        "WORLD CUP QUALIFIERS": {
-          "logo": "https://i.gyazo.com/1c4aa937f5ea01b0f29bb27adb59884c.png",
-          "names": []
+          "aliases": ["UNITED SOCCER LEAGUE LEAGUE TWO", "USL 2", "USL2"]
         }
       },
       {
         "WSL": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2314.png",
-          "names": [
+          "aliases": [
             "BARCLAY'S WOMEN'S SUPER LEAGUE",
             "ENGLISH WOMEN SUPER LEAGUE",
             "ENGLISH WOMEN'S SUPER LEAGUE",
@@ -860,10 +1089,11 @@
       {
         "TENNIS": {
           "logo": "https://i.gyazo.com/b5e83afc3a75dacfb831abe975fd3821.png",
-          "names": [
+          "aliases": [
             "AUSTRALIAN OPEN",
             "FRENCH OPEN",
             "TENNIS ATP",
+            "TENNIS WTA",
             "US OPEN",
             "WIMBLEDON"
           ]
@@ -874,7 +1104,7 @@
       {
         "UFC": {
           "logo": "https://1000logos.net/wp-content/uploads/2017/06/Logo-UFC-500x313.png",
-          "names": ["UFC FIGHT NIGHT"]
+          "aliases": ["UFC FIGHT NIGHT"]
         }
       }
     ],
@@ -882,12 +1112,46 @@
       {
         "WNBA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/wnba.png",
-          "names": ["NBA W", "WOMEN'S NATIONAL BASKETBALL ASSOCIATION"]
+          "aliases": [
+            "NBA W",
+            "WNBA BASKETBALL",
+            "WOMEN'S NATIONAL BASKETBALL ASSOCIATION"
+          ]
         }
       }
     ]
   },
   "teams": {
+    "CFL": [
+      "Alouettes",
+      "Argonauts",
+      "Blue Bombers",
+      "Bombers",
+      "British Columbia",
+      "British Columbia Lions",
+      "Calgary",
+      "Calgary Stampeders",
+      "Edmonton",
+      "Edmonton Elks",
+      "Elks",
+      "Hamilton",
+      "Hamilton Tiger-Cats",
+      "Lions",
+      "Montreal",
+      "Montreal Alouettes",
+      "Ottawa",
+      "Ottawa RedBlacks",
+      "RedBlacks",
+      "Roughriders",
+      "Saskatchewan",
+      "Saskatchewan Roughriders",
+      "Stampeders",
+      "Tiger-Cats",
+      "Toronto",
+      "Toronto Argonauts",
+      "Winnipeg",
+      "Winnipeg Blue Bombers"
+    ],
     "MLB": [
       "Angels",
       "Arizona",
