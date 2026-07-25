@@ -1,20 +1,30 @@
 import json
 import re
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytz
 
 
+@dataclass(kw_only=True, slots=True)
+class Event:
+    sport: str
+    name: str | None = None
+    link: str
+    timestamp: float | None = None
+
+
 class Time(datetime):
-    ZONES = {
+    ZONES: dict[str, timezone] = {
         "CET": pytz.timezone("Europe/Berlin"),
         "ET": pytz.timezone("America/New_York"),
-        "PST": pytz.timezone("America/Los_Angeles"),
+        "MSK": pytz.timezone("Europe/Moscow"),
+        # "PT": pytz.timezone("America/Los_Angeles"),
         "UTC": timezone.utc,
     }
 
-    ZONES["EDT"] = ZONES["EST"] = ZONES["ET"]
+    ZONES["EST"] = ZONES["ET"]
 
     TZ = ZONES["ET"]
 
@@ -28,11 +38,7 @@ class Time(datetime):
 
     @classmethod
     def default_8(cls) -> float:
-        return (
-            cls.now()
-            .replace(hour=8, minute=0, second=0, microsecond=0, tzinfo=cls.TZ)
-            .timestamp()
-        )
+        return cls.now().replace(hour=8, minute=0, second=0, microsecond=0).timestamp()
 
     def delta(self, **kwargs) -> "Time":
         return self.from_ts((self + timedelta(**kwargs)).timestamp())
@@ -81,15 +87,12 @@ class Time(datetime):
                 "%Y-%m-%d %I:%M %p",
                 "%Y-%m-%d %H:%M %p",
                 "%Y-%m-%dT%H:%M:%S",
-                "%Y-%m-%dT%H:%M:%SZ",
-                "%Y-%m-%dT%H:%M:%S%z",
-                "%Y-%m-%dT%H:%M:%S.%fZ",
                 "%Y/%m/%d %H:%M",
                 "%Y/%m/%d %H:%M:%S",
-                "%Y/%m/%dT%H:%M:%S.%fZ",
                 "%m/%d/%Y %H:%M",
                 "%m/%d/%Y %I:%M %p",
                 "%m/%d/%Y %H:%M:%S",
+                "%d/%m/%Y %I:%M %p",
                 "%a, %d %b %Y %H:%M",
                 "%a, %d %b %Y %H:%M:%S %z",
                 "%A, %b %d, %Y %H:%M",
@@ -125,8 +128,8 @@ class Leagues:
     def teams(self, league: str) -> list[str]:
         return self.data["teams"].get(league, [])
 
-    def info(self, name: str) -> tuple[str | None, str]:
-        name = name.upper()
+    def info(self, sport: str) -> tuple[str | None, str]:
+        sport = sport.upper()
 
         if match := next(
             (
@@ -134,7 +137,7 @@ class Leagues:
                 for tvg_id, leagues in self.data["leagues"].items()
                 for league_entry in leagues
                 for league_name, league_data in league_entry.items()
-                if name == league_name or name in league_data.get("names", [])
+                if sport == league_name or sport in league_data.get("aliases", [])
             ),
             None,
         ):
@@ -153,12 +156,13 @@ class Leagues:
         pattern = re.compile(r"\s+(?:-|vs\.?|at|@)\s+", re.I)
 
         if pattern.search(event):
-            t1, t2 = re.split(pattern, event)
+            t1, t2 = pattern.split(event)[:2]
 
             return any(t in self.teams(league) for t in (t1.strip(), t2.strip()))
 
         return event.lower() in {
             "nfl redzone",
+            "nfl red zone",
             "redzone",
             "red zone",
             "college gameday",
@@ -168,22 +172,24 @@ class Leagues:
     def get_tvg_info(
         self,
         sport: str,
-        event: str,
+        name: str,
     ) -> tuple[str | None, str]:
 
         match sport:
             case "American Football" | "NFL":
-                return (
-                    self.info("NFL")
-                    if self.is_valid(event, "NFL")
-                    else self.info("NCAA")
-                )
+                if self.is_valid(name, "NFL"):
+                    return self.info("NFL")
+
+                elif self.is_valid(name, "CFL"):
+                    return self.info("CFL")
+
+                return self.info("American Football")
 
             case "Basketball" | "NBA":
-                if self.is_valid(event, "NBA"):
+                if self.is_valid(name, "NBA"):
                     return self.info("NBA")
 
-                elif self.is_valid(event, "WNBA"):
+                elif self.is_valid(name, "WNBA"):
                     return self.info("WNBA")
 
                 return self.info("Basketball")
@@ -191,14 +197,14 @@ class Leagues:
             case "Ice Hockey" | "Hockey":
                 return (
                     self.info("NHL")
-                    if self.is_valid(event, "NHL")
+                    if self.is_valid(name, "NHL")
                     else self.info("Hockey")
                 )
 
             case "Baseball" | "MLB":
                 return (
                     self.info("MLB")
-                    if self.is_valid(event, "MLB")
+                    if self.is_valid(name, "MLB")
                     else self.info("Baseball")
                 )
 
@@ -208,4 +214,4 @@ class Leagues:
 
 leagues = Leagues()
 
-__all__ = ["leagues", "Time"]
+__all__ = ["leagues", "Event", "Time"]
