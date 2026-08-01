@@ -212,13 +212,23 @@
       {
         "FIGHTING": {
           "logo": null,
-          "aliases": []
+          "aliases": ["COMBAT SPORTS"]
         }
       },
       {
         "PAY PER VIEW": {
           "logo": null,
           "aliases": ["PAY-PER-VIEW", "PAYPERVIEW", "PPV"]
+        }
+      },
+      {
+        "PFL": {
+          "logo": "https://images.seeklogo.com/logo-png/59/2/professional-fighters-league-pfl-logo-png_seeklogo-592299.png",
+          "aliases": [
+            "MMA PFL",
+            "PROFESSIONAL FIGHTERS LEAGUE",
+            "PROFESSIONAL FIGHTERS LEAGUE (PFL)"
+          ]
         }
       },
       {
@@ -372,6 +382,7 @@
             "FOTBOLLSALLSVENSKAN",
             "SWEDEN - ALLSVENSKAN",
             "SWEDEN ALLSVENSKAN",
+            "SWEDEN WOMEN ALLSVENSKAN",
             "SWEDISH ALLSVENSKAN"
           ]
         }
@@ -385,13 +396,17 @@
       {
         "AUSTRIA 2 LIGA": {
           "logo": "https://i.gyazo.com/5d1464502b841fef6e5d78c8b0764b52.png",
-          "aliases": ["ADMIRAL 2. LIGA"]
+          "aliases": ["2. LIGA", "ADMIRAL 2. LIGA"]
         }
       },
       {
         "AUSTRIA BUNDESLIGA": {
           "logo": "https://i.gyazo.com/83d851fb1110f1e395690403f9cf01bb.webp",
-          "aliases": ["ADMIRAL BUNDESLIGA", "FEDERAL LEAGUE"]
+          "aliases": [
+            "ADMIRAL BUNDESLIGA",
+            "AUSTRIAN BUNDESLIGA",
+            "FEDERAL LEAGUE"
+          ]
         }
       },
       {
@@ -404,6 +419,12 @@
         "BELGIAN PRO LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/6.png",
           "aliases": ["BELGIUM PRO LEAGUE", "JUPILER PRO LEAGUE"]
+        }
+      },
+      {
+        "BELGIUM SUPER CUP": {
+          "logo": "https://b.fssta.com/uploads/application/soccer/competition-logos/Belguim-Super-Cup.vresize.500.500.medium.0.png",
+          "aliases": ["PRO LEAGUE SUPERCUP", "SUPERCOPA DE B├ëLGICA"]
         }
       },
       {
@@ -466,7 +487,8 @@
             "BULGARIA - PARVA LIGA",
             "BULGARIA PARVA LIGA",
             "BULGARIAN FIRST LEAGUE",
-            "FIRST PROFESSIONAL LEAGUE"
+            "FIRST PROFESSIONAL LEAGUE",
+            "PARVA LIGA"
           ]
         }
       },
@@ -596,11 +618,18 @@
         }
       },
       {
+        "COPA DE BRASIL": {
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/528.png",
+          "aliases": ["BRAZIL CUP", "COPA DO BRASIL"]
+        }
+      },
+      {
         "COPA DE PRIMERA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1892.png",
           "aliases": [
             "APF DIVISION DE HONOR",
             "APF DIVISIÓN DE HONOR",
+            "LIGA PARAGUAY",
             "LIGA PARAGUAYA",
             "PARAGUAY PRIMERA DIVISION",
             "PARAGUAYAN PRIMERA DIVISION",
@@ -662,6 +691,17 @@
         }
       },
       {
+        "CROATIAN FOOTBALL LEAGUE": {
+          "logo": "https://1000logos.net/wp-content/uploads/2022/01/Prva-Hrvatska-Nogometna-Liga-logo-1992.png",
+          "aliases": [
+            "CROATIA 1 HNL",
+            "CROATIA 1. HNL",
+            "HRVATSKA NOGOMETNA LIGA",
+            "SUPERSPORT HNL"
+          ]
+        }
+      },
+      {
         "CZECH CHANCE LIGA": {
           "logo": "https://cdn.prod.website-files.com/68f550992570ca0322737dc2/68fe4cde8ecaae94ebe64622_chance-liga-footballlogos-org.webp",
           "aliases": [
@@ -670,6 +710,12 @@
             "CZECH REPUBLIC - 1. LIGA",
             "CZECH REPUBLIC 1. LIGA"
           ]
+        }
+      },
+      {
+        "DANISH 1ST DIVISION": {
+          "logo": "https://b.fssta.com/uploads/application/soccer/competition-logos/Danish1stDivision-alternate.vresize.500.500.medium.0.png",
+          "aliases": ["BETINIA LIGA", "DENMARK DIVISION 1"]
         }
       },
       {
@@ -774,6 +820,16 @@
         }
       },
       {
+        "ESTONIA MEISTRILIIGA": {
+          "logo": "https://r2.thesportsdb.com/images/media/league/badge/uztem21615840481.png",
+          "aliases": [
+            "A. LE COQ PREMIUM LIIGA",
+            "MEISTRILIIGA",
+            "PREMIUM LIIGA"
+          ]
+        }
+      },
+      {
         "FA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/40.png&w=500&h=500",
           "aliases": [
@@ -853,9 +909,31 @@
         }
       },
       {
+        "IRELAND PREMIER DIVISION": {
+          "logo": "https://brandlogos.net/wp-content/uploads/2026/02/league_of_ireland_premier_division-logo_brandlogos.net_gg3uj.png",
+          "aliases": [
+            "IRISH PREMIER DIVISION",
+            "LEAGUE OF IRELAND MEN'S PREMIER DIVISION",
+            "LEAGUE OF IRELAND PREMIER DIVISION"
+          ]
+        }
+      },
+      {
+        "ISRAEL TOTO CUP": {
+          "logo": "https://upload.wikimedia.org/wikipedia/en/b/b2/Gvia_Hatoto.png",
+          "aliases": ["TOTO CUP"]
+        }
+      },
+      {
         "J1 LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2199.png",
           "aliases": ["J.LEAGUE", "JAPANESE J.LEAGUE", "MEIJI YASUDA J1 LEAGUE"]
+        }
+      },
+      {
+        "JOHAN CRUYFF SHIELD": {
+          "logo": "https://cdn-img.staticzz.com/img/logos/competicoes/576_imgbank_st_20250312113237.png",
+          "aliases": ["DUTCH SUPER CUP", "JOHAN CRUIJFF SCHAAL"]
         }
       },
       {
@@ -968,7 +1046,9 @@
             "LIGA PROFESIONAL DE PRIMERA DIVISION",
             "LIGA PROFESIONAL DE PRIMERA DIVISIÓN",
             "LIGA URUGUAY",
-            "URUGUAY LIGA AUF"
+            "URUGUAY LIGA AUF",
+            "URUGUAY PRIMERA DIVISION",
+            "URUGUAY PRIMERA DIVISIÓN"
           ]
         }
       },
@@ -978,6 +1058,7 @@
           "aliases": [
             "LIGA BBVA EXPANSION MX",
             "LIGA DE EXPANSION MX",
+            "LIGA DE EXPANSIÓN",
             "LIGA DE EXPANSIÓN MX",
             "MEXICAN LIGA DE EXPANSION MX",
             "MEXICAN LIGA DE EXPANSIÓN MX",
@@ -998,7 +1079,9 @@
             "CHILE PRIMERA DIVISION",
             "CHILE PRIMERA DIVISIÓN",
             "LIGA CHILE",
-            "LIGA CHILENA"
+            "LIGA CHILENA",
+            "PRIMERA DIVISION DE CHILE",
+            "PRIMERA DIVISIÓN DE CHILE"
           ]
         }
       },
@@ -1124,6 +1207,7 @@
             "MAJOR LEAGUE SOCCER",
             "MLS ALL-STAR",
             "MLS GAME",
+            "MLS LEAGUE",
             "MLS NEXT PRO",
             "USA/CANADA MAJOR LEAGUE SOCCER"
           ]
@@ -1166,7 +1250,7 @@
       {
         "POLAND DIVISION 1": {
           "logo": "https://assets.football-logos.cc/logos/poland/1500x1500/1-liga.c3871b6c.png",
-          "aliases": ["BETCLIC 1 LIGA", "I LIGA"]
+          "aliases": ["BETCLIC 1 LIGA", "I LIGA", "POLAND I LIGA"]
         }
       },
       {
@@ -1209,7 +1293,11 @@
       {
         "PRIMERA B": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2295.png",
-          "aliases": ["COLOMBIA PRIMERA B", "COLOMBIAN PRIMERA B"]
+          "aliases": [
+            "CATEGOR├ìA PRIMERA B",
+            "COLOMBIA PRIMERA B",
+            "COLOMBIAN PRIMERA B"
+          ]
         }
       },
       {
@@ -1260,7 +1348,7 @@
       {
         "SCOTTISH PREMIERSHIP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/45.png",
-          "aliases": ["PREMIERSHIP", "SPFL"]
+          "aliases": ["PREMIERSHIP", "SCOTLAND SCOTTISH PREMIERSHIP", "SPFL"]
         }
       },
       {
@@ -1327,8 +1415,11 @@
             "CLUB FRIENDLY GAMES",
             "CONCACAF CHAMPIONSHIP U20",
             "CONCACAF SUB-20",
+            "CONCACAF SUB20",
             "CONCACAF U20 CHAMPIONSHIP",
             "FOOTBALL",
+            "FRIENDLY INTERNATIONAL",
+            "FRIENDLY INTERNATIONAL WOMEN",
             "FRIENDLY MATCH",
             "FUTBOL",
             "FÚTBOL",
@@ -1361,6 +1452,30 @@
         "SUPERETTAN": {
           "logo": "https://assets.football-logos.cc/logos/sweden/1500x1500/superettan.8796f38b.png",
           "aliases": ["SWEDEN SUPERETTAN", "SWEDISH SUPERETTAN"]
+        }
+      },
+      {
+        "SUPERTAÇA": {
+          "logo": "https://static.wikia.nocookie.net/logopedia/images/4/43/Supertaca_2014.png/revision/latest/scale-to-width-down/500",
+          "aliases": [
+            "CANDIDO DE OLIVEIRA SUPER CUP",
+            "CÂNDIDO DE OLIVEIRA SUPER CUP",
+            "PORTUGUESE SUPER CUP",
+            "SUPERCOPA DE PORTUGAL",
+            "SUPERTACA CANDIDO DE OLIVEIRA",
+            "SUPERTACA CÂNDIDO DE OLIVEIRA",
+            "SUPERTAÇA CÂNDIDO DE OLIVEIRA"
+          ]
+        }
+      },
+      {
+        "SWITZERLAND CHALLENGE LEAGUE": {
+          "logo": "https://r2.thesportsdb.com/images/media/league/badge/5816yi1635867610.png",
+          "aliases": [
+            "CHALLENGE LEAGUE",
+            "DIECI CHALLENGE LEAGUE",
+            "SWISS CHALLENGE LEAGUE"
+          ]
         }
       },
       {
@@ -1478,7 +1593,11 @@
       {
         "VENEZUELAN PRIMERA DIVISIÓN": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1947.png",
-          "aliases": ["LIGA FUTVE", "LIGA VENEZOLANA"]
+          "aliases": [
+            "LIGA FUTVE",
+            "LIGA VENEZOLANA",
+            "VENEZUELAN PRIMERA DIVISION"
+          ]
         }
       },
       {
@@ -1490,6 +1609,17 @@
             "ENGLISH WOMEN'S SUPER LEAGUE",
             "FA WSL",
             "WOMEN'S SUPER LEAGUE"
+          ]
+        }
+      },
+      {
+        "YKKÖSLIIGA": {
+          "logo": "https://upload.wikimedia.org/wikipedia/en/b/bb/Ykk%C3%B6sliiga_logo.png",
+          "aliases": [
+            "FINLAND YKKOSLIIGA",
+            "FINNISH YKKOSLIIGA",
+            "FINNISH YKKÖSLIIGA",
+            "YKKOSLIIGA"
           ]
         }
       }
