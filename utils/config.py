@@ -78,6 +78,8 @@ class Time(datetime):
             formats = [
                 "%b %d, %Y %H:%M %Z",
                 "%B %d, %Y %H:%M",
+                "%d %B ,%Y %H:%M",
+                "%d %B ,%Y %H:%M %p",
                 "%B %d,%Y %H:%M",
                 "%B %d, %Y %I:%M %p",
                 "%B %d, %Y %I:%M:%S %p",
