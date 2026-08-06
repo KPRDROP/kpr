@@ -1,5 +1,4 @@
 import logging
-from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
 LOG_DIR = Path(__file__).parent.parent.parent / "logs"
@@ -50,14 +49,7 @@ def get_logger(name: str | None = None) -> logging.Logger:
 
     formatting = {"fmt": LOG_FMT, "datefmt": "%Y-%m-%d | %H:%M:%S"}
 
-    file_handler = TimedRotatingFileHandler(
-        LOG_DIR / "fetch.log",
-        when="midnight",
-        interval=1,
-        backupCount=1,
-        encoding="utf-8",
-        utc=False,
-    )
+    file_handler = logging.FileHandler(LOG_DIR / "fetch.log", encoding="utf-8")
 
     file_handler.setFormatter(logging.Formatter(**formatting))
 
