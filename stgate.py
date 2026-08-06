@@ -9,6 +9,7 @@ import re
 import json
 
 from playwright.async_api import async_playwright, Browser
+from selectolax.lexbor import LexborHTMLParser as HTMLParser
 
 from utils import Cache, Time, get_logger, leagues, network
 
