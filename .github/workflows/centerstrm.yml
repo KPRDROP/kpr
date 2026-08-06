@@ -33,7 +33,7 @@ jobs:
         env:
           CENTERSTRM_API: ${{ secrets.CENTERSTRM_API }}
         run: |
-          echo "Starting StreamCenter scraper..."
+          echo "Starting StreamCenter updater..."
           python centerstrm.py
 
       - name: Commit & Push safely
