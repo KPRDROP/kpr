@@ -3,6 +3,7 @@ import re
 from functools import partial
 from pathlib import Path
 from urllib.parse import quote, quote_plus, urljoin
+from selectolax.lexbor import LexborHTMLParser as HTMLParser
 
 from utils import Cache, Time, get_logger, leagues, network
 
