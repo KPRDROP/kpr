@@ -5,7 +5,7 @@ import asyncio
 import re
 
 from playwright.async_api import async_playwright
-from selectolax.parser import HTMLParser
+from selectolax.lexbor import LexborHTMLParser as HTMLParser
 
 from utils import Cache, Time, get_logger, leagues, network
 
