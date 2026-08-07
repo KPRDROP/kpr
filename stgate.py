@@ -40,8 +40,8 @@ API_FILE = Cache(f"{TAG}-api", exp=19_800)
 # Expanded sports endpoints for more events
 SPORT_ENDPOINTS = [
     "soccer",
-    #"nfl",
-    #"nba",
+    "nfl",
+    "nba",
     #"cfb",
     "mlb",
     #"nhl",
