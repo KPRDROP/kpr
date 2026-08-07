@@ -1,13 +1,12 @@
 import asyncio
 import logging
-import random
 import re
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from functools import cache, partial
 from pathlib import Path
-from typing import AsyncGenerator, TypeVar
-from urllib.parse import urlparse
+from typing import TypeVar
+from urllib.parse import urlsplit, urlunsplit
 
 import httpx
 from playwright.async_api import (
@@ -47,11 +46,10 @@ class Network:
 
         self.client = httpx.AsyncClient(**client_params)
 
-        self.unvd_client = httpx.AsyncClient(**client_params, verify=False)
-
     async def request(
         self,
         url: str,
+        url_num: int | None = None,
         log: logging.Logger | None = None,
         **kwargs,
     ) -> httpx.Response | None:
@@ -61,26 +59,26 @@ class Network:
         try:
             r = await self.client.get(url, **kwargs)
 
-            if r.status_code >= 400:
-                r.raise_for_status()
+            r.raise_for_status()
 
             return r
         except (httpx.HTTPError, httpx.TimeoutException) as e:
-            log.error(f'Failed to fetch "{url}": {e}')
+            log.error(
+                f'URL {url_num}) Failed to fetch "{url}": {e}'
+                if url_num
+                else f'Failed to fetch "{url}": {e}'
+            )
 
             return ""
 
-    async def get_base(self, mirrors: list[str]) -> str | None:
-        random.shuffle(mirrors)
+    @staticmethod
+    def ensure_https(url: str) -> str:
+        splits = urlsplit(url)
 
-        for mirror in mirrors:
-            if not (r := await self.request(mirror)):
-                continue
+        if not splits.scheme:
+            splits = splits._replace(scheme="https")
 
-            elif r.status_code != 200:
-                continue
-
-            return mirror
+        return urlunsplit(splits)
 
     @staticmethod
     async def safe_process(
@@ -88,6 +86,7 @@ class Network:
         url_num: int,
         semaphore: asyncio.Semaphore,
         timeout: int | float = 30,
+        timeout_return: T | None = None,
         log: logging.Logger | None = None,
     ) -> T | None:
 
@@ -99,7 +98,7 @@ class Network:
             try:
                 return await asyncio.wait_for(task, timeout=timeout)
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 log.warning(
                     f"URL {url_num}) Timed out after {timeout}s, skipping event"
                 )
@@ -114,11 +113,11 @@ class Network:
                 except Exception as e:
                     log.warning(f"URL {url_num}) Ignore exception after timeout: {e}")
 
-                return
+                return timeout_return
             except Exception as e:
                 log.error(f"URL {url_num}) Unexpected error: {e}")
 
-                return
+                return timeout_return
 
     @cache
     @staticmethod
@@ -136,7 +135,7 @@ class Network:
 
     @staticmethod
     def to_block(request: Request) -> bool:
-        hostname = (urlparse(request.url).hostname or "").lower()
+        hostname = (urlsplit(request.url).hostname or "").lower()
 
         return any(
             hostname == domain or hostname.endswith(f".{domain}")
@@ -160,7 +159,7 @@ class Network:
         browser: Browser,
         stealth: bool = True,
         ignore_https: bool = False,
-    ) -> AsyncGenerator[BrowserContext, None]:
+    ) -> AsyncGenerator[BrowserContext]:
 
         context: BrowserContext | None = None
 
@@ -197,7 +196,7 @@ class Network:
 
     @staticmethod
     @asynccontextmanager
-    async def event_page(context: BrowserContext) -> AsyncGenerator[Page, None]:
+    async def event_page(context: BrowserContext) -> AsyncGenerator[Page]:
         page = await context.new_page()
 
         try:
@@ -221,16 +220,16 @@ class Network:
         got_one: asyncio.Event,
     ) -> None:
 
-        escaped = [
+        blocked = [
             re.escape(i)
             for i in {
-                "amazonaws",
+                # "amazonaws",
                 "knitcdn",
                 "jwpltx",
             }
         ]
 
-        pattern = re.compile(rf"^(?!.*({'|'.join(escaped)})).*\.m3u8", re.I)
+        pattern = re.compile(rf"^(?!.*({'|'.join(blocked)})).*\.m3u8", re.I)
 
         if pattern.search(req.url):
             captured.append(req.url)
@@ -276,7 +275,7 @@ class Network:
 
             try:
                 await asyncio.wait_for(wait_task, timeout=timeout)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 log.warning(f"URL {url_num}) Timed out waiting for M3U8.")
                 return
 
