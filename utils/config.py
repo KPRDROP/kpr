@@ -126,7 +126,7 @@ class Leagues:
     def __init__(self) -> None:
         self.data = json.loads(
             (Path(__file__).parent / "leagues.json").read_text(encoding="utf-8")
-        )
+       )
 
     def teams(self, league: str) -> list[str]:
         return self.data["teams"].get(league, [])
@@ -162,15 +162,6 @@ class Leagues:
             t1, t2 = pattern.split(event)[:2]
 
             return any(t in self.teams(league) for t in (t1.strip(), t2.strip()))
-
-        return event.lower() in {
-            "nfl redzone",
-            "nfl red zone",
-            "redzone",
-            "red zone",
-            "college gameday",
-            "nfl honors",
-        }
 
     def get_tvg_info(
         self,
