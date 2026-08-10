@@ -9,11 +9,13 @@ import requests
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
+from selectolax.lexbor import LexborHTMLParser as HTMLParser
+
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
 )
 
-BASE = "https://slapstreams.com/"
+BASE = "https://nflwebcast.com/"
 OUTPUT_VLC = "NHLWebcast_VLC.m3u8"
 OUTPUT_TIVI = "NHLWebcast_TiviMate.m3u8"
 HEADERS = {
@@ -264,7 +266,7 @@ async def main():
     log(f"🔍 Found {len(event_links)} event page(s) from homepage.")
 
     if not event_links:
-        fallback = set(re.findall(r'https?://slapstreams\.com/[-\w/]+', homepage_html))
+        fallback = set(re.findall(r'https?://nflwebcast.com/[-\w/]+', homepage_html))
         if fallback:
             event_links = [(u, "") for u in fallback]
             log(f"Found {len(event_links)} fallback links via regex.")
