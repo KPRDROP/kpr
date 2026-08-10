@@ -158,7 +158,7 @@ async def capture_m3u8_from_page(playwright, url, timeout_ms=25000):
                 dec = base64.b64decode(c).decode(errors="ignore")
                 if ".m3u8" in dec and not captured:
                     captured = dec.strip()
-                    log("🔎 Found candidate from base64 in page content")
+                    log(" Found candidate from base64 in page content")
                     break
             except Exception:
                 continue
@@ -266,7 +266,7 @@ async def main():
     log(f"🔍 Found {len(event_links)} event page(s) from homepage.")
 
     if not event_links:
-        fallback = set(re.findall(r'https?://nflwebcast.com/[-\w/]+', homepage_html))
+        fallback = set(re.findall(r'https?://slapstreams.com/[-\w/]+', homepage_html))
         if fallback:
             event_links = [(u, "") for u in fallback]
             log(f"Found {len(event_links)} fallback links via regex.")
