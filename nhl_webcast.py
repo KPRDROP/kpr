@@ -15,7 +15,7 @@ USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
 )
 
-BASE = "https://nflwebcast.com/"
+BASE = "https://slapstreams.com/"
 OUTPUT_VLC = "NHLWebcast_VLC.m3u8"
 OUTPUT_TIVI = "NHLWebcast_TiviMate.m3u8"
 HEADERS = {
