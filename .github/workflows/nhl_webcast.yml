@@ -27,14 +27,15 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip
-          pip install requests beautifulsoup4 lxml playwright
+          pip install requests beautifulsoup4 lxml playwright selectolax
 
       - name: Install Playwright Browsers (Firefox & Chromium)
         run: |
           python -m playwright install firefox chromium
           python -m playwright install-deps firefox chromium
+        
 
-      - name: Run Webcast Scraper
+      - name: Run Webcast Updater
         run: |
           echo "Starting NHL Web Updater..."
           python nhl_webcast.py
