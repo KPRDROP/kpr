@@ -24,7 +24,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install playwright selectolax httpx[http2] pytz
+          pip install playwright selectolax httpx[http2] pytz tz_name
           playwright install chromium
 
       - name: Run WEBTV scraper
