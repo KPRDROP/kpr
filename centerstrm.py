@@ -1,5 +1,5 @@
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit, parse_qsl
 import os
 import asyncio
 import re
@@ -32,36 +32,21 @@ CATEGORIES = {
     13: "Baseball",
     14: "American Football",
     15: "Motor Sport",
-    #16: "Hockey",
+    16: "Hockey",
     17: "Fight MMA",
     18: "Boxing",
     19: "NCAA Sports",
     20: "WWE",
     21: "Tennis",
+    22: "Soccer",
+    23: "MMA",
+    24: "Volleyball",
 }
 
 
 def cleanup(s: str) -> str:
-    """Clean text by removing non-ASCII characters and extra text after —"""
-    return "".join(i for i in s.split("—")[0] if i.isascii()).strip()
-
-
-async def decrypt_stream(encrypted_url: str, url_num: int) -> str | None:
-    """Decrypt the stream URL using the decrypt endpoint"""
-    try:
-        if not (
-            decrypted := await network.client.post(
-                urljoin(BASE_URL, "embed/decrypt.php"),
-                data={"input": encrypted_url},
-            )
-        ):
-            log.warning(f"URL {url_num}) Failed to decrypt URL.")
-            return None
-        
-        return decrypted.text.split("?")[0]
-    except Exception as e:
-        log.error(f"URL {url_num}) Decryption error: {str(e)[:50]}")
-        return None
+    """Clean text by keeping ASCII characters from the last part after —"""
+    return "".join(i for i in s.split("—")[-1] if i.isascii()).strip()
 
 
 async def process_event(url: str, url_num: int) -> str | None:
@@ -78,26 +63,18 @@ async def process_event(url: str, url_num: int) -> str | None:
             log.warning(f"URL {url_num}) No iframe element found.")
             return None
 
-        if not (
-            iframe_src_data := await network.request(
-                network.ensure_https(src),
-                headers={"Referer": url},
-                log=log,
-            )
-        ):
-            log.warning(f"URL {url_num}) Failed to load iframe source.")
-            return None
-
-        pattern = re.compile(r'input:\s+"([^"]*)"', re.I)
-        if not (match := pattern.search(iframe_src_data.text)):
-            log.warning(f"URL {url_num}) No encrypted URL found.")
-            return None
-
-        stream = await decrypt_stream(match[1], url_num)
-        if stream:
-            log.info(f"URL {url_num}) Captured M3U8")
+        # Parse the iframe URL to extract stream ID
+        splits = urlsplit(src)
+        params = dict(parse_qsl(splits.query))
         
-        return stream
+        if not (stream_id := params.get("stream")):
+            log.warning(f"URL {url_num}) No stream ID found.")
+            return None
+
+        stream_url = f"https://edgestream2.pro/hls/{stream_id}.m3u8"
+        log.info(f"URL {url_num}) Captured M3U8")
+        
+        return stream_url
         
     except Exception as e:
         log.error(f"URL {url_num}) Error processing: {str(e)[:50]}")
@@ -109,9 +86,12 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
     now = Time.clean(Time.now())
     events = []
 
-    # Fetch the main page
-    if not (html_data := await network.request(BASE_URL, log=log)):
-        log.error("Failed to load main page")
+    # Fetch the game cards embed page
+    if not (html_data := await network.request(
+        urljoin(BASE_URL, "game-cards/embed"),
+        log=log,
+    )):
+        log.error("Failed to load game cards")
         return events
 
     try:
@@ -121,11 +101,11 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
         return events
 
     # Parse events from the page
-    for info in soup.css(".tg-cat"):
-        if not (sport_elem := info.css_first("h2")):
+    for card in soup.css(".game-card-group"):
+        if not (sport_elem := card.css_first("h2")):
             continue
 
-        sport = cleanup(sport_elem.text())
+        sport = cleanup(sport_elem.text(strip=True))
         
         # Map sport names to category IDs if needed
         category_id = None
@@ -134,26 +114,39 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
                 category_id = cat_id
                 break
 
-        for game in info.css(".tg-game"):
-            if not (event_name_elem := game.css_first(".tg-title")):
+        for game in card.css(".game-card-row"):
+            if not (name_elem := game.css_first("h3")):
                 continue
 
-            event_name = cleanup(event_name_elem.text())
+            # Get event time
+            if not (event_time_elem := game.css_first(".game-card-when > time")):
+                continue
 
-            for link in game.css(".tg-lang"):
-                if not (event_lang_elem := link.css_first(".tg-watch")):
+            if not (event_time := event_time_elem.attributes.get("datetime")):
+                continue
+
+            # Parse the event time
+            try:
+                event_dt = Time.fromisoformat(event_time).to_tz("EST")
+            except Exception as e:
+                log.debug(f"Failed to parse time: {str(e)[:30]}")
+                continue
+
+            # Check if event is today
+            if event_dt.date() != now.date():
+                continue
+
+            event_name = name_elem.text(strip=True)
+
+            # Process each stream source
+            for source in game.css(".game-card-source > a.game-card-open-link"):
+                if not (href := source.attributes.get("href")):
                     continue
 
-                if not (a_elem := link.css_first("a")) or not (
-                    href := a_elem.attributes.get("href")
-                ):
-                    continue
-
-                # Extract language
-                event_lang = cleanup(event_lang_elem.text())
+                lang = source.text(strip=True)
                 
                 # Create unique event ID
-                event_id = f"{sport}_{event_name}_{event_lang}".replace(" ", "_")
+                event_id = f"{sport}_{event_name}_{lang}".replace(" ", "_")
                 
                 # Skip if already cached
                 if event_id in cached_ids:
@@ -163,17 +156,14 @@ async def get_events(cached_ids: set[str]) -> list[dict]:
                 if not href.startswith("http"):
                     href = urljoin(BASE_URL, href)
 
-                # Determine if event is live or upcoming (use current time)
-                timestamp = now.timestamp()
-
                 events.append({
                     "id": event_id,
                     "sport": sport,
-                    "event": f"{event_name} | {event_lang}" if event_lang else event_name,
+                    "event": f"{event_name} | {lang}" if lang else event_name,
                     "link": href,
-                    "timestamp": timestamp,
+                    "timestamp": now.timestamp(),
                     "category_id": category_id,
-                    "language": event_lang,
+                    "language": lang,
                 })
 
     log.info(f"Found {len(events)} events from HTML")
