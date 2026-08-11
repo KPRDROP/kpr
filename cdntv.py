@@ -195,7 +195,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                     continue
                 
                 try:
-                    event_dt = Time.from_str(event_time_str, timezone="UTC")
+                    event_dt = Time.from_str(event_time_str, tz_name="UTC")
                 except Exception as e:
                     log.error(f"Error parsing time '{event_time_str}': {e}")
                     continue
