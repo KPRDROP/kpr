@@ -210,7 +210,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, str]]:
                 try:
                     # Try to parse if it's a time string
                     if isinstance(event_timestamp, str):
-                        event_dt = Time.from_str(event_timestamp, timezone="UTC")
+                        event_dt = Time.from_str(event_timestamp, tz_name="UTC")
                         timestamp = event_dt.timestamp()
                 except Exception as e:
                     log.debug(f"Could not parse timestamp for {channel_name}: {e}")
