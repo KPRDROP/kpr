@@ -23,7 +23,7 @@ jobs:
 
       - name: Install deps
         run: 
-          pip install playwright selectolax httpx[http2] pytz
+          pip install playwright selectolax httpx[http2] tzdata pytz
 
       - name: Run scraper
         run: python -m awaf
