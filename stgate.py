@@ -209,7 +209,7 @@ async def get_events(cached_keys: list[str]) -> list[dict[str, Any]]:
             continue
         seen_events.add(event_id)
 
-        event_dt = Time.from_str(date, tz_name="UTC")
+        event_dt = Time.from_str(date, timezone="UTC")
         if not start_dt <= event_dt <= end_dt:
             continue
 
