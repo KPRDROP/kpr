@@ -63,7 +63,7 @@ def parse_event_time(date_text: str, time_text: str) -> float:
     try:
         return Time.from_str(
             f"{date_text} {clean}",
-            timezone="EST"
+            tz_name="EST"
         ).timestamp()
     except Exception:
         log.warning(f"Time parse failed: {date_text} {time_text}")
