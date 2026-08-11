@@ -1,10 +1,10 @@
 import json
 import re
+import time as emit
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
-
-import pytz
+from zoneinfo import ZoneInfo
 
 
 @dataclass(kw_only=True, slots=True)
@@ -16,12 +16,14 @@ class Event:
 
 
 class Time(datetime):
-    ZONES: dict[str, timezone] = {
-        "CET": pytz.timezone("Europe/Berlin"),
-        "ET": pytz.timezone("America/New_York"),
-        "MSK": pytz.timezone("Europe/Moscow"),
-        # "PT": pytz.timezone("America/Los_Angeles"),
-        "UTC": timezone.utc,
+    __slots__ = ()
+
+    ZONES: dict[str, ZoneInfo] = {
+        # "CET": ZoneInfo("Europe/Berlin"),
+        "ET": ZoneInfo("America/New_York"),
+        # "MSK": ZoneInfo("Europe/Moscow"),
+        # "PST": ZoneInfo("America/Los_Angeles"),
+        "UTC": ZoneInfo("UTC"),
     }
 
     ZONES["EST"] = ZONES["ET"]
@@ -30,7 +32,7 @@ class Time(datetime):
 
     @classmethod
     def now(cls) -> "Time":
-        return cls.from_ts(datetime.now(cls.TZ).timestamp())
+        return cls.fromtimestamp(emit.time(), tz=cls.TZ)
 
     @classmethod
     def from_ts(cls, ts: int | float) -> "Time":
@@ -41,7 +43,7 @@ class Time(datetime):
         return cls.now().replace(hour=8, minute=0, second=0, microsecond=0).timestamp()
 
     def delta(self, **kwargs) -> "Time":
-        return self.from_ts((self + timedelta(**kwargs)).timestamp())
+        return self + timedelta(**kwargs)
 
     def clean(self) -> "Time":
         return self.__class__.fromtimestamp(
@@ -50,14 +52,10 @@ class Time(datetime):
         )
 
     def to_tz(self, tzone: str) -> "Time":
-        dt = self.astimezone(self.ZONES[tzone])
-
-        return self.__class__.fromtimestamp(dt.timestamp(), tz=self.ZONES[tzone])
+        return self.__class__.fromtimestamp(self.timestamp(), tz=self.ZONES[tzone])
 
     @classmethod
-    def _to_class_tz(cls, dt) -> "Time":
-        dt = dt.astimezone(cls.TZ)
-
+    def _to_class_tz(cls, dt: datetime) -> "Time":
         return cls.fromtimestamp(dt.timestamp(), tz=cls.TZ)
 
     @classmethod
@@ -65,22 +63,19 @@ class Time(datetime):
         cls,
         s: str,
         fmt: str | None = None,
-        timezone: str | None = None,
+        tz_name: str | None = None,
     ) -> "Time":
-        tz = cls.ZONES.get(timezone, cls.TZ)
+        tz: ZoneInfo = cls.ZONES.get(tz_name, cls.TZ)
 
         if fmt:
-            dt = datetime.strptime(s, fmt)
-
-            dt = tz.localize(dt)
+            dt = datetime.strptime(s, fmt).replace(tzinfo=tz)
 
         else:
             formats = [
                 "%b %d, %Y %H:%M %Z",
                 "%B %d, %Y %H:%M",
-                "%d %B ,%Y %H:%M",
-                "%d %B ,%Y %H:%M %p",
-                "%B %d,%Y %H:%M",
+                "%d %B,%Y %I:%M %p",
+                "%d %B,%Y %H:%M %p",
                 "%B %d, %Y %I:%M %p",
                 "%B %d, %Y %I:%M:%S %p",
                 "%B %d, %Y %H:%M:%S",
@@ -108,14 +103,10 @@ class Time(datetime):
                 except ValueError:
                     continue
             else:
-                return cls.from_ts(Time.default_8())
+                return cls.from_ts(cls.default_8())
 
             if not dt.tzinfo:
-                dt = (
-                    tz.localize(dt)
-                    if hasattr(tz, "localize")
-                    else dt.replace(tzinfo=tz)
-                )
+                dt = dt.replace(tzinfo=tz)
 
         return cls._to_class_tz(dt)
 
