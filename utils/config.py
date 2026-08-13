@@ -21,6 +21,7 @@ class Time(datetime):
     ZONES: dict[str, timezone] = {
         "CET": pytz.timezone("Europe/Berlin"),
         "ET": pytz.timezone("America/New_York"),
+        "GMT": pytz.timezone("Europe/London"),
         "MSK": pytz.timezone("Europe/Moscow"),
         # "PT": pytz.timezone("America/Los_Angeles"),
         "UTC": timezone.utc,
