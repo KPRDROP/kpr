@@ -309,7 +309,7 @@ async def scrape(browser: Browser) -> None:
                                     stream_url = await network.safe_process(
                                         fallback_handler,
                                         url_num=i,
-                                        semaphore=network.PW_S,
+                                        semaphore=network.HTTP_S,
                                         log=log,
                                     )
                                     if stream_url:
