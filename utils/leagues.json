@@ -30,7 +30,13 @@
       {
         "BASKETBALL": {
           "logo": "https://1000logos.net/wp-content/uploads/2024/04/Basketball-Emoji-1536x864.png",
-          "aliases": ["BALONCESTO", "CEBL", "THE BASKETBALL TOURNAMENT"]
+          "aliases": [
+            "BALONCESTO",
+            "BASKETBALL EUROBASKET QUALIFICATION",
+            "BASKETBALL WORLD CUP QUALIFICATION",
+            "CEBL",
+            "THE BASKETBALL TOURNAMENT"
+          ]
         }
       },
       {
@@ -44,13 +50,19 @@
           "logo": "https://www.euroleaguebasketball.net/images/logo-default.png",
           "aliases": ["BASKETBALL EUROLEAGUE", "EUROLEAGUE BASKETBALL"]
         }
+      },
+      {
+        "FIBA": {
+          "logo": "https://upload.wikimedia.org/wikipedia/commons/d/d8/FIBA_Basketball_World_Cup_logo.png",
+          "aliases": ["FIBA BASKETBALL", "FIBA WC", "FIBA WORLD CUP"]
+        }
       }
     ],
     "Cricket.Dummy.us": [
       {
         "CRICKET": {
           "logo": "https://i.gyazo.com/f008a3e3b9e6b0187857985b6c44782b.png",
-          "aliases": ["CRICKET CPL", "CRICKET TEST SERIES"]
+          "aliases": ["CRICKET CPL", "CRICKET CPL T20", "CRICKET TEST SERIES"]
         }
       },
       {
@@ -116,6 +128,7 @@
           "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/mlb.png",
           "aliases": [
             "BASEBALL (MLB)",
+            "MAJOR BASEBALL LEAGUE",
             "MAJOR LEAGUE BASEBALL",
             "MLB BASEBALL",
             "MLB PLAYOFFS"
@@ -169,6 +182,7 @@
             "NCAAB D",
             "NCAAB D-I",
             "NCAAF",
+            "NCAAF (FBS)",
             "NCAAF D-I",
             "NCAAM",
             "NCAAW",
@@ -235,8 +249,10 @@
         "FIGHTING": {
           "logo": null,
           "aliases": [
+            "BARE KNUCKLES",
             "COMBAT SPORTS",
             "ESPN KNOCKOUT",
+            "MIXED MARTIAL ARTS",
             "MMA",
             "MMA FIGHTING",
             "MMA ONE",
@@ -266,6 +282,8 @@
           "aliases": [
             "AEW",
             "AEW WRESTLING",
+            "PRO WRESTLING",
+            "PROFESSIONAL WRESTLING",
             "TNA WRESTLING",
             "WRESTLING (NXT)",
             "WWE",
@@ -335,7 +353,15 @@
       {
         "RACING": {
           "logo": null,
-          "aliases": []
+          "aliases": [
+            "DIRTVISION",
+            "FLORACING",
+            "FORMULA ONE/TWO/TREE",
+            "LA VUELTA A ESPAÑA",
+            "MOTORSPORTS",
+            "WORLD RALLY",
+            "WORLD RALLY CHAMPIONSHIP"
+          ]
         }
       }
     ],
@@ -349,7 +375,7 @@
       {
         "RUGBY": {
           "logo": null,
-          "aliases": ["RUGBY FRIENDLY"]
+          "aliases": ["RUGBY FRIENDLY", "RUGBY NZ NPC", "RUGBY UNION FRIENDLY"]
         }
       },
       {
@@ -623,6 +649,8 @@
           "logo": "https://img.sofascore.com/api/v1/unique-tournament/1135/image",
           "aliases": [
             "BULGARIA - VTORA LIGA",
+            "BULGARIA 2ND LEAGUE",
+            "BULGARIA VTORA LEAGUE",
             "BULGARIA VTORA LIGA",
             "BULGARIAN SECOND LEAGUE",
             "VTORA LIGA"
@@ -726,7 +754,14 @@
       {
         "CONCACAF CARIBBEAN CUP": {
           "logo": "https://upload.wikimedia.org/wikipedia/commons/9/94/Logo_CONCACAF_Caribbean_Cup.svg",
-          "aliases": ["COPA CARIBE DE LA CONCACAF"]
+          "aliases": [
+            "CAMPEONATO DE CLUBES DEL CARIBE",
+            "CARIBBEAN CLUB CHAMPIONSHIP",
+            "CFU CLUB CHAMPIONS CUP",
+            "CFU CLUB CHAMPIONS' CUP",
+            "CFU CLUB CHAMPIONSHIP",
+            "COPA CARIBE DE LA CONCACAF"
+          ]
         }
       },
       {
@@ -807,6 +842,12 @@
         }
       },
       {
+        "COPA BOLIVIA": {
+          "logo": "https://copadebolivia.com/wp-content/uploads/2025/11/Copa-de-Bolivia.png",
+          "aliases": ["BOLIVIA COPA"]
+        }
+      },
+      {
         "COPA CHILE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2331.png",
           "aliases": ["CHILE COPA", "CHILE CUP"]
@@ -871,7 +912,7 @@
       {
         "COPA PARAGUAY": {
           "logo": "https://i.gyazo.com/789c8cae8aaacebe1045d14c6d67f6bc.gif",
-          "aliases": ["PARAGUAY CUP", "PARAGUAYAN CUP"]
+          "aliases": ["PARAGUAY COPA", "PARAGUAY CUP", "PARAGUAYAN CUP"]
         }
       },
       {
@@ -931,9 +972,16 @@
           "aliases": [
             "CROATIA 1 HNL",
             "CROATIA 1. HNL",
+            "CROATIA PRVA NL",
             "HRVATSKA NOGOMETNA LIGA",
             "SUPERSPORT HNL"
           ]
+        }
+      },
+      {
+        "CYPRUS LEAGUE": {
+          "logo": "https://assets.football-logos.cc/logos/cyprus/1500x1500/cypriot-first-division.5509f999.png",
+          "aliases": ["CYPRIOT FIRST DIVISION", "CYPRUS LEAGUE BY STOIXIMAN"]
         }
       },
       {
@@ -1014,10 +1062,13 @@
           "aliases": [
             "CARABAO CUP",
             "EFL CUP",
+            "ENGLAND - LEAGUE CUP",
             "ENGLAND LEAGUE CUP",
+            "ENGLISH - LEAGUE CUP",
             "ENGLISH CARABAO CUP",
             "ENGLISH EFL CUP",
             "ENGLISH FOOTBALL LEAGUE CUP",
+            "ENGLISH LEAGUE CUP",
             "LEAGUE CUP"
           ]
         }
@@ -1047,6 +1098,12 @@
         }
       },
       {
+        "EGYPTIAN PREMIER LEAGUE": {
+          "logo": "https://assets.football-logos.cc/logos/egypt/1500x1500/egyptian-premier-league.9574aa34.png",
+          "aliases": ["EGYPT PREMIER LEAGUE", "EL DAWRY", "ORA LEAGUE"]
+        }
+      },
+      {
         "EKSTRAKLASA": {
           "logo": "https://i.gyazo.com/362e31efdd0dad03b00858f4fb0901b5.png",
           "aliases": [
@@ -1069,12 +1126,36 @@
         }
       },
       {
+        "ENGLISH EFL TROPHY": {
+          "logo": "https://upload.wikimedia.org/wikipedia/en/c/c3/EFL_Trophy.png",
+          "aliases": [
+            "EFL TROPHY",
+            "ENGLAND FOOTBALL LEAGUE TROPHY",
+            "ENGLISH FOOTBALL LEAGUE TROPHY",
+            "VERTU TROPHY"
+          ]
+        }
+      },
+      {
+        "ENGLISH NATIONAL LEAGUE": {
+          "logo": "https://r2.thesportsdb.com/images/media/league/badge/5mq9v01752167973.png",
+          "aliases": ["NATIONAL LEAGUE"]
+        }
+      },
+      {
+        "ENGLISH NATIONAL LEAGUE CUP": {
+          "logo": "https://gateshead-fc.com/wp-content/uploads/2024/09/nl-cup.png",
+          "aliases": ["NATIONAL LEAGUE CUP"]
+        }
+      },
+      {
         "EREDIVISIE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/11.png",
           "aliases": [
             "DUTCH EERSTE DIVISIE",
             "DUTCH EERSTE EREDIVISIE",
             "DUTCH EREDIVISIE",
+            "DUTCH WOMEN EREDIVISIE",
             "NETHERLANDS EERSTE DIVISIE",
             "NETHERLANDS EREDIVISIE",
             "VRIENDENLOTERIJ EREDIVISIE"
@@ -1121,6 +1202,12 @@
         }
       },
       {
+        "FIFA INTERCONTINENTAL CUP": {
+          "logo": "https://assets.football-logos.cc/logos/tournaments/700x700/fifa-intercontinental-cup--white.2f3d9a5d.png",
+          "aliases": []
+        }
+      },
+      {
         "FIFA WORLD CUP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/4.png",
           "aliases": [
@@ -1152,6 +1239,17 @@
             "GERMAN WOMEN BUNDESLIGA",
             "GOOGLE PIXEL FRAUEN-BUNDESLIGA",
             "WOMEN'S FEDERAL LEAGUE"
+          ]
+        }
+      },
+      {
+        "GERMAN CUP": {
+          "logo": "https://assets.football-logos.cc/logos/germany/1500x1500/dfb-pokal.368025c3.png",
+          "aliases": [
+            "DFB POKAL",
+            "DFB-POKAL",
+            "GERMAN DFB POKAL",
+            "GERMANY DFB POKAL"
           ]
         }
       },
@@ -1228,9 +1326,20 @@
         }
       },
       {
+        "ISRAELI PREMIER LEAGUE": {
+          "logo": "https://assets.footylogos.com/previews/israeli-premier-league/israeli-premier-league-logo-footylogos-1200.webp",
+          "aliases": ["ISRAEL LIGAT HA'AL", "LIGAT HAAL"]
+        }
+      },
+      {
         "J1 LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2199.png",
-          "aliases": ["J.LEAGUE", "JAPANESE J.LEAGUE", "MEIJI YASUDA J1 LEAGUE"]
+          "aliases": [
+            "J.LEAGUE",
+            "JAPAN J LEAGUE",
+            "JAPANESE J.LEAGUE",
+            "MEIJI YASUDA J1 LEAGUE"
+          ]
         }
       },
       {
@@ -1249,7 +1358,13 @@
       {
         "K LEAGUE 1": {
           "logo": "https://i.gyazo.com/721eba6c954e2015d999ead7a0bd5c69.png",
-          "aliases": []
+          "aliases": ["SOUTH KOREA K LEAGUE"]
+        }
+      },
+      {
+        "KATEGORIA SUPERIORE": {
+          "logo": "https://static.wikia.nocookie.net/the-football-database/images/0/0b/Kategoria_Superiore_Logo.png/revision/latest",
+          "aliases": ["ABISSNET SUPERIORE", "ALBANIA LIGA"]
         }
       },
       {
@@ -1263,6 +1378,18 @@
         }
       },
       {
+        "KOSOVO SUPERLIGA": {
+          "logo": "https://static.wikia.nocookie.net/logopedia/images/c/c7/Kosovo_FA.png/revision/latest",
+          "aliases": [
+            "ALBI MALL SUPERLEAGUE OF KOSOVO",
+            "ALBI MALL SUPERLIGA E KOSOVËS",
+            "FOOTBALL SUPERLEAGUE OF KOSOVO",
+            "KOSOVO SUPERLIG",
+            "SUPERLIGA E FUTBOLLIT TË KOSOVËS"
+          ]
+        }
+      },
+      {
         "LA LIGA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/15.png",
           "aliases": [
@@ -1272,10 +1399,12 @@
             "LALIGA",
             "PRIMERA DIVISION",
             "PRIMERA DIVISIÓN",
+            "SPAIN - LA LIGA",
             "SPAIN LA LIGA",
             "SPAIN LALIGA",
             "SPANISH LA LIGA",
-            "SPANISH LALIGA"
+            "SPANISH LALIGA",
+            "SPANISH LIGA F WOMEN"
           ]
         }
       },
@@ -1346,6 +1475,7 @@
         "LIGA 1": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1813.png",
           "aliases": [
+            "COPA DE LA LIGA",
             "LIGA 1 DE FUTBOL PROFESIONAL",
             "LIGA 1 DE FÚTBOL PROFESIONAL",
             "LIGA 1 TE APUESTO",
@@ -1460,8 +1590,7 @@
             "ROMANIA SUPERLIGA",
             "ROMANIA – LIGA I",
             "ROMANIAN LIGA 1",
-            "ROMANIAN LIGA I",
-            "SUPERLIGA"
+            "ROMANIAN LIGA I"
           ]
         }
       },
@@ -1543,19 +1672,51 @@
       {
         "LIGUE 1": {
           "logo": "https://ligue1.com/images/Logo_Ligue_1.webp",
-          "aliases": ["FRANCE LIGUE 1", "FRENCH LIGUE 1", "LIGUE 1 FRANCE"]
+          "aliases": [
+            "FRANCE - LIGUE 1",
+            "FRANCE LIGUE 1",
+            "FRANCE LIGUE ONE",
+            "FRENCH LIGUE 1",
+            "FRENCH LIGUE ONE",
+            "LIGUE 1 FRANCE",
+            "LIGUE ONE"
+          ]
         }
       },
       {
         "LIGUE 2": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/96.png",
-          "aliases": ["FRANCE LIGUE 2", "FRENCH LIGUE 2"]
+          "aliases": [
+            "FRANCE - LIGUE 2",
+            "FRANCE LIGUE 2",
+            "FRANCE LIGUE TWO",
+            "FRENCH LIGUE 2",
+            "FRENCH LIGUE TWO",
+            "LIGUE 2 FRANCE",
+            "LIGUE TWO"
+          ]
         }
       },
       {
         "LITHUANIA TOPLYGA": {
           "logo": "https://assets.football-logos.cc/logos/lithuania/1500x1500/toplyga.636c1f41.png",
           "aliases": ["A LYGA", "TOPLYGA"]
+        }
+      },
+      {
+        "MACEDONIAN FIRST FOOTBALL LEAGUE": {
+          "logo": "https://macedonianfootball.com/wp-content/uploads/2017/06/fudbal-novo-logo-ffm_7-254x300.png",
+          "aliases": [
+            "1. MFL",
+            "MACEDONIAN FIRST LEAGUE",
+            "NORTH MACEDONIA LIGA 1"
+          ]
+        }
+      },
+      {
+        "MALAYSIA SUPER LEAGUE": {
+          "logo": "https://static.wikia.nocookie.net/logopedia/images/7/73/Malaysian_Super_League_%282023%29.svg/revision/latest/scale-to-width-down/150",
+          "aliases": ["LIGA SUPER MALAYSIA"]
         }
       },
       {
@@ -1570,6 +1731,12 @@
             "MLS NEXT PRO",
             "USA/CANADA MAJOR LEAGUE SOCCER"
           ]
+        }
+      },
+      {
+        "MTN 8": {
+          "logo": "https://assets.football-logos.cc/logos/south-africa/1500x1500/mtn-8.40640b4e.png",
+          "aliases": ["MTN 8 CUP", "SOUTH AFRICA MTN8 CUP"]
         }
       },
       {
@@ -1616,6 +1783,8 @@
         "PREMIER LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/23.png",
           "aliases": [
+            "ENGLAND - PREMIER LEAGUE",
+            "ENGLAND PREMIER LEAGUE",
             "ENGLISH PREMIER LEAGUE",
             "EPL",
             "PREMIER LEAGUE SUMMER",
@@ -1650,6 +1819,23 @@
             "LIGA COLOMBIANA",
             "LIGA DE COLOMBIA",
             "LIGA DIMAYOR"
+          ]
+        }
+      },
+      {
+        "QATAR STARS LEAGUE": {
+          "logo": "https://www.qsl.qa/sites/default/files/2021-09/QSL_Logo_Port_CMYK3.png",
+          "aliases": ["DOHA BANK STARS LEAGUE", "QATAR QSL", "QATAR SL", "QSL"]
+        }
+      },
+      {
+        "ROMANIA COPA": {
+          "logo": "https://logos-world.net/wp-content/uploads/2024/06/Romania-National-Football-Team-Logo.png",
+          "aliases": [
+            "COPA ROMANIA",
+            "CUPA ROMANIEI",
+            "CUPA ROMÂNIEI",
+            "ROMANIAN CUP"
           ]
         }
       },
@@ -1802,7 +1988,6 @@
           "logo": "https://assets.football-logos.cc/logos/slovenia/700x700/slovenian-prvaliga--no-text.43825296.png",
           "aliases": [
             "1. SNL",
-            "PRVA LIGA",
             "PRVA LIGA TELEMACH",
             "PRVA SLOVENSKA NOGOMETNA LIGA",
             "PRVALIGA",
@@ -1829,6 +2014,7 @@
             "CONCACAF SUB-20",
             "CONCACAF SUB20",
             "CONCACAF U20 CHAMPIONSHIP",
+            "ENGLISH PREMIER LEAGUE U21",
             "FOOTBALL",
             "FRIENDLY INTERNATIONAL",
             "FRIENDLY INTERNATIONAL WOMEN",
@@ -1838,6 +2024,7 @@
             "INTERNATIONAL FRIENDLY",
             "NORTH AMERICA CONCACAF U20 CHAMPIONSHIP",
             "PARTIDO AMISTOSO",
+            "PREMIER LEAGUE 2",
             "U18 EUROPEAN CHAMPIONSHIP",
             "WORLD CLUB FRIENDLY",
             "WORLD CUP QUALIFIERS"
@@ -1894,6 +2081,17 @@
             "ETTAN FOTBOLL",
             "ETTAN NORRA",
             "SWEDISH DIVISION 1"
+          ]
+        }
+      },
+      {
+        "SWEDEN SVENSKA CUPEN": {
+          "logo": "https://www.cfclassics.co/images/cups/sweden/svenskacupen/svenska-cupen-600x400.png",
+          "aliases": [
+            "SVENSKA CUPEN",
+            "SWEDEN CUP",
+            "SWEDISH CUP",
+            "SWEDISH SVENSKA CUPEN"
           ]
         }
       },
@@ -2000,7 +2198,18 @@
       {
         "UEFA CHAMPIONS LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2.png",
-          "aliases": ["CHAMPIONS LEAGUE", "EUROPE UEFA CHAMPIONS LEAGUE", "UCL"]
+          "aliases": [
+            "CHAMPIONS LEAGUE",
+            "CHAMPIONS LEAGUE QUALIFIER",
+            "CHAMPIONS LEAGUE QUALIFIERS",
+            "CHAMPIONS LEAGUE QUALIFYING",
+            "EUROPE UEFA CHAMPIONS LEAGUE",
+            "UCL",
+            "UCL QUALIFIER",
+            "UCL QUALIFIERS",
+            "UCL QUALIFYING",
+            "UEFA WOMEN'S CHAMPIONS LEAGUE QUALIFYING"
+          ]
         }
       },
       {
@@ -2062,6 +2271,12 @@
         }
       },
       {
+        "URUGUAY COPA": {
+          "logo": "https://upload.wikimedia.org/wikipedia/commons/2/27/COPA_AUFURUGUAY.png",
+          "aliases": ["COPA AUF URUGUAY", "COPA URUGUAY"]
+        }
+      },
+      {
         "USL CHAMPIONSHIP": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2292.png",
           "aliases": ["UNITED SOCCER LEAGUE CHAMPIONSHIP", "USLC"]
@@ -2070,7 +2285,11 @@
       {
         "USL CUP": {
           "logo": "https://i.gyazo.com/d4b236306f77980094ebd1488138d837.png",
-          "aliases": ["USL CUP SOCCER"]
+          "aliases": [
+            "USL CUP SOCCER",
+            "USL JAGERMEISTER CUP",
+            "USL JÄGERMEISTER CUP"
+          ]
         }
       },
       {
