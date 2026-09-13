@@ -2,7 +2,7 @@ name: AWAF Updater
 
 on:
   schedule:
-    - cron: '0 */1 * * *'
+    - cron: '15 * * * *'
   workflow_dispatch:
 
 permissions:
