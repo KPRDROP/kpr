@@ -3,7 +3,7 @@ from urllib.parse import urljoin, urlsplit, parse_qsl
 import os
 import asyncio
 import re
-
+import httpx
 from playwright.async_api import async_playwright
 from selectolax.lexbor import LexborHTMLParser as HTMLParser
 
