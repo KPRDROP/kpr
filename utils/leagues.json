@@ -34,6 +34,7 @@
             "BALONCESTO",
             "BASKETBALL ASIAN GAMES",
             "BASKETBALL EUROBASKET QUALIFICATION",
+            "BASKETBALL EUROLEAGUE SUPER CUP",
             "BASKETBALL FRIENDLY",
             "BASKETBALL WORLD CUP",
             "BASKETBALL WORLD CUP QUALIFICATION",
@@ -157,6 +158,23 @@
         "HOCKEY": {
           "logo": "https://images.emojiterra.com/google/noto-emoji/unicode-15/color/512px/1f3d2.png",
           "aliases": ["CHAMPIONS HOCKEY LEAGUE", "HOCKEY CHL"]
+        }
+      },
+      {
+        "HOCKEYALLSVENSKAN": {
+          "logo": "https://thumb.wikimedia.org/wikipedia/en/thumb/2/29/HockeyAllsvenskan_logo.svg/960px-HockeyAllsvenskan_logo.svg.png",
+          "aliases": ["SWEDEN HOCKEYALLSVENSKAN", "SWEDISH HOCKEYALLSVENSKAN"]
+        }
+      },
+      {
+        "SWEDEN HOCKEY SHL": {
+          "logo": "https://liquipedia.net/commons/images/thumb/2/2e/Swedish_Hockey_League_lightmode.png/600px-Swedish_Hockey_League_lightmode.png",
+          "aliases": [
+            "SHL",
+            "SVENSKA HOCKEYLIGAN",
+            "SWEDISH HOCKEY LEAGUE",
+            "SWEDISH HOCKEY SHL"
+          ]
         }
       }
     ],
@@ -808,7 +826,15 @@
       {
         "COLOMBIA PRIMERA B": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2295.png",
-          "aliases": ["COLOMBIAN PRIMERA B"]
+          "aliases": [
+            "CATEGORIA PRIMERA B",
+            "CATEGORÍA PRIMERA B",
+            "COLOMBIA - PRIMERA B",
+            "COLOMBIA PRIMERA B",
+            "COLOMBIAN PRIMERA B",
+            "TORNEO BETPLAY DIMAYOR",
+            "TORNEO DIMAYOR"
+          ]
         }
       },
       {
@@ -949,7 +975,9 @@
             "LIGA PARAGUAYA",
             "PARAGUAY PRIMERA DIVISION",
             "PARAGUAYAN PRIMERA DIVISION",
-            "PARAGUAYAN PRIMERA DIVISIÓN"
+            "PARAGUAYAN PRIMERA DIVISIÓN",
+            "PRIMERA DIVISION DE PARAGUAY",
+            "PRIMERA DIVISIÓN DE PARAGUAY"
           ]
         }
       },
@@ -1700,6 +1728,7 @@
             "GUATEMALAN LIGA NACIONAL",
             "LIGA BANTRAB",
             "LIGA GUATE BANRURAL",
+            "LIGA GUATEMALA",
             "LIGA NACIONAL",
             "LIGA NACIONAL DE FUTBOL DE GUATEMALA",
             "LIGA NACIONAL DE FÚTBOL DE GUATEMALA"
@@ -1958,6 +1987,7 @@
         "PRIMERA A": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1543.png",
           "aliases": [
+            "CATEGORIA PRIMERA A",
             "CATEGORÍA PRIMERA A",
             "COLOMBIA - PRIMERA A",
             "COLOMBIA PRIMERA A",
@@ -2199,9 +2229,11 @@
             "CONCACAF SUB-20",
             "CONCACAF SUB20",
             "CONCACAF U20 CHAMPIONSHIP",
+            "COPA INTERCONTINENTAL SUB-20",
             "COPA MUNDIAL FEMENINA",
             "COPA MUNDIAL FEMENINA SUB-20",
             "COPA MUNDIAL SUB-20 (F)",
+            "ENGLISH PREMIER LEAGUE II",
             "ENGLISH PREMIER LEAGUE U18",
             "ENGLISH PREMIER LEAGUE U21",
             "FOOTBALL",
@@ -2583,6 +2615,12 @@
             "TENNIS AUSSIE CHAMPIONSHIPS",
             "TENNIS AUSTRALIAN CHAMPIONSHIPS"
           ]
+        }
+      },
+      {
+        "DAVIS CUP": {
+          "logo": "https://iconape.com/wp-content/files/sx/122409/png/Logo_Davis_Cup.png",
+          "aliases": ["COPA DAVIS"]
         }
       },
       {
