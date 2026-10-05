@@ -71,8 +71,9 @@ async def process_event(url: str, url_num: int) -> str | None:
             log.warning(f"URL {url_num}) No stream ID found.")
             return None
 
-        stream_url = f"https://edgestream2.pro/hls/{stream_id}.m3u8"
+        stream_url = f"https://edgestream{random.randrange(3,8)}.pro/hls/{stream_id}.m3u8"
         log.info(f"URL {url_num}) Captured M3U8")
+        #https://edgestream2.pro/hls/{stream_id}.m3u8
         
         return stream_url
         
