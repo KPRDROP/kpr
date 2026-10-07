@@ -1,11 +1,8 @@
 import json
 import re
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
-
-import pytz
-import time as emit
 from zoneinfo import ZoneInfo
 
 
@@ -14,17 +11,21 @@ class Event:
     sport: str
     name: str | None = None
     link: str
+    event_ts: float | None = None
     timestamp: float | None = None
 
 
 class Time(datetime):
-    ZONES: dict[str, timezone] = {
-        "CET": pytz.timezone("Europe/Berlin"),
-        "ET": pytz.timezone("America/New_York"),
-        "GMT": pytz.timezone("Europe/London"),
-        "MSK": pytz.timezone("Europe/Moscow"),
-        # "PT": pytz.timezone("America/Los_Angeles"),
-        "UTC": timezone.utc,
+    __slots__ = ()
+
+    ZONES: dict[str, ZoneInfo] = {  # noqa: RUF012
+        "ALMT": ZoneInfo("Indian/Maldives"),
+        # "CET": ZoneInfo("Europe/Berlin"),
+        "ET": ZoneInfo("America/New_York"),
+        "GMT": ZoneInfo("Europe/London"),
+        "MSK": ZoneInfo("Europe/Moscow"),
+        # "PST": ZoneInfo("America/Los_Angeles"),
+        "UTC": ZoneInfo("UTC"),
     }
 
     ZONES["EST"] = ZONES["ET"]
@@ -32,11 +33,11 @@ class Time(datetime):
     TZ = ZONES["ET"]
 
     @classmethod
-    def now(cls) -> "Time":
-        return cls.from_ts(datetime.now(cls.TZ).timestamp())
+    def rn(cls) -> "Time":
+        return cls.now(tz=cls.TZ).replace(second=0, microsecond=0)
 
     @classmethod
-    def from_ts(cls, ts: int | float) -> "Time":
+    def from_ts(cls, ts: float) -> "Time":
         return cls.fromtimestamp(ts, tz=cls.TZ)
 
     @classmethod
@@ -44,23 +45,13 @@ class Time(datetime):
         return cls.now().replace(hour=8, minute=0, second=0, microsecond=0).timestamp()
 
     def delta(self, **kwargs) -> "Time":
-        return self.from_ts((self + timedelta(**kwargs)).timestamp())
-
-    def clean(self) -> "Time":
-        return self.__class__.fromtimestamp(
-            self.replace(second=0, microsecond=0).timestamp(),
-            tz=self.TZ,
-        )
+        return self + timedelta(**kwargs)
 
     def to_tz(self, tzone: str) -> "Time":
-        dt = self.astimezone(self.ZONES[tzone])
-
-        return self.__class__.fromtimestamp(dt.timestamp(), tz=self.ZONES[tzone])
+        return self.__class__.fromtimestamp(self.timestamp(), tz=self.ZONES[tzone])
 
     @classmethod
-    def _to_class_tz(cls, dt) -> "Time":
-        dt = dt.astimezone(cls.TZ)
-
+    def __to_class_tz(cls, dt: datetime) -> "Time":
         return cls.fromtimestamp(dt.timestamp(), tz=cls.TZ)
 
     @classmethod
@@ -68,14 +59,13 @@ class Time(datetime):
         cls,
         s: str,
         fmt: str | None = None,
-        timezone: str | None = None,
+        tz_name: str | None = None,
     ) -> "Time":
-        tz = cls.ZONES.get(timezone, cls.TZ)
+
+        tz = cls.ZONES[tz_name] if tz_name else cls.TZ
 
         if fmt:
-            dt = datetime.strptime(s, fmt)
-
-            dt = tz.localize(dt)
+            dt = datetime.strptime(s, fmt).replace(tzinfo=tz)
 
         else:
             formats = [
@@ -85,6 +75,7 @@ class Time(datetime):
                 "%d %B,%Y %H:%M %p",
                 "%d %B ,%Y %I:%M %p",
                 "%d %B ,%Y %H:%M %p",
+                "%d%B,%Y %H:%M %p",
                 "%B %d, %Y %I:%M %p",
                 "%B %d, %Y %I:%M:%S %p",
                 "%B %d, %Y %H:%M:%S",
@@ -94,6 +85,7 @@ class Time(datetime):
                 "%Y-%m-%d %I:%M %p",
                 "%Y-%m-%d %H:%M %p",
                 "%Y-%m-%dT%H:%M:%S",
+                "%Y-%m-%dT%H:%M",
                 "%Y/%m/%d %H:%M",
                 "%Y/%m/%d %H:%M:%S",
                 "%m/%d/%Y %H:%M",
@@ -104,32 +96,29 @@ class Time(datetime):
                 "%a, %d %b %Y %H:%M:%S %z",
                 "%A, %b %d, %Y %H:%M",
             ]
+
             for frmt in formats:
                 try:
-                    dt = datetime.strptime(s, frmt)
+                    dt = datetime.strptime(s, frmt)  # noqa: DTZ007
                     break
                 except ValueError:
                     continue
             else:
-                return cls.from_ts(Time.default_8())
+                return cls.from_ts(cls.default_8())
 
             if not dt.tzinfo:
-                dt = (
-                    tz.localize(dt)
-                    if hasattr(tz, "localize")
-                    else dt.replace(tzinfo=tz)
-                )
+                dt = dt.replace(tzinfo=tz)
 
-        return cls._to_class_tz(dt)
+        return cls.__to_class_tz(dt)
 
 
 class Leagues:
-    live_img = "https://files.catbox.moe/8kqv9g.png"
+    live_img = "https://files.catbox.moe/jd3pxq.png"
 
     def __init__(self) -> None:
         self.data = json.loads(
-            (Path(__file__).parent / "leagues.json").read_text(encoding="utf-8")
-       )
+            (Path(__file__).parent / "sports.json").read_text(encoding="utf-8")
+        )
 
     def teams(self, league: str) -> list[str]:
         return self.data["teams"].get(league, [])
@@ -162,9 +151,11 @@ class Leagues:
         pattern = re.compile(r"\s+(?:-|vs\.?|at|@)\s+", re.I)
 
         if pattern.search(event):
-            t1, t2 = pattern.split(event)[:2]
+            t1, t2 = pattern.split(event, maxsplit=1)
 
             return any(t in self.teams(league) for t in (t1.strip(), t2.strip()))
+
+        return False
 
     def get_tvg_info(
         self,
@@ -211,4 +202,4 @@ class Leagues:
 
 leagues = Leagues()
 
-__all__ = ["leagues", "Event", "Time"]
+__all__ = ["Event", "Time", "leagues"]
