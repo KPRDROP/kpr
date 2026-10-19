@@ -34,13 +34,16 @@
             "BALONCESTO",
             "BASKETBALL ASIAN GAMES",
             "BASKETBALL EUROBASKET QUALIFICATION",
+            "BASKETBALL EUROCUP",
             "BASKETBALL EUROLEAGUE SUPER CUP",
+            "BASKETBALL EUROPE CUP",
             "BASKETBALL FRIENDLY",
             "BASKETBALL INTERCONTINENTAL CUP",
             "BASKETBALL NBL",
             "BASKETBALL WORLD CUP",
             "BASKETBALL WORLD CUP QUALIFICATION",
             "CEBL",
+            "CYPRUS BASKETBALL",
             "FIBA BASKETBALL WORLD CUP",
             "FIBA WOMEN'S WORLD CUP",
             "FIBA WORLD CUP",
@@ -76,6 +79,7 @@
             "CRICKET CPL",
             "CRICKET CPL T20",
             "CRICKET ETPL",
+            "CRICKET LEGENDS",
             "CRICKET T20",
             "CRICKET TEST SERIES"
           ]
@@ -168,7 +172,11 @@
       {
         "HOCKEY": {
           "logo": "https://images.emojiterra.com/google/noto-emoji/unicode-15/color/512px/1f3d2.png",
-          "aliases": ["CHAMPIONS HOCKEY LEAGUE", "HOCKEY CHL"]
+          "aliases": [
+            "CHAMPIONS HOCKEY LEAGUE",
+            "HOCKEY CHAMPIONS LEAGUE",
+            "HOCKEY CHL"
+          ]
         }
       },
       {
@@ -324,7 +332,8 @@
             "MMA",
             "MMA FIGHTING",
             "MMA ONE",
-            "MMA/PFL/BKFC"
+            "MMA/PFL/BKFC",
+            "MUY THAI"
           ]
         }
       },
@@ -448,6 +457,18 @@
         "ENGLISH RUGBY SUPER LEAGUE": {
           "logo": "https://static.wikia.nocookie.net/rugbyleaguefootball/images/c/c4/SuperLeagueLogoStacked.png/revision/latest/scale-to-width-down/1200",
           "aliases": ["BETFRED SUPER LEAGUE"]
+        }
+      },
+      {
+        "EPCR CHALLENGE CUP": {
+          "logo": "https://upload.wikimedia.org/wikipedia/commons/9/94/European_Rugby_Challenge_Cup.png",
+          "aliases": ["RUGBY CHALLENGE CUP"]
+        }
+      },
+      {
+        "EUROPEAN RUGBY CHAMPIONS CUP": {
+          "logo": "https://upload.wikimedia.org/wikipedia/ru/f/fc/European_Rugby_Champions_Cup_Logo.png",
+          "aliases": ["INVESTEC CHAMPIONS CUP"]
         }
       },
       {
@@ -757,6 +778,7 @@
           "aliases": [
             "BULGARIA - PARVA LIGA",
             "BULGARIA PARVA LIGA",
+            "BULGARIA PRO CUP",
             "BULGARIAN FIRST LEAGUE",
             "PARVA LIGA"
           ]
@@ -1075,6 +1097,17 @@
         }
       },
       {
+        "COPA LIBERTADORES FEMENINA": {
+          "logo": "https://upload.wikimedia.org/wikipedia/en/6/69/Conmebol_libertadores_femenina_logo.png",
+          "aliases": [
+            "CONMEBOL LIBERTADORES FEMENINA",
+            "COPA LIBERTADORES FEMININA",
+            "TACA LIBERTADORES FEMININA",
+            "TAÇA LIBERTADORES FEMININA"
+          ]
+        }
+      },
+      {
         "COPA PARAGUAY": {
           "logo": "https://files.tips.gg/static/image/tournaments/football-copa-paraguay-2026.png",
           "aliases": ["PARAGUAY COPA", "PARAGUAY CUP", "PARAGUAYAN CUP"]
@@ -1150,6 +1183,31 @@
             "CROATIA PRVA NL",
             "HRVATSKA NOGOMETNA LIGA",
             "SUPERSPORT HNL"
+          ]
+        }
+      },
+      {
+        "CYPRIOT CUP": {
+          "logo": "https://upload.wikimedia.org/wikipedia/en/9/97/Northern_Cyprus_Football_Cup_logo.png",
+          "aliases": [
+            "CYPRIOT COCA-COLA CUP",
+            "CYPRIOT COCA-COLA CUP OF FIRST AND SECOND DIVISION",
+            "CYPRUS COCA-COLA CUP",
+            "CYPRUS COCA-COLA CUP OF FIRST AND SECOND DIVISION",
+            "CYPRUS CUP"
+          ]
+        }
+      },
+      {
+        "CYPRUS 2ND LEAGUE": {
+          "logo": "https://r2.thesportsdb.com/images/media/league/badge/9guxil1615835119.png",
+          "aliases": [
+            "CYPRIOT 2ND DIVISION",
+            "CYPRIOT SECOND DIVISION",
+            "CYPRIOT SECOND LEAGUE",
+            "CYPRIOT SECOND LEAGUE",
+            "CYPRUS 2ND DIVISION",
+            "CYPRUS SECOND DIVISION"
           ]
         }
       },
@@ -1515,6 +1573,17 @@
         }
       },
       {
+        "INDIA SUPER LEAGUE": {
+          "logo": "https://static.wikia.nocookie.net/logopedia/images/3/3a/Indian_Super_League_white_logo_sponsorless.png/revision/latest",
+          "aliases": [
+            "INDIAN SUPER LEAGUE",
+            "ISL",
+            "MG INDIAN SUPER LEAGUE",
+            "MG ISL"
+          ]
+        }
+      },
+      {
         "IRELAND FAI CUP": {
           "logo": "https://r2.thesportsdb.com/images/media/league/badge/ffnp2x1750442568.png",
           "aliases": [
@@ -1529,6 +1598,8 @@
         "IRELAND PREMIER DIVISION": {
           "logo": "https://assets.football-logos.cc/logos/republic-of-ireland/1500x1500/league-of-ireland-premier-division.bbd4823a.png",
           "aliases": [
+            "IRELAND PREMIER LEAGUE",
+            "IRELAND PREMIER PREMIER LEAGUE",
             "IRISH PREMIER DIVISION",
             "IRISH PREMIER DIVISION",
             "LEAGUE OF IRELAND MEN'S PREMIER DIVISION",
@@ -1557,6 +1628,21 @@
             "JAPAN J1 LEAGUE",
             "JAPANESE J.LEAGUE",
             "MEIJI YASUDA J1 LEAGUE"
+          ]
+        }
+      },
+      {
+        "J1 LEAGUE CUP": {
+          "logo": "https://gbaike-image.cdn.bcebos.com/79f0f736afc379310a55e8e16e8ea04543a98326bbeb/79f0f736afc379310a55e8e16e8ea04543a98326bbeb_url?x-bce-process=image/format,f_auto/resize,m_lfit,w_400,limit_1",
+          "aliases": [
+            "J.LEAGUE CUP",
+            "J.LEAGUE YAMAZAKI BISCUIT CO.LTD",
+            "JAPAN J LEAGUE CUP",
+            "JAPAN J1 LEAGUE CUP",
+            "JAPANESE J.LEAGUE CUP",
+            "LEVAIN CUP",
+            "MEIJI YASUDA J1 LEAGUE CUP",
+            "YBC LEVAIN CUP"
           ]
         }
       },
@@ -1598,6 +1684,17 @@
             "KAZAKH PREMIER LEAGUE",
             "KAZAKHSTAN PREMIER LEAGUE",
             "KAZAKHSTAN PROFESSIONAL FOOTBALL LEAGUE"
+          ]
+        }
+      },
+      {
+        "KENYA PREMIER LEAGUE": {
+          "logo": "https://upload.wikimedia.org/wikipedia/en/9/93/Kenyan_Premier_League_logo.png",
+          "aliases": [
+            "FKF PREMIER LEAGUE",
+            "KENYAN PREMIER LEAGUE",
+            "KPL",
+            "SPORTPESA LEAGUE"
           ]
         }
       },
@@ -1728,12 +1825,34 @@
         }
       },
       {
+        "LIGA 2": {
+          "logo": "https://img.sofascore.com/api/v1/unique-tournament/10297/image",
+          "aliases": [
+            "LIGA 2 DE FUTBOL PROFESIONAL",
+            "LIGA 2 DE FÚTBOL PROFESIONAL",
+            "LIGA 2 TE APUESTO",
+            "PERU - SEGUNDA DIVISION",
+            "PERU - SEGUNDA DIVISIÓN",
+            "PERU LIGA 2",
+            "PERU LIGA 2 APERTURA",
+            "PERU LIGA II",
+            "PERU LIGA II APERTURA",
+            "PERU SEGUNDA DIVISION",
+            "PERU SEGUNDA DIVISIÓN",
+            "PERUVIAN LIGA 2",
+            "PERUVIAN LIGA II"
+          ]
+        }
+      },
+      {
         "LIGA AUF URUGUAYA": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/1592.png",
           "aliases": [
             "LIGA PROFESIONAL DE PRIMERA DIVISION",
             "LIGA PROFESIONAL DE PRIMERA DIVISIÓN",
             "LIGA URUGUAY",
+            "PRIMERA DIVISION DE URUGUAY",
+            "PRIMERA DIVISIÓN DE URUGUAY",
             "URUGUAY LIGA AUF",
             "URUGUAY PRIMERA DIVISION",
             "URUGUAY PRIMERA DIVISIÓN"
@@ -1976,6 +2095,12 @@
         }
       },
       {
+        "MOROCCO BOTOLA PRO": {
+          "logo": "https://assets.footylogos.com/previews/botola-pro-1/botola-pro-1-logo-footylogos-320.webp",
+          "aliases": ["BOTOLA PRO", "BOTOLA PRO INWI"]
+        }
+      },
+      {
         "MTN 8": {
           "logo": "https://assets.football-logos.cc/logos/south-africa/1500x1500/mtn-8.40640b4e.png",
           "aliases": ["MTN 8 CUP", "SOUTH AFRICA MTN8 CUP"]
@@ -2031,6 +2156,16 @@
             "PUCHAR POLSKI W PIŁCE NOŻNEJ",
             "STS POLISH CUP",
             "STS PUCHAR POLSKI"
+          ]
+        }
+      },
+      {
+        "PORTUGAL CUP": {
+          "logo": "https://static.wikia.nocookie.net/logopedia/images/7/7b/Portugal_Cup_logo.svg/revision/latest/scale-to-width-down/500",
+          "aliases": [
+            "COPA DE PORTUGAL",
+            "TACA DE PORTUGAL",
+            "TAÇA DE PORTUGAL"
           ]
         }
       },
@@ -2309,6 +2444,7 @@
             "AMISTOSO",
             "AMISTOSO FEMENINO",
             "AMISTOSO INTERNACIONAL",
+            "AMISTOSO INTERNACIONAL FEMENINO",
             "CAMPEONATO CONCACAF SUB20",
             "CAMPEONATO SUB-20",
             "CAMPEONATO SUB-20 DE LA CONCACAF",
@@ -2343,7 +2479,6 @@
             "PARTIDO AMISTOSO",
             "PREMIER LEAGUE 2",
             "SOUTH AFRICA DISKI CHALLENGE",
-            "TORNEO DE RESERVA",
             "U18 EUROPEAN CHAMPIONSHIP",
             "UEFA YOUTH LEAGUE",
             "UEFA YOUTH LEAGUE SUB-19",
@@ -2480,6 +2615,16 @@
             "THAI PREMIER LEAGUE",
             "THAILAND PREMIER LEAGUE",
             "THAILAND THAI LEAGUE 1"
+          ]
+        }
+      },
+      {
+        "TORNEO DE RESERVA": {
+          "logo": "https://img.sofascore.com/api/v1/unique-tournament/18817/image",
+          "aliases": [
+            "ARGENTINA RESERVE LEAGUE",
+            "ARGENTINE RESERVE LEAGUE",
+            "RESERVE LEAGUE"
           ]
         }
       },
@@ -2689,6 +2834,17 @@
             "LIGA VENEZOLANA",
             "VENEZUELA LIGA FUTVE",
             "VENEZUELAN PRIMERA DIVISION"
+          ]
+        }
+      },
+      {
+        "VIETNAM V LEAGUE": {
+          "logo": "https://files.catbox.moe/gvdiyr.png",
+          "aliases": [
+            "V.LEAGUE 1",
+            "VIETNAM V.LEAGUE 1",
+            "VIETNAMESE V LEAGUE",
+            "VIETNAMESE V.LEAGUE 1"
           ]
         }
       },
