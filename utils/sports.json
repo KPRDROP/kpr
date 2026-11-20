@@ -206,7 +206,9 @@
             "MAJOR BASEBALL LEAGUE",
             "MAJOR LEAGUE BASEBALL",
             "MLB BASEBALL",
-            "MLB PLAYOFFS"
+            "MLB PLAYOFFS",
+            "MLB WORLD SERIES",
+            "WORLD SERIES"
           ]
         }
       }
@@ -245,6 +247,10 @@
             "MNCAA BASKETBALL",
             "NCAA - BASKETBALL",
             "NCAA - FOOTBALL",
+            "NCAA - MEN BASKETBALL",
+            "NCAA - MEN'S BASKETBALL",
+            "NCAA - WOMEN BASKETBALL",
+            "NCAA - WOMEN'S BASKETBALL",
             "NCAA AMERICAN FOOTBALL",
             "NCAA BASKETBALL",
             "NCAA COLLEGE BASKETBALL",
@@ -252,18 +258,52 @@
             "NCAA DIVISION I, NATIONAL CHAMPIONSHIP",
             "NCAA FOOTBALL",
             "NCAA MEN",
+            "NCAA MEN BASKETBALL",
+            "NCAA MEN D-1",
+            "NCAA MEN D-I",
+            "NCAA MEN D1",
+            "NCAA MEN DI",
+            "NCAA MEN DIVISION 1",
+            "NCAA MEN DIVISION I",
+            "NCAA MEN DIVISION ONE",
             "NCAA MEN'S BASKETBALL",
+            "NCAA MEN'S D-1",
+            "NCAA MEN'S D-I",
+            "NCAA MEN'S D1",
+            "NCAA MEN'S DI",
+            "NCAA MEN'S DIVISION 1",
+            "NCAA MEN'S DIVISION I",
+            "NCAA MEN'S DIVISION ONE",
             "NCAA SPORTS",
             "NCAA WOMEN",
+            "NCAA WOMEN BASKETBALL",
+            "NCAA WOMEN D-1",
+            "NCAA WOMEN D-I",
+            "NCAA WOMEN D1",
+            "NCAA WOMEN DI",
+            "NCAA WOMEN DIVISION 1",
+            "NCAA WOMEN DIVISION I",
+            "NCAA WOMEN DIVISION ONE",
             "NCAA WOMEN'S BASKETBALL",
+            "NCAA WOMEN'S D-1",
+            "NCAA WOMEN'S D-I",
+            "NCAA WOMEN'S D1",
+            "NCAA WOMEN'S DI",
+            "NCAA WOMEN'S DIVISION 1",
+            "NCAA WOMEN'S DIVISION I",
+            "NCAA WOMEN'S DIVISION ONE",
             "NCAAB",
             "NCAAB D",
             "NCAAB D-I",
+            "NCAABB",
             "NCAAF",
             "NCAAF (FBS)",
             "NCAAF D-I",
-            "NCAAM",
+            "NCAAM BASKETBALL",
+            "NCAAM BB",
             "NCAAW",
+            "NCAAW BASKETBALL",
+            "NCAAW BB",
             "WNCAA BASKETBALL"
           ]
         }
@@ -549,13 +589,14 @@
       },
       {
         "AFC CHAMPIONS LEAGUE": {
-          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2200.png&scale=crop&cquality=40&location=origin&w=500&h=500",
+          "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2200.png",
           "aliases": [
             "ACL",
             "ACL ELITE",
             "AFC CHAMPIONS",
             "AFC CHAMPIONS LEAGUE ELITE",
-            "ASIAN CHAMPIONS LEAGUE"
+            "ASIAN CHAMPIONS LEAGUE",
+            "CHAMPIONS LEAGUE ELITE"
           ]
         }
       },
@@ -657,6 +698,7 @@
         "AUSTRIA ÖFB-CUP": {
           "logo": "https://fanat-prod.b-cdn.net/images/566fbf8e-e8b3-4dde-9a27-f139bc7f3e86_640x640.png",
           "aliases": [
+            "AUSTRIA CUP",
             "AUSTRIA OFB CUP",
             "AUSTRIAN CUP",
             "AUSTRIAN OFB CUP",
@@ -1082,6 +1124,7 @@
         "COPA DEL REY": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/80.png",
           "aliases": [
+            "ESP COPA DEL REY",
             "LA COPA",
             "SPAIN COPA DEL REY",
             "SPANISH COPA DEL REY",
@@ -1093,6 +1136,18 @@
         "COPA ECUADOR": {
           "logo": "https://r2.thesportsdb.com/images/media/league/badge/86kk7j1753772273.png",
           "aliases": ["COPA FEF ECUADOR", "ECUADOR COPA"]
+        }
+      },
+      {
+        "COPA KNVB": {
+          "logo": "https://upload.wikimedia.org/wikipedia/en/f/f1/KNVB_Cup_logo.png",
+          "aliases": [
+            "DUTCH KNVB BEKER",
+            "EUROJACKPOT KNVB BEKER",
+            "KNVB BEKER",
+            "KNVB CUP",
+            "NED CUP"
+          ]
         }
       },
       {
@@ -1123,6 +1178,12 @@
         "COPA PARAGUAY": {
           "logo": "https://files.tips.gg/static/image/tournaments/football-copa-paraguay-2026.png",
           "aliases": ["PARAGUAY COPA", "PARAGUAY CUP", "PARAGUAYAN CUP"]
+        }
+      },
+      {
+        "COPA POTRERO": {
+          "logo": "https://disney.images.edge.bamgrid.com/ripcut-delivery/v2/variant/disney/658079b2-b1cb-4f56-a662-c4c170e69eb7/trim?format=webp&width=640",
+          "aliases": []
         }
       },
       {
@@ -1313,6 +1374,8 @@
           "aliases": [
             "CARABAO CUP",
             "EFL CUP",
+            "ENG LEAGUE CUP",
+            "ENG W LEAGUE CUP",
             "ENGLAND - LEAGUE CUP",
             "ENGLAND LEAGUE CUP",
             "ENGLISH - LEAGUE CUP",
@@ -1320,6 +1383,7 @@
             "ENGLISH EFL CUP",
             "ENGLISH FOOTBALL LEAGUE CUP",
             "ENGLISH LEAGUE CUP",
+            "ENGLISH WOMEN LEAGUE CUP",
             "LEAGUE CUP"
           ]
         }
@@ -1423,6 +1487,16 @@
         }
       },
       {
+        "ESP COPA DE LA REINA": {
+          "logo": "https://upload.wikimedia.org/wikipedia/commons/1/14/Logo_Copa_de_la_Reina_2021.png",
+          "aliases": [
+            "COPA DE LA REINA",
+            "COPA DE LA REINA DE FUTBOL",
+            "COPA DE LA REINA DE FÚTBOL"
+          ]
+        }
+      },
+      {
         "ESTONIA MEISTRILIIGA": {
           "logo": "https://r2.thesportsdb.com/images/media/league/badge/uztem21615840481.png",
           "aliases": [
@@ -1437,6 +1511,10 @@
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/40.png&w=500&h=500",
           "aliases": [
             "EMIRATES FA CUP",
+            "ENG FA",
+            "ENG FA CUP",
+            "ENG W FA",
+            "ENG W FA CUP",
             "ENGLISH FA CUP",
             "FA CUP",
             "FOOTBALL ASSOCIATION CHALLENGE CUP"
@@ -1528,6 +1606,7 @@
           "aliases": [
             "DFB POKAL",
             "DFB-POKAL",
+            "GER DFB POKAL",
             "GERMAN DFB POKAL",
             "GERMANY - DFB POKAL",
             "GERMANY DFB POKAL"
@@ -1564,6 +1643,12 @@
         }
       },
       {
+        "HUNGARY CUP": {
+          "logo": "https://upload.wikimedia.org/wikipedia/commons/9/98/MAGYAR_KUPA_LOGO.png",
+          "aliases": ["HUNGARIAN CUP", "MAGYAR KUPA", "MOL MAGYAR KUPA"]
+        }
+      },
+      {
         "HUNGARY NB 1 LIGA": {
           "logo": "https://assets.football-logos.cc/logos/hungary/1500x1500/nemzeti-bajnoksag.bd684103.png",
           "aliases": [
@@ -1588,6 +1673,7 @@
         "INDIA SUPER LEAGUE": {
           "logo": "https://static.wikia.nocookie.net/logopedia/images/3/3a/Indian_Super_League_white_logo_sponsorless.png/revision/latest",
           "aliases": [
+            "INDIA ISL LEAGUE",
             "INDIAN SUPER LEAGUE",
             "ISL",
             "MG INDIAN SUPER LEAGUE",
@@ -1828,6 +1914,7 @@
             "COPA DE LA LIGA",
             "LIGA 1 DE FUTBOL PROFESIONAL",
             "LIGA 1 DE FÚTBOL PROFESIONAL",
+            "LIGA 1 PERU",
             "LIGA 1 TE APUESTO",
             "PERU - PRIMERA DIVISION",
             "PERU - PRIMERA DIVISIÓN",
@@ -1848,6 +1935,7 @@
           "aliases": [
             "LIGA 2 DE FUTBOL PROFESIONAL",
             "LIGA 2 DE FÚTBOL PROFESIONAL",
+            "LIGA 2 PERU",
             "LIGA 2 TE APUESTO",
             "PERU - SEGUNDA DIVISION",
             "PERU - SEGUNDA DIVISIÓN",
@@ -2078,6 +2166,12 @@
         }
       },
       {
+        "LITHUANIA TOPLYGA": {
+          "logo": "https://assets.football-logos.cc/logos/lithuania/1500x1500/toplyga.636c1f41.png",
+          "aliases": ["A LYGA", "TOPLYGA"]
+        }
+      },
+      {
         "MACEDONIAN FIRST FOOTBALL LEAGUE": {
           "logo": "https://macedonianfootball.com/wp-content/uploads/2017/06/fudbal-novo-logo-ffm_7-254x300.png",
           "aliases": [
@@ -2097,6 +2191,12 @@
         "MALAYSIA SUPER LEAGUE": {
           "logo": "https://static.wikia.nocookie.net/logopedia/images/7/73/Malaysian_Super_League_%282023%29.svg/revision/latest/scale-to-width-down/150",
           "aliases": ["LIGA SUPER MALAYSIA"]
+        }
+      },
+      {
+        "MESSI CUP": {
+          "logo": "https://files.catbox.moe/2ipl11.png",
+          "aliases": []
         }
       },
       {
@@ -2340,7 +2440,8 @@
             "SAUDI ARABIA - PRO LEAGUE",
             "SAUDI ARABIA PRO LEAGUE",
             "SAUDI LEAGUE",
-            "SAUDI PREMIER LEAGUE"
+            "SAUDI PREMIER LEAGUE",
+            "SPL"
           ]
         }
       },
@@ -2482,6 +2583,7 @@
             "CONCACAF U20 CHAMPIONSHIP",
             "COPA INTERCONTINENTAL SUB-20",
             "COPA MUNDIAL FEMENINA",
+            "COPA MUNDIAL FEMENINA SUB",
             "COPA MUNDIAL FEMENINA SUB-17",
             "COPA MUNDIAL FEMENINA SUB-20",
             "COPA MUNDIAL SUB-20 (F)",
@@ -2508,6 +2610,7 @@
             "U18 EUROPEAN CHAMPIONSHIP",
             "UEFA YOUTH LEAGUE",
             "UEFA YOUTH LEAGUE SUB-19",
+            "WOMEN U17 WORLD CUP",
             "WORLD CLUB FRIENDLY",
             "WORLD CUP QUALIFIERS",
             "WORLD CUP WOMEN U20"
@@ -2522,6 +2625,12 @@
             "SOUTH AFRICAN PREMIER DIVISION",
             "SOUTH AFRICAN PREMIERSHIP"
           ]
+        }
+      },
+      {
+        "SOUTH AFRICA CARLING KNOCKOUT": {
+          "logo": "https://media.sundayworld.co.za/wp-content/uploads/2025/10/Knockout-Cup-Logo-300x166.png",
+          "aliases": ["CARLING KNOCKOUT CUP"]
         }
       },
       {
@@ -2629,6 +2738,21 @@
             "LIGI KUU TANZANIA BARA",
             "TANZANIA MAINLAND PREMIER LEAGUE",
             "TANZANIAN PREMIER LEAGUE"
+          ]
+        }
+      },
+      {
+        "TAÇA DA LIGA": {
+          "logo": "https://r2.thesportsdb.com/images/media/league/badge/crq7hz1593012623.png",
+          "aliases": [
+            "COPA DE PORTUGAL",
+            "COPA DE PORTUGAL CUPA",
+            "PORTUGUESE LEAGUE CUP",
+            "TACA DA LIGA",
+            "TACA DE LIGA PORTUGAL",
+            "TACA DE PORTUGAL LIGA",
+            "TAÇA DE LIGA PORTUGAL",
+            "TAÇA DE PORTUGAL LIGA"
           ]
         }
       },
@@ -2789,21 +2913,34 @@
       {
         "UEFA WOMEN EUROPA CUP": {
           "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/4/46/UEFA_Women%27s_Europa_Cup.svg/960px-UEFA_Women%27s_Europa_Cup.svg.png",
-          "aliases": ["UEFA EUROPA CUP WOMEN"]
+          "aliases": [
+            "UEFA EUROPA CUP WOMEN",
+            "UEFA W EUROPA",
+            "UEFA W EUROPA CUP"
+          ]
         }
       },
       {
         "UEFA WOMEN'S CHAMPIONS LEAGUE": {
           "logo": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2408.png",
           "aliases": [
+            "CHAMPIONS LEAGUE FEMENINA",
             "UCL WOMEN",
             "UEFA CHAMPIONS LEAGUE FEMENINA",
+            "UEFA CHAMPIONS LEAGUE WOMEN",
+            "UEFA WCHAMPIONS",
             "UEFA WOMEN",
             "UEFA WOMEN CHAMPIONS LEAGUE",
             "UEFA WOMEN'S CHAMPIONS LEAGUE QUALIFYING",
             "UEFA WOMENS CHAMPIONS LEAGUE",
             "WOMEN'S CHAMPIONS LEAGUE"
           ]
+        }
+      },
+      {
+        "UKRAINE CUP": {
+          "logo": "https://files.catbox.moe/lor6qk.png",
+          "aliases": ["UKRAINIAN CUP"]
         }
       },
       {
@@ -2938,6 +3075,7 @@
           "aliases": [
             "ATP",
             "ATP 1000",
+            "ATP FINALS",
             "ATP M1000 CINCINNATI",
             "ATP M1000 MONTREAL",
             "ATP MASTERS 1000",
